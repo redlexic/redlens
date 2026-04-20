@@ -125,14 +125,20 @@ export function OFReport({ onNavigate }: { onNavigate: (id: string) => void }) {
     return [...seen.entries()].map(([id, v]) => ({ id, ...v }));
   }, [chains]);
 
-  const filtered = OF_RESPONSIBILITIES.filter(r => {
-    const agentNames = r.agents ?? (r.agent ? [r.agent] : []);
-    if (agentFilter && !agentNames.includes(agentFilter)) return false;
-    if (facilitatorFilter) {
-      const match = agentNames.some(a => chains.get(a)?.facilitatorName === facilitatorFilter);
-      if (!match) return false;
-    }
-    return true;
+  const filtered = OF_RESPONSIBILITIES.flatMap(r => {
+    // Expand multi-agent entries into one row per agent
+    const expanded: OFResponsibility[] = r.agents
+      ? r.agents.map(a => ({ ...r, agents: undefined, agent: a }))
+      : [r];
+    return expanded.filter(row => {
+      const agentNames = row.agent ? [row.agent] : [];
+      if (agentFilter && !agentNames.includes(agentFilter)) return false;
+      if (facilitatorFilter) {
+        const match = agentNames.some(a => chains.get(a)?.facilitatorName === facilitatorFilter);
+        if (!match) return false;
+      }
+      return true;
+    });
   });
 
   const byCategory = Object.groupBy(filtered, r => r.category) as Record<OFResponsibility['category'], OFResponsibility[]>;
