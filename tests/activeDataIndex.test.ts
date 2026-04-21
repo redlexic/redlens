@@ -128,33 +128,32 @@ describe("buildActiveDataRows", () => {
     }
   });
 
-  it("every row under a Prime Agent gets an Operational Facilitator editor", () => {
+  it("every row under a Prime Agent gets an Operational Facilitator", () => {
     for (const r of rows) {
       if (!r.agent) continue;
-      // If the chain has a facilitator for this agent, editor must match it.
       if (r.chain?.facilitatorName) {
-        expect(r.editor?.name).toBe(r.chain.facilitatorName);
-        expect(r.editor?.role).toBe("Operational Facilitator");
+        expect(r.facilitator?.name).toBe(r.chain.facilitatorName);
+        expect(r.facilitator?.role).toBe("Operational Facilitator");
       }
     }
   });
 
-  it("every Sky Core Atlas row (A.1.*) gets the Core Facilitator editor", () => {
+  it("every Sky Core Atlas row (A.1.*) gets the Core Facilitator", () => {
     const coreFacEdge = relations.edges.find(e => e.e === "core_facilitator_for");
-    if (!coreFacEdge) return; // Graph-level guarantee tested elsewhere.
+    if (!coreFacEdge) return;
     for (const r of rows) {
       if (r.agent) continue;
       if (!(r.controllerDocNo ?? "").startsWith("A.1.")) continue;
-      expect(r.editor?.id).toBe(coreFacEdge.f);
-      expect(r.editor?.role).toBe("Core Facilitator");
+      expect(r.facilitator?.id).toBe(coreFacEdge.f);
+      expect(r.facilitator?.role).toBe("Core Facilitator");
     }
   });
 
-  it("ADCs outside agents and Sky Core (A.2.*, accords, …) have no editor", () => {
+  it("ADCs outside agents and Sky Core (A.2.*, accords, …) have no facilitator", () => {
     for (const r of rows) {
       if (r.agent) continue;
       if ((r.controllerDocNo ?? "").startsWith("A.1.")) continue;
-      expect(r.editor).toBeNull();
+      expect(r.facilitator).toBeNull();
     }
   });
 });
@@ -170,7 +169,7 @@ describe("activeDataRowsToCSV", () => {
 
   it("quotes every cell — no bare commas in row content leak the column count", () => {
     // Active Data Doc, Title, Controller Doc, Controller Title,
-    // Agent, Responsible Party, Editor, Editor Role, Process = 9 cells.
+    // Agent, Responsible Party, Facilitator, Facilitator Role, Process = 9 cells.
     const expectedQuotes = 9 * 2;
     for (const line of lines.slice(1)) {
       expect((line.match(/"/g) ?? []).length).toBe(expectedQuotes);

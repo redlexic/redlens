@@ -28,19 +28,21 @@ export interface AgentChain {
   govopsId: string | null;
 }
 
-export type EditorRole = "Operational Facilitator" | "Core Facilitator";
+export type FacilitatorRole = "Operational Facilitator" | "Core Facilitator";
 
 export interface ResponsibleParty {
   name: string;
-  id: string;
+  id: string;           // entity UUID (not a doc)
+  docId: string | null; // defining Atlas doc — safe target for navigation
   resolution: "direct" | "chain" | "role";
   declared: string | null; // raw RP text from the ADC, for provenance
 }
 
-export interface Editor {
+export interface Facilitator {
   name: string;
-  id: string;
-  role: EditorRole;
+  id: string;           // entity UUID (not a doc)
+  docId: string | null; // defining Atlas doc — safe target for navigation
+  role: FacilitatorRole;
 }
 
 export interface ActiveDataRow {
@@ -53,7 +55,7 @@ export interface ActiveDataRow {
   agent: string | null;
   chain: AgentChain | null;
   responsibleParty: ResponsibleParty | null;
-  editor: Editor | null;
+  facilitator: Facilitator | null;
   process: ProcessKind;
   sourceDocNo: string | null;
 }
@@ -112,12 +114,14 @@ export interface GraphInput {
 //   Controller         — `active_data_for` edge (AD doc → controller doc).
 //   Responsible Party  — `responsible_party_for` edge (entity → controller doc).
 //                        Atlas A.1.12.1.2 — declared in the ADC; proposes updates.
+//                        Resolution priority (mirrored in build-graph.mjs):
+//                        role-binding → direct → chain.
 //                        Falls back to null ("Governance") only if the graph didn't
 //                        emit an edge (support_facilitator case, unparseable text).
-//   Editor             — Atlas A.1.12.1.3.1. For an ADC under a Prime Agent
-//                        (doc_no starts with an agent prefix), editor = the
-//                        Operational Facilitator for that Prime's Executor Agent.
-//                        Otherwise (Sky Core), editor = the Core Facilitator.
+//   Facilitator        — Atlas A.1.12.1.3.1. Approves/commits the edit. For an ADC
+//                        under a Prime Agent (doc_no starts with an agent prefix),
+//                        facilitator = the Operational Facilitator for that Prime's
+//                        Executor Agent. Otherwise (Sky Core), = the Core Facilitator.
 export function buildActiveDataRows(
   docs: Record<string, AtlasNode>,
   graph: GraphInput,
@@ -158,20 +162,31 @@ export function buildActiveDataRows(
     const responsibleParty: ResponsibleParty | null = respEntity ? {
       name: respEntity.name,
       id: respEntity.id,
+      docId: respEntity.did ?? null,
       resolution: respMeta?.resolution ?? "direct",
       declared: respMeta?.role_declared ?? null,
     } : null;
 
-    // A.1.12.1.3.1 only specifies Editor for Agent Artifacts (A.6.1.1.*) and the
-    // Sky Core Atlas (A.1.*). For other areas (primitive specs A.2.*, ecosystem
-    // accords, etc.) the Atlas is silent — leave Editor null rather than guess.
+    // A.1.12.1.3.1 only specifies a Facilitator for Agent Artifacts (A.6.1.1.*) and
+    // the Sky Core Atlas (A.1.*). For other areas (primitive specs A.2.*, ecosystem
+    // accords, etc.) the Atlas is silent — leave it null rather than guess.
     const isSkyCoreAtlasAdc = (controllerDocNo ?? "").startsWith("A.1.");
-    const editor: Editor | null = agent
+    const facilitator: Facilitator | null = agent
       ? (chain?.facilitatorName && chain.facilitatorId
-          ? { name: chain.facilitatorName, id: chain.facilitatorId, role: "Operational Facilitator" }
+          ? {
+              name: chain.facilitatorName,
+              id: chain.facilitatorId,
+              docId: entityById.get(chain.facilitatorId)?.did ?? null,
+              role: "Operational Facilitator",
+            }
           : null)
       : (isSkyCoreAtlasAdc && coreFacEntity
-          ? { name: coreFacEntity.name, id: coreFacEntity.id, role: "Core Facilitator" }
+          ? {
+              name: coreFacEntity.name,
+              id: coreFacEntity.id,
+              docId: coreFacEntity.did ?? null,
+              role: "Core Facilitator",
+            }
           : null);
 
     return {
@@ -184,7 +199,7 @@ export function buildActiveDataRows(
       agent,
       chain,
       responsibleParty,
-      editor,
+      facilitator,
       process: extractProcess((controllerDoc ?? ad).content),
       sourceDocNo: respEdge?.s?.[0] ?? ctrl?.source ?? null,
     };
@@ -192,9 +207,9 @@ export function buildActiveDataRows(
 }
 
 export function activeDataRowsToCSV(rows: ActiveDataRow[]): string {
-  const header = "Active Data Doc,Active Data Title,Controller Doc,Controller Title,Agent,Responsible Party,Editor,Editor Role,Process\n";
+  const header = "Active Data Doc,Active Data Title,Controller Doc,Controller Title,Agent,Responsible Party,Facilitator,Facilitator Role,Process\n";
   const body = rows.map(r =>
-    `"${r.activeDataDocNo}","${r.activeDataTitle}","${r.controllerDocNo ?? ""}","${r.controllerTitle ?? ""}","${r.agent ?? ""}","${r.responsibleParty?.name ?? ""}","${r.editor?.name ?? ""}","${r.editor?.role ?? ""}","${r.process}"`
+    `"${r.activeDataDocNo}","${r.activeDataTitle}","${r.controllerDocNo ?? ""}","${r.controllerTitle ?? ""}","${r.agent ?? ""}","${r.responsibleParty?.name ?? ""}","${r.facilitator?.name ?? ""}","${r.facilitator?.role ?? ""}","${r.process}"`
   ).join("\n");
   return header + body;
 }

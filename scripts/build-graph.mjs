@@ -275,7 +275,7 @@ for (const d of allDocs.filter(isFacilitatorDoc)) {
     d.content,
     "(?:The )?(?:(?:Operational|Core) (?:Executor )?)?Facilitator for [^.]+"
   );
-  if (name) addEntity(slugify(name), name, "facilitator_org", null, null, {
+  if (name) addEntity(slugify(name), name, "facilitator_org", null, d.id, {
     source: "facilitator_doc",
     source_doc_no: d.doc_no,
   });
@@ -287,7 +287,7 @@ for (const d of allDocs.filter(isGovOpsDoc)) {
     d.content,
     "(?:(?:Operational|Core) )?GovOps for [^.]+"
   );
-  if (name) addEntity(slugify(name), name, "govops_org", null, null, {
+  if (name) addEntity(slugify(name), name, "govops_org", null, d.id, {
     source: "govops_doc",
     source_doc_no: d.doc_no,
   });
@@ -297,15 +297,24 @@ for (const d of allDocs.filter(isGovOpsDoc)) {
 // Only creates ecosystem_actor entities when the RP declaration includes an
 // explicit entity name. Role-only declarations carry no new entity — they are
 // resolved to an existing role-edge target in Section 2s.
+// Skip names that match a role-binding doc's title (e.g. "Core Council Risk
+// Advisor" → A.1.7.1.1.2) so the holder (e.g. BA Labs) gets used in 2s.
+const roleBindingTitles = new Set();
+const ccraDocEarly = docByDocNo.get(CORE_COUNCIL_RISK_ADVISOR_DOC_NO);
+if (ccraDocEarly?.title) roleBindingTitles.add(ccraDocEarly.title.toLowerCase());
 for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
   const raw = extractRP(d.content);
   if (!raw) continue;
   const { role, name } = rpRoleAndName(raw);
   if (role && !name) continue;   // "Operational GovOps" — no name to create
   if (!name) continue;
+  const needle = name.toLowerCase();
+  let hitRoleTitle = false;
+  for (const t of roleBindingTitles) if (t === needle || t.includes(needle)) { hitRoleTitle = true; break; }
+  if (hitRoleTitle) continue;
   const s = slugify(name);
   if (entityMap.has(s)) continue;
-  addEntity(s, name, "ecosystem_actor", null, null, {
+  addEntity(s, name, "ecosystem_actor", null, d.id, {
     source: "active_data_controller",
     source_doc_no: d.doc_no,
   });
@@ -317,7 +326,7 @@ const ergMemberNames = ergDoc ? extractListItems(ergDoc.content) : [];
 for (const name of ergMemberNames) {
   const s = slugify(name);
   if (!entityMap.has(s)) {
-    addEntity(s, name, "ecosystem_actor", null, null, {
+    addEntity(s, name, "ecosystem_actor", null, ergDoc?.id ?? null, {
       source: "erg_list",
       source_doc_no: ERG_DOC_NO,
     });
@@ -355,7 +364,7 @@ if (alignedDelegatesDoc) {
   for (const name of alignedDelegateNames) {
     const s = slugify(name);
     if (!entityMap.has(s)) {
-      addEntity(s, name, "delegate_org", null, null, {
+      addEntity(s, name, "delegate_org", null, alignedDelegatesDoc.id, {
         source: "aligned_delegates_list",
         source_doc_no: ALIGNED_DELEGATES_DOC_NO,
       });
@@ -377,7 +386,7 @@ for (let level = 1; level <= 2; level++) {
   for (const name of names) {
     const s = slugify(name);
     if (!entityMap.has(s)) {
-      addEntity(s, name, "delegate_org", null, null, {
+      addEntity(s, name, "delegate_org", null, d.id, {
         source: "ranked_delegates_list",
         source_doc_no: docNo,
       });
@@ -395,7 +404,7 @@ if (ccraDoc) {
     const s = slugify(name);
     let entity = entityMap.get(s);
     if (!entity) {
-      entity = addEntity(s, name, "ecosystem_actor", null, null, {
+      entity = addEntity(s, name, "ecosystem_actor", null, ccraDoc.id, {
         source: "role_binding",
         source_doc_no: CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
       });
@@ -414,7 +423,7 @@ for (const d of allDocs.filter(isGrantDoc)) {
   const s = slugify(name);
   if (entityMap.has(s)) continue;
   const entity_type = /\bFoundation\b/i.test(name) ? "foundation" : "ecosystem_actor";
-  addEntity(s, name, entity_type, null, null, {
+  addEntity(s, name, entity_type, null, d.id, {
     source: "grant_recipient",
     source_doc_no: d.doc_no,
   });
@@ -528,9 +537,13 @@ for (const d of allDocs.filter(isAnnotation)) {
   if (d.parentId) addEdge(d.id, "doc", d.parentId, "doc", "annotates", [d.doc_no]);
 }
 
-// --- 2c. active_data_for (*.0.6.X → parent controller) ---
+// --- 2c. active_data_for (*.0.6.X → containing ADC) ---
+// The AD section's doc-tree parent may be several levels above the ADC because
+// build-index caps heading depth at 6. Resolve the ADC by stripping the trailing
+// `.0.6.N` segments from the AD section's doc_no instead.
 for (const d of allDocs.filter(isActiveData)) {
-  if (d.parentId) addEdge(d.id, "doc", d.parentId, "doc", "active_data_for", [d.doc_no]);
+  const adc = ancestorByStripping(d, 3);
+  if (adc) addEdge(d.id, "doc", adc.id, "doc", "active_data_for", [d.doc_no]);
 }
 
 // --- 2d. cites (UUID markdown links) ---
@@ -741,7 +754,6 @@ for (const e of edges) {
   else if (e.edgeType === "operational_govops_for")         opGovByExec.set(e.toId, e.fromId);
   else if (e.edgeType === "holds_role_for") {
     const targetDoc = docById.get(e.toId);
-    console.log("  [DBG] holds_role_for iter: toId=", e.toId, "found doc=", !!targetDoc, "title=", targetDoc?.title);
     if (targetDoc?.title) roleHolderByDocTitle.set(targetDoc.title.toLowerCase(), e.fromId);
   }
 }
@@ -751,15 +763,31 @@ const coreGovId = edges.find(e => e.edgeType === "core_govops_for")?.fromId     
 const entityById = new Map([...entityMap.values()].map(e => [e.id, e]));
 
 let rpDirect = 0, rpChain = 0, rpRole = 0, rpUnresolved = 0;
-console.log("  [DBG] holds_role_for edges count in 2s:", edges.filter(e=>e.edgeType==="holds_role_for").length);
-console.log("  [DBG] roleHolderByDocTitle:", [...roleHolderByDocTitle.entries()]);
 for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
   const raw = extractRP(d.content);
   if (!raw) { rpUnresolved++; continue; }
   const { role, name } = rpRoleAndName(raw);
 
-  let entity = name ? entityByName(name) : null;
-  let resolution = entity ? "direct" : null;
+  let entity = null;
+  let resolution = null;
+
+  // Role-binding resolution (Pattern 11): declaration names a role doc's title.
+  // e.g. "Core Council Risk Advisor" → A.1.7.1.1.2 title → BA Labs.
+  // First priority — overrides accidental stub entities created in 1f/1g.
+  if (name) {
+    const needle = name.toLowerCase();
+    for (const [title, holderId] of roleHolderByDocTitle) {
+      if (title === needle || title.includes(needle)) {
+        entity = entityById.get(holderId);
+        if (entity) { resolution = "role"; break; }
+      }
+    }
+  }
+
+  if (!entity && name) {
+    entity = entityByName(name);
+    if (entity) resolution = "direct";
+  }
 
   if (!entity && role) {
     const m = d.doc_no.match(/^A\.6\.1\.1\.(\d+)\./);
@@ -777,18 +805,6 @@ for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
     if (entity) resolution = "chain";
   }
 
-  // Role-binding fallback: declaration names a role doc's title (holds_role_for).
-  // e.g. "Core Council Risk Advisor" → A.1.7.1.1.2 "Designated Core Council Risk Advisor" → BA Labs.
-  if (!entity && name) {
-    const needle = name.toLowerCase();
-    for (const [title, holderId] of roleHolderByDocTitle) {
-      if (title === needle || title.includes(needle)) {
-        entity = entityById.get(holderId);
-        if (entity) { resolution = "role"; break; }
-      }
-    }
-  }
-
   if (entity) {
     addEdge(
       entity.id, "entity", d.id, "doc",
@@ -799,7 +815,6 @@ for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
     else if (resolution === "chain")  rpChain++;
     else                              rpRole++;
   } else {
-    console.log("  [DBG] unresolved RP:", d.doc_no, "| raw=", JSON.stringify(raw), "| role=", role, "| name=", JSON.stringify(name));
     rpUnresolved++;
   }
 }
@@ -925,9 +940,15 @@ console.log("  public/graph.json written");
 //   - Drop parent_of edges (the tree is already in docs.json).
 //   - Drop ecosystem_actor entities: too many, mostly orphans with no incoming edges.
 //     Any edge referencing a dropped entity is also dropped to avoid dangling ids.
+//   - Keep ecosystem_actors referenced by load-bearing role/RP edges so their
+//     relationships survive (e.g. BA Labs → Core Council Risk Advisor role).
 const OMIT_ENTITY_TYPES = new Set(["ecosystem_actor"]);
+const KEEP_ACTOR_EDGE_TYPES = new Set(["holds_role_for", "responsible_party_for"]);
+const pinnedActorIds = new Set(
+  edges.filter(e => KEEP_ACTOR_EDGE_TYPES.has(e.edgeType) && e.fromType === "entity").map(e => e.fromId)
+);
 const keptEntityIds = new Set(
-  entityRows.filter(e => !OMIT_ENTITY_TYPES.has(e.entity_type)).map(e => e.id)
+  entityRows.filter(e => !OMIT_ENTITY_TYPES.has(e.entity_type) || pinnedActorIds.has(e.id)).map(e => e.id)
 );
 
 const relationEdges = edges
@@ -951,7 +972,7 @@ const relationEdges = edges
   });
 
 const relationEntities = entityRows
-  .filter(e => !OMIT_ENTITY_TYPES.has(e.entity_type))
+  .filter(e => keptEntityIds.has(e.id))
   .map(e => ({
     id: e.id,
     slug: e.slug,

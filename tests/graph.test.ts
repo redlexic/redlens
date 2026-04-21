@@ -407,8 +407,17 @@ describe("auditability", () => {
 });
 
 describe("relations.json — lean browser payload", () => {
-  it("contains zero ecosystem_actor entities (filtered by design)", () => {
-    const bad = relations.entities.filter(e => e.et === "ecosystem_actor");
+  it("only pinned ecosystem_actors survive (load-bearing role/RP edges)", () => {
+    // Most ecosystem_actors are filtered from relations.json. Actors that are the
+    // source of a holds_role_for or responsible_party_for edge are pinned so their
+    // relationship survives (e.g. BA Labs → Core Council Risk Advisor).
+    const PINNED_EDGE_TYPES = new Set(["holds_role_for", "responsible_party_for"]);
+    const pinned = new Set(
+      relations.edges.filter(e => PINNED_EDGE_TYPES.has(e.e) && e.ft === "entity").map(e => e.f),
+    );
+    const bad = relations.entities
+      .filter(e => e.et === "ecosystem_actor")
+      .filter(e => !pinned.has(e.id));
     expect(bad.map(e => e.name)).toEqual([]);
   });
 

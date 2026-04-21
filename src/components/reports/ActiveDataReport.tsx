@@ -34,12 +34,12 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
     return ["Governance", ...AGENT_PREFIXES.map(([, name]) => name)].filter(a => set.has(a));
   }, [rows]);
 
-  // Unique names for the Entity filter: responsible parties + editors.
+  // Unique names for the Entity filter: responsible parties + facilitators.
   const entityNames = useMemo(() => {
     const names = new Set<string>();
     rows.forEach(r => {
       if (r.responsibleParty?.name) names.add(r.responsibleParty.name);
-      if (r.editor?.name) names.add(r.editor.name);
+      if (r.facilitator?.name) names.add(r.facilitator.name);
     });
     return [...names].sort();
   }, [rows]);
@@ -50,7 +50,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
     if (entityFilter) {
       const match =
         r.responsibleParty?.name === entityFilter ||
-        r.editor?.name === entityFilter;
+        r.facilitator?.name === entityFilter;
       if (!match) return false;
     }
     return true;
@@ -103,7 +103,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                 <th className="py-2 px-3 font-normal w-40">Controller</th>
                 <th className="py-2 px-3 font-normal w-24">Agent</th>
                 <th className="py-2 px-3 font-normal w-44">Responsible Party</th>
-                <th className="py-2 px-3 font-normal w-44">Editor</th>
+                <th className="py-2 px-3 font-normal w-44">Facilitator</th>
                 <th className="py-2 px-3 font-normal w-32">Process</th>
               </tr>
             </thead>
@@ -135,20 +135,32 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                   </td>
                   <td className="py-2 px-3 align-top">
                     {r.responsibleParty ? (
-                      <button onClick={() => onNavigate(r.responsibleParty!.id)}
-                        className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
-                        title={r.responsibleParty.declared ?? undefined}>
-                        {r.responsibleParty.name}
-                      </button>
+                      r.responsibleParty.docId ? (
+                        <button onClick={() => onNavigate(r.responsibleParty!.docId!)}
+                          className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
+                          title={r.responsibleParty.declared ?? undefined}>
+                          {r.responsibleParty.name}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-tan-2" title={r.responsibleParty.declared ?? undefined}>
+                          {r.responsibleParty.name}
+                        </span>
+                      )
                     ) : <span className="mono text-[10px] text-tan-3">Governance</span>}
                   </td>
                   <td className="py-2 px-3 align-top">
-                    {r.editor ? (
-                      <button onClick={() => onNavigate(r.editor!.id)}
-                        className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
-                        title={r.editor.role}>
-                        {r.editor.name}
-                      </button>
+                    {r.facilitator ? (
+                      r.facilitator.docId ? (
+                        <button onClick={() => onNavigate(r.facilitator!.docId!)}
+                          className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
+                          title={r.facilitator.role}>
+                          {r.facilitator.name}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-tan-2" title={r.facilitator.role}>
+                          {r.facilitator.name}
+                        </span>
+                      )
                     ) : <span className="mono text-[10px] text-tan-3">—</span>}
                   </td>
                   <td className="py-2 px-3 align-top">
