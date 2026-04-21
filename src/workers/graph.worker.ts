@@ -5,6 +5,7 @@ import type {
   RelationEdge, ResolvedEdge, RelationEntity,
   GraphWorkerInMessage, GraphWorkerOutMessage, SerializedSubgraph,
 } from "../types";
+import { fetchJsonVerified } from "../lib/verify";
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -14,10 +15,10 @@ const entityById   = new Map<string, RelationEntity>();
 
 async function init() {
   const base = import.meta.env.BASE_URL;
-  const data = await fetch(`${base}relations.json`).then(r => r.json()) as {
+  const data = await fetchJsonVerified<{
     entities: RelationEntity[];
     edges: RelationEdge[];
-  };
+  }>(`${base}relations.json`, "relations.json");
 
   graph = new MultiDirectedGraph();
 

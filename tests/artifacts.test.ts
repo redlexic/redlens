@@ -1,0 +1,94 @@
+// Cross-artifact consistency.
+//
+// Each artifact in public/ is produced by a different script at a different
+// time. Ensure references never dangle across the boundary — an address in
+// chain-state.json that isn't in addresses.json means someone edited one
+// without rebuilding the other.
+
+import { describe, it, expect } from "vitest";
+import fs from "fs";
+import path from "path";
+import type { AtlasNode, AddressInfo } from "../src/types";
+
+const ROOT = path.resolve(__dirname, "..");
+const PUBLIC = path.join(ROOT, "public");
+
+function loadJson<T>(name: string): T | null {
+  const p = path.join(PUBLIC, name);
+  if (!fs.existsSync(p)) return null;
+  return JSON.parse(fs.readFileSync(p, "utf8")) as T;
+}
+
+const docs = loadJson<Record<string, AtlasNode>>("docs.json")!;
+const addresses = loadJson<Record<string, AddressInfo>>("addresses.json");
+const chainState = loadJson<{ block: string; values: Record<string, unknown> }>("chain-state.json");
+const relations = loadJson<{ entities: { id: string; slug: string }[]; edges: { f: string; t: string; e: string; s?: string[] }[] }>("relations.json");
+
+describe("cross-artifact consistency", () => {
+  it("docs.json and addresses.json are in sync (within tolerance)", () => {
+    // The ideal state is perfect symmetry, but addresses.json is produced by
+    // a downstream script that depends on ETHERSCAN_API_KEY, so partial
+    // rebuilds are common during local iteration. Enforce a high-water mark
+    // (no more than 1% of refs missing) and warn on soft drift — catastrophic
+    // misalignment still fails, everyday lag just surfaces a count.
+    if (!addresses) return;
+
+    const refsInDocs = new Set<string>();
+    for (const n of Object.values(docs)) for (const r of n.addressRefs ?? []) refsInDocs.add(r);
+
+    const missingInAddresses = [...refsInDocs].filter((r) => !addresses[r]);
+    const orphanInAddresses = Object.keys(addresses).filter((a) => !refsInDocs.has(a));
+
+    expect(missingInAddresses.length / Math.max(refsInDocs.size, 1)).toBeLessThan(0.01);
+
+    if (missingInAddresses.length > 0) {
+      console.warn(`  ${missingInAddresses.length} addressRefs in docs.json lack addresses.json entries — run \`pnpm build:addresses\``);
+    }
+    if (orphanInAddresses.length > 0) {
+      console.warn(`  ${orphanInAddresses.length} stale entries in addresses.json (no longer referenced by any node)`);
+    }
+  });
+
+  it("chain-state.json addresses are a subset of addresses.json", () => {
+    if (!chainState || !addresses) return;
+    const known = new Set(Object.keys(addresses));
+    const unknown = Object.keys(chainState.values).filter((a) => !known.has(a));
+    expect(unknown).toEqual([]);
+  });
+
+  it("every relations.json edge source_doc_nos resolves to a real doc_no", () => {
+    if (!relations) return;
+    const knownDocNos = new Set<string>();
+    for (const n of Object.values(docs)) knownDocNos.add(n.doc_no);
+    const bad: { edge: string; s: string }[] = [];
+    for (const edge of relations.edges) {
+      for (const s of edge.s ?? []) {
+        if (!knownDocNos.has(s)) bad.push({ edge: edge.e, s });
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("history/*.json files are well-formed", () => {
+    // History can reference past UUIDs that were renamed or removed from the
+    // current atlas — that's the whole point of history. We don't require
+    // every file to resolve to a current node, just that they parse and that
+    // a large fraction still map to live docs (guard against catastrophic
+    // drift where history stopped tracking entirely).
+    const dir = path.join(PUBLIC, "history");
+    if (!fs.existsSync(dir)) return;
+    const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
+    let live = 0, orphan = 0;
+    for (const f of files) {
+      const uuid = f.replace(/\.json$/, "");
+      JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+      if (docs[uuid]) live++; else orphan++;
+    }
+    if (files.length > 0) {
+      expect(live / files.length).toBeGreaterThan(0.5);
+    }
+    if (orphan > 0) {
+      console.warn(`  ${orphan} history files reference UUIDs no longer in docs.json (atlas drift)`);
+    }
+  });
+});

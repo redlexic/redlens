@@ -22,6 +22,21 @@ const nodeCount = (() => {
   catch { return 0 }
 })()
 
+// Artifact hashes are read from public/manifest.json (emitted by
+// scripts/build-manifest.mjs). The frontend compares each fetched JSON's
+// sha256 against this map before using it — catches CDN tampering, truncated
+// responses, and stale worker caches.
+const artifactHashes: Record<string, string> = (() => {
+  try {
+    const m = JSON.parse(readFileSync('public/manifest.json', 'utf-8'))
+    const out: Record<string, string> = {}
+    for (const [name, info] of Object.entries(m.artifacts ?? {})) {
+      out[name] = (info as { sha256: string }).sha256
+    }
+    return out
+  } catch { return {} }
+})()
+
 export default defineConfig({
   base: '/redlens/',
   plugins: [
@@ -87,9 +102,10 @@ export default defineConfig({
     }),
   ],
   define: {
-    __COMMIT_HASH__:  JSON.stringify(commitHash),
-    __ATLAS_COMMIT__: JSON.stringify(atlasCommit),
-    __BUILD_TIME__:   JSON.stringify(buildTime),
-    __NODE_COUNT__:   JSON.stringify(nodeCount),
+    __COMMIT_HASH__:      JSON.stringify(commitHash),
+    __ATLAS_COMMIT__:     JSON.stringify(atlasCommit),
+    __BUILD_TIME__:       JSON.stringify(buildTime),
+    __NODE_COUNT__:       JSON.stringify(nodeCount),
+    __ARTIFACT_HASHES__:  JSON.stringify(artifactHashes),
   },
 })

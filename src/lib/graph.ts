@@ -1,4 +1,5 @@
 import type { ResolvedEdge, RelationEntity, RelationEdge, GraphWorkerOutMessage, SerializedSubgraph } from "../types";
+import { fetchJsonVerified } from "./verify";
 
 export interface GraphData {
   entities: RelationEntity[];
@@ -11,9 +12,10 @@ let graphCache: Promise<GraphData> | null = null;
 /** Load the full relations.json once and cache it. Used by reports that need bulk data. */
 export function loadGraph(): Promise<GraphData> {
   if (!graphCache) {
-    graphCache = fetch(`${import.meta.env.BASE_URL}relations.json`)
-      .then(r => r.json() as Promise<{ entities: RelationEntity[]; edges: RelationEdge[] }>)
-      .then(data => ({ entities: data.entities, edges: data.edges }));
+    graphCache = fetchJsonVerified<{ entities: RelationEntity[]; edges: RelationEdge[] }>(
+      `${import.meta.env.BASE_URL}relations.json`,
+      "relations.json"
+    ).then(data => ({ entities: data.entities, edges: data.edges }));
   }
   return graphCache;
 }

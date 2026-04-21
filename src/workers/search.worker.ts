@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import lunr from "lunr";
 import type { AtlasNode, AddressInfo, SearchHit, WorkerInMessage, WorkerOutMessage } from "../types";
+import { fetchJsonVerified } from "../lib/verify";
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -15,15 +16,10 @@ const addrToNodeIds: Map<string, string[]> = new Map();
 
 async function init() {
   const base = import.meta.env.BASE_URL;
-  const [idxRes, docsRes, addrsRes] = await Promise.all([
-    fetch(`${base}search-index.json`),
-    fetch(`${base}docs.json`),
-    fetch(`${base}addresses.json`),
-  ]);
   const [idxData, docsData, addrsData] = await Promise.all([
-    idxRes.json() as Promise<object>,
-    docsRes.json() as Promise<Record<string, AtlasNode>>,
-    addrsRes.json() as Promise<Record<string, AddressInfo>>,
+    fetchJsonVerified<object>(`${base}search-index.json`, "search-index.json"),
+    fetchJsonVerified<Record<string, AtlasNode>>(`${base}docs.json`, "docs.json"),
+    fetchJsonVerified<Record<string, AddressInfo>>(`${base}addresses.json`, "addresses.json"),
   ]);
 
   idx = lunr.Index.load(idxData);

@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-04-21T11:37:48.178Z",
+  "redlensCommit": "fc4001c99ebba6726809d529dc3d3b64b03b3a1b",
+  "atlasCommit": "ede66d5f2cf3179d33b644417f464b6642d0bcdb",
+  "artifacts": {
+    "docs.json": {
+      "sha256": "a2c9bcf091461b747e8d7c59b9ae5c928e0aad02230b71b822c45f670018dc99",
+      "bytes": 5708068
+    },
+    "search-index.json": {
+      "sha256": "a84238f5ed5c1a2ab794ce8d6a7c2d5a7f6878c26af2d0be18708e635b45548d",
+      "bytes": 14476364
+    },
+    "addresses.json": {
+      "sha256": "635340f7b4ea437709d3b5b9070e59b19f0dd15f389af461457d4766c991599e",
+      "bytes": 93955
+    },
+    "chain-state.json": {
+      "sha256": "2e5d18c0c5e8213cc40d46b78fa2a54a3847485ec02a5db200e9d18251d9b2f9",
+      "bytes": 34075
+    },
+    "relations.json": {
+      "sha256": "3cdc801899355d5ea5ba34f5bf367eb79d3437bf036b762189d5658acc0001b7",
+      "bytes": 527689
+    }
+  }
+}

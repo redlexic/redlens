@@ -102,6 +102,7 @@ export interface AtlasNode {
   depth: number;
   parentId: string | null;
   content: string;
+  contentHash: string;   // sha256 of the raw markdown slice between this heading and the next — reproducible from Sky Atlas.md at the pinned submodule SHA
   order: number; // parse order, used for sorting within a scope
   addressRefs: string[]; // normalized address keys; resolved via loadAddresses()
 }
