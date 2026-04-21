@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import lunr from "lunr";
 import type { AtlasNode, AddressInfo, SearchHit, WorkerInMessage, WorkerOutMessage } from "../types";
+import { fetchJsonVerified } from "../lib/verify";
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -15,15 +16,10 @@ const addrToNodeIds: Map<string, string[]> = new Map();
 
 async function init() {
   const base = import.meta.env.BASE_URL;
-  const [idxRes, docsRes, addrsRes] = await Promise.all([
-    fetch(`${base}search-index.json`),
-    fetch(`${base}docs.json`),
-    fetch(`${base}addresses.json`),
-  ]);
   const [idxData, docsData, addrsData] = await Promise.all([
-    idxRes.json() as Promise<object>,
-    docsRes.json() as Promise<Record<string, AtlasNode>>,
-    addrsRes.json() as Promise<Record<string, AddressInfo>>,
+    fetchJsonVerified<object>(`${base}search-index.json`, "search-index.json"),
+    fetchJsonVerified<Record<string, AtlasNode>>(`${base}docs.json`, "docs.json"),
+    fetchJsonVerified<Record<string, AddressInfo>>(`${base}addresses.json`, "addresses.json"),
   ]);
 
   idx = lunr.Index.load(idxData);
@@ -138,7 +134,20 @@ function search(q: string): SearchHit[] {
     return doc ? [docToHit(doc)] : [];
   }
 
-  const { phrases, rest } = extractPhrases(q);
+  // Extract in:DOCNUMBER scope filter before other processing
+  const IN_RE = /\bin:(\S+)/gi;
+  let inPrefix: string | null = null;
+  const qWithoutIn = q.replace(IN_RE, (_, prefix: string) => {
+    inPrefix = prefix.toUpperCase();
+    return ' ';
+  }).trim();
+
+  // Extract type:"quoted multi-word value" before lunr — lunr has no quoted field syntax.
+  // Stored as a post-filter; the entire token is removed from the lunr query.
+  const TYPE_QUOTED_RE = /\btype:"([^"]+)"/gi;
+  const qForPhrases = qWithoutIn.replace(TYPE_QUOTED_RE, () => ' ').trim();
+
+  const { phrases, rest } = extractPhrases(qForPhrases);
 
   // Chainlog reverse-map results — collected into a scored map first so they
   // can be merged with lunr results below. Chainlog hits get score 2 so they
@@ -244,13 +253,18 @@ function search(q: string): SearchHit[] {
     } satisfies SearchHit;
   }).filter((h): h is SearchHit => h !== null);
 
+  // Apply in:DOCNUMBER scope filter if present
+  const scopedLunrHits = inPrefix
+    ? lunrHits.filter(h => h.doc_no === inPrefix || h.doc_no.startsWith(inPrefix + "."))
+    : lunrHits;
+
   // Merge with three tiers:
   //   1. found by BOTH chainlog + lunr  (best snippet from lunr, highest priority)
   //   2. chainlog only
   //   3. lunr only  (sorted by lunr score)
-  if (chainlogHits.size === 0) return lunrHits;
+  if (chainlogHits.size === 0) return scopedLunrHits;
 
-  const lunrById = new Map(lunrHits.map((h) => [h.id, h]));
+  const lunrById = new Map(scopedLunrHits.map((h) => [h.id, h]));
 
   const both: SearchHit[] = [];
   const chainlogOnly: SearchHit[] = [];
@@ -263,7 +277,7 @@ function search(q: string): SearchHit[] {
       chainlogOnly.push(chainlogHit);
     }
   }
-  const lunrOnly = lunrHits.filter((h) => !chainlogHits.has(h.id));
+  const lunrOnly = scopedLunrHits.filter((h) => !chainlogHits.has(h.id));
 
   both.sort((a, b) => b.score - a.score);
   lunrOnly.sort((a, b) => b.score - a.score);

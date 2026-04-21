@@ -1,3 +1,5 @@
+import { fetchJsonVerified } from "./verify";
+
 export interface ChainState {
   generatedAt: string;
   block: string;
@@ -13,12 +15,10 @@ let cached: Promise<ChainState> | null = null;
 
 export function loadChainState(): Promise<ChainState> {
   if (!cached) {
-    cached = fetch(`${import.meta.env.BASE_URL}chain-state.json`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`chain-state.json: ${r.status}`);
-        return r.json() as Promise<ChainState>;
-      })
-      .catch(() => ({ generatedAt: "", block: "", values: {} }));
+    cached = fetchJsonVerified<ChainState>(
+      `${import.meta.env.BASE_URL}chain-state.json`,
+      "chain-state.json"
+    ).catch(() => ({ generatedAt: "", block: "", values: {} }));
   }
   return cached;
 }

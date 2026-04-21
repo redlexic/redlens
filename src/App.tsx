@@ -1,129 +1,128 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation, useSearchParams, Switch, Route } from "wouter";
 import { useSearch } from "./hooks/useSearch";
-import { useScopes } from "./hooks/useScopes";
 import { SearchBar } from "./components/SearchBar";
 import { SearchResults } from "./components/SearchResults";
 import { AtlasView } from "./components/atlas/AtlasView";
 import { TreeSidebar } from "./components/tree/TreeSidebar";
+import { OFReport } from "./components/reports/OFReport";
+import { ActiveDataReport } from "./components/reports/ActiveDataReport";
+import { ReportsIndex } from "./components/ReportsIndex";
+import { EntitiesPage } from "./components/EntitiesPage";
+import { SearchHintsPage } from "./components/SearchHints";
+import { ProvenancePage } from "./components/ProvenancePage";
 import { prefetchNodeContent } from "./components/NodeContent";
-import type { AtlasNode } from "./types";
 import { DevPanel } from "./DevPanel";
+import { Footer } from "./components/Footer";
 
-// Start prefetching the markdown chunk immediately during script evaluation,
-// rather than waiting for React mount + useEffect. Eliminates one round-trip
-// from the LCP waterfall.
+export type ReportId = "of-responsibilities" | "active-data";
+
 prefetchNodeContent();
 
 export default function App() {
+  const [location, navigate] = useLocation();
   const { state, search, ready } = useSearch();
-  const scopes = useScopes();
   const [query, setQuery] = useState("");
-  const [activeScope, setActiveScope] = useState<AtlasNode | null>(null);
-  const [nodeId, setNodeId] = useState<string | null>(
-    () => new URLSearchParams(window.location.search).get("id")
-  );
-  const [view, setView] = useState<"annotations" | "history">(
-    () => new URLSearchParams(window.location.search).get("view") === "history" ? "history" : "annotations"
-  );
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [atlasEverShown, setAtlasEverShown] = useState(!!nodeId);
 
-  useEffect(() => { if (nodeId && !atlasEverShown) setAtlasEverShown(true); }, [nodeId, atlasEverShown]);
-
-  useEffect(() => {
-    function onPopState() {
-      const params = new URLSearchParams(window.location.search);
-      setNodeId(params.get("id"));
-      setView(params.get("view") === "history" ? "history" : "annotations");
-    }
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+  // nodeId and view derived reactively from URL search params via wouter
+  const [searchParams] = useSearchParams();
+  const nodeId = location === "/atlas" ? searchParams.get("id") : null;
+  const atlasView = searchParams.get("view") === "history" ? "history" as const : "annotations" as const;
 
   useEffect(() => {
-    if (!nodeId) inputRef.current?.focus();
-  }, [nodeId]);
+    if (location === "/" && !nodeId) inputRef.current?.focus();
+  }, [location, nodeId]);
 
-  const navigate = useCallback((id: string) => {
-    history.pushState(null, "", `${import.meta.env.BASE_URL}?id=${id}`);
-    setNodeId(id);
-    setView("annotations");
-    setQuery("");
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    search("");
-  }, [search]);
+  const navigateToNode = useCallback((id: string) => {
+    navigate(`/atlas?id=${id}`);
+    setQuery(""); search("");
+  }, [navigate, search]);
+
+  const navigateToEntity = useCallback((id: string) => {
+    navigate(`/entities?id=${id}`);
+    setQuery(""); search("");
+  }, [navigate, search]);
+
+  const navigateToReport = useCallback((id: ReportId) => {
+    navigate(`/reports/${id}`);
+    setQuery(""); search("");
+  }, [navigate, search]);
 
   const handleViewChange = useCallback((v: "annotations" | "history") => {
-    const params = new URLSearchParams(window.location.search);
-    if (v === "history") {
-      params.set("view", "history");
-    } else {
-      params.delete("view");
-    }
-    history.pushState(null, "", `${import.meta.env.BASE_URL}?${params}`);
-    setView(v);
-  }, []);
+    const params = new URLSearchParams();
+    if (nodeId) params.set("id", nodeId);
+    if (v === "history") params.set("view", "history");
+    navigate(`/atlas?${params}`);
+  }, [navigate, nodeId]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;
+
+    if (q === "/reports") { navigate("/reports"); setQuery(""); search(""); return; }
+    if (q === "/hints")   { navigate("/search-hints"); setQuery(""); search(""); return; }
+
     setQuery(q);
-    if (nodeId) {
-      history.pushState(null, "", import.meta.env.BASE_URL);
-      setNodeId(null);
+
+    // On /entities, typing filters the graph in-place — no lunr, no nav.
+    if (location === "/entities") {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      search("");
+      return;
     }
+
+    if (location !== "/") navigate("/");
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(q), 200);
-  }, [nodeId, search]);
-
-  const toggleScope = useCallback((scope: AtlasNode) => {
-    setActiveScope((prev) => (prev?.id === scope.id ? null : scope));
-    if (nodeId) {
-      history.pushState(null, "", import.meta.env.BASE_URL);
-      setNodeId(null);
+    if (q.startsWith("/")) {
+      search("");
+    } else {
+      debounceRef.current = setTimeout(() => search(q), 200);
     }
-  }, [nodeId]);
+  }, [location, navigate, search]);
 
-  const handleHintClick = useCallback((q: string) => {
-    setQuery(q);
-    search(q);
-  }, [search]);
+  const activeNavPage = location.startsWith("/entities") ? "entities"
+    : location.startsWith("/reports") ? "reports"
+    : null;
 
   return (
     <div className="flex flex-col h-dvh" style={{ background: "var(--bg)" }}>
-
       <SearchBar
-        inputRef={inputRef}
-        query={query}
-        onChange={handleChange}
-        ready={ready}
-        isSearching={state.status === "searching"}
-        scopes={scopes}
-        activeScope={activeScope}
-        onToggleScope={toggleScope}
+        inputRef={inputRef} query={query} onChange={handleChange}
+        ready={ready} isSearching={state.status === "searching"}
+        onNavPage={(p) => { navigate(`/${p}`); setQuery(""); search(""); }}
+        activePage={activeNavPage as "reports" | "entities" | null}
       />
-
       <div className="flex-1 flex overflow-hidden">
-        <TreeSidebar nodeId={nodeId} onNavigate={navigate} />
+        {location !== "/entities" && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} />}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {!nodeId && query.startsWith("__dev") && (
-            <DevPanel query={query} onNavigate={navigate} />
-          )}
-          {!nodeId && !query.startsWith("__dev") && (
-            <SearchResults
-              state={state}
-              activeScope={activeScope}
-              onNavigate={navigate}
-              onHintClick={handleHintClick}
-            />
-          )}
-          {atlasEverShown && (
-            <div className="flex-1 flex flex-col overflow-hidden" style={{ display: nodeId ? undefined : "none" }}>
-              <AtlasView id={nodeId!} onNavigate={navigate} view={view} onViewChange={handleViewChange} />
-            </div>
-          )}
+          <Switch>
+            <Route path="/">
+              {query.startsWith("__dev")
+                ? <DevPanel query={query} onNavigate={navigateToNode} />
+                : <SearchResults state={state} query={query} onNavigate={navigateToNode}
+                    onNavigateEntity={navigateToEntity}
+                    onHintClick={(q) => { setQuery(q); search(q); }} />
+              }
+            </Route>
+            <Route path="/atlas">
+              <AtlasView
+                id={nodeId ?? ""}
+                onNavigate={navigateToNode}
+                view={atlasView}
+                onViewChange={handleViewChange}
+              />
+            </Route>
+            <Route path="/reports"><ReportsIndex onNavigate={navigateToReport} /></Route>
+            <Route path="/reports/of-responsibilities"><OFReport onNavigate={navigateToNode} /></Route>
+            <Route path="/reports/active-data"><ActiveDataReport onNavigate={navigateToNode} /></Route>
+            <Route path="/entities"><EntitiesPage onNavigate={navigateToNode} query={query} /></Route>
+            <Route path="/search-hints"><SearchHintsPage onHintClick={(q) => { navigate("/"); setQuery(q); search(q); }} /></Route>
+            <Route path="/provenance"><ProvenancePage /></Route>
+          </Switch>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

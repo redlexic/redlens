@@ -9,8 +9,16 @@
 
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import lunr from "lunr";
+
+// sha256 of the raw markdown slice between a heading and the next heading —
+// lets anyone with the atlas SHA recompute the hash of a single node
+// independently and verify what redlens is showing for it.
+function sha256(s) {
+  return crypto.createHash("sha256").update(s, "utf8").digest("hex");
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -513,8 +521,11 @@ function parse(src) {
   for (const line of lines) {
     const m = line.match(HEADING_RE);
     if (m) {
-      // Seal previous node's content
+      // Seal previous node's content. Hash the raw slice first so the hash
+      // covers what's actually in Sky Atlas.md, not our cleaned projection.
       if (current) {
+        const raw = current._lines.join("\n");
+        current.contentHash = sha256(raw);
         current.content = cleanContent(current._lines);
         delete current._lines;
       }
@@ -529,6 +540,7 @@ function parse(src) {
         parentId: null,
         order: nodes.length,
         content: "",
+        contentHash: "",
         _lines: [],
       };
 
@@ -542,6 +554,8 @@ function parse(src) {
 
   // Seal last node
   if (current) {
+    const raw = current._lines.join("\n");
+    current.contentHash = sha256(raw);
     current.content = cleanContent(current._lines);
     delete current._lines;
   }
@@ -691,6 +705,7 @@ for (const node of nodes) {
     parentId: node.parentId,
     order: node.order,
     content: node.content,
+    contentHash: node.contentHash,
     addresses: extractAddresses(node.content),
   };
 }

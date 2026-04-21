@@ -3,13 +3,38 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { execSync } from 'child_process'
+import { readFileSync } from 'fs'
 
 const commitHash = (() => {
+  try { return execSync('git rev-parse --short HEAD').toString().trim() }
+  catch { return 'dev' }
+})()
+
+const atlasCommit = (() => {
+  try { return execSync('git -C vendor/next-gen-atlas rev-parse --short HEAD').toString().trim() }
+  catch { return 'unknown' }
+})()
+
+const buildTime = new Date().toISOString()
+
+const nodeCount = (() => {
+  try { return Object.keys(JSON.parse(readFileSync('public/docs.json', 'utf-8'))).length }
+  catch { return 0 }
+})()
+
+// Artifact hashes are read from public/manifest.json (emitted by
+// scripts/build-manifest.mjs). The frontend compares each fetched JSON's
+// sha256 against this map before using it — catches CDN tampering, truncated
+// responses, and stale worker caches.
+const artifactHashes: Record<string, string> = (() => {
   try {
-    return execSync('git rev-parse --short HEAD').toString().trim()
-  } catch {
-    return 'dev'
-  }
+    const m = JSON.parse(readFileSync('public/manifest.json', 'utf-8'))
+    const out: Record<string, string> = {}
+    for (const [name, info] of Object.entries(m.artifacts ?? {})) {
+      out[name] = (info as { sha256: string }).sha256
+    }
+    return out
+  } catch { return {} }
 })()
 
 export default defineConfig({
@@ -77,6 +102,10 @@ export default defineConfig({
     }),
   ],
   define: {
-    __COMMIT_HASH__: JSON.stringify(commitHash),
+    __COMMIT_HASH__:      JSON.stringify(commitHash),
+    __ATLAS_COMMIT__:     JSON.stringify(atlasCommit),
+    __BUILD_TIME__:       JSON.stringify(buildTime),
+    __NODE_COUNT__:       JSON.stringify(nodeCount),
+    __ARTIFACT_HASHES__:  JSON.stringify(artifactHashes),
   },
 })

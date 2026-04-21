@@ -39,3 +39,4 @@ public/addresses.merged.json
 *.njsproj
 *.sln
 *.sw?
+note.md
