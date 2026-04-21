@@ -10,6 +10,7 @@ import { ActiveDataReport } from "./components/reports/ActiveDataReport";
 import { ReportsIndex } from "./components/ReportsIndex";
 import { EntitiesPage } from "./components/EntitiesPage";
 import { SearchHintsPage } from "./components/SearchHints";
+import { ProvenancePage } from "./components/ProvenancePage";
 import { prefetchNodeContent } from "./components/NodeContent";
 import { DevPanel } from "./DevPanel";
 import { Footer } from "./components/Footer";
@@ -39,6 +40,11 @@ export default function App() {
     setQuery(""); search("");
   }, [navigate, search]);
 
+  const navigateToEntity = useCallback((id: string) => {
+    navigate(`/entities?id=${id}`);
+    setQuery(""); search("");
+  }, [navigate, search]);
+
   const navigateToReport = useCallback((id: ReportId) => {
     navigate(`/reports/${id}`);
     setQuery(""); search("");
@@ -58,6 +64,14 @@ export default function App() {
     if (q === "/hints")   { navigate("/search-hints"); setQuery(""); search(""); return; }
 
     setQuery(q);
+
+    // On /entities, typing filters the graph in-place — no lunr, no nav.
+    if (location === "/entities") {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      search("");
+      return;
+    }
+
     if (location !== "/") navigate("/");
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (q.startsWith("/")) {
@@ -80,13 +94,14 @@ export default function App() {
         activePage={activeNavPage as "reports" | "entities" | null}
       />
       <div className="flex-1 flex overflow-hidden">
-        <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} />
+        {location !== "/entities" && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} />}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Switch>
             <Route path="/">
               {query.startsWith("__dev")
                 ? <DevPanel query={query} onNavigate={navigateToNode} />
                 : <SearchResults state={state} query={query} onNavigate={navigateToNode}
+                    onNavigateEntity={navigateToEntity}
                     onHintClick={(q) => { setQuery(q); search(q); }} />
               }
             </Route>
@@ -101,8 +116,9 @@ export default function App() {
             <Route path="/reports"><ReportsIndex onNavigate={navigateToReport} /></Route>
             <Route path="/reports/of-responsibilities"><OFReport onNavigate={navigateToNode} /></Route>
             <Route path="/reports/active-data"><ActiveDataReport onNavigate={navigateToNode} /></Route>
-            <Route path="/entities"><EntitiesPage onNavigate={navigateToNode} /></Route>
+            <Route path="/entities"><EntitiesPage onNavigate={navigateToNode} query={query} /></Route>
             <Route path="/search-hints"><SearchHintsPage onHintClick={(q) => { navigate("/"); setQuery(q); search(q); }} /></Route>
+            <Route path="/provenance"><ProvenancePage /></Route>
           </Switch>
         </div>
       </div>

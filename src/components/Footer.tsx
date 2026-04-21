@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 const BASE = import.meta.env.BASE_URL;
 const REPO = "https://github.com/Anscharo/redlens";
+const PROVENANCE_HREF = `${BASE}provenance`;
 
 export function Footer() {
   const [block, setBlock] = useState<string | null>(null);
@@ -52,6 +53,12 @@ export function Footer() {
       </FooterItem>
       <Sep />
       <FooterItem><span className="hidden sm:inline">updated </span>{buildDate}</FooterItem>
+      <Sep />
+      <FooterItem title="data flow, scripts, outputs — how each claim is traced back to Sky Atlas.md">
+        <a href={PROVENANCE_HREF} className="hover:underline" style={{ color: "var(--tan-3)" }}>
+          provenance
+        </a>
+      </FooterItem>
       <Sep />
       <FooterItem>
         <a href={REPO} target="_blank" rel="noopener noreferrer"
