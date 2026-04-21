@@ -115,27 +115,46 @@ describe("buildActiveDataRows", () => {
     }
   });
 
-  it("falls back to 'Governance' when no responsible_party_for and no chain", () => {
-    const respSet = new Set(
-      relations.edges.filter(e => e.e === "responsible_party_for").map(e => e.t),
+  it("responsibleParty matches the responsible_party_for edge target", () => {
+    const respByCtrl = new Map(
+      relations.edges.filter(e => e.e === "responsible_party_for").map(e => [e.t, e.f]),
     );
     for (const r of rows) {
-      if (!r.agent && (!r.controllerId || !respSet.has(r.controllerId))) {
-        expect(r.entityName).toBe("Governance");
+      if (r.controllerId && respByCtrl.has(r.controllerId)) {
+        expect(r.responsibleParty?.id).toBe(respByCtrl.get(r.controllerId));
+      } else {
+        expect(r.responsibleParty).toBeNull();
       }
     }
   });
 
-  it("prefers explicit responsible_party_for over chain fallback", () => {
-    const respEdges = relations.edges.filter(e => e.e === "responsible_party_for");
-    // Skip if the graph happens to emit none — the behavior is still covered by construction.
-    if (respEdges.length === 0) return;
-    const respByCtrl = new Map(respEdges.map(e => [e.t, e.f]));
+  it("every row under a Prime Agent gets an Operational Facilitator editor", () => {
     for (const r of rows) {
-      if (r.controllerId && respByCtrl.has(r.controllerId)) {
-        const entId = respByCtrl.get(r.controllerId)!;
-        expect(r.entityId).toBe(entId);
+      if (!r.agent) continue;
+      // If the chain has a facilitator for this agent, editor must match it.
+      if (r.chain?.facilitatorName) {
+        expect(r.editor?.name).toBe(r.chain.facilitatorName);
+        expect(r.editor?.role).toBe("Operational Facilitator");
       }
+    }
+  });
+
+  it("every Sky Core Atlas row (A.1.*) gets the Core Facilitator editor", () => {
+    const coreFacEdge = relations.edges.find(e => e.e === "core_facilitator_for");
+    if (!coreFacEdge) return; // Graph-level guarantee tested elsewhere.
+    for (const r of rows) {
+      if (r.agent) continue;
+      if (!(r.controllerDocNo ?? "").startsWith("A.1.")) continue;
+      expect(r.editor?.id).toBe(coreFacEdge.f);
+      expect(r.editor?.role).toBe("Core Facilitator");
+    }
+  });
+
+  it("ADCs outside agents and Sky Core (A.2.*, accords, …) have no editor", () => {
+    for (const r of rows) {
+      if (r.agent) continue;
+      if ((r.controllerDocNo ?? "").startsWith("A.1.")) continue;
+      expect(r.editor).toBeNull();
     }
   });
 });
@@ -150,8 +169,9 @@ describe("activeDataRowsToCSV", () => {
   });
 
   it("quotes every cell — no bare commas in row content leak the column count", () => {
-    // A correctly quoted row has exactly 2*N-1 double quotes (N cells, alternating).
-    const expectedQuotes = 10 /* cells */ * 2;
+    // Active Data Doc, Title, Controller Doc, Controller Title,
+    // Agent, Responsible Party, Editor, Editor Role, Process = 9 cells.
+    const expectedQuotes = 9 * 2;
     for (const line of lines.slice(1)) {
       expect((line.match(/"/g) ?? []).length).toBe(expectedQuotes);
     }

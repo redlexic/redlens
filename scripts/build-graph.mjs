@@ -151,6 +151,34 @@ function extractAssignment(content, prefix) {
   return m ? m[1].trim() : null;
 }
 
+// Active Data Controllers declare a Responsible Party in one of two forms:
+//   "The Responsible Party is <role/name>."
+//   "Responsible Party: <role/name>."
+// The value may be a role alone ("Operational GovOps"), a named entity alone
+// ("Soter Labs"), or role+name ("Operational GovOps Soter Labs"). Role-only
+// declarations are resolved via the entity chain at edge-emission time.
+const RP_RE_IS = /(?:The\s+)?Responsible Party\s+is\s+(?:the\s+)?([^.\[\n]+?)\s*\./i;
+const RP_RE_COLON = /Responsible Party:\s*([^\n]+?)\s*(?:\.\s*$|\.(?=\s|\n)|$)/im;
+const RP_ROLES = [
+  { re: /^Operational GovOps\b\s*/i,        key: "operational_govops" },
+  { re: /^Core GovOps\b\s*/i,               key: "core_govops" },
+  { re: /^Operational Facilitator\b\s*/i,   key: "operational_facilitator" },
+  { re: /^Core Facilitator\b\s*/i,          key: "core_facilitator" },
+  { re: /^Support Facilitators?\b\s*/i,     key: "support_facilitators" },
+];
+
+function extractRP(content) {
+  if (!content) return null;
+  return (content.match(RP_RE_IS)?.[1] ?? content.match(RP_RE_COLON)?.[1] ?? "").trim() || null;
+}
+
+function rpRoleAndName(raw) {
+  for (const r of RP_ROLES) {
+    if (r.re.test(raw)) return { role: r.key, name: raw.replace(r.re, "").trim() };
+  }
+  return { role: null, name: raw };
+}
+
 // Parse a comma/and-separated list, stripping leading "the " / "and ".
 function parseNameList(str) {
   return str
@@ -265,33 +293,22 @@ for (const d of allDocs.filter(isGovOpsDoc)) {
   });
 }
 
-// --- 1f. Responsible parties from Active Data Controllers (Pattern 6) ---
-const ROLE_PREFIXES = [
-  /^Operational GovOps\s+/i,
-  /^Core GovOps\s+/i,
-  /^Operational Facilitator\s+/i,
-  /^Core Facilitator\s+/i,
-  /^Support Facilitators?\s+/i,
-];
-function stripRolePrefix(name) {
-  for (const re of ROLE_PREFIXES) {
-    const stripped = name.replace(re, "").trim();
-    if (stripped && stripped !== name) return stripped;
-  }
-  return name;
-}
-
+// --- 1f. Named Responsible Parties from Active Data Controllers (Pattern 6) ---
+// Only creates ecosystem_actor entities when the RP declaration includes an
+// explicit entity name. Role-only declarations carry no new entity — they are
+// resolved to an existing role-edge target in Section 2s.
 for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
-  const rawName = extractAssignment(d.content, "The Responsible Party");
-  if (!rawName) continue;
-  const name = stripRolePrefix(rawName);
+  const raw = extractRP(d.content);
+  if (!raw) continue;
+  const { role, name } = rpRoleAndName(raw);
+  if (role && !name) continue;   // "Operational GovOps" — no name to create
+  if (!name) continue;
   const s = slugify(name);
-  if (!entityMap.has(s)) {
-    addEntity(s, name, "ecosystem_actor", null, null, {
-      source: "active_data_controller",
-      source_doc_no: d.doc_no,
-    });
-  }
+  if (entityMap.has(s)) continue;
+  addEntity(s, name, "ecosystem_actor", null, null, {
+    source: "active_data_controller",
+    source_doc_no: d.doc_no,
+  });
 }
 
 // --- 1g. ERG members (Pattern 7) ---
@@ -708,13 +725,85 @@ if (ergDoc) {
 }
 
 // --- 2s. responsible_party_for (Pattern 6) ---
-for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
-  const rawName = extractAssignment(d.content, "The Responsible Party");
-  if (!rawName) continue;
-  const name = stripRolePrefix(rawName);
-  const entity = entityByName(name);
-  if (entity) addEdge(entity.id, "entity", d.id, "doc", "responsible_party_for", [d.doc_no]);
+// Every Active Data Controller declares a Responsible Party (Atlas A.1.12.1.2).
+// Resolution priority:
+//   direct — declaration names an existing entity (e.g. "…is Soter Labs.")
+//   chain  — declaration names a role; walk Prime Agent → Executor Agent → role edge
+//   role   — declaration names a role-binding doc's title (holds_role_for edge)
+// Edges carry meta.role_declared (raw declaration) and meta.resolution.
+const opExecByPrime = new Map();
+const opFacByExec   = new Map();
+const opGovByExec   = new Map();
+const roleHolderByDocTitle = new Map(); // normalized title → source entity id
+for (const e of edges) {
+  if      (e.edgeType === "operational_executor_agent_for") opExecByPrime.set(e.toId, e.fromId);
+  else if (e.edgeType === "operational_facilitator_for")    opFacByExec.set(e.toId, e.fromId);
+  else if (e.edgeType === "operational_govops_for")         opGovByExec.set(e.toId, e.fromId);
+  else if (e.edgeType === "holds_role_for") {
+    const targetDoc = docById.get(e.toId);
+    console.log("  [DBG] holds_role_for iter: toId=", e.toId, "found doc=", !!targetDoc, "title=", targetDoc?.title);
+    if (targetDoc?.title) roleHolderByDocTitle.set(targetDoc.title.toLowerCase(), e.fromId);
+  }
 }
+// Core Facilitator / GovOps resolve to a single entity across the atlas.
+const coreFacId = edges.find(e => e.edgeType === "core_facilitator_for")?.fromId ?? null;
+const coreGovId = edges.find(e => e.edgeType === "core_govops_for")?.fromId     ?? null;
+const entityById = new Map([...entityMap.values()].map(e => [e.id, e]));
+
+let rpDirect = 0, rpChain = 0, rpRole = 0, rpUnresolved = 0;
+console.log("  [DBG] holds_role_for edges count in 2s:", edges.filter(e=>e.edgeType==="holds_role_for").length);
+console.log("  [DBG] roleHolderByDocTitle:", [...roleHolderByDocTitle.entries()]);
+for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
+  const raw = extractRP(d.content);
+  if (!raw) { rpUnresolved++; continue; }
+  const { role, name } = rpRoleAndName(raw);
+
+  let entity = name ? entityByName(name) : null;
+  let resolution = entity ? "direct" : null;
+
+  if (!entity && role) {
+    const m = d.doc_no.match(/^A\.6\.1\.1\.(\d+)\./);
+    if (m) {
+      const primeEntity = entityByDocId.get(docByDocNo.get(`A.6.1.1.${m[1]}`)?.id);
+      const execId = primeEntity ? opExecByPrime.get(primeEntity.id) : null;
+      if (role === "operational_govops"      && execId) entity = entityById.get(opGovByExec.get(execId));
+      else if (role === "operational_facilitator" && execId) entity = entityById.get(opFacByExec.get(execId));
+      else if (role === "core_facilitator")  entity = entityById.get(coreFacId);
+      else if (role === "core_govops")       entity = entityById.get(coreGovId);
+    } else {
+      if      (role === "core_facilitator") entity = entityById.get(coreFacId);
+      else if (role === "core_govops")      entity = entityById.get(coreGovId);
+    }
+    if (entity) resolution = "chain";
+  }
+
+  // Role-binding fallback: declaration names a role doc's title (holds_role_for).
+  // e.g. "Core Council Risk Advisor" → A.1.7.1.1.2 "Designated Core Council Risk Advisor" → BA Labs.
+  if (!entity && name) {
+    const needle = name.toLowerCase();
+    for (const [title, holderId] of roleHolderByDocTitle) {
+      if (title === needle || title.includes(needle)) {
+        entity = entityById.get(holderId);
+        if (entity) { resolution = "role"; break; }
+      }
+    }
+  }
+
+  if (entity) {
+    addEdge(
+      entity.id, "entity", d.id, "doc",
+      "responsible_party_for", [d.doc_no],
+      JSON.stringify({ role_declared: raw, resolution }),
+    );
+    if      (resolution === "direct") rpDirect++;
+    else if (resolution === "chain")  rpChain++;
+    else                              rpRole++;
+  } else {
+    console.log("  [DBG] unresolved RP:", d.doc_no, "| raw=", JSON.stringify(raw), "| role=", role, "| name=", JSON.stringify(name));
+    rpUnresolved++;
+  }
+}
+console.log(`  responsible_party_for: ${rpDirect} direct, ${rpChain} via chain, ${rpRole} via role-binding, ${rpUnresolved} unresolved`);
 
 // --- 2t. defines_entity (doc → entity it defines) ---
 for (const e of entityMap.values()) {

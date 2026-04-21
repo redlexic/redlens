@@ -34,14 +34,12 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
     return ["Governance", ...AGENT_PREFIXES.map(([, name]) => name)].filter(a => set.has(a));
   }, [rows]);
 
-  // All unique editors: responsible party + facilitator + govops names.
+  // Unique names for the Entity filter: responsible parties + editors.
   const entityNames = useMemo(() => {
     const names = new Set<string>();
     rows.forEach(r => {
-      if (r.entityName && r.entityName !== "Governance") names.add(r.entityName);
-      if (r.chain?.executorName) names.add(r.chain.executorName);
-      if (r.chain?.facilitatorName) names.add(r.chain.facilitatorName);
-      if (r.chain?.govopsName) names.add(r.chain.govopsName);
+      if (r.responsibleParty?.name) names.add(r.responsibleParty.name);
+      if (r.editor?.name) names.add(r.editor.name);
     });
     return [...names].sort();
   }, [rows]);
@@ -51,10 +49,8 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
     if (agentFilter && agentFilter !== "Governance" && r.agent !== agentFilter) return false;
     if (entityFilter) {
       const match =
-        r.entityName === entityFilter ||
-        r.chain?.executorName === entityFilter ||
-        r.chain?.facilitatorName === entityFilter ||
-        r.chain?.govopsName === entityFilter;
+        r.responsibleParty?.name === entityFilter ||
+        r.editor?.name === entityFilter;
       if (!match) return false;
     }
     return true;
@@ -82,7 +78,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="text-xs text-tan-3">Editor:</span>
+          <span className="text-xs text-tan-3">Entity:</span>
           {entityNames.map(e => (
             <button key={e} onClick={() => setEntityFilter(entityFilter === e ? null : e)}
               data-active={entityFilter === e ? "true" : undefined}
@@ -106,9 +102,8 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                 <th className="py-2 px-3 font-normal">Title</th>
                 <th className="py-2 px-3 font-normal w-40">Controller</th>
                 <th className="py-2 px-3 font-normal w-24">Agent</th>
-                <th className="py-2 px-3 font-normal w-36">OEA</th>
-                <th className="py-2 px-3 font-normal w-36">Facilitator</th>
-                <th className="py-2 px-3 font-normal w-36">GovOps</th>
+                <th className="py-2 px-3 font-normal w-44">Responsible Party</th>
+                <th className="py-2 px-3 font-normal w-44">Editor</th>
                 <th className="py-2 px-3 font-normal w-32">Process</th>
               </tr>
             </thead>
@@ -139,26 +134,20 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                     <span className="mono text-xs text-tan-3">{r.agent ?? "—"}</span>
                   </td>
                   <td className="py-2 px-3 align-top">
-                    {r.chain?.executorName ? (
-                      <button onClick={() => r.chain?.executorId && onNavigate(r.chain.executorId)}
-                        className="text-xs text-tan-2 hover:text-tan hover:underline text-left">
-                        {r.chain.executorName}
+                    {r.responsibleParty ? (
+                      <button onClick={() => onNavigate(r.responsibleParty!.id)}
+                        className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
+                        title={r.responsibleParty.declared ?? undefined}>
+                        {r.responsibleParty.name}
                       </button>
-                    ) : <span className="mono text-[10px] text-tan-3">—</span>}
+                    ) : <span className="mono text-[10px] text-tan-3">Governance</span>}
                   </td>
                   <td className="py-2 px-3 align-top">
-                    {r.chain?.facilitatorName ? (
-                      <button onClick={() => r.chain?.facilitatorId && onNavigate(r.chain.facilitatorId)}
-                        className="text-xs text-tan-2 hover:text-tan hover:underline text-left">
-                        {r.chain.facilitatorName}
-                      </button>
-                    ) : <span className="mono text-[10px] text-tan-3">—</span>}
-                  </td>
-                  <td className="py-2 px-3 align-top">
-                    {r.chain?.govopsName ? (
-                      <button onClick={() => r.chain?.govopsId && onNavigate(r.chain.govopsId)}
-                        className="text-xs text-tan-2 hover:text-tan hover:underline text-left">
-                        {r.chain.govopsName}
+                    {r.editor ? (
+                      <button onClick={() => onNavigate(r.editor!.id)}
+                        className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
+                        title={r.editor.role}>
+                        {r.editor.name}
                       </button>
                     ) : <span className="mono text-[10px] text-tan-3">—</span>}
                   </td>
