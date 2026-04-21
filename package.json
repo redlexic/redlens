@@ -11,6 +11,7 @@
     "build:rag": "node --env-file-if-exists=.env.local scripts/build-rag.mjs",
     "build:history": "node scripts/build-history.mjs",
     "build:manifest": "node scripts/build-manifest.mjs",
+    "build:at": "node scripts/build-at.mjs",
     "build:ts": "tsc -b",
     "build": "pnpm build:index && pnpm build:addresses && pnpm build:snapshot && pnpm build:manifest && pnpm run build:ts && vite build",
     "lint": "eslint .",
