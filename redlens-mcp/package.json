@@ -8,10 +8,8 @@
     "start": "wrangler dev",
     "test": "vitest",
     "cf-typegen": "wrangler types",
-    "build:data": "cd ../.. && pnpm build:index && pnpm build:addresses",
-    "graph:local": "node scripts/build-graph.mjs",
-    "graph:remote": "node scripts/build-graph.mjs --remote",
-    "graph:build-and-import": "npm run build:data && npm run graph:remote",
+    "graph:local": "node ../scripts/build-graph.mjs --apply-to-d1",
+    "graph:remote": "node ../scripts/build-graph.mjs --apply-to-d1 --remote",
     "schema:local": "wrangler d1 execute redlens-atlas --local --file=schema.sql",
     "schema:remote": "wrangler d1 execute redlens-atlas --remote --file=schema.sql"
   },

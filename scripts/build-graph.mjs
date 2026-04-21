@@ -2,31 +2,38 @@
 /**
  * build-graph.mjs
  *
- * Pattern-driven extraction of the Atlas graph.
+ * Pattern-driven extraction of the Atlas graph. Outputs live at repo root so
+ * they're first-class artifacts for every consumer — the frontend loads
+ * relations.json directly; the redlens-mcp Worker mirrors the graph into D1.
  * See .claude/skills/graph-atlas/SKILL.md for the full relationship reference.
  *
- * Usage (from redlens-mcp/):
- *   node scripts/build-graph.mjs [--remote]
+ * Usage (from repo root):
+ *   node scripts/build-graph.mjs                       # builds JSONs only
+ *   node scripts/build-graph.mjs --apply-to-d1         # also syncs local D1
+ *   node scripts/build-graph.mjs --apply-to-d1 --remote # also syncs remote D1
  *
- * Reads (from parent repo root = ../../ relative to this script):
+ * Reads:
  *   public/docs.json
  *   public/addresses.json
  *   public/chain-state.json
  *
  * Writes:
- *   public/graph.json        — export for local inspection
+ *   public/graph.json        — full export for local inspection
  *   public/relations.json    — lean browser payload
- *   D1 tables: entities, docs, addresses, edges
+ *   [with --apply-to-d1] D1 tables: docs, entities, addresses, edges
  */
 
 import fs from "fs";
+import os from "os";
 import path from "path";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "../..");
+const ROOT = path.resolve(__dirname, "..");
+const MCP_DIR = path.join(ROOT, "redlens-mcp");
+const APPLY_D1 = process.argv.includes("--apply-to-d1");
 const REMOTE = process.argv.includes("--remote");
 const FLAG = REMOTE ? "--remote" : "--local";
 const DB = "redlens-atlas";
@@ -48,9 +55,10 @@ function slugify(name) {
 function newUuid() { return crypto.randomUUID(); }
 
 function runFile(filePath) {
+  // wrangler needs to resolve wrangler.jsonc from redlens-mcp/ for D1 config.
   execSync(`npx wrangler@latest d1 execute ${DB} ${FLAG} --file="${filePath}"`, {
     stdio: "inherit",
-    cwd: path.resolve(__dirname, ".."),
+    cwd: MCP_DIR,
   });
 }
 
@@ -798,35 +806,10 @@ const edgeRows = edges.map((e, i) => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Phase 4: Write SQL + import
+// Phase 4: Write JSON outputs (always); optionally sync to D1.
 // ---------------------------------------------------------------------------
 
-const TMP = path.join(__dirname);
-// Load order follows the FK graph: docs first (source of truth, referenced by
-// entities.defining_doc_id), then entities (referenced by addresses.entity_id),
-// then addresses, then edges (which reference all three).
-const files = {
-  docs:      path.join(TMP, "_docs.sql"),
-  entities:  path.join(TMP, "_entities.sql"),
-  addresses: path.join(TMP, "_addresses.sql"),
-  edges:     path.join(TMP, "_edges.sql"),
-};
-
-console.log("\nWriting SQL files…");
-await writeBatched(files.entities, "entities",
-  ["id","slug","name","entity_type","subtype","defining_doc_id","is_active","meta"],
-  entityRows);
-await writeBatched(files.docs, "docs",
-  ["id","doc_no","title","type","depth","parent_id","content","ord"],
-  docRows);
-await writeBatched(files.addresses, "addresses",
-  ["address","chain","label","chainlog_id","etherscan_name","is_contract","is_proxy",
-   "implementation","roles","aliases","expected_tokens","chain_state","state_block","state_at","entity_id"],
-  addressRows);
-await writeBatched(files.edges, "edges",
-  ["id","from_id","from_type","to_id","to_type","edge_type","source_doc_nos","weight","meta"],
-  edgeRows);
-
+console.log("\nRow counts:");
 console.log(`  entities: ${entityRows.length}`);
 console.log(`  docs:     ${docRows.length}`);
 console.log(`  addresses:${addressRows.length}`);
@@ -881,10 +864,39 @@ fs.writeFileSync(path.join(ROOT, "public/relations.json"), JSON.stringify({
 const relSize = fs.statSync(path.join(ROOT, "public/relations.json")).size;
 console.log(`  public/relations.json written (${(relSize/1024).toFixed(0)} KB)`);
 
-console.log(`\nApplying to D1 ${REMOTE ? "(remote)" : "(local)"}…`);
-for (const [name, file] of Object.entries(files)) {
-  runFile(file);
-  console.log(`  ${name} done`);
-  fs.unlinkSync(file);
+if (APPLY_D1) {
+  // Load order follows the FK graph: docs first (source of truth, referenced
+  // by entities.defining_doc_id), then entities (referenced by
+  // addresses.entity_id), then addresses, then edges (which reference all three).
+  const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "redlens-graph-"));
+  const files = {
+    docs:      path.join(TMP, "_docs.sql"),
+    entities:  path.join(TMP, "_entities.sql"),
+    addresses: path.join(TMP, "_addresses.sql"),
+    edges:     path.join(TMP, "_edges.sql"),
+  };
+
+  console.log("\nWriting SQL files…");
+  await writeBatched(files.docs, "docs",
+    ["id","doc_no","title","type","depth","parent_id","content","ord"],
+    docRows);
+  await writeBatched(files.entities, "entities",
+    ["id","slug","name","entity_type","subtype","defining_doc_id","is_active","meta"],
+    entityRows);
+  await writeBatched(files.addresses, "addresses",
+    ["address","chain","label","chainlog_id","etherscan_name","is_contract","is_proxy",
+     "implementation","roles","aliases","expected_tokens","chain_state","state_block","state_at","entity_id"],
+    addressRows);
+  await writeBatched(files.edges, "edges",
+    ["id","from_id","from_type","to_id","to_type","edge_type","source_doc_nos","weight","meta"],
+    edgeRows);
+
+  console.log(`\nApplying to D1 ${REMOTE ? "(remote)" : "(local)"}…`);
+  for (const [name, file] of Object.entries(files)) {
+    runFile(file);
+    console.log(`  ${name} done`);
+    fs.unlinkSync(file);
+  }
+  fs.rmdirSync(TMP);
 }
 console.log("\nDone.");

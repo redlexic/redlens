@@ -173,13 +173,12 @@ The D1 database holds:
 
 ### Infrastructure source
 
-The Worker source lives in `redlens-mcp/`. To rebuild the graph database after an Atlas update:
+The graph build script (`scripts/build-graph.mjs`) lives at the repo root — both the frontend and the MCP Worker consume its outputs. The Worker source lives in `redlens-mcp/`. To rebuild the graph database after an Atlas update:
 
 ```bash
-cd redlens-mcp
-npm run build:data      # regenerate docs.json + addresses.json from source
-npm run graph:remote    # re-import all tables into D1
-npm run deploy          # redeploy the Worker
+pnpm build:index                      # regenerate docs.json + addresses.json from source
+pnpm --filter redlens-mcp graph:remote  # re-import all tables into D1
+pnpm --filter redlens-mcp deploy        # redeploy the Worker
 ```
 
 ## Deployment
