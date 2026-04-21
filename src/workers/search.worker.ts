@@ -142,10 +142,21 @@ function search(q: string): SearchHit[] {
     return ' ';
   }).trim();
 
-  // Extract type:"quoted multi-word value" before lunr — lunr has no quoted field syntax.
-  // Stored as a post-filter; the entire token is removed from the lunr query.
-  const TYPE_QUOTED_RE = /\btype:"([^"]+)"/gi;
-  const qForPhrases = qWithoutIn.replace(TYPE_QUOTED_RE, () => ' ').trim();
+  // Extract type:VALUE filters before lunr. Supports three forms to cover
+  // multi-word types (Scenario Variation, Active Data Controller, etc.):
+  //   type:Core                       bare single word
+  //   type:Scenario_Variation         underscore/hyphen as space proxy
+  //   type:"Scenario Variation"       explicit quoted
+  // All are applied as exact, case-insensitive post-filters against doc.type,
+  // and removed from the lunr query so trailing words don't leak into content
+  // search. Multiple type: filters are ORed (a node has exactly one type).
+  const TYPE_RE = /\btype:(?:"([^"]+)"|([A-Za-z][A-Za-z0-9_-]*))/gi;
+  const typeFilters: string[] = [];
+  const qForPhrases = qWithoutIn.replace(TYPE_RE, (_, quoted: string | undefined, bare: string | undefined) => {
+    const raw = (quoted ?? bare ?? "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+    if (raw) typeFilters.push(raw);
+    return ' ';
+  }).trim();
 
   const { phrases, rest } = extractPhrases(qForPhrases);
 
@@ -194,21 +205,40 @@ function search(q: string): SearchHit[] {
     ? rest.trim() + "*"
     : rest;
 
+  // If the user typed only filter tokens (e.g. bare `type:Core`), the lunr
+  // query is empty but we still want to return every matching node. Walk docs
+  // directly and let the post-filters narrow it down.
+  const lunrQueryEmpty = !normalized.trim();
+
   let results: lunr.Index.Result[];
-  try {
-    results = idx.search(normalized);
-  } catch {
-    // lunr throws on bad query syntax — fall back to wildcard search
+  if (lunrQueryEmpty) {
+    results = Object.keys(docs).map((id) => ({
+      ref: id,
+      score: 1,
+      matchData: { metadata: {} },
+    })) as lunr.Index.Result[];
+  } else {
     try {
-      results = idx.search(normalized.split(/\s+/).filter(Boolean).map(t => `${t}*`).join(" "));
+      results = idx.search(normalized);
     } catch {
-      return [];
+      // lunr throws on bad query syntax — fall back to wildcard search
+      try {
+        results = idx.search(normalized.split(/\s+/).filter(Boolean).map(t => `${t}*`).join(" "));
+      } catch {
+        return [];
+      }
     }
   }
 
   const lunrHits = results.map((r) => {
     const doc = docs[r.ref];
     if (!doc) return null;
+
+    // Type post-filter: exact case-insensitive match against doc.type.
+    // Multiple type: filters are ORed (a node only ever has one type).
+    if (typeFilters.length > 0 && !typeFilters.includes(doc.type.toLowerCase())) {
+      return null;
+    }
 
     // Phrase post-filter: every quoted phrase must literally appear in title or content.
     if (phrases.length > 0) {
@@ -232,9 +262,9 @@ function search(q: string): SearchHit[] {
       for (const f of Object.keys(fields)) fieldSet.add(f);
     }
     const parts: string[] = [];
+    if (typeFilters.length > 0) parts.push("type");
     if (fieldSet.has("title")) parts.push("title");
     if (fieldSet.has("doc_no")) parts.push("doc number");
-    if (fieldSet.has("type")) parts.push("type");
     if (fieldSet.has("content")) parts.push("content");
     if (phrases.length > 0) parts.push("exact phrase");
     const matchReason = parts.join(" + ");

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback, startTransition, type ReactElement } from "react";
 import { Breadcrumbs } from "../Breadcrumbs";
+import { Loading } from "../Loading";
 import { loadAtlas } from "../../lib/docs";
 import { loadAddresses } from "../../lib/addresses";
 import { loadChainState, type ChainValue } from "../../lib/chainstate";
@@ -126,7 +127,7 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
   }, [data, id, autoExpanded, userToggles, onNavigate, handleToggle, expandedParents, hasDeepChildren, expandParent]);
 
   if (!data) {
-    return <div className="flex-1 flex items-center justify-center py-24 text-sm text-gray">Loading…</div>;
+    return <Loading />;
   }
   if (id && !data.atlas.docs[id]) {
     return <div className="flex items-center justify-center py-24 text-sm text-red">Node not found: {id}</div>;

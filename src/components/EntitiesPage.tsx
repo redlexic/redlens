@@ -8,6 +8,7 @@ import {
 } from "../lib/entityGraph";
 import { searchEntities, neighborhoodOfEntities } from "../lib/entitySearch";
 import { EntityFlow } from "./entities/EntityFlow";
+import { Loading } from "./Loading";
 import type { RelationEntity } from "../types";
 
 export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) => void; query: string }) {
@@ -75,7 +76,7 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
   }, [graphData]);
 
   if (!graphData || !docNoToId) {
-    return <div className="flex-1 flex items-center justify-center py-24 text-sm text-gray">Loading entity graph…</div>;
+    return <Loading>loading entity graph</Loading>;
   }
 
   return (
@@ -126,7 +127,6 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
           onSelect={setSelectedId}
           graphData={graphData}
           entityById={entityById}
-          docNoToId={docNoToId}
           onNavigateDoc={onNavigate}
         />
       </div>

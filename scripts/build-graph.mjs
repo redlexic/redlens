@@ -135,6 +135,10 @@ const CORE_COUNCIL_RISK_ADVISOR_DOC_NO = "A.1.7.1.1.2";
 
 const UUID_LINK_RE = /\[([^\]]*)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;
 const COMPRISES_RE = /The party ['‘]([^'’]+)['’] comprises\s+(.+?)\./i;
+// Atomic parties use a different sentence shape — "The party 'X' is <descriptor>."
+// (e.g. A.2.8.2.2.1.1.4 Moonbow: "…is the entity owning relevant intellectual
+// property."). The party still signs the accord, it just has no members to list.
+const ATOMIC_PARTY_RE = /The party ['‘]([^'’]+)['’]\s+is\b/i;
 
 // ---------------------------------------------------------------------------
 // Content extraction helpers
@@ -212,8 +216,7 @@ function addEntity(slug, name, entity_type, subtype, defining_doc_id, meta = nul
 function entityByName(name) { return entityMap.get(slugify(name)); }
 
 // --- 1a. Bootstrap entities (Pattern 13) ---
-// Sky Ecosystem / Sky Core / Sky Governance — targets of role edges; no defining doc.
-const skyEcosystem = addEntity("sky-ecosystem", "Sky Ecosystem", "ecosystem", null, null, { source: "bootstrap" });
+// Sky Core / Sky Governance — targets of role edges; no defining doc.
 const skyCore      = addEntity("sky-core", "Sky Core", "operational_party", null, null, { source: "bootstrap" });
 const skyGovernance = addEntity("sky-governance", "Sky Governance", "governance_body", null, null, { source: "bootstrap" });
 
@@ -442,10 +445,11 @@ const compositeBySlug = new Map(); // partySlug (with "-party" suffix) → entit
 const accordPartyDocsByAccordDocNo = new Map(); // accord doc_no → [{ partyEntity, sourceDocNo }]
 
 for (const d of allDocs.filter(isPartyDetails)) {
-  const m = d.content?.match(COMPRISES_RE);
-  if (!m) continue;
-  const partyName = m[1].trim();
-  const memberStr = m[2];
+  const comprisesMatch = d.content?.match(COMPRISES_RE);
+  const atomicMatch = !comprisesMatch ? d.content?.match(ATOMIC_PARTY_RE) : null;
+  if (!comprisesMatch && !atomicMatch) continue;
+  const partyName = (comprisesMatch?.[1] ?? atomicMatch[1]).trim();
+  const memberStr = comprisesMatch?.[2] ?? "";
 
   // Accord doc_no = first 5 parts of party-details doc_no (e.g. A.2.8.2.2 ← A.2.8.2.2.1.1.2)
   const accordDocNo = d.doc_no.split(".").slice(0, 5).join(".");
@@ -564,10 +568,10 @@ for (const d of allDocs.filter(d => isGlobalActivationStatus(d) && d.doc_no.star
   if (primRoot) addEdge(primRoot.id, "doc", d.id, "doc", "has_status", [primRoot.doc_no]);
 }
 
-// --- 2i. prime_agent_for: each Prime Agent → Sky Ecosystem (Pattern 1) ---
+// --- 2i. prime_agent_for: each Prime Agent → Sky Core (Pattern 1) ---
 for (const d of allDocs.filter(isPrimeAgent)) {
   const ent = entityByDocId.get(d.id);
-  if (ent) addEdge(ent.id, "entity", skyEcosystem.id, "entity", "prime_agent_for", [d.doc_no]);
+  if (ent) addEdge(ent.id, "entity", skyCore.id, "entity", "prime_agent_for", [d.doc_no]);
 }
 
 // --- 2j. {operational,core}_executor_agent_for (Pattern 3) ---
@@ -827,9 +831,23 @@ fs.writeFileSync(path.join(ROOT, "public/graph.json"), JSON.stringify({
 }));
 console.log("  public/graph.json written");
 
-// relations.json — lean browser payload (no parent_of edges; compact keys)
+// relations.json — lean browser payload.
+// Filter rules:
+//   - Drop parent_of edges (the tree is already in docs.json).
+//   - Drop ecosystem_actor entities: too many, mostly orphans with no incoming edges.
+//     Any edge referencing a dropped entity is also dropped to avoid dangling ids.
+const OMIT_ENTITY_TYPES = new Set(["ecosystem_actor"]);
+const keptEntityIds = new Set(
+  entityRows.filter(e => !OMIT_ENTITY_TYPES.has(e.entity_type)).map(e => e.id)
+);
+
 const relationEdges = edges
   .filter(e => e.edgeType !== "parent_of")
+  .filter(e => {
+    if (e.fromType === "entity" && !keptEntityIds.has(e.fromId)) return false;
+    if (e.toType === "entity" && !keptEntityIds.has(e.toId)) return false;
+    return true;
+  })
   .map(e => {
     const out = {
       f: e.fromId,
@@ -843,14 +861,16 @@ const relationEdges = edges
     return out;
   });
 
-const relationEntities = entityRows.map(e => ({
-  id: e.id,
-  slug: e.slug,
-  name: e.name,
-  et: e.entity_type,
-  st: e.subtype,
-  did: e.defining_doc_id,
-}));
+const relationEntities = entityRows
+  .filter(e => !OMIT_ENTITY_TYPES.has(e.entity_type))
+  .map(e => ({
+    id: e.id,
+    slug: e.slug,
+    name: e.name,
+    et: e.entity_type,
+    st: e.subtype,
+    did: e.defining_doc_id,
+  }));
 
 fs.writeFileSync(path.join(ROOT, "public/relations.json"), JSON.stringify({
   meta: {

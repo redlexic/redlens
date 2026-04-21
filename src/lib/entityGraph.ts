@@ -19,15 +19,45 @@ export const SUBTYPE_LABEL: Record<string, string> = {
   core: "Core",
 };
 
-export const EDGE_TYPE_LABEL: Record<string, string> = {
-  executor_accord: "Executor Accord",
-  member_of: "Member of",
-  ecosystem_accord: "Ecosystem Accord",
-  defines_entity: "Defined by",
-  has_address: "Has Address",
-  responsible_for: "Responsible for",
-  member_of_erg: "Member of ERG",
+/** Labels vary by the edge's direction relative to the viewer.
+ *  `forward` reads "**src** *verb* **tgt**"; `reverse` reads "**tgt** *verb* **src**". */
+export const EDGE_TYPE_LABELS: Record<string, { forward: string; reverse: string }> = {
+  // entity ↔ entity
+  prime_agent_for:                 { forward: "prime agent for",               reverse: "has prime agent" },
+  operational_executor_agent_for:  { forward: "operational executor agent for", reverse: "has operational executor agent" },
+  operational_facilitator_for:     { forward: "operational facilitator for",   reverse: "has operational facilitator" },
+  core_facilitator_for:            { forward: "core facilitator for",          reverse: "has core facilitator" },
+  operational_govops_for:          { forward: "operational govops for",        reverse: "has operational govops" },
+  core_govops_for:                 { forward: "core govops for",               reverse: "has core govops" },
+  aligned_delegate_for:            { forward: "aligned delegate for",          reverse: "has aligned delegate" },
+  ranked_delegate_for:             { forward: "ranked delegate for",           reverse: "has ranked delegate" },
+  holds_role_for:                  { forward: "holds role for",                reverse: "has role-holder" },
+  comprises:                       { forward: "comprises",                     reverse: "part of" },
+  // doc ↔ entity
+  ecosystem_accord:                { forward: "binds",                         reverse: "party to" },
+  defines_entity:                  { forward: "defines",                       reverse: "defined by" },
+  erg_member_for:                  { forward: "ERG member of",                 reverse: "has ERG member" },
+  responsible_party_for:           { forward: "responsible party for",         reverse: "has responsible party" },
+  // address edges
+  has_address:                     { forward: "has address",                   reverse: "owned by" },
+  mentions:                        { forward: "mentions",                      reverse: "mentioned in" },
+  proxies_to:                      { forward: "proxies to",                    reverse: "implementation of" },
+  // doc ↔ doc
+  parent_of:                       { forward: "parent of",                     reverse: "child of" },
+  annotates:                       { forward: "annotates",                     reverse: "annotated by" },
+  active_data_for:                 { forward: "active data for",               reverse: "has active data" },
+  cites:                           { forward: "cites",                         reverse: "cited by" },
+  implements:                      { forward: "implements",                    reverse: "implemented by" },
+  instance_of:                     { forward: "instance of",                   reverse: "has instance" },
+  located_at:                      { forward: "located at",                    reverse: "location of" },
+  has_status:                      { forward: "has status",                    reverse: "status of" },
 };
+
+export function edgeLabel(edgeType: string, direction: "outbound" | "inbound"): string {
+  const pair = EDGE_TYPE_LABELS[edgeType];
+  if (!pair) return edgeType;
+  return direction === "outbound" ? pair.forward : pair.reverse;
+}
 
 export const ENTITY_TYPE_COLOR: Record<string, string> = {
   agent: "#c67267",

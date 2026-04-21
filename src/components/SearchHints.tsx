@@ -5,6 +5,7 @@ const HINTS: { label: string; query: string; description: string }[] = [
   { label: "doc number",    query: "A.1.2",                 description: "Jump directly to a section by number" },
   { label: "field: title",  query: "title:facilitator",     description: "Search only in the title field" },
   { label: "field: type",   query: "type:Annotation",       description: "Filter by node type" },
+  { label: "type (spaces)", query: "type:Scenario_Variation", description: "Underscore for multi-word types, or quote: type:\"Scenario Variation\"" },
   { label: "scope",         query: "in:A.1.2 delegate",     description: "Restrict results to a section subtree" },
   { label: "fuzzy match",   query: "misaligment~1",         description: "~N allows N character edits" },
   { label: "boost term",    query: "delegate^5 voting",     description: "^N boosts a term's relevance weight" },

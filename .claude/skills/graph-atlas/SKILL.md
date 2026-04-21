@@ -13,7 +13,7 @@ description: >
 license: proprietary
 metadata:
   author: anscharo
-  version: "1.3"
+  version: "1.4"
 ---
 
 # graph-atlas
@@ -46,12 +46,12 @@ Read that file before making any changes to graph extraction logic. This skill s
 
 ### The "Sky" concept layers
 
-The atlas distinguishes several "Sky" concepts. Do not collapse.
+The atlas distinguishes several "Sky" concepts. Do not collapse the named legal entities.
 
 | Atlas term | Role | entity_type | Becomes target of |
 |---|---|---|---|
-| **Sky Ecosystem** | Scope that regulates Agents ("regulates all Agents within the Sky Ecosystem", A.6) | `ecosystem` | `prime_agent_for` |
-| **Sky Core** | Operational party representing "Sky" in every Ecosystem Accord (verbatim "The party 'Sky' comprises Sky Core" in 8 accords) | `operational_party` | `ecosystem_accord` (as party), `comprises` (inbound) |
+| ~~Sky Ecosystem~~ | Scope that regulates Agents (A.6). **Editorial: collapsed into `sky-core`** — see Editorial Decisions. | — (not emitted) | — |
+| **Sky Core** | Operational party representing "Sky" in every Ecosystem Accord (verbatim "The party 'Sky' comprises Sky Core" in 8 accords). Also serves as the target for `prime_agent_for` edges. | `operational_party` | `prime_agent_for`, `ecosystem_accord` (as party), `comprises` (inbound) |
 | **Sky Governance** | Decision body that selects delegates and approves spells | `governance_body` | `aligned_delegate_for`, `ranked_delegate_for` |
 | **Sky Frontier Foundation** | Legal entity; grant recipient (A.2.13.1.1; address `0xca5183FB9997046fbd9bA8113139bf5a5Af122A0`) | `foundation` | normal entity edges |
 | **Sky Fortification Foundation** | Legal entity; grant recipient (A.2.13.1.2) | `foundation` | normal entity edges |
@@ -132,8 +132,7 @@ Every entity type below either has a defining Atlas doc number pattern, or is bo
 | `composite_party` | — | Entity named as a party in `A.2.8.2.Y.1.1.N` (Ecosystem Accord party details). Holds treaty-level identity; its members are resolved via `comprises`. |
 | `foundation` | — | Named `"X Foundation"` — in party-comprises lists (e.g. Spark Foundation) or grant recipients (Sky Frontier Foundation, Sky Fortification Foundation) |
 | `development_company` | — | Third slot in party-comprises lists. Examples: Phoenix Labs, Elodin, Treadstone, Stablewatch, Rubicon, "Development Company" |
-| `ecosystem` | — | Bootstrapped: **Sky Ecosystem** |
-| `operational_party` | — | Bootstrapped: **Sky Core** |
+| `operational_party` | — | Bootstrapped: **Sky Core** (also serves as the target of `prime_agent_for`; see Editorial Decisions) |
 | `governance_body` | — | Bootstrapped: **Sky Governance** |
 | `facilitator_org` | — | Named in `"The (Operational\|Core) Facilitator for {Executor} is {Name}."` |
 | `govops_org` | — | Named in `"(Operational\|Core) GovOps for {Executor} is {Name}."` |
@@ -161,7 +160,9 @@ A.6.1.2.Y.1          Facilitator doc        ← names the Facilitator entity
 A.6.1.2.Y.2          GovOps doc             ← names the GovOps entity
 ```
 
-Every Prime Agent emits `prime_agent_for`: `entity(prime) → entity(Sky Ecosystem)`, source: `[A.6.1.1.X]`.
+Every Prime Agent emits `prime_agent_for`: `entity(prime) → entity(Sky Core)`, source: `[A.6.1.1.X]`.
+
+**Editorial:** the atlas phrasing is "Prime Agent for the Sky Ecosystem". We collapse the target onto `sky-core` rather than creating a separate `sky-ecosystem` entity — see Editorial Decisions.
 
 ### Pattern 2: Sky Primitives within an Agent
 
@@ -326,9 +327,24 @@ Source: `A.2.8.2.Y.1.1` ("Parties To The Accord"). Each party has a details subd
 - `A.2.8.2.4.1.1.2` — "The party 'Obex' comprises the Obex Prime Agent, Rubicon, and Treadstone."
 - `A.2.8.2.6.1.1.2` — "The party 'Launch Agent 6' comprises the Launch Agent 6 Prime Agent, Launch Agent 6 Foundation, and Stablewatch."
 - `A.2.8.2.7.1.1.2` — "The party 'Skybase' comprises the Skybase Prime Agent, Skybase Foundation, and Development Company."
-- `A.2.8.2.8.1.1.2` — "The party 'Amatsu' comprises the Amatsu Executor Agent." (non-composite)
-- `A.2.8.2.9.1.1.2` — "The party 'Ozone' comprises the Ozone Executor Agent." (non-composite)
+- `A.2.8.2.8.1.1.2` — "The party 'Amatsu' comprises the Amatsu Executor Agent." (single-member composite)
+- `A.2.8.2.9.1.1.2` — "The party 'Ozone' comprises the Ozone Executor Agent." (single-member composite)
 - `A.2.8.2.N.1.1.1` — always "The party 'Sky' comprises Sky Core."
+
+**Atomic parties (no `comprises` phrase).** A handful of party-details docs describe parties that do not decompose further, using a different sentence shape:
+
+> `"The party 'NAME' is <descriptor>."`
+
+Known case: `A.2.8.2.2.1.1.4` — "The party 'Moonbow' is the entity owning relevant intellectual property." Moonbow has no members — it is a single atomic party within the Prime Program accord.
+
+Extractor must match a fallback regex after the `comprises` regex fails:
+
+```js
+const COMPRISES_RE = /The party ['‘]([^'’]+)['’] comprises\s+(.+?)\./i;
+const ATOMIC_PARTY_RE = /The party ['‘]([^'’]+)['’]\s+is\b/i;
+```
+
+Atomic parties are modelled as `composite_party` entities with **zero** `comprises` edges. This keeps the `ecosystem_accord` edge shape uniform (accord → composite_party) regardless of whether the party decomposes. See Editorial Decisions.
 
 **Extraction:**
 1. For each doc_no matching `A.2.8.2.\d+.1.1.\d+`, match `/The party ['‘]([^'’]+)['’] comprises\s+(.+?)\./i`. Handles both ASCII `'` and typographic `‘’` quotes.
@@ -344,19 +360,102 @@ Source: `A.2.8.2.Y.1.1` ("Parties To The Accord"). Each party has a details subd
 
 The single-member case (Ozone, Amatsu) is still modelled as a composite_party entity with one `comprises` edge — this keeps the edge shape uniform across accords and lets the UI render any party consistently.
 
-### Pattern 13: Bootstrap entities (Sky Ecosystem / Sky Core / Sky Governance)
+### Pattern 13: Bootstrap entities (Sky Core / Sky Governance)
 
 These atlas concepts are targets of role edges but have no single defining doc to key on. Bootstrap them by name with stable slugs:
 
 | Slug | Name | entity_type | Target of |
 |---|---|---|---|
-| `sky-ecosystem` | Sky Ecosystem | `ecosystem` | `prime_agent_for` |
-| `sky-core` | Sky Core | `operational_party` | `ecosystem_accord`, `comprises` (inbound from "Sky" composite party) |
+| `sky-core` | Sky Core | `operational_party` | `prime_agent_for`, `ecosystem_accord`, `comprises` (inbound from "Sky" composite party) |
 | `sky-governance` | Sky Governance | `governance_body` | `aligned_delegate_for`, `ranked_delegate_for` |
 
 These are the only hardcoded entities. Everything else is pattern-derived from atlas docs. Bootstraps have no `defining_doc_id`.
 
+**`sky-ecosystem` is intentionally not a bootstrap.** See Editorial Decisions for rationale.
+
 **Sky Frontier Foundation** and **Sky Fortification Foundation** are NOT bootstraps — they have defining grant docs under `A.2.13.1` and surface through ordinary `foundation` extraction (grants recipients list + address labels).
+
+---
+
+## Editorial Decisions
+
+The extractor is not a neutral reading of the atlas — it makes judgment calls where the atlas underdetermines the graph shape, where literal extraction would over-fragment the model, or where downstream consumers (UI, MCP, reports) benefit from a uniform shape. Each choice is listed here so others can scrutinize (and contest) it.
+
+### 1. `Sky Ecosystem → Sky Core` merge for `prime_agent_for`
+
+**Atlas phrasing:** Prime Agents "serve as Prime Agent for the Sky Ecosystem" (A.6, A.6.1.1). Sky Ecosystem is a **Scope** (a markdown region that regulates Agents), not an acting party.
+
+**Choice:** We do not emit a `sky-ecosystem` entity. `prime_agent_for` edges target `sky-core` instead.
+
+**Why:**
+- Sky Ecosystem has no legal, operational, or governance identity of its own — every concrete action attributed to "Sky" in accords is performed by Sky Core ("The party 'Sky' comprises Sky Core" in all 8 accords).
+- Emitting a separate `sky-ecosystem` entity created a second dangling hub in the entity subgraph with exactly one inbound edge kind, no outbound edges, and no usable defining doc.
+- Downstream consumers always want the same answer to "who represents Sky here?" — this keeps that answer stable across `prime_agent_for`, `ecosystem_accord`, and `comprises`.
+
+**What we lose:** the Scope-vs-party distinction is flattened in the graph. If a future consumer needs to reason about the Scope (regulatory framing) separately from the operational party, they will need to key on doc `A.6` directly rather than on an entity.
+
+### 2. Sky party short-circuit in `comprises`
+
+**Atlas phrasing:** every accord contains `A.2.8.2.N.1.1.1` — "The party 'Sky' comprises Sky Core."
+
+**Choice:** The "Sky" composite party is not re-created per accord. The `ecosystem_accord` edge for the Sky side of every accord points directly to the shared `sky-core` entity, skipping a per-accord "Sky" composite.
+
+**Why:** Sky's composite expansion is identical across all 8 accords and carries no per-accord information. Creating 8 identical `comprises` edges from 8 "Sky" composites to the same `sky-core` would inflate the edge set without adding signal.
+
+**What we lose:** query shape asymmetry. For every other party you traverse `accord → composite_party → comprises → member`; for Sky you traverse `accord → sky-core` directly. Consumers must be aware of this.
+
+### 3. Atomic parties modelled as `composite_party` with zero members
+
+**Atlas phrasing:** `A.2.8.2.2.1.1.4` — "The party 'Moonbow' is the entity owning relevant intellectual property." No `comprises` phrase.
+
+**Choice:** Moonbow is a `composite_party` entity with **zero** `comprises` edges, same entity_type as decomposing parties.
+
+**Why:** we want a uniform `ecosystem_accord → party` edge shape. Introducing a distinct `atomic_party` entity_type would force every consumer to branch on party kind. A composite with zero members is a cheap unification.
+
+**What we lose:** the `composite_party` name is slightly inaccurate for atomic parties — "accord_party" would read better. Left as-is to avoid churn.
+
+### 4. Single-member parties modelled as `composite_party`
+
+**Atlas phrasing:** `A.2.8.2.8.1.1.2` — "The party 'Amatsu' comprises the Amatsu Executor Agent." (one member).
+
+**Choice:** Same shape as multi-member parties — `composite_party` entity with one `comprises` edge.
+
+**Why:** uniformity across accords. The UI can render every party identically; no special casing for single-member parties.
+
+### 5. `ecosystem_actor` as a catch-all
+
+**Choice:** When a named actor surfaces through a pattern (ERG member, role binding, composite member with no other signal) and doesn't match any more specific entity_type, it gets `ecosystem_actor`.
+
+**Why:** the alternative — refusing to extract or inventing ad-hoc types — either loses the relationship or fragments the taxonomy. `ecosystem_actor` is explicit about the uncertainty and lets downstream consumers group or ignore these uniformly.
+
+**What we lose:** the type carries no semantic content. It functions as "there is a named thing here, but we don't know what it is."
+
+**Filter:** `relations.json` (the lean browser artifact) drops all `ecosystem_actor` entities and any edges incident to them. They remain in the full `graph.json`. Most `ecosystem_actor`s have only one or two edges and produce visual clutter without advancing the Agent/Accord story.
+
+### 6. `delegate_org` naming for individuals
+
+**Atlas phrasing:** delegates like "BLUE", "Cloaky", "Bonapublica" are named as teams/brands/individuals — not organizations in the formal sense.
+
+**Choice:** All delegates get `entity_type = delegate_org`, including single-person delegates.
+
+**Why:** they act as delegates in exactly the same way regardless of legal form. A `delegate` vs `delegate_org` split would be noise — consumers care that it's a delegate, not that it's incorporated.
+
+### 7. Dual output: `graph.json` vs `relations.json`
+
+**Choice:** we emit two artifacts — a full `graph.json` with every entity and edge, and a lean `relations.json` that:
+- drops `ecosystem_actor` entities and their edges
+- drops all `parent_of` edges (structural hierarchy is recoverable from `doc_no`)
+- drops entity-free doc→doc edges not needed by the entity UI
+
+**Why:** the browser's entity-flow canvas becomes unreadable above ~150 nodes. The MCP needs the full set for graph queries.
+
+**What we lose:** two contracts to maintain. Tests (`tests/graph.test.ts`) assert invariants on both shapes.
+
+### 8. Edge `weight = 1.0` is a placeholder
+
+**Current state:** every edge has `weight: 1.0`. No heuristic, no propagation, no calibration.
+
+**Future:** edge weights may eventually reflect something like "strength of institutional coupling" — but this is deferred until we have a concrete consumer and a principled scoring rule. Treating weight as meaningful today would be false precision.
 
 ---
 
@@ -381,7 +480,7 @@ Derive category from the `implements` citation target's parent section:
 **Role edges** (entity → entity):
 
 ```
-prime_agent_for                    entity  → entity   agent(prime)       → Sky Ecosystem
+prime_agent_for                    entity  → entity   agent(prime)       → Sky Core  (see Editorial Decisions)
 operational_executor_agent_for     entity  → entity   agent(op-exec)     → agent(prime)
 core_executor_agent_for            entity  → entity   agent(core-exec)   → agent(prime)
 operational_facilitator_for        entity  → entity   facilitator_org    → agent(executor)
@@ -437,6 +536,13 @@ implements                         doc     → doc      Agent primitive → glob
 - **Added (other):** `comprises`
 - **Renamed:** `member_of_erg` → `erg_member_for`; `responsible_for` → `responsible_party_for`; `holds_role` → `holds_role_for`
 - **Removed (replaced by role edges):** `member_of` (flat Facilitator/GovOps edge), `executor_accord` (flat Prime→Executor edge)
+
+**v1.4 diff from v1.3:**
+- **Editorial Decisions section added** — surfaces the 8 judgment calls baked into the extractor (Sky Ecosystem → Sky Core merge; Sky party short-circuit; atomic parties as composite_party; single-member parties; ecosystem_actor catch-all; delegate_org naming; dual output shape; edge weight placeholder).
+- **Sky Ecosystem → Sky Core merge:** `prime_agent_for` now targets `sky-core`; `sky-ecosystem` entity and `ecosystem` entity_type removed from the schema.
+- **Pattern 12 — Atomic parties:** documents the `ATOMIC_PARTY_RE` fallback for party-details docs that use "The party 'X' is ..." phrasing (e.g., Moonbow at `A.2.8.2.2.1.1.4`). Atomic parties are `composite_party` entities with zero `comprises` edges.
+- **Pattern 13 — Bootstrap table:** `sky-ecosystem` row removed; only `sky-core` and `sky-governance` remain.
+- **Output shape note:** dual `graph.json` / `relations.json` contract formalized in Editorial Decision §7. Test invariants in `tests/graph.test.ts`.
 
 ---
 

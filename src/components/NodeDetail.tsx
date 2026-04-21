@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Breadcrumbs } from "./Breadcrumbs";
+import { Loading } from "./Loading";
 import { ScopeNode } from "./ScopeNode";
 import { RelatedNode } from "./RelatedNode";
 import { AddressCard } from "./AddressCard";
@@ -106,11 +107,7 @@ export function NodeDetail({ id, onNavigate }: { id: string; onNavigate: (id: st
   const { loaded, ancestors, scopeNodes, linkedNodes, targetAddresses, chainValues, graphEdges } = state;
 
   if (!loaded) {
-    return (
-      <div className="flex-1 flex items-center justify-center py-24 text-sm" style={{ color: "var(--gray)" }}>
-        Loading…
-      </div>
-    );
+    return <Loading />;
   }
 
   if (scopeNodes.length === 0) {

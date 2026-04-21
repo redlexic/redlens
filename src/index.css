@@ -471,3 +471,15 @@ input[type="search"]::-webkit-search-cancel-button {
   padding: 0.5rem 0;
   margin: 0.75rem 0;
 }
+
+/* Shared loading twinkle — used by <Loading /> */
+.loading-twinkle {
+  display: inline-block;
+  margin-right: 0.4em;
+  color: var(--accent);
+  animation: loading-twinkle 1.4s ease-in-out infinite;
+}
+@keyframes loading-twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50%      { opacity: 1;   transform: scale(1.1); }
+}

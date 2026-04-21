@@ -1,19 +1,23 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useLocation, useSearchParams, Switch, Route } from "wouter";
 import { useSearch } from "./hooks/useSearch";
 import { SearchBar } from "./components/SearchBar";
 import { SearchResults } from "./components/SearchResults";
 import { AtlasView } from "./components/atlas/AtlasView";
 import { TreeSidebar } from "./components/tree/TreeSidebar";
-import { OFReport } from "./components/reports/OFReport";
-import { ActiveDataReport } from "./components/reports/ActiveDataReport";
-import { ReportsIndex } from "./components/ReportsIndex";
-import { EntitiesPage } from "./components/EntitiesPage";
-import { SearchHintsPage } from "./components/SearchHints";
-import { ProvenancePage } from "./components/ProvenancePage";
 import { prefetchNodeContent } from "./components/NodeContent";
+import { Loading } from "./components/Loading";
 import { DevPanel } from "./DevPanel";
 import { Footer } from "./components/Footer";
+
+// Secondary routes — lazy so xyflow/graphology/report code stays out of the
+// initial bundle. Initial search/atlas load only pulls what it needs.
+const EntitiesPage = lazy(() => import("./components/EntitiesPage").then(m => ({ default: m.EntitiesPage })));
+const OFReport = lazy(() => import("./components/reports/OFReport").then(m => ({ default: m.OFReport })));
+const ActiveDataReport = lazy(() => import("./components/reports/ActiveDataReport").then(m => ({ default: m.ActiveDataReport })));
+const ReportsIndex = lazy(() => import("./components/ReportsIndex").then(m => ({ default: m.ReportsIndex })));
+const SearchHintsPage = lazy(() => import("./components/SearchHints").then(m => ({ default: m.SearchHintsPage })));
+const ProvenancePage = lazy(() => import("./components/ProvenancePage").then(m => ({ default: m.ProvenancePage })));
 
 export type ReportId = "of-responsibilities" | "active-data";
 
@@ -113,12 +117,12 @@ export default function App() {
                 onViewChange={handleViewChange}
               />
             </Route>
-            <Route path="/reports"><ReportsIndex onNavigate={navigateToReport} /></Route>
-            <Route path="/reports/of-responsibilities"><OFReport onNavigate={navigateToNode} /></Route>
-            <Route path="/reports/active-data"><ActiveDataReport onNavigate={navigateToNode} /></Route>
-            <Route path="/entities"><EntitiesPage onNavigate={navigateToNode} query={query} /></Route>
-            <Route path="/search-hints"><SearchHintsPage onHintClick={(q) => { navigate("/"); setQuery(q); search(q); }} /></Route>
-            <Route path="/provenance"><ProvenancePage /></Route>
+            <Route path="/reports"><Suspense fallback={<Loading />}><ReportsIndex onNavigate={navigateToReport} /></Suspense></Route>
+            <Route path="/reports/of-responsibilities"><Suspense fallback={<Loading />}><OFReport onNavigate={navigateToNode} /></Suspense></Route>
+            <Route path="/reports/active-data"><Suspense fallback={<Loading />}><ActiveDataReport onNavigate={navigateToNode} /></Suspense></Route>
+            <Route path="/entities"><Suspense fallback={<Loading />}><EntitiesPage onNavigate={navigateToNode} query={query} /></Suspense></Route>
+            <Route path="/search-hints"><Suspense fallback={<Loading />}><SearchHintsPage onHintClick={(q) => { navigate("/"); setQuery(q); search(q); }} /></Suspense></Route>
+            <Route path="/provenance"><Suspense fallback={<Loading />}><ProvenancePage /></Suspense></Route>
           </Switch>
         </div>
       </div>

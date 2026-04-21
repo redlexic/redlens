@@ -19,7 +19,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "mcp:atlas": "node mcp-atlas/server.mjs"
+    "mcp:atlas": "node mcp-atlas/server.mjs",
+    "knip": "knip"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.5",
@@ -54,6 +55,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "knip": "^6.6.0",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",

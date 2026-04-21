@@ -10,7 +10,7 @@ import forceAtlas2 from "graphology-layout-forceatlas2";
 import noverlap from "graphology-layout-noverlap";
 import type { EntityNodeData, EntityEdgeData, EntityRelation } from "../../lib/entityGraph";
 import {
-  EDGE_TYPE_LABEL, ENTITY_TYPE_LABEL, SUBTYPE_LABEL,
+  edgeLabel, ENTITY_TYPE_LABEL, SUBTYPE_LABEL,
   getEntityRelations,
 } from "../../lib/entityGraph";
 import type { GraphData } from "../../lib/graph";
@@ -28,7 +28,6 @@ type CardData = {
   entity: RelationEntity;
   graphData: GraphData;
   entityById: Map<string, RelationEntity>;
-  docNoToId: Map<string, string>;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 };
@@ -38,7 +37,7 @@ type CardNode = Node<CardData, "entity">;
 const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNode>) {
   const {
     label, color, entityType, subtype, degree,
-    entity, graphData, entityById, docNoToId, onSelect, onNavigateDoc,
+    entity, graphData, entityById, onSelect, onNavigateDoc,
   } = data;
 
   const typeLabel = ENTITY_TYPE_LABEL[entityType] ?? entityType;
@@ -74,7 +73,7 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
       {selected && (
         <CardBody
           entity={entity} graphData={graphData}
-          entityById={entityById} docNoToId={docNoToId}
+          entityById={entityById}
           onSelect={onSelect} onNavigateDoc={onNavigateDoc}
         />
       )}
@@ -88,24 +87,28 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
 });
 
 function CardBody({
-  entity, graphData, entityById, docNoToId, onSelect, onNavigateDoc,
+  entity, graphData, entityById, onSelect, onNavigateDoc,
 }: {
   entity: RelationEntity;
   graphData: GraphData;
   entityById: Map<string, RelationEntity>;
-  docNoToId: Map<string, string>;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 }) {
   const grouped = useMemo(() => {
     const rels = getEntityRelations(entity.id, graphData, entityById);
-    const byType = new Map<string, EntityRelation[]>();
+    // Key includes direction so the group label matches every chip in the group.
+    const byType = new Map<string, { edgeType: string; direction: "outbound" | "inbound"; rels: EntityRelation[] }>();
     for (const r of rels) {
-      const k = r.edge.e;
-      if (!byType.has(k)) byType.set(k, []);
-      byType.get(k)!.push(r);
+      const k = `${r.edge.e}|${r.direction}`;
+      let bucket = byType.get(k);
+      if (!bucket) {
+        bucket = { edgeType: r.edge.e, direction: r.direction, rels: [] };
+        byType.set(k, bucket);
+      }
+      bucket.rels.push(r);
     }
-    return [...byType.entries()].sort((a, b) => b[1].length - a[1].length);
+    return [...byType.values()].sort((a, b) => b.rels.length - a.rels.length);
   }, [entity, graphData, entityById]);
 
   return (
@@ -122,14 +125,14 @@ function CardBody({
       {grouped.length === 0 ? (
         <p className="mono text-[10px]" style={{ color: "var(--tan-3)" }}>No relations.</p>
       ) : (
-        grouped.map(([edgeType, rels]) => (
-          <div key={edgeType} className="mb-2.5 last:mb-0">
+        grouped.map(({ edgeType, direction, rels }) => (
+          <div key={`${edgeType}|${direction}`} className="mb-2.5 last:mb-0">
             <p className="mono text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--tan-3)" }}>
-              {EDGE_TYPE_LABEL[edgeType] ?? edgeType} · {rels.length}
+              {edgeLabel(edgeType, direction)} · {rels.length}
             </p>
             <div className="flex flex-wrap gap-1">
               {rels.map((r, i) => (
-                <RelationChip key={i} rel={r} docNoToId={docNoToId}
+                <RelationChip key={i} rel={r}
                   onSelect={onSelect} onNavigateDoc={onNavigateDoc} />
               ))}
             </div>
@@ -141,10 +144,9 @@ function CardBody({
 }
 
 function RelationChip({
-  rel, docNoToId, onSelect, onNavigateDoc,
+  rel, onSelect, onNavigateDoc,
 }: {
   rel: EntityRelation;
-  docNoToId: Map<string, string>;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 }) {
@@ -182,7 +184,7 @@ const nodeTypes = { entity: EntityCard };
 
 export function EntityFlow({
   nodes: entityNodes, edges: entityEdges, selectedId, onSelect,
-  graphData, entityById, docNoToId, onNavigateDoc,
+  graphData, entityById, onNavigateDoc,
 }: {
   nodes: EntityNodeData[];
   edges: EntityEdgeData[];
@@ -190,7 +192,6 @@ export function EntityFlow({
   onSelect: (id: string) => void;
   graphData: GraphData;
   entityById: Map<string, RelationEntity>;
-  docNoToId: Map<string, string>;
   onNavigateDoc: (id: string) => void;
 }) {
   // Compute positions once per nodes/edges reference using forceatlas2 + noverlap.
@@ -234,7 +235,7 @@ export function EntityFlow({
           subtype: n.entity.st,
           degree: n.degree,
           entity: n.entity,
-          graphData, entityById, docNoToId,
+          graphData, entityById,
           onSelect, onNavigateDoc,
         },
       };
@@ -244,7 +245,7 @@ export function EntityFlow({
       id: e.key,
       source: e.src,
       target: e.tgt,
-      label: EDGE_TYPE_LABEL[e.type] ?? e.type,
+      label: edgeLabel(e.type, "outbound"),
       style: { stroke: EDGE_COLOR, strokeWidth: 1.2 },
       markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_COLOR, width: 16, height: 16 },
       labelStyle: { fill: "#8a6a60", fontSize: 10, fontFamily: "'Source Code Pro', monospace" },
@@ -253,7 +254,7 @@ export function EntityFlow({
     }));
 
     return { rfNodes, rfEdges };
-    // onSelect/onNavigateDoc/graphData/entityById/docNoToId are stable enough per user session;
+    // onSelect/onNavigateDoc/graphData/entityById are stable enough per user session;
     // relayout should only happen when the visible node/edge set changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityNodes, entityEdges]);

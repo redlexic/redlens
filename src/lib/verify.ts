@@ -6,12 +6,14 @@
 // and we throw on mismatch — so CDN tampering, truncated responses, and
 // stale worker caches surface loudly instead of rendering bad data.
 //
-// In dev the manifest may be missing or stale; if we have no expected hash
-// for an artifact we skip verification rather than break local workflows.
+// Verification is skipped in dev: Vite only reads manifest.json at
+// dev-server startup, so any subsequent build rewrites hashes on disk and
+// the bundled hashes go stale. Integrity is a production concern — in dev
+// we trust the local filesystem.
 
-const EXPECTED: Record<string, string> = (
-  typeof __ARTIFACT_HASHES__ !== "undefined" ? __ARTIFACT_HASHES__ : {}
-);
+const EXPECTED: Record<string, string> = import.meta.env.DEV
+  ? {}
+  : (typeof __ARTIFACT_HASHES__ !== "undefined" ? __ARTIFACT_HASHES__ : {});
 
 async function sha256Hex(buf: ArrayBuffer): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", buf);
