@@ -128,16 +128,6 @@ const CORE_COUNCIL_RISK_ADVISOR_DOC_NO = "A.1.7.1.1.2";
 const UUID_LINK_RE = /\[([^\]]*)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;
 const COMPRISES_RE = /The party ['‘]([^'’]+)['’] comprises\s+(.+?)\./i;
 
-// Known dev-company member names (appearing in accord party-comprises lists)
-const DEV_COMPANY_NAMES = new Set([
-  "Phoenix Labs",
-  "Elodin",
-  "Treadstone",
-  "Stablewatch",
-  "Rubicon",
-  "Development Company",
-]);
-
 // ---------------------------------------------------------------------------
 // Content extraction helpers
 // ---------------------------------------------------------------------------
@@ -418,22 +408,23 @@ function resolveAccordMember(rawName, sourceDocNo) {
     if (hit) return hit;
   }
 
-  // Type inference from name shape: Foundation suffix or known dev-company name.
-  let inferredType = null;
-  if (/\bFoundation$/i.test(cleaned)) inferredType = "foundation";
-  else if (DEV_COMPANY_NAMES.has(cleaned)) inferredType = "development_company";
+  // Within an A.2.8.2.Y.1.1.N comprises list, any non-agent non-Foundation
+  // member is a development_company by the atlas's positional convention
+  // (e.g. "The party 'Spark' comprises the Spark Prime Agent, Spark Foundation,
+  // and Phoenix Labs." — Phoenix Labs is the dev company). Foundation suffix
+  // gives us the foundation vs dev-company split; no hardcoded name list needed.
+  const inferredType = /\bFoundation$/i.test(cleaned) ? "foundation" : "development_company";
 
   const exact = entityMap.get(slugify(cleaned));
   if (exact) {
-    // Upgrade a previously-created ecosystem_actor if we now have stronger type info
-    // (e.g. Phoenix Labs first seen in ERG list, then confirmed as dev-company via accord).
-    if (inferredType && exact.entity_type === "ecosystem_actor") {
-      exact.entity_type = inferredType;
-    }
+    // Upgrade a previously-created ecosystem_actor if the accord now classifies it
+    // more specifically (e.g. Phoenix Labs first seen in ERG list, then confirmed
+    // as dev-company via the Spark accord).
+    if (exact.entity_type === "ecosystem_actor") exact.entity_type = inferredType;
     return exact;
   }
 
-  return addEntity(slugify(cleaned), cleaned, inferredType ?? "ecosystem_actor", null, null, {
+  return addEntity(slugify(cleaned), cleaned, inferredType, null, null, {
     source: "accord_party_member",
     source_doc_no: sourceDocNo,
   });
