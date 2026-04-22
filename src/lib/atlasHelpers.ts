@@ -4,7 +4,7 @@ import type { AtlasBundle } from "./docs";
 import type { FlatEntry } from "../components/atlas/CollapsibleNode";
 import type { Glossary } from "./glossary";
 
-export const UUID_LINK_RE = /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
+const UUID_LINK_RE = /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
 
 export function extractLinkedIds(node: AtlasNode): string[] {
   const seen = new Set<string>();

@@ -218,6 +218,16 @@ function ancestorByStripping(doc, n) {
   return docByDocNo.get(parts.slice(0, -n).join(".")) ?? null;
 }
 
+// Resolve the Primitive root for any per-agent ICD. Primitive roots live at
+// A.6.1.1.X.2.G.P (agent X → Sky Primitives section → primitive group G →
+// primitive P). Every ICD lives under one of these, however deeply nested.
+function primitiveRootFor(doc) {
+  const m = doc.doc_no.match(/^(A\.6\.1\.1\.\d+\.2\.\d+\.\d+)(?:$|\.)/);
+  if (!m) return null;
+  const root = docByDocNo.get(m[1]);
+  return root && /Primitive$/i.test(root.title) ? root : null;
+}
+
 // ---------------------------------------------------------------------------
 // Phase 1: Extract entities
 // ---------------------------------------------------------------------------
@@ -579,7 +589,7 @@ for (const d of allDocs) {
 
 // --- 2f. instance_of (ICD → primitive root) ---
 for (const d of allDocs.filter(d => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
-  const primRoot = ancestorByStripping(d, 2);
+  const primRoot = primitiveRootFor(d);
   if (primRoot) addEdge(d.id, "doc", primRoot.id, "doc", "instance_of", [d.doc_no]);
 }
 

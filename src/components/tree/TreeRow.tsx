@@ -4,8 +4,8 @@ import { segmentDepths, type AtlasNode } from "../../types";
 import { truncateTitle } from "../../lib/treeUtils";
 
 export const ROW_HEIGHT = 20;
-export const TOGGLE_WIDTH = 14;
-export const PAD_X = 6;
+const TOGGLE_WIDTH = 14;
+const PAD_X = 6;
 
 export interface VisibleNode {
   node: AtlasNode;
