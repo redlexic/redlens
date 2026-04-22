@@ -123,6 +123,16 @@ for (const [addr, info] of chainlogEntries) {
 console.log(`Total calls: ${calls.length} across ${chainlogEntries.length} contracts (${proxyUpgraded} using impl ABI)`);
 
 // ---------------------------------------------------------------------------
+// Determine block before multicall so all batches are pinned to the same height.
+// BLOCK_NUMBER env var overrides (set by build:at for reproducibility).
+// ---------------------------------------------------------------------------
+const block = process.env.BLOCK_NUMBER
+  ? BigInt(process.env.BLOCK_NUMBER)
+  : await client.getBlockNumber();
+
+console.log(`Fetching at block ${block}${process.env.BLOCK_NUMBER ? " (pinned)" : " (latest)"}`);
+
+// ---------------------------------------------------------------------------
 // Execute via multicall3 in batches (multicall has a practical limit around
 // 1500 calls before some nodes start timing out)
 // ---------------------------------------------------------------------------
@@ -139,6 +149,7 @@ for (let i = 0; i < calls.length; i += BATCH) {
       abi: c.abi,
       functionName: c.fnName,
     })),
+    blockNumber: block,
     allowFailure: true,
   });
 
@@ -176,8 +187,6 @@ for (const fns of Object.values(values)) {
   }
 }
 
-const block = await client.getBlockNumber();
-
 const output = {
   generatedAt: new Date().toISOString(),
   block: block.toString(),
@@ -187,7 +196,7 @@ const output = {
 await fs.writeFile(OUT_PATH, JSON.stringify(output));
 
 console.log(`\n=== Snapshot stats ===`);
-console.log(`Block:      ${block}`);
+console.log(`Block:      ${block}${process.env.BLOCK_NUMBER ? " (pinned)" : " (latest)"}`);
 console.log(`Contracts:  ${Object.keys(values).length}`);
 console.log(`Succeeded:  ${successCount}`);
 console.log(`Reverted:   ${failCount}`);

@@ -3,6 +3,7 @@ import type { ReportId } from "../App";
 const REPORTS: { id: ReportId; title: string; description: string }[] = [
   { id: "of-responsibilities", title: "Operational Facilitator Responsibilities", description: "Every Atlas section mandating action from an Operational Facilitator, grouped by duty type with per-agent filtering." },
   { id: "active-data",         title: "Active Data Index",                        description: "All Active Data sections, their Responsible Parties, edit processes, and agent assignments — with CSV export." },
+  { id: "rewards",             title: "Distribution Reward Relationships",        description: "Every Distribution Reward and Integration Boost instance each Prime Agent has invoked — reward codes, partner names, and on-chain reward addresses." },
 ];
 
 export function ReportsIndex({ onNavigate }: { onNavigate: (id: ReportId) => void }) {

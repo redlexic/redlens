@@ -49,7 +49,7 @@ function resolveEdge(edge: RelationEdge): ResolvedEdge {
 
 /** Collect all RelationEdges for a node id from the live graph. */
 function edgesFor(id: string): { outbound: ResolvedEdge[]; inbound: ResolvedEdge[] } {
-  if (!graph) return { outbound: [], inbound: [] };
+  if (!graph || !graph.hasNode(id)) return { outbound: [], inbound: [] };
   const outbound: ResolvedEdge[] = [];
   const inbound:  ResolvedEdge[] = [];
   graph.forEachOutEdge(id, (_, attrs) => outbound.push(resolveEdge(attrs as RelationEdge)));
@@ -84,37 +84,45 @@ function buildSubgraph(rootId: string, depth: number): SerializedSubgraph {
 
 self.addEventListener("message", (e: MessageEvent<GraphWorkerInMessage>) => {
   const msg = e.data;
+  try {
+    if (msg.type === "ping") { post({ type: "ready" }); return; }
 
-  if (msg.type === "ping") { post({ type: "ready" }); return; }
-
-  if (msg.type === "edges") {
-    const { outbound, inbound } = edgesFor(msg.id);
-    post({ type: "edges", id: msg.id, outbound, inbound });
-    return;
-  }
-
-  if (msg.type === "entity") {
-    const entity = entityBySlug.get(msg.slug) ?? null;
-    const edges: ResolvedEdge[] = [];
-    if (entity) {
-      const { outbound, inbound } = edgesFor(entity.id);
-      edges.push(...outbound, ...inbound);
+    if (msg.type === "edges") {
+      const { outbound, inbound } = edgesFor(msg.id);
+      post({ type: "edges", id: msg.id, outbound, inbound });
+      return;
     }
-    post({ type: "entity", slug: msg.slug, entity, edges });
-    return;
-  }
 
-  if (msg.type === "neighbors") {
-    if (!graph) { post({ type: "neighbors", id: msg.id, nodes: [], edges: [] }); return; }
-    const sub = buildSubgraph(msg.id, msg.depth ?? 1);
-    post({ type: "neighbors", id: msg.id, ...sub });
-    return;
-  }
+    if (msg.type === "entity") {
+      const entity = entityBySlug.get(msg.slug) ?? null;
+      const edges: ResolvedEdge[] = [];
+      if (entity) {
+        const { outbound, inbound } = edgesFor(entity.id);
+        edges.push(...outbound, ...inbound);
+      }
+      post({ type: "entity", slug: msg.slug, entity, edges });
+      return;
+    }
 
-  if (msg.type === "subgraph") {
-    const sub = buildSubgraph(msg.rootId, msg.depth);
-    post({ type: "subgraph", rootId: msg.rootId, ...sub });
-    return;
+    if (msg.type === "neighbors") {
+      if (!graph) { post({ type: "neighbors", id: msg.id, nodes: [], edges: [] }); return; }
+      const sub = buildSubgraph(msg.id, msg.depth ?? 1);
+      post({ type: "neighbors", id: msg.id, ...sub });
+      return;
+    }
+
+    if (msg.type === "subgraph") {
+      const sub = buildSubgraph(msg.rootId, msg.depth);
+      post({ type: "subgraph", rootId: msg.rootId, ...sub });
+      return;
+    }
+  } catch (err) {
+    // Always respond so the main thread doesn't hang waiting for a reply
+    if (msg.type === "edges")    post({ type: "edges",    id: msg.id,       outbound: [], inbound: [] });
+    if (msg.type === "entity")   post({ type: "entity",   slug: (msg as any).slug, entity: null, edges: [] });
+    if (msg.type === "neighbors") post({ type: "neighbors", id: msg.id,      nodes: [],    edges: [] });
+    if (msg.type === "subgraph") post({ type: "subgraph", rootId: (msg as any).rootId, nodes: [], edges: [] });
+    console.error("[graph worker]", err);
   }
 });
 

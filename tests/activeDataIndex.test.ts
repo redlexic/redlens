@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import type { AtlasNode, RelationEntity, RelationEdge } from "../src/types";
 import {
-  agentFromDocNo, extractProcess, buildChainMap, buildActiveDataRows, activeDataRowsToCSV,
+  agentFromDocNo, agentsFromGraph, extractProcess, buildChainMap, buildActiveDataRows, activeDataRowsToCSV,
 } from "../src/lib/activeDataIndex";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -20,16 +20,30 @@ const docs: Record<string, AtlasNode> = JSON.parse(fs.readFileSync(path.join(PUB
 const activeDataDocs = Object.values(docs).filter(d => d.type === "Active Data");
 const adEdges = relations.edges.filter(e => e.e === "active_data_for");
 const rows = buildActiveDataRows(docs, relations);
+const agents = agentsFromGraph(relations.entities, docs);
 
 describe("agentFromDocNo", () => {
-  it("matches known agent prefixes", () => {
-    expect(agentFromDocNo("A.6.1.1.1.2")).toBe("Spark");
-    expect(agentFromDocNo("A.6.1.1.4.2.0.6.1")).toBe("Skybase");
-    expect(agentFromDocNo("A.6.1.1.8.2")).toBe("Launch Agent 7");
+  it("matches agent prefixes for every prime agent in the graph", () => {
+    // Derived dynamically: robust to agent renaming and renumbering.
+    for (const a of agents) {
+      expect(agentFromDocNo(`${a.docNo}.2`, agents)).toBe(a.name);
+      expect(agentFromDocNo(`${a.docNo}.2.1.1`, agents)).toBe(a.name);
+    }
   });
   it("returns null for non-agent doc_nos", () => {
-    expect(agentFromDocNo("A.1.1.3.1")).toBeNull();
-    expect(agentFromDocNo("A.2.8.1.2")).toBeNull();
+    expect(agentFromDocNo("A.1.1.3.1", agents)).toBeNull();
+    expect(agentFromDocNo("A.2.8.1.2", agents)).toBeNull();
+  });
+});
+
+describe("agentsFromGraph", () => {
+  it("includes every prime agent with a defining doc", () => {
+    const primes = relations.entities.filter(e => e.et === "agent" && e.st === "prime" && e.did);
+    expect(agents.length).toBe(primes.length);
+  });
+  it("is ordered by doc_no naturally", () => {
+    const sorted = [...agents].sort((a, b) => a.docNo.localeCompare(b.docNo, undefined, { numeric: true }));
+    expect(agents.map(a => a.docNo)).toEqual(sorted.map(a => a.docNo));
   });
 });
 
@@ -54,24 +68,47 @@ describe("buildChainMap", () => {
     for (const p of primes) expect(chainMap.get(p.name)?.agentId).toBe(p.id);
   });
 
-  it("resolves the Spark → Amatsu → Endgame Edge / Soter Labs chain", () => {
-    const spark = chainMap.get("Spark");
-    expect(spark).toBeTruthy();
-    expect(spark!.executorName).toBe("Amatsu");
-    expect(spark!.facilitatorName).toBe("Endgame Edge");
-    expect(spark!.govopsName).toBe("Soter Labs");
-    // Every chain slot should carry both name + id, or both be null.
-    for (const key of ["executor", "facilitator", "govops"] as const) {
-      const name = spark![`${key}Name`];
-      const id   = spark![`${key}Id`];
-      expect(name === null).toBe(id === null);
+  it("every chain slot is co-present: name null iff id null", () => {
+    for (const [agentName, chain] of chainMap) {
+      for (const key of ["executor", "facilitator", "govops"] as const) {
+        const name = chain[`${key}Name`];
+        const id   = chain[`${key}Id`];
+        expect(name === null, `${agentName}.${key}: name=${String(name)} id=${String(id)}`).toBe(id === null);
+      }
     }
   });
 
-  it("resolves the Skybase → Ozone → Redline chain", () => {
-    const skybase = chainMap.get("Skybase");
-    expect(skybase?.executorName).toBe("Ozone");
-    expect(skybase?.facilitatorName).toBe("Redline Facilitation Group");
+  it("every executor traces back to an exec edge targeting that prime agent", () => {
+    for (const [, chain] of chainMap) {
+      if (!chain.executorId) continue;
+      const edge = relations.edges.find(
+        e => (e.e === "operational_executor_agent_for" || e.e === "core_executor_agent_for")
+          && e.t === chain.agentId,
+      );
+      expect(edge?.f, `${chain.agentName}: executorId doesn't match edge source`).toBe(chain.executorId);
+    }
+  });
+
+  it("every facilitator traces back to a facilitator edge targeting the executor", () => {
+    for (const [, chain] of chainMap) {
+      if (!chain.facilitatorId || !chain.executorId) continue;
+      const edge = relations.edges.find(
+        e => (e.e === "operational_facilitator_for" || e.e === "core_facilitator_for")
+          && e.t === chain.executorId,
+      );
+      expect(edge?.f, `${chain.agentName}: facilitatorId doesn't match edge source`).toBe(chain.facilitatorId);
+    }
+  });
+
+  it("every govops traces back to a govops edge targeting the executor", () => {
+    for (const [, chain] of chainMap) {
+      if (!chain.govopsId || !chain.executorId) continue;
+      const edge = relations.edges.find(
+        e => (e.e === "operational_govops_for" || e.e === "core_govops_for")
+          && e.t === chain.executorId,
+      );
+      expect(edge?.f, `${chain.agentName}: govopsId doesn't match edge source`).toBe(chain.govopsId);
+    }
   });
 });
 
@@ -107,7 +144,7 @@ describe("buildActiveDataRows", () => {
 
   it("resolves agent iff controller doc_no starts with an agent prefix", () => {
     for (const r of rows) {
-      const expectedAgent = r.controllerDocNo ? agentFromDocNo(r.controllerDocNo) : null;
+      const expectedAgent = r.controllerDocNo ? agentFromDocNo(r.controllerDocNo, agents) : null;
       expect(r.agent).toBe(expectedAgent);
       // Chain is attached only when an agent is set.
       if (!r.agent) expect(r.chain).toBeNull();

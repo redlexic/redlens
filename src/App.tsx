@@ -15,11 +15,12 @@ import { Footer } from "./components/Footer";
 const EntitiesPage = lazy(() => import("./components/EntitiesPage").then(m => ({ default: m.EntitiesPage })));
 const OFReport = lazy(() => import("./components/reports/OFReport").then(m => ({ default: m.OFReport })));
 const ActiveDataReport = lazy(() => import("./components/reports/ActiveDataReport").then(m => ({ default: m.ActiveDataReport })));
+const RewardsReport = lazy(() => import("./components/reports/RewardsReport").then(m => ({ default: m.RewardsReport })));
 const ReportsIndex = lazy(() => import("./components/ReportsIndex").then(m => ({ default: m.ReportsIndex })));
 const SearchHintsPage = lazy(() => import("./components/SearchHints").then(m => ({ default: m.SearchHintsPage })));
 const ProvenancePage = lazy(() => import("./components/ProvenancePage").then(m => ({ default: m.ProvenancePage })));
 
-export type ReportId = "of-responsibilities" | "active-data";
+export type ReportId = "of-responsibilities" | "active-data" | "rewards";
 
 prefetchNodeContent();
 
@@ -120,6 +121,7 @@ export default function App() {
             <Route path="/reports"><Suspense fallback={<Loading />}><ReportsIndex onNavigate={navigateToReport} /></Suspense></Route>
             <Route path="/reports/of-responsibilities"><Suspense fallback={<Loading />}><OFReport onNavigate={navigateToNode} /></Suspense></Route>
             <Route path="/reports/active-data"><Suspense fallback={<Loading />}><ActiveDataReport onNavigate={navigateToNode} /></Suspense></Route>
+            <Route path="/reports/rewards"><Suspense fallback={<Loading />}><RewardsReport onNavigate={navigateToNode} onEntity={navigateToEntity} /></Suspense></Route>
             <Route path="/entities"><Suspense fallback={<Loading />}><EntitiesPage onNavigate={navigateToNode} query={query} /></Suspense></Route>
             <Route path="/search-hints"><Suspense fallback={<Loading />}><SearchHintsPage onHintClick={(q) => { navigate("/"); setQuery(q); search(q); }} /></Suspense></Route>
             <Route path="/provenance"><Suspense fallback={<Loading />}><ProvenancePage /></Suspense></Route>

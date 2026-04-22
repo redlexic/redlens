@@ -6,6 +6,7 @@ import { loadAddresses } from "../../lib/addresses";
 import { loadChainState, type ChainValue } from "../../lib/chainstate";
 import { getEdges, type EdgeResult } from "../../lib/graph";
 import { setAddressMap } from "../../lib/addressMap";
+import { loadGlossary, buildLookup, type GlossaryEntry } from "../../lib/glossary";
 import { type AtlasNode, type AddressInfo } from "../../types";
 import { CollapsibleNode, flattenTree } from "./CollapsibleNode";
 import { useDepth6Expand } from "./useDepth6Expand";
@@ -32,10 +33,10 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
   const [graphEdges, setGraphEdges] = useState<EdgeResult>(EMPTY_EDGES);
 
   useEffect(() => {
-    Promise.all([loadAtlas(), loadAddresses(), loadChainState()]).then(([atlas, addresses, chainState]) => {
+    Promise.all([loadAtlas(), loadAddresses(), loadChainState(), loadGlossary()]).then(([atlas, addresses, chainState, glossary]) => {
       setAddressMap(addresses);
       startTransition(() => {
-        setData({ atlas, flatNodes: flattenTree(atlas.byParent), addresses, chainState });
+        setData({ atlas, flatNodes: flattenTree(atlas.byParent), addresses, chainState, glossary });
       });
     });
   }, []);
@@ -63,11 +64,11 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
     return buildAncestors(data.atlas.docs, data.atlas.docNoToId, id);
   }, [data, id]);
 
-  const { linkedNodes, targetAddresses, chainValues } = useMemo(() => {
-    const empty = { linkedNodes: [] as AtlasNode[], targetAddresses: {} as Record<string, AddressInfo>, chainValues: {} as Record<string, Record<string, ChainValue>> };
+  const { target, linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {
+    const empty = { target: null as AtlasNode | null, linkedNodes: [] as AtlasNode[], targetAddresses: {} as Record<string, AddressInfo>, chainValues: {} as Record<string, Record<string, ChainValue>>, glossaryTerms: [] as GlossaryEntry[][] };
     if (!data || !id) return empty;
     const { docs } = data.atlas;
-    const target = docs[id];
+    const target = docs[id] ?? null;
     if (!target) return empty;
     const linkedNodes = extractLinkedIds(target).map(lid => docs[lid]).filter((n): n is AtlasNode => !!n);
     const targetAddresses: Record<string, AddressInfo> = {};
@@ -78,7 +79,18 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
       const val = data.chainState.values[ref];
       if (val) cv[ref] = val;
     }
-    return { linkedNodes, targetAddresses, chainValues: cv };
+    const lookup = buildLookup(data.glossary);
+    const contentLower = target.content.toLowerCase();
+    const seen = new Set<GlossaryEntry[]>();
+    const glossaryTerms: GlossaryEntry[][] = [];
+    for (const entries of Object.values(lookup)) {
+      if (!seen.has(entries) && entries.some(e => contentLower.includes(e.term.toLowerCase()))) {
+        seen.add(entries);
+        glossaryTerms.push(entries);
+      }
+    }
+    glossaryTerms.sort((a, b) => a[0].term.localeCompare(b[0].term));
+    return { target, linkedNodes, targetAddresses, chainValues: cv, glossaryTerms };
   }, [data, id]);
 
   const handleToggle = useCallback((nodeId: string) => {
@@ -149,11 +161,13 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
           <div className="flex flex-col hidden lg:flex" style={{ minHeight: 0 }}>
             <RightPanel
               id={id}
+              node={target}
               linkedNodes={linkedNodes}
               targetAddresses={targetAddresses}
               chainValues={chainValues}
               annotationCount={annotationCount}
               graphEdges={graphEdges}
+              glossaryTerms={glossaryTerms}
               onNavigate={onNavigate}
               tab={view}
               onTabChange={onViewChange}

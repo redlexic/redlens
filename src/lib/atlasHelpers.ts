@@ -2,6 +2,7 @@ import type { AtlasNode, AddressInfo } from "../types";
 import type { ChainValue } from "./chainstate";
 import type { AtlasBundle } from "./docs";
 import type { FlatEntry } from "../components/atlas/CollapsibleNode";
+import type { Glossary } from "./glossary";
 
 export const UUID_LINK_RE = /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
 
@@ -32,6 +33,7 @@ export interface LoadedData {
   flatNodes: FlatEntry[];
   addresses: Record<string, AddressInfo>;
   chainState: { values: Record<string, Record<string, ChainValue>> };
+  glossary: Glossary;
 }
 
 export const ATLAS_GRID_STYLE: React.CSSProperties = { minHeight: 0, overflow: "hidden" };

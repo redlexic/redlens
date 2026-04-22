@@ -4,16 +4,21 @@
 
 import type { AtlasNode, RelationEntity, RelationEdge } from "../types";
 
-export const AGENT_PREFIXES: ReadonlyArray<readonly [string, string]> = [
-  ["A.6.1.1.1.", "Spark"],
-  ["A.6.1.1.2.", "Grove"],
-  ["A.6.1.1.3.", "Keel"],
-  ["A.6.1.1.4.", "Skybase"],
-  ["A.6.1.1.5.", "Obex"],
-  ["A.6.1.1.6.", "Pattern"],
-  ["A.6.1.1.7.", "Launch Agent 6"],
-  ["A.6.1.1.8.", "Launch Agent 7"],
-];
+export interface AgentRef { name: string; id: string; docNoPrefix: string; docNo: string; }
+
+// Prime agents resolved from the graph, ordered by their defining doc_no
+// (A.6.1.1.1 < A.6.1.1.2 < …). An agent without a resolvable defining doc is
+// dropped — every prime in the atlas is expected to have one.
+export function agentsFromGraph(entities: RelationEntity[], docs: Record<string, AtlasNode>): AgentRef[] {
+  return entities
+    .filter(e => e.et === "agent" && e.st === "prime")
+    .map(e => {
+      const doc = e.did ? docs[e.did] : null;
+      return doc ? { name: e.name, id: e.id, docNo: doc.doc_no, docNoPrefix: doc.doc_no + "." } : null;
+    })
+    .filter((a): a is AgentRef => a !== null)
+    .sort((a, b) => a.docNoPrefix.localeCompare(b.docNoPrefix, undefined, { numeric: true }));
+}
 
 export type ProcessKind = "Direct Edit" | "Alignment Conserver Changes";
 
@@ -74,10 +79,8 @@ export interface ActiveDataRow {
   sourceDocNo: string | null;
 }
 
-export function agentFromDocNo(docNo: string): string | null {
-  for (const [prefix, name] of AGENT_PREFIXES) {
-    if (docNo.startsWith(prefix)) return name;
-  }
+export function agentFromDocNo(docNo: string, agents: AgentRef[]): string | null {
+  for (const a of agents) if (docNo.startsWith(a.docNoPrefix)) return a.name;
   return null;
 }
 
@@ -153,6 +156,7 @@ export function buildActiveDataRows(
   const { entities, edges } = graph;
   const entityById = new Map(entities.map(e => [e.id, e]));
   const chainMap = buildChainMap(entities, edges, docs);
+  const agents = agentsFromGraph(entities, docs);
 
   // doc_no → doc, used to resolve evidence doc_nos back to navigable UUIDs.
   const docByDocNo = new Map<string, AtlasNode>();
@@ -183,7 +187,7 @@ export function buildActiveDataRows(
     const controllerDoc = ctrl ? docs[ctrl.id] : null;
     const controllerDocNo = controllerDoc?.doc_no ?? null;
 
-    const agent = controllerDocNo ? agentFromDocNo(controllerDocNo) : null;
+    const agent = controllerDocNo ? agentFromDocNo(controllerDocNo, agents) : null;
     const chain = agent ? (chainMap.get(agent) ?? null) : null;
 
     const respEdge = ctrl ? respByCtrl.get(ctrl.id) : undefined;

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
 import {
-  AGENT_PREFIXES, buildActiveDataRows, activeDataRowsToCSV,
+  buildActiveDataRows, activeDataRowsToCSV,
   type ActiveDataRow, type EvidenceStep,
 } from "../../lib/activeDataIndex";
 
@@ -70,9 +70,17 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
     });
   }, []);
 
+  // Agents are derived from the rows themselves (graph-resolved in buildActiveDataRows).
+  // Order by the first appearance of each agent — rows are pre-sorted by doc_no, which
+  // keeps prime agents in their natural atlas order.
   const agents = useMemo(() => {
-    const set = new Set(rows.map(r => r.agent ?? "Governance"));
-    return ["Governance", ...AGENT_PREFIXES.map(([, name]) => name)].filter(a => set.has(a));
+    const seen = new Set<string>();
+    const ordered: string[] = ["Governance"];
+    for (const r of rows) {
+      const name = r.agent;
+      if (name && !seen.has(name)) { seen.add(name); ordered.push(name); }
+    }
+    return ordered.filter(a => a === "Governance" ? rows.some(r => r.agent === null) : true);
   }, [rows]);
 
   // Unique names for the Entity filter: responsible parties + facilitators.

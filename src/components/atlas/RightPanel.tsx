@@ -1,9 +1,11 @@
 import type { AtlasNode, AddressInfo } from "../../types";
 import type { ChainValue } from "../../lib/chainstate";
 import type { EdgeResult } from "../../lib/graph";
+import type { GlossaryEntry } from "../../lib/glossary";
 import { RelatedNode } from "../RelatedNode";
 import { AddressCard } from "../AddressCard";
 import { NodeHistory } from "../history/NodeHistory";
+import { Integrity } from "./Integrity";
 
 export type RightTab = "annotations" | "history";
 
@@ -11,21 +13,25 @@ const HIDE = new Set(["parent_of", "mentions", "proxies_to", "cites"]);
 
 export function RightPanel({
   id,
+  node,
   linkedNodes,
   targetAddresses,
   chainValues,
   annotationCount,
   graphEdges,
+  glossaryTerms,
   onNavigate,
   tab,
   onTabChange,
 }: {
   id: string;
+  node: AtlasNode | null;
   linkedNodes: AtlasNode[];
   targetAddresses: Record<string, AddressInfo>;
   chainValues: Record<string, Record<string, ChainValue>>;
   annotationCount: number;
   graphEdges: EdgeResult;
+  glossaryTerms: GlossaryEntry[][];
   onNavigate: (id: string) => void;
   tab: RightTab;
   onTabChange: (t: RightTab) => void;
@@ -60,11 +66,10 @@ export function RightPanel({
         {tab === "annotations" ? (
           <div className="px-4 py-5">
 
-            {/* Existing: inline UUID-linked nodes */}
             {linkedNodes.length > 0 ? (
               <>
                 <p className="text-xs mono mb-4 text-tan-3">
-                  {linkedNodes.length} linked documents{linkedNodes.length !== 1 ? "s" : ""}
+                  {linkedNodes.length} linked document{linkedNodes.length !== 1 ? "s" : ""}
                 </p>
                 {linkedNodes.map(node => (
                   <RelatedNode key={node.id} node={node} onNavigate={onNavigate} />
@@ -74,7 +79,6 @@ export function RightPanel({
               <p className="text-xs mono text-tan-3">doesn't explicitly link to any documents</p>
             )}
 
-            {/* Graph: inbound citations (backlinks) */}
             {citedBy.length > 0 && (
               <div className="mt-8">
                 <p className="text-xs mono mb-3 text-tan-3">cited by · {citedBy.length}</p>
@@ -92,7 +96,6 @@ export function RightPanel({
               </div>
             )}
 
-            {/* Graph: structural/semantic relations */}
             {graphRels.length > 0 && (
               <div className="mt-8">
                 <p className="text-xs mono mb-3 text-tan-3">relations · {graphRels.length}</p>
@@ -134,7 +137,6 @@ export function RightPanel({
               </div>
             )}
 
-            {/* Existing: address cards */}
             {Object.keys(targetAddresses).length > 0 && (
               <div className="mt-8">
                 <p className="text-xs mono mb-4 text-tan-3">
@@ -145,6 +147,33 @@ export function RightPanel({
                 ))}
               </div>
             )}
+
+            {glossaryTerms.length > 0 && (
+              <div className="mt-8">
+                <p className="text-xs mono mb-4 text-tan-3">
+                  glossary · {glossaryTerms.length} term{glossaryTerms.length !== 1 ? "s" : ""}
+                </p>
+                <div className="space-y-4">
+                  {glossaryTerms.map((entries) => (
+                    <div key={entries[0].nodeId} className="border-b border-border pb-4">
+                      <p className="text-xs font-semibold mono mb-1 text-accent">
+                        {entries[0].term}
+                      </p>
+                      {entries.map((e, i) => (
+                        <div key={i} className={i > 0 ? "mt-2 pt-2 border-t border-border" : ""}>
+                          {entries.length > 1 && e.sourceContext && (
+                            <p className="text-[10px] mono mb-0.5 text-tan-3">{e.sourceContext}</p>
+                          )}
+                          <p className="text-xs leading-relaxed text-tan-2">{e.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <Integrity node={node ?? undefined} />
 
           </div>
         ) : (

@@ -60,10 +60,16 @@ for (const name of ARTIFACTS) {
   };
 }
 
+const chainStatePath = path.join(PUBLIC, "chain-state.json");
+const blockNumber = fs.existsSync(chainStatePath)
+  ? JSON.parse(fs.readFileSync(chainStatePath, "utf8")).block ?? null
+  : null;
+
 const manifest = {
   generatedAt: new Date().toISOString(),
   redlensCommit: gitRev(ROOT),
   atlasCommit: gitRev(path.join(ROOT, "vendor/next-gen-atlas")),
+  blockNumber,
   artifacts,
 };
 

@@ -18,6 +18,7 @@ export type GlossaryLookup = Record<string, GlossaryEntry[]>;
 let cached: Promise<Glossary> | null = null;
 
 export function loadGlossary(): Promise<Glossary> {
+  debugger
   if (!cached) {
     const BASE = import.meta.env.BASE_URL;
     cached = fetch(`${BASE}glossary.json`).then((r) => r.json());
@@ -26,6 +27,7 @@ export function loadGlossary(): Promise<Glossary> {
 }
 
 export function buildLookup(glossary: Glossary): GlossaryLookup {
+  console.log("building lookup")
   const lookup: GlossaryLookup = {};
   const add = (key: string, entries: GlossaryEntry[]) => {
     const k = key.toLowerCase();

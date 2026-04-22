@@ -5,7 +5,6 @@ const NodeContentInner = lazy(() => import("./NodeContentInner"));
 interface Props {
   content: string;
   onNavigate?: (id: string) => void;
-  currentNodeId?: string;
 }
 
 /** Call once after initial render to warm the chunk before the user needs it. */

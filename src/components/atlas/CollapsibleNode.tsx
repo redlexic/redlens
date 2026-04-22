@@ -144,7 +144,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
               </svg>
             </a>
           </div>
-          <NodeContent content={node.content} onNavigate={onNavigate} currentNodeId={node.id} />
+          <NodeContent content={node.content} onNavigate={onNavigate} />
         </div>
       )}
     </div>

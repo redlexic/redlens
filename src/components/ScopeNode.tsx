@@ -76,7 +76,7 @@ export const ScopeNode = memo(function ScopeNode({ node, isTarget, onNavigate }:
       </div>
       {node.content && (
         <div>
-          <NodeContent content={node.content} onNavigate={onNavigate} currentNodeId={node.id} />
+          <NodeContent content={node.content} onNavigate={onNavigate} />
         </div>
       )}
     </div>
