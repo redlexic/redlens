@@ -20,15 +20,27 @@ export type ProcessKind = "Direct Edit" | "Alignment Conserver Changes";
 export interface AgentChain {
   agentName: string;
   agentId: string;
+  agentDocNo: string | null;        // Prime Agent's defining doc_no
   executorName: string | null;
   executorId: string | null;
+  executorEdgeSource: string | null;    // source doc_no of the executor→prime edge
   facilitatorName: string | null;
   facilitatorId: string | null;
+  facilitatorEdgeSource: string | null; // source doc_no of the facilitator→executor edge
   govopsName: string | null;
   govopsId: string | null;
+  govopsEdgeSource: string | null;      // source doc_no of the govops→executor edge
 }
 
 export type FacilitatorRole = "Operational Facilitator" | "Core Facilitator";
+
+// One link in an evidence chain. `docNo` is the human-readable identifier;
+// `docId` (when non-null) is the UUID the UI can navigate to.
+export interface EvidenceStep {
+  docNo: string;
+  docId: string | null;
+  label: string;
+}
 
 export interface ResponsibleParty {
   name: string;
@@ -36,6 +48,7 @@ export interface ResponsibleParty {
   docId: string | null; // defining Atlas doc — safe target for navigation
   resolution: "direct" | "chain" | "role";
   declared: string | null; // raw RP text from the ADC, for provenance
+  evidence: EvidenceStep[];
 }
 
 export interface Facilitator {
@@ -43,6 +56,7 @@ export interface Facilitator {
   id: string;           // entity UUID (not a doc)
   docId: string | null; // defining Atlas doc — safe target for navigation
   role: FacilitatorRole;
+  evidence: EvidenceStep[];
 }
 
 export interface ActiveDataRow {
@@ -74,7 +88,13 @@ export function extractProcess(content: string): ProcessKind {
 
 // Chain: prime → executor → facilitator/govops, resolved via role-as-edge
 // types emitted by build-graph.mjs (operational_* + core_* variants).
-export function buildChainMap(entities: RelationEntity[], edges: RelationEdge[]): Map<string, AgentChain> {
+// Each slot carries the source doc_no of the edge that established it — this
+// is what drives the Evidence column in the Active Data Index.
+export function buildChainMap(
+  entities: RelationEntity[],
+  edges: RelationEdge[],
+  docs?: Record<string, AtlasNode>,
+): Map<string, AgentChain> {
   const entityById = new Map(entities.map(e => [e.id, e]));
   const primes = entities.filter(e => e.et === "agent" && e.st === "prime");
 
@@ -93,12 +113,16 @@ export function buildChainMap(entities: RelationEntity[], edges: RelationEdge[])
     map.set(prime.name, {
       agentName: prime.name,
       agentId: prime.id,
+      agentDocNo: docs && prime.did ? (docs[prime.did]?.doc_no ?? null) : null,
       executorName: executor?.name ?? null,
       executorId: executor?.id ?? null,
+      executorEdgeSource: execEdge?.s?.[0] ?? null,
       facilitatorName: facEdge ? (entityById.get(facEdge.f)?.name ?? null) : null,
       facilitatorId: facEdge ? facEdge.f : null,
+      facilitatorEdgeSource: facEdge?.s?.[0] ?? null,
       govopsName: govEdge ? (entityById.get(govEdge.f)?.name ?? null) : null,
       govopsId: govEdge ? govEdge.f : null,
+      govopsEdgeSource: govEdge?.s?.[0] ?? null,
     });
   }
   return map;
@@ -128,13 +152,24 @@ export function buildActiveDataRows(
 ): ActiveDataRow[] {
   const { entities, edges } = graph;
   const entityById = new Map(entities.map(e => [e.id, e]));
-  const chainMap = buildChainMap(entities, edges);
+  const chainMap = buildChainMap(entities, edges, docs);
+
+  // doc_no → doc, used to resolve evidence doc_nos back to navigable UUIDs.
+  const docByDocNo = new Map<string, AtlasNode>();
+  for (const d of Object.values(docs)) docByDocNo.set(d.doc_no, d);
+  const step = (docNo: string | null | undefined, label: string): EvidenceStep | null => {
+    if (!docNo) return null;
+    return { docNo, docId: docByDocNo.get(docNo)?.id ?? null, label };
+  };
 
   const controllerByAd = new Map<string, { id: string; source: string | null }>();
   const respByCtrl = new Map<string, RelationEdge>();
+  // holds_role_for edges keyed by holder entity id — for "role" resolutions.
+  const roleBindingDocByHolder = new Map<string, string>();
   for (const e of edges) {
     if (e.e === "active_data_for") controllerByAd.set(e.f, { id: e.t, source: e.s?.[0] ?? null });
     else if (e.e === "responsible_party_for") respByCtrl.set(e.t, e);
+    else if (e.e === "holds_role_for" && e.s?.[0]) roleBindingDocByHolder.set(e.f, e.s[0]);
   }
 
   // Core Facilitator is the sole source of a `core_facilitator_for` edge.
@@ -159,35 +194,91 @@ export function buildActiveDataRows(
       catch { return null; }
     })();
 
-    const responsibleParty: ResponsibleParty | null = respEntity ? {
-      name: respEntity.name,
-      id: respEntity.id,
-      docId: respEntity.did ?? null,
-      resolution: respMeta?.resolution ?? "direct",
-      declared: respMeta?.role_declared ?? null,
-    } : null;
+    const responsibleParty: ResponsibleParty | null = respEntity ? (() => {
+      const resolution = respMeta?.resolution ?? "direct";
+      const declared = respMeta?.role_declared ?? null;
+      const evidence: EvidenceStep[] = [];
+      const adcDocNo = respEdge?.s?.[0] ?? controllerDocNo;
+      const declaredLabel = declared ? `ADC declares Responsible Party ("${declared}")` : "ADC names Responsible Party";
+      const s0 = step(adcDocNo, declaredLabel); if (s0) evidence.push(s0);
+
+      if (resolution === "chain") {
+        const decl = (declared ?? "").toLowerCase();
+        if (chain) {
+          const s1 = step(chain.agentDocNo, `Prime Agent: ${chain.agentName}`); if (s1) evidence.push(s1);
+          if (chain.executorEdgeSource && chain.executorName) {
+            const s2 = step(chain.executorEdgeSource, `Executor Agent: ${chain.executorName}`); if (s2) evidence.push(s2);
+          }
+          if (decl.includes("govops") && chain.govopsEdgeSource) {
+            const s3 = step(chain.govopsEdgeSource, `${declared}: ${respEntity.name}`); if (s3) evidence.push(s3);
+          } else if (decl.includes("facilitator") && chain.facilitatorEdgeSource) {
+            const s3 = step(chain.facilitatorEdgeSource, `${declared}: ${respEntity.name}`); if (s3) evidence.push(s3);
+          }
+        } else {
+          // Sky Core chain: no Prime/Executor hops. Look up the core role edge
+          // that names this entity and cite its source.
+          const coreType = decl.includes("govops") ? "core_govops_for"
+                        : decl.includes("facilitator") ? "core_facilitator_for"
+                        : null;
+          if (coreType) {
+            const ed = edges.find(e => e.e === coreType && e.f === respEntity.id);
+            const roleLabel = coreType === "core_govops_for" ? "Core GovOps" : "Core Facilitator";
+            const sx = step(ed?.s?.[0], `${roleLabel}: ${respEntity.name}`); if (sx) evidence.push(sx);
+          }
+        }
+      } else if (resolution === "role") {
+        const bindingDocNo = roleBindingDocByHolder.get(respEntity.id);
+        const sb = step(bindingDocNo, `Role held by ${respEntity.name}`); if (sb) evidence.push(sb);
+      } else if (respEntity.did) {
+        const entDoc = docs[respEntity.did];
+        const sd = step(entDoc?.doc_no, `Entity: ${respEntity.name}`); if (sd) evidence.push(sd);
+      }
+
+      return {
+        name: respEntity.name,
+        id: respEntity.id,
+        docId: respEntity.did ?? null,
+        resolution,
+        declared,
+        evidence,
+      };
+    })() : null;
 
     // A.1.12.1.3.1 only specifies a Facilitator for Agent Artifacts (A.6.1.1.*) and
     // the Sky Core Atlas (A.1.*). For other areas (primitive specs A.2.*, ecosystem
     // accords, etc.) the Atlas is silent — leave it null rather than guess.
     const isSkyCoreAtlasAdc = (controllerDocNo ?? "").startsWith("A.1.");
-    const facilitator: Facilitator | null = agent
-      ? (chain?.facilitatorName && chain.facilitatorId
-          ? {
-              name: chain.facilitatorName,
-              id: chain.facilitatorId,
-              docId: entityById.get(chain.facilitatorId)?.did ?? null,
-              role: "Operational Facilitator",
-            }
-          : null)
-      : (isSkyCoreAtlasAdc && coreFacEntity
-          ? {
-              name: coreFacEntity.name,
-              id: coreFacEntity.id,
-              docId: coreFacEntity.did ?? null,
-              role: "Core Facilitator",
-            }
-          : null);
+    const facilitator: Facilitator | null = (() => {
+      if (agent && chain?.facilitatorName && chain.facilitatorId) {
+        const evidence: EvidenceStep[] = [];
+        const s1 = step(chain.agentDocNo, `Prime Agent: ${chain.agentName}`); if (s1) evidence.push(s1);
+        if (chain.executorEdgeSource && chain.executorName) {
+          const s2 = step(chain.executorEdgeSource, `Executor Agent: ${chain.executorName}`); if (s2) evidence.push(s2);
+        }
+        const s3 = step(chain.facilitatorEdgeSource, `Operational Facilitator: ${chain.facilitatorName}`);
+        if (s3) evidence.push(s3);
+        return {
+          name: chain.facilitatorName,
+          id: chain.facilitatorId,
+          docId: entityById.get(chain.facilitatorId)?.did ?? null,
+          role: "Operational Facilitator",
+          evidence,
+        };
+      }
+      if (!agent && isSkyCoreAtlasAdc && coreFacEntity) {
+        const evidence: EvidenceStep[] = [];
+        const s1 = step(coreFacEdge?.s?.[0], `Core Facilitator: ${coreFacEntity.name}`);
+        if (s1) evidence.push(s1);
+        return {
+          name: coreFacEntity.name,
+          id: coreFacEntity.id,
+          docId: coreFacEntity.did ?? null,
+          role: "Core Facilitator",
+          evidence,
+        };
+      }
+      return null;
+    })();
 
     return {
       activeDataId: ad.id,

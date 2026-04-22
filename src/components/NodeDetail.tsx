@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Loading } from "./Loading";
 import { ScopeNode } from "./ScopeNode";
 import { RelatedNode } from "./RelatedNode";
 import { AddressCard } from "./AddressCard";
+import { GlossaryPopover } from "./GlossaryPopover";
 import { loadAtlas } from "../lib/docs";
 import { loadAddresses } from "../lib/addresses";
 import { loadChainState, type ChainValue } from "../lib/chainstate";
 import { getEdges, type EdgeResult } from "../lib/graph";
 import { setAddressMap } from "../lib/addressMap";
+import { loadGlossary, setSharedGlossary } from "../lib/glossary";
 import { type AtlasNode, type AddressInfo } from "../types";
 
 // Extract UUIDs from markdown links in content: [text](uuid)
@@ -55,15 +57,15 @@ const LEFT_PANE_STYLE: React.CSSProperties = { borderRight: "1px solid var(--bor
 
 export function NodeDetail({ id, onNavigate }: { id: string; onNavigate: (id: string) => void }) {
   const [state, setState] = useState<DetailState>(INITIAL);
+  const leftPaneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([loadAtlas(), loadAddresses(), loadChainState(), getEdges(id)]).then(([{ docs, byParent, docNoToId }, addresses, chainState, graphEdges]) => {
+    Promise.all([loadAtlas(), loadAddresses(), loadChainState(), getEdges(id), loadGlossary()]).then(([{ docs, byParent, docNoToId }, addresses, chainState, graphEdges, glossary]) => {
       if (cancelled) return;
 
-      // Push the shared address map into NodeContent's module-level lookup so
-      // its rehype plugin can resolve explorer URLs. Idempotent.
       setAddressMap(addresses);
+      setSharedGlossary(glossary);
 
       const target = docs[id];
       if (!target) { setState({ ...INITIAL, loaded: true }); return; }
@@ -136,7 +138,7 @@ export function NodeDetail({ id, onNavigate }: { id: string; onNavigate: (id: st
       {/* Content grid */}
       <div className="flex-1 lg:grid lg:grid-cols-[3fr_2fr]" style={GRID_STYLE}>
       {/* Left — context */}
-      <div className="overflow-y-auto" style={LEFT_PANE_STYLE}>
+      <div ref={leftPaneRef} className="overflow-y-auto" style={LEFT_PANE_STYLE}>
         <div className="mx-auto px-4 py-6">
           {scopeNodes.map((node) => (
             <ScopeNode key={node.id} node={node} isTarget={node.id === id} onNavigate={onNavigate} />
@@ -246,6 +248,7 @@ export function NodeDetail({ id, onNavigate }: { id: string; onNavigate: (id: st
         </div>
       </div>
     </div>
+    <GlossaryPopover containerRef={leftPaneRef} />
     </div>
   );
 }

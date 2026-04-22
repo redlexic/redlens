@@ -111,12 +111,17 @@ describe("Pattern 13 — bootstrap entities", () => {
     expect(slugs.has("sky-ecosystem")).toBe(false);
   });
 
-  it("bootstrap entities have no defining_doc_id", () => {
-    for (const slug of ["sky-core", "sky-governance"]) {
-      const e = graph.entities.find(x => x.slug === slug);
-      expect(e, `${slug} missing`).toBeDefined();
-      expect(e!.defining_doc_id).toBeNull();
-    }
+  it("sky-core has no defining_doc_id (no single anchor doc)", () => {
+    const e = graph.entities.find(x => x.slug === "sky-core");
+    expect(e, "sky-core missing").toBeDefined();
+    expect(e!.defining_doc_id).toBeNull();
+  });
+
+  it("sky-governance is anchored to A.1 (The Governance Scope)", () => {
+    const e = graph.entities.find(x => x.slug === "sky-governance");
+    expect(e, "sky-governance missing").toBeDefined();
+    expect(e!.defining_doc_id).toBeTruthy();
+    expect(docs[e!.defining_doc_id!]?.doc_no).toBe("A.1");
   });
 });
 

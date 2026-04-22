@@ -594,6 +594,9 @@ function cleanContent(lines) {
         if (inner.endsWith("`") && inner.length > 0) {
           // Same-line wrapper — preserve as inline code
           out.push("`" + inner.slice(0, -1) + "`");
+        } else if (inner.includes("`")) {
+          // Closing backtick appears mid-line (e.g. `1`.) — valid inline markdown, pass through
+          out.push(line);
         } else {
           // Multi-line block opens
           inBlock = true;

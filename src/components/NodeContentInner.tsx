@@ -1,18 +1,18 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import type { AnchorHTMLAttributes } from "react";
 import { ethAddressesPlugin, rehypeEthAddresses } from "../lib/rehypeEthAddresses";
+import { rehypeGlossary } from "../lib/rehypeGlossary";
 
 interface Props {
   content: string;
   onNavigate?: (id: string) => void;
+  currentNodeId?: string;
 }
 
 const NavigateContext = createContext<((id: string) => void) | undefined>(undefined);
-
-const remarkPluginsBase = [remarkGfm];
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -49,10 +49,8 @@ const components: Components = {
 };
 
 const MATH_RE = /\$\$|\$[^$\s]/;
-const rehypePluginsBase = [ethAddressesPlugin];
 
-let remarkPluginsMath: any[] | null = null;
-let rehypePluginsMath: any[] | null = null;
+let katexMods: { rehypeKatex: any; remarkMath: any } | null = null;
 let katexPromise: Promise<void> | null = null;
 
 function loadKatex(): Promise<void> {
@@ -62,31 +60,45 @@ function loadKatex(): Promise<void> {
       import("remark-math"),
       import("katex/dist/katex.min.css"),
     ]).then(([rehypeKatexMod, remarkMathMod]) => {
-      remarkPluginsMath = [remarkGfm, remarkMathMod.default];
-      rehypePluginsMath = [rehypeKatexMod.default, rehypeEthAddresses()];
+      katexMods = { rehypeKatex: rehypeKatexMod.default, remarkMath: remarkMathMod.default };
     });
   }
   return katexPromise;
 }
 
-export default function NodeContentInner({ content, onNavigate }: Props) {
+export default function NodeContentInner({ content, onNavigate, currentNodeId }: Props) {
   const hasMath = MATH_RE.test(content);
-  const [katexReady, setKatexReady] = useState(!!rehypePluginsMath);
+  const [katexReady, setKatexReady] = useState(!!katexMods);
 
   useEffect(() => {
-    if (hasMath && !rehypePluginsMath) {
+    if (hasMath && !katexMods) {
       loadKatex().then(() => setKatexReady(true));
     }
   }, [hasMath]);
 
   const usesMath = hasMath && katexReady;
 
+  const remarkPlugins = useMemo(
+    () => (usesMath ? [remarkGfm, katexMods!.remarkMath] : [remarkGfm]),
+    [usesMath],
+  );
+
+  const rehypePlugins = useMemo(() => {
+    const glossary = rehypeGlossary(currentNodeId);
+    // When math is on, use a fresh eth-addresses plugin instance (matches the
+    // previous behavior — katex modifies the tree and we re-run linkification).
+    const ethPlugin = usesMath ? rehypeEthAddresses() : ethAddressesPlugin;
+    return usesMath
+      ? [katexMods!.rehypeKatex, ethPlugin, glossary]
+      : [ethPlugin, glossary];
+  }, [usesMath, currentNodeId]);
+
   return (
     <NavigateContext.Provider value={onNavigate}>
       <div className="atlas-md">
         <ReactMarkdown
-          remarkPlugins={usesMath ? remarkPluginsMath! : remarkPluginsBase}
-          rehypePlugins={usesMath ? rehypePluginsMath! : rehypePluginsBase}
+          remarkPlugins={remarkPlugins}
+          rehypePlugins={rehypePlugins}
           components={components}
         >
           {content}

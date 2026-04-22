@@ -246,7 +246,9 @@ function entityByName(name) { return entityMap.get(slugify(name)); }
 // --- 1a. Bootstrap entities (Pattern 13) ---
 // Sky Core / Sky Governance — targets of role edges; no defining doc.
 const skyCore      = addEntity("sky-core", "Sky Core", "operational_party", null, null, { source: "bootstrap" });
-const skyGovernance = addEntity("sky-governance", "Sky Governance", "governance_body", null, null, { source: "bootstrap" });
+const skyGovernance = addEntity("sky-governance", "Sky Governance", "governance_body", null, "18ac7dd3-c646-4352-9b0d-d01a2932d7d1", { source: "bootstrap", defining_doc_no: "A.1" });
+// Support Facilitators — role defined at A.2.10.1.1; no named current holder in Atlas.
+const supportFacilitators = addEntity("support-facilitators", "Support Facilitators", "governance_body", null, "aeb75fe3-f52b-4cdf-a206-1e54ef648d88", { source: "bootstrap", defining_doc_no: "A.2.10.1.1" });
 
 // --- 1b. Prime Agents (Pattern 1) ---
 for (const d of allDocs.filter(isPrimeAgent)) {
@@ -760,6 +762,10 @@ for (const e of edges) {
 // Core Facilitator / GovOps resolve to a single entity across the atlas.
 const coreFacId = edges.find(e => e.edgeType === "core_facilitator_for")?.fromId ?? null;
 const coreGovId = edges.find(e => e.edgeType === "core_govops_for")?.fromId     ?? null;
+// Unique operational_govops entity — fallback for A.2.* ADCs that declare
+// "Operational GovOps" without a Prime Agent context (e.g. Support Scope primitives).
+const uniqueOpGovIds = [...new Set(opGovByExec.values())];
+const uniqueOpGovId = uniqueOpGovIds.length === 1 ? uniqueOpGovIds[0] : null;
 const entityById = new Map([...entityMap.values()].map(e => [e.id, e]));
 
 let rpDirect = 0, rpChain = 0, rpRole = 0, rpUnresolved = 0;
@@ -799,8 +805,10 @@ for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
       else if (role === "core_facilitator")  entity = entityById.get(coreFacId);
       else if (role === "core_govops")       entity = entityById.get(coreGovId);
     } else {
-      if      (role === "core_facilitator") entity = entityById.get(coreFacId);
-      else if (role === "core_govops")      entity = entityById.get(coreGovId);
+      if      (role === "core_facilitator")   entity = entityById.get(coreFacId);
+      else if (role === "core_govops")        entity = entityById.get(coreGovId);
+      else if (role === "operational_govops" && uniqueOpGovId) entity = entityById.get(uniqueOpGovId);
+      else if (role === "support_facilitators") entity = supportFacilitators;
     }
     if (entity) resolution = "chain";
   }

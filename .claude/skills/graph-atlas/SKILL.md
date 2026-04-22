@@ -10,10 +10,10 @@ description: >
   role-as-edge vocabulary, composite accord parties, and auditable provenance
   requirements.
   Keywords: graph, atlas, doc_no, edge, entity, primitive, instance, role, facilitator, govops, prime agent, executor agent, composite party, build-graph, relations.json
-license: proprietary
+license: MIT
 metadata:
   author: anscharo
-  version: "1.4"
+  version: "1.5"
 ---
 
 # graph-atlas

@@ -3,7 +3,7 @@ import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
 import {
   AGENT_PREFIXES, buildActiveDataRows, activeDataRowsToCSV,
-  type ActiveDataRow,
+  type ActiveDataRow, type EvidenceStep,
 } from "../../lib/activeDataIndex";
 
 type Row = ActiveDataRow;
@@ -15,6 +15,47 @@ function exportCSV(rows: Row[]) {
     download: "active-data-index.csv",
   });
   a.click();
+}
+
+function EvidenceChain({ title, steps, onNavigate }: {
+  title: string;
+  steps: EvidenceStep[];
+  onNavigate: (id: string) => void;
+}) {
+  if (!steps.length) return null;
+  return (
+    <div className="mb-1 last:mb-0">
+      <span className="mono text-[10px] text-tan-3">{title}: </span>
+      {steps.map((s, i) => (
+        <span key={i}>
+          {i > 0 && <span className="text-tan-3 text-[10px]"> → </span>}
+          {s.docId ? (
+            <button onClick={() => onNavigate(s.docId!)}
+              title={s.label}
+              className="mono text-[10px] text-accent hover:underline">
+              {s.docNo}
+            </button>
+          ) : (
+            <span className="mono text-[10px] text-tan-3" title={s.label}>{s.docNo}</span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function EvidenceCell({ r, onNavigate }: { r: Row; onNavigate: (id: string) => void }) {
+  const rpSteps = r.responsibleParty?.evidence ?? [];
+  const facSteps = r.facilitator?.evidence ?? [];
+  if (!rpSteps.length && !facSteps.length) {
+    return <span className="mono text-[10px] text-tan-3">—</span>;
+  }
+  return (
+    <div>
+      <EvidenceChain title="RP" steps={rpSteps} onNavigate={onNavigate} />
+      <EvidenceChain title="Fac" steps={facSteps} onNavigate={onNavigate} />
+    </div>
+  );
 }
 
 
@@ -95,7 +136,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left" style={{ minWidth: "960px" }}>
+          <table className="w-full text-left" style={{ minWidth: "1120px" }}>
             <thead>
               <tr className="text-xs mono text-tan-3 border-b border-[var(--border)]">
                 <th className="py-2 px-3 font-normal w-40">Active Data</th>
@@ -104,6 +145,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                 <th className="py-2 px-3 font-normal w-24">Agent</th>
                 <th className="py-2 px-3 font-normal w-44">Responsible Party</th>
                 <th className="py-2 px-3 font-normal w-44">Facilitator</th>
+                <th className="py-2 px-3 font-normal w-64">Evidence</th>
                 <th className="py-2 px-3 font-normal w-32">Process</th>
               </tr>
             </thead>
@@ -162,6 +204,9 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                         </span>
                       )
                     ) : <span className="mono text-[10px] text-tan-3">—</span>}
+                  </td>
+                  <td className="py-2 px-3 align-top">
+                    <EvidenceCell r={r} onNavigate={onNavigate} />
                   </td>
                   <td className="py-2 px-3 align-top">
                     <span className="mono text-xs text-tan-3">{r.process}</span>

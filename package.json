@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build:index": "node --env-file-if-exists=.env.local scripts/build-index.mjs",
+    "build:glossary": "node scripts/build-glossary.mjs",
     "build:addresses": "node --env-file-if-exists=.env.local scripts/build-addresses.mjs",
     "build:snapshot": "node --env-file-if-exists=.env.local scripts/fetch-snapshots.mjs",
     "build:graph": "node scripts/build-graph.mjs",
@@ -14,7 +15,7 @@
     "build:manifest": "node scripts/build-manifest.mjs",
     "build:at": "node scripts/build-at.mjs",
     "build:ts": "tsc -b",
-    "build": "pnpm build:index && pnpm build:addresses && pnpm build:snapshot && pnpm build:graph && pnpm build:manifest && pnpm run build:ts && vite build",
+    "build": "pnpm build:index && pnpm build:glossary && pnpm build:addresses && pnpm build:snapshot && pnpm build:graph && pnpm build:manifest && pnpm run build:ts && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
