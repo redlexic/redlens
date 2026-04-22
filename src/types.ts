@@ -154,8 +154,8 @@ export interface RelationEntity {
   id: string;
   slug: string;
   name: string;
-  et: string;        // entity_type: agent | operational_facilitator | core_facilitator | govops | alignment_conserver | ecosystem_actor | scope
-  st: string | null; // subtype: prime | executor | operational | core | aligned_delegate
+  et: string;        // entity_type: agent | operational_facilitator | core_facilitator | govops | alignment_conserver | ecosystem_actor | scope | instance
+  st: string | null; // subtype: prime | executor | operational | core | aligned_delegate | <primitive-slug> for et=instance
   did: string | null;// defining_doc_id — UUID of the Atlas doc that defines this entity
 }
 

@@ -40,3 +40,6 @@ public/addresses.merged.json
 *.sln
 *.sw?
 note.md
+
+# Lighthouse reports
+.lighthouse-report*

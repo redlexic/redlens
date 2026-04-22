@@ -66,6 +66,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   "agent", "composite_party", "foundation", "development_company",
   "operational_party", "governance_body",
   "facilitator_org", "govops_org", "delegate_org", "ecosystem_actor",
+  "instance",
 ]);
 
 const KNOWN_EDGE_TYPES = new Set([
@@ -157,14 +158,18 @@ describe("Pattern 2 — Sky Primitives", () => {
     expect(bad).toEqual([]);
   });
 
-  it("every instance_of edge strips exactly 2 segments from source to reach target", () => {
+  it("every instance_of edge target is a Primitive root at A.6.1.1.X.2.G.P", () => {
+    // Tier nesting varies (Allocation System interposes a Multi-Instance Coordinator),
+    // so "strip 2 segments" no longer holds. Invariant: target is the ICD's Primitive
+    // root and its title ends in "Primitive".
     const bad: string[] = [];
+    const ROOT_RE = /^A\.6\.1\.1\.\d+\.2\.\d+\.\d+$/;
     for (const e of edgesOfType("instance_of")) {
       const src = docs[e.from_id], tgt = docs[e.to_id];
       if (!src || !tgt) { bad.push(`missing doc for edge ${e.id}`); continue; }
-      if (stripSegments(src.doc_no, 2) !== tgt.doc_no) {
-        bad.push(`${src.doc_no} → ${tgt.doc_no} (expected ${stripSegments(src.doc_no, 2)})`);
-      }
+      if (!ROOT_RE.test(tgt.doc_no)) bad.push(`${src.doc_no} → ${tgt.doc_no} (target not a primitive root)`);
+      if (!/Primitive$/i.test(tgt.title)) bad.push(`${src.doc_no} → "${tgt.title}" (target title not "… Primitive")`);
+      if (!src.doc_no.startsWith(tgt.doc_no + ".")) bad.push(`${src.doc_no} → ${tgt.doc_no} (source is not under target)`);
     }
     expect(bad).toEqual([]);
   });

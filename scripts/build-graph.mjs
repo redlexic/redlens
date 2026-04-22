@@ -517,6 +517,58 @@ for (const d of allDocs.filter(isPartyDetails)) {
   }
 }
 
+// --- 1i. Primitive Instance entities (Pattern: per-agent ICD → entity) ---
+// Scoped allowlist — primitives with rich per-instance data worth modeling as
+// entities. Agent Creation and Prime Transformation are intentionally omitted:
+// their lifecycle is already captured by the Prime Agent entity.
+const INSTANCE_SCOPED_PRIMITIVES = {
+  "Distribution Reward Primitive":      "distribution-reward",
+  "Integration Boost Primitive":        "integration-boost",
+  "Allocation System Primitive":        "allocation-system",
+  "Pioneer Chain Primitive":            "pioneer-chain",
+  "Core Governance Reward Primitive":   "core-governance-reward",
+  "Agent Token Primitive":              "agent-token",
+  "Executor Accord Primitive":          "executor-accord",
+  "Root Edit Primitive":                "root-edit",
+  "Distribution Requirement Primitive": "distribution-requirement",
+  "Upkeep Rebate Primitive":            "upkeep-rebate",
+};
+
+function instanceStatusFor(icd, primRoot) {
+  // Tier position varies (Allocation System interposes a Multi-Instance Coordinator
+  // at .2), so read the tier doc's title directly rather than assuming .2=Active.
+  const rest = icd.doc_no.slice(primRoot.doc_no.length + 1);
+  if (!rest) return null;
+  const tierSeg = rest.split(".")[0];
+  const tierDoc = docByDocNo.get(`${primRoot.doc_no}.${tierSeg}`);
+  const title = tierDoc?.title.toLowerCase() ?? "";
+  if (title === "active instances") return "Active";
+  if (title === "completed instances") return "Completed";
+  if (title === "in progress invocations") return "Pending";
+  return null;
+}
+
+for (const icd of allDocs.filter(d => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
+  const primRoot = primitiveRootFor(icd);
+  if (!primRoot) continue;
+  const primitiveSlug = INSTANCE_SCOPED_PRIMITIVES[primRoot.title];
+  if (!primitiveSlug) continue;
+
+  const agentMatch = icd.doc_no.match(/^(A\.6\.1\.1\.\d+)(?:\.|$)/);
+  const agentDoc = agentMatch ? docByDocNo.get(agentMatch[1]) : null;
+  const agentSlug = agentDoc ? slugify(agentDoc.title) : "unknown";
+
+  const name = icd.title.replace(/\s+Instance Configuration Document\s*$/i, "").trim();
+  const slug = `${agentSlug}-${primitiveSlug}-${slugify(name)}`;
+  const status = instanceStatusFor(icd, primRoot);
+  const ent = addEntity(slug, name, "instance", primitiveSlug, icd.id, {
+    primitive_doc_no: primRoot.doc_no,
+    agent_doc_no: agentDoc?.doc_no ?? null,
+    status,
+  });
+  ent.id = icd.id;
+}
+
 console.log(`  ${entityMap.size} entities`);
 
 // ---------------------------------------------------------------------------
@@ -587,10 +639,16 @@ for (const d of allDocs) {
   }
 }
 
-// --- 2f. instance_of (ICD → primitive root) ---
+// --- 2f. instance_of (ICD → primitive root). Meta carries the derived status
+// for in-scope primitives; out-of-scope ICDs still get the edge but no status. ---
 for (const d of allDocs.filter(d => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
   const primRoot = primitiveRootFor(d);
-  if (primRoot) addEdge(d.id, "doc", primRoot.id, "doc", "instance_of", [d.doc_no]);
+  if (!primRoot) continue;
+  const status = INSTANCE_SCOPED_PRIMITIVES[primRoot.title]
+    ? instanceStatusFor(d, primRoot)
+    : null;
+  const meta = status ? JSON.stringify({ status }) : null;
+  addEdge(d.id, "doc", primRoot.id, "doc", "instance_of", [d.doc_no], meta);
 }
 
 // --- 2g. located_at (ICD Location → ICD) ---

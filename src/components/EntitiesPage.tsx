@@ -18,9 +18,9 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
   const urlId = searchParams.get("id");
   const [selectedId, setSelectedId] = useState<string | null>(urlId);
   // Default focus: the agent hierarchy. Types with no direct entity↔entity edges
-  // (scope, govops, facilitators, alignment conservers) start hidden but toggleable.
+  // (scope, govops, facilitators, alignment conservers, instance) start hidden but toggleable.
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set([
-    "scope", "govops", "core_facilitator", "operational_facilitator", "alignment_conserver",
+    "scope", "govops", "core_facilitator", "operational_facilitator", "alignment_conserver", "instance",
   ]));
 
   useEffect(() => {

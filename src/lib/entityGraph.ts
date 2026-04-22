@@ -9,6 +9,7 @@ export const ENTITY_TYPE_LABEL: Record<string, string> = {
   alignment_conserver: "Alignment Conserver",
   ecosystem_actor: "Ecosystem Actor",
   scope: "Scope",
+  instance: "Instance",
 };
 
 export const SUBTYPE_LABEL: Record<string, string> = {
@@ -67,6 +68,7 @@ export const ENTITY_TYPE_COLOR: Record<string, string> = {
   alignment_conserver: "#9ab58a",
   ecosystem_actor: "#a89090",
   scope: "#d4b878",
+  instance: "#7a8a9c",
 };
 
 export interface EntityNodeData {
