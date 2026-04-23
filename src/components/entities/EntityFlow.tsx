@@ -236,10 +236,9 @@ export function EntityFlow({
     entityNodes.forEach((n, i) => {
       const angle = (i / N) * 2 * Math.PI;
       graph.addNode(n.id, {
-        x: Math.cos(angle) * 400,
-        y: Math.sin(angle) * 400,
-        // noverlap radius ~= half the closed-card width so collapsed cards don't overlap.
-        size: 100,
+        x: Math.cos(angle) * 200,
+        y: Math.sin(angle) * 200,
+        size: 90,
       });
     });
     for (const e of entityEdges) {
@@ -250,12 +249,33 @@ export function EntityFlow({
     const settings = forceAtlas2.inferSettings(graph);
     forceAtlas2.assign(graph, {
       iterations: 500,
-      settings: { ...settings, gravity: 0.6, scalingRatio: 12, slowDown: 3 },
+      settings: { ...settings, gravity: 1.5, scalingRatio: 5, slowDown: 3 },
     });
     noverlap.assign(graph, {
       maxIterations: 300,
-      settings: { margin: 40, ratio: 1.1, speed: 4 },
+      settings: { margin: 12, ratio: 1.0, speed: 4 },
     });
+
+    // Clamp outliers (isolated nodes like instances) back toward the cluster.
+    // Cap at 1.2× the 85th-percentile radius so only true strays are pulled in.
+    {
+      const pts: { x: number; y: number }[] = [];
+      graph.forEachNode((_, a) => pts.push({ x: a.x as number, y: a.y as number }));
+      const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+      const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+      const dists = pts.map(p => Math.hypot(p.x - cx, p.y - cy)).sort((a, b) => a - b);
+      const cap = dists[Math.floor(dists.length * 0.85)] * 1.2;
+      graph.updateEachNodeAttributes((_, attrs) => {
+        const dx = (attrs.x as number) - cx;
+        const dy = (attrs.y as number) - cy;
+        const d = Math.hypot(dx, dy);
+        if (d > cap) {
+          const s = cap / d;
+          return { ...attrs, x: cx + dx * s, y: cy + dy * s };
+        }
+        return attrs;
+      });
+    }
 
     const rfNodes: CardNode[] = entityNodes.map(n => {
       const attrs = graph.getNodeAttributes(n.id);

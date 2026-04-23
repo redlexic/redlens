@@ -9,8 +9,8 @@ interface Props {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   ready: boolean;
   isSearching: boolean;
-  onNavPage: (page: 'reports' | 'constellations') => void;
-  activePage: 'reports' | 'constellations' | null;
+  onNavPage: (page: 'reports' | 'constellations' | 'radar') => void;
+  activePage: 'reports' | 'constellations' | 'radar' | null;
 }
 
 export function SearchBar({ inputRef, query, onChange, ready, isSearching, onNavPage, activePage }: Props) {
@@ -26,6 +26,7 @@ export function SearchBar({ inputRef, query, onChange, ready, isSearching, onNav
         {/* Nav links — row 1 right on mobile, row 1 right on desktop */}
         <div className="order-2 sm:order-3 flex-1 flex items-center justify-end gap-2">
           <NavLink active={activePage === 'constellations'} onClick={() => onNavPage('constellations')}>Constellations</NavLink>
+          <NavLink active={activePage === 'radar'} onClick={() => onNavPage('radar')}>Radar</NavLink>
           <NavLink active={activePage === 'reports'}  onClick={() => onNavPage('reports')}>Reports</NavLink>
         </div>
 

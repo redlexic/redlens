@@ -19,6 +19,7 @@ const ActiveDataReport = lazy(() => import("./components/reports/ActiveDataRepor
 const RewardsReport = lazy(() => import("./components/reports/RewardsReport").then(m => ({ default: m.RewardsReport })));
 const ReportsIndex = lazy(() => import("./components/ReportsIndex").then(m => ({ default: m.ReportsIndex })));
 const ProvenancePage = lazy(() => import("./components/ProvenancePage").then(m => ({ default: m.ProvenancePage })));
+const RadarPage = lazy(() => import("./components/radar/RadarPage").then(m => ({ default: m.RadarPage })));
 
 export type ReportId = "of-responsibilities" | "active-data" | "rewards";
 
@@ -71,12 +72,13 @@ export default function App() {
     const q = e.target.value;
 
     if (q === "/reports") { navigate("/reports"); setQuery(""); search(""); return; }
+    if (q === "/radar")   { navigate("/radar"); setQuery(""); search(""); return; }
     if (q === "/hints")   { navigate("/search-hints"); setQuery(""); search(""); return; }
 
     setQuery(q);
 
-    // On /constellations, typing filters the graph in-place — no lunr, no nav.
-    if (location === "/constellations") {
+    // On /constellations and /radar, typing does not trigger lunr or navigate away.
+    if (location === "/constellations" || location.startsWith("/radar")) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       search("");
       return;
@@ -93,6 +95,7 @@ export default function App() {
 
   const activeNavPage = location.startsWith("/constellations") ? "constellations"
     : location.startsWith("/reports") ? "reports"
+    : location.startsWith("/radar") ? "radar"
     : null;
 
   return (
@@ -101,10 +104,10 @@ export default function App() {
         inputRef={inputRef} query={query} onChange={handleChange}
         ready={ready} isSearching={state.status === "searching"}
         onNavPage={(p) => { navigate(`/${p}`); setQuery(""); search(""); }}
-        activePage={activeNavPage as "reports" | "constellations" | null}
+        activePage={activeNavPage as "reports" | "constellations" | "radar" | null}
       />
       <div className="flex-1 flex overflow-hidden">
-        {location !== "/constellations" && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} onShiftNavigate={setSplitId} />}
+        {location !== "/constellations" && !location.startsWith("/radar") && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} onShiftNavigate={setSplitId} />}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Switch>
             <Route path="/">
@@ -130,6 +133,7 @@ export default function App() {
             <Route path="/reports/active-data"><Suspense fallback={<Loading />}><ActiveDataReport onNavigate={navigateToNode} /></Suspense></Route>
             <Route path="/reports/rewards"><Suspense fallback={<Loading />}><RewardsReport onNavigate={navigateToNode} onEntity={navigateToEntity} /></Suspense></Route>
             <Route path="/constellations"><Suspense fallback={<Loading />}><ConstellationsPage onNavigate={navigateToNode} query={query} /></Suspense></Route>
+            <Route path="/radar"><Suspense fallback={<Loading />}><RadarPage onNavigate={navigateToNode} /></Suspense></Route>
             <Route path="/search-hints"><SearchHintsPage onHintClick={(q) => { navigate("/"); setQuery(q); search(q); }} /></Route>
             <Route path="/provenance"><Suspense fallback={<Loading />}><ProvenancePage /></Suspense></Route>
           </Switch>
