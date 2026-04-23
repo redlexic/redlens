@@ -38,6 +38,14 @@ export interface RewardsInstance {
 /** [formattedValue, srcUuid, srcDocNo] — tuple shipped on entity meta params. */
 export type ParamTuple = [string, string, string];
 
+/** Parsed meta block on `et="instance"` RelationEntity.m. */
+export interface InstanceMeta {
+  agent_doc_no: string | null;
+  primitive_doc_no: string | null;
+  status: "Active" | "Completed" | "Pending" | null;
+  params: Record<string, ParamTuple>;
+}
+
 export interface AgentPrimitive {
   kind: PrimitiveKind;
   primitiveId: string;

@@ -2,37 +2,41 @@ import type { AtlasNode, RelationEdge, RelationEntity } from "../types";
 import { agentsFromGraph, type AgentRef } from "./activeDataIndex";
 import type { GraphData } from "./graph";
 import type {
-  AgentPrimitive, EntityRef, InstanceStatus, OperationalChain, ParamTuple,
+  AgentPrimitive, EntityRef, InstanceMeta, InstanceStatus, OperationalChain, ParamTuple,
   PrimitiveKind, RewardsAgent, RewardsEcosystemNode, RewardsIndex, RewardsInstance,
 } from "./rewardsTypes";
 
 export * from "./rewardsTypes";
 
-const STATUS_BY_TIER: Record<string, InstanceStatus> = { "2": "Active", "3": "Completed", "4": "InProgress" };
 const plain = (n: AtlasNode | undefined) => (n?.content ?? "").trim();
 const unwrapBackticks = (s: string) => s.match(/^`([^`\n]+)`\.?$/)?.[1] ?? s;
 const UUID_LINK_RE = /\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/;
 
 interface GraphCtx {
-  paymentControllerByInstance: Map<string, AtlasNode>;
+  paymentControllerByInstance: Map<string, AtlasNode>; // keyed by ICD doc_no
   rpByDocId: Map<string, EntityRef>;
   entityById: Map<string, RelationEntity>;
   edges: RelationEdge[];
-  paramsByInstanceId: Map<string, Record<string, ParamTuple>>;
+  instanceEntities: RelationEntity[];
+  instanceMetaById: Map<string, InstanceMeta>;
 }
 
 function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): GraphCtx {
+  // Build a UUID → doc index so we can look up active_data_for edge targets.
+  const docById = new Map<string, AtlasNode>();
+  for (const d of byDocNo.values()) docById.set(d.id, d);
+
+  // Locate each DR Payment Active Data Controller via active_data_for graph
+  // edges. Edge direction: doc(*.0.6.1 "List Of Payments") → doc(controller).
+  // Stripping the last 2 segments of the controller's doc_no yields the ICD
+  // doc_no (works for active/completed ".3.4" and in-progress ".4.4" tiers).
   const paymentControllerByInstance = new Map<string, AtlasNode>();
-  for (const n of byDocNo.values()) {
-    if (n.title !== "Distribution Reward Payments") continue;
-    for (let dn = n.doc_no; ; ) {
-      const dot = dn.lastIndexOf("."); if (dot < 0) break;
-      dn = dn.slice(0, dot);
-      const anc = byDocNo.get(dn);
-      if (anc && /Instance Configuration Document/i.test(anc.title)) {
-        paymentControllerByInstance.set(dn, n); break;
-      }
-    }
+  for (const e of graph?.edges ?? []) {
+    if (e.e !== "active_data_for") continue;
+    const controller = docById.get(e.t);
+    if (!controller || controller.title !== "Distribution Reward Payments") continue;
+    const parts = controller.doc_no.split(".");
+    if (parts.length > 2) paymentControllerByInstance.set(parts.slice(0, -2).join("."), controller);
   }
   const entityById = new Map<string, RelationEntity>((graph?.entities ?? []).map(e => [e.id, e]));
   const rpByDocId = new Map<string, EntityRef>();
@@ -41,15 +45,22 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
     const ent = entityById.get(e.f);
     if (ent) rpByDocId.set(e.t, { id: ent.id, name: ent.name, slug: ent.slug });
   }
-  const paramsByInstanceId = new Map<string, Record<string, ParamTuple>>();
+  const instanceEntities: RelationEntity[] = [];
+  const instanceMetaById = new Map<string, InstanceMeta>();
   for (const ent of graph?.entities ?? []) {
     if (ent.et !== "instance" || !ent.m) continue;
     try {
-      const p = (JSON.parse(ent.m) as { params?: Record<string, ParamTuple> }).params;
-      if (p) paramsByInstanceId.set(ent.id, p);
+      const m = JSON.parse(ent.m) as InstanceMeta;
+      instanceEntities.push(ent);
+      instanceMetaById.set(ent.id, {
+        agent_doc_no: m.agent_doc_no ?? null,
+        primitive_doc_no: m.primitive_doc_no ?? null,
+        status: m.status ?? null,
+        params: m.params ?? {},
+      });
     } catch { /* ignore */ }
   }
-  return { paymentControllerByInstance, rpByDocId, entityById, edges: graph?.edges ?? [], paramsByInstanceId };
+  return { paymentControllerByInstance, rpByDocId, entityById, edges: graph?.edges ?? [], instanceEntities, instanceMetaById };
 }
 
 function resolveChain(ctx: GraphCtx, primeId: string): OperationalChain | null {
@@ -64,8 +75,6 @@ function resolveChain(ctx: GraphCtx, primeId: string): OperationalChain | null {
   };
 }
 
-// Read each well-known field from meta.params tuples. No prose stripping here;
-// build-graph already applies PARAM_FORMATTERS at extraction time.
 function applyParamTuples(
   inst: RewardsInstance, params: Record<string, ParamTuple>,
   kind: PrimitiveKind, docs: Record<string, AtlasNode>,
@@ -78,8 +87,6 @@ function applyParamTuples(
     const tr = take("Tracking Methodology");
     if (tr) {
       inst.tracking = tr[0];
-      // If the sub-doc's raw content links to a shared methodology, target that;
-      // otherwise fall through to the ICD's own Tracking Methodology sub-doc.
       const rawContent = docs[tr[1]]?.content ?? "";
       const linkedId = rawContent.match(UUID_LINK_RE)?.[1];
       const target = linkedId ? docs[linkedId] : null;
@@ -94,21 +101,16 @@ function applyParamTuples(
   }
 }
 
-function extractInstance(
-  byDocNo: Map<string, AtlasNode>, docs: Record<string, AtlasNode>,
-  baseDocNo: string, title: string,
-  status: InstanceStatus, kind: PrimitiveKind, ctx: GraphCtx,
+function extractInstanceFromEntity(
+  ent: RelationEntity, meta: InstanceMeta, status: InstanceStatus,
+  kind: PrimitiveKind, ctx: GraphCtx, docs: Record<string, AtlasNode>,
 ): RewardsInstance {
-  const head = byDocNo.get(baseDocNo);
-  const name = title.replace(/\s+Instance Configuration Document\s*$/i, "").trim();
-  const inst: RewardsInstance = { id: head?.id ?? "", docNo: baseDocNo, name, status };
-  const params = inst.id ? ctx.paramsByInstanceId.get(inst.id) : undefined;
-  if (params) {
-    applyParamTuples(inst, params, kind, docs);
-    if (Object.keys(params).length > 0) inst.params = params;
-  }
-  if (kind === "DR") {
-    const controller = ctx.paymentControllerByInstance.get(baseDocNo);
+  const icdDoc = ent.did ? docs[ent.did] : null;
+  const inst: RewardsInstance = { id: ent.id, docNo: icdDoc?.doc_no ?? "", name: ent.name, status };
+  applyParamTuples(inst, meta.params, kind, docs);
+  if (Object.keys(meta.params).length > 0) inst.params = meta.params;
+  if (kind === "DR" && inst.docNo) {
+    const controller = ctx.paymentControllerByInstance.get(inst.docNo);
     if (controller) {
       inst.paymentsControllerId = controller.id;
       inst.paymentsControllerDocNo = controller.doc_no;
@@ -123,15 +125,15 @@ function extractPrimitive(byDocNo: Map<string, AtlasNode>, docs: Record<string, 
   const head = byDocNo.get(primitiveDocNo);
   if (!head) return null;
   const globalActivation = unwrapBackticks(plain(byDocNo.get(`${primitiveDocNo}.1.1`))) || null;
+  const primSlug = kind === "DR" ? "distribution-reward" : "integration-boost";
+  const relevant = ctx.instanceEntities.filter(e =>
+    e.st === primSlug && ctx.instanceMetaById.get(e.id)?.agent_doc_no === agent.docNo
+  );
   const buckets: Record<InstanceStatus, RewardsInstance[]> = { Active: [], Completed: [], InProgress: [] };
-  for (const tier of ["2", "3", "4"] as const) {
-    const status = STATUS_BY_TIER[tier];
-    for (let n = 1; n <= 99; n++) {
-      const base = `${primitiveDocNo}.${tier}.${n}`;
-      const node = byDocNo.get(base);
-      if (!node || !/Instance Configuration Document/i.test(node.title)) break;
-      buckets[status].push(extractInstance(byDocNo, docs, base, node.title, status, kind, ctx));
-    }
+  for (const ent of relevant) {
+    const meta = ctx.instanceMetaById.get(ent.id)!;
+    const status: InstanceStatus = meta.status === "Pending" ? "InProgress" : meta.status === "Completed" ? "Completed" : "Active";
+    buckets[status].push(extractInstanceFromEntity(ent, meta, status, kind, ctx, docs));
   }
   return {
     kind, primitiveId: head.id, primitiveDocNo, globalActivation,
