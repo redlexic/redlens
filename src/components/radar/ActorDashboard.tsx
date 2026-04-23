@@ -21,7 +21,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function RelationRow({ r, onNavigate, onActor }: { r: ActorRelation; onNavigate: (id: string) => void; onActor: (slug: string) => void }) {
+function RelationRow({ r,  onActor }: { r: ActorRelation; onNavigate: (id: string) => void; onActor: (slug: string) => void }) {
   const label = edgeLabel(r.edge.e, r.direction);
   const arrow = r.direction === "outbound" ? "→" : "←";
   return (
