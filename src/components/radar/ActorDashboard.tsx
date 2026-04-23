@@ -21,7 +21,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function RelationRow({ r,  onActor }: { r: ActorRelation; onNavigate: (id: string) => void; onActor: (slug: string) => void }) {
+function RelationRow({ r, onActor }: { r: ActorRelation; onActor: (slug: string) => void }) {
   const label = edgeLabel(r.edge.e, r.direction);
   const arrow = r.direction === "outbound" ? "→" : "←";
   return (
@@ -82,7 +82,7 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
         {instances.length > 0 && <Section title="Instances"><ActorInstances instances={instances} onNavigate={onNavigate} /></Section>}
         {relations.length > 0 && (
           <Section title="Relationships">
-            {relations.map((r,i) => <RelationRow key={i} r={r} onNavigate={onNavigate} onActor={onActor} />)}
+            {relations.map((r,i) => <RelationRow key={i} r={r} onActor={onActor} />)}
           </Section>
         )}
         {recommendations.length > 0 && (
