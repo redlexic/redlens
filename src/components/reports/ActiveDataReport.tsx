@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
+import { loadHistory } from "../../lib/history";
 import {
   buildActiveDataRows, activeDataRowsToCSV,
   type ActiveDataRow, type EvidenceStep,
@@ -63,12 +64,25 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
   const [rows, setRows] = useState<Row[]>([]);
   const [agentFilter, setAgentFilter] = useState<string | null>(null);
   const [entityFilter, setEntityFilter] = useState<string | null>(null);
+  const [lastEditDates, setLastEditDates] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     Promise.all([loadDocs(), loadGraph()]).then(([docs, graph]) => {
       setRows(buildActiveDataRows(docs, graph));
     });
   }, []);
+
+  useEffect(() => {
+    if (!rows.length) return;
+    Promise.all(rows.map(r => loadHistory(r.activeDataId).then(h => [r.activeDataId, h] as const)))
+      .then(pairs => {
+        const m = new Map<string, string>();
+        for (const [id, entries] of pairs) {
+          if (entries?.length) m.set(id, entries[entries.length - 1].date);
+        }
+        setLastEditDates(m);
+      });
+  }, [rows]);
 
   // Agents are derived from the rows themselves (graph-resolved in buildActiveDataRows).
   // Order by the first appearance of each agent — rows are pre-sorted by doc_no, which
@@ -147,14 +161,14 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
           <table className="w-full text-left" style={{ minWidth: "1120px" }}>
             <thead>
               <tr className="text-xs mono text-tan-3 border-b border-[var(--border)]">
-                <th className="py-2 px-3 font-normal w-40">Active Data</th>
-                <th className="py-2 px-3 font-normal">Title</th>
+                <th className="py-2 px-3 font-normal">AD Doc Title</th>
                 <th className="py-2 px-3 font-normal w-40">Controller</th>
                 <th className="py-2 px-3 font-normal w-24">Agent</th>
                 <th className="py-2 px-3 font-normal w-44">Responsible Party</th>
                 <th className="py-2 px-3 font-normal w-44">Facilitator</th>
                 <th className="py-2 px-3 font-normal w-64">Evidence</th>
                 <th className="py-2 px-3 font-normal w-32">Process</th>
+                <th className="py-2 px-3 font-normal w-28">Last Edited</th>
               </tr>
             </thead>
             <tbody>
@@ -162,15 +176,10 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                 <tr key={r.activeDataId} className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
                   <td className="py-2 px-3 align-top">
                     <button onClick={() => onNavigate(r.activeDataId)}
-                      className="mono text-xs text-accent hover:underline text-left">
-                      {r.activeDataDocNo}
-                    </button>
-                  </td>
-                  <td className="py-2 px-3 align-top">
-                    <button onClick={() => onNavigate(r.activeDataId)}
-                      className="text-sm text-tan hover:underline text-left">
+                      className="text-sm text-tan hover:underline text-left block">
                       {r.activeDataTitle}
                     </button>
+                    <span className="mono text-[10px] text-accent">{r.activeDataDocNo}</span>
                   </td>
                   <td className="py-2 px-3 align-top">
                     {r.controllerId && r.controllerDocNo ? (
@@ -218,6 +227,11 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                   </td>
                   <td className="py-2 px-3 align-top">
                     <span className="mono text-xs text-tan-3">{r.process}</span>
+                  </td>
+                  <td className="py-2 px-3 align-top">
+                    <span className="mono text-xs text-tan-3">
+                      {lastEditDates.get(r.activeDataId) ?? "—"}
+                    </span>
                   </td>
                 </tr>
               ))}

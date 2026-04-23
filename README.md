@@ -167,7 +167,7 @@ The D1 database holds:
 | Table | Contents |
 |---|---|
 | `atlas_nodes` | All 9,825 nodes with full content + FTS5 index |
-| `entities` | 49 named entities (Prime Agents, Executor Agents, Facilitators, GovOps, ERG members, Aligned Delegates) |
+| `entities` | Named Sky participants: Prime Agents, Executor Agents, Facilitators, GovOps orgs, Aligned Delegates, Governance Parties, and Primitive Instances |
 | `addresses` | 294 on-chain addresses with chain-state snapshots |
 | `edges` | 12,438 typed edges: `parent_of`, `cites`, `annotates`, `active_data_for`, `member_of`, `member_of_erg`, `has_address`, `mentions`, `proxies_to` |
 

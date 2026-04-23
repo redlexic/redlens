@@ -4,11 +4,11 @@
 import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
-import type { AtlasNode, RelationEntity, RelationEdge } from "../src/types";
+import type { AtlasNode, Participant, RelationEdge } from "../src/types";
 
 const ROOT = path.resolve(__dirname, "..");
 const PUBLIC = path.join(ROOT, "public");
-type Relations = { meta: unknown; entities: RelationEntity[]; edges: RelationEdge[] };
+type Relations = { meta: unknown; entities: Participant[]; edges: RelationEdge[] };
 const relations: Relations = JSON.parse(fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"));
 const docs: Record<string, AtlasNode> = JSON.parse(fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"));
 
@@ -88,10 +88,10 @@ describe("instance_of edges", () => {
 
 describe("instance params (extracted from ICD Parameters subtree)", () => {
   type Tuple = [string, string, string];
-  function meta(ent: RelationEntity): { status?: string; params?: Record<string, Tuple> } {
+  function meta(ent: Participant): { status?: string; params?: Record<string, Tuple> } {
     try { return ent.m ? JSON.parse(ent.m) : {}; } catch { return {}; }
   }
-  function paramsOf(ent: RelationEntity) { return meta(ent).params ?? {}; }
+  function paramsOf(ent: Participant) { return meta(ent).params ?? {}; }
 
   it("every param is a 3-tuple [value, uuid, docNo]", () => {
     for (const e of instances) {

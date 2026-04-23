@@ -1,10 +1,10 @@
 import { memo, useState, useEffect, useMemo } from "react";
 import { SearchResult } from "./SearchResult";
 import { SearchHints } from "./SearchHints";
-import type { SearchHit, RelationEntity } from "../types";
+import type { SearchHit, Participant } from "../types";
 import type { SearchState } from "../hooks/useSearch";
 import { loadGraph } from "../lib/graph";
-import { searchEntities } from "../lib/entitySearch";
+import { searchParticipants } from "../lib/entitySearch";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, SUBTYPE_LABEL } from "../lib/entityGraph";
 
 interface Props {
@@ -23,13 +23,13 @@ export const SearchResults = memo(function SearchResults({ state, query, onNavig
   const [visible, setVisible] = useState(PAGE_SIZE);
   useEffect(() => { setVisible(PAGE_SIZE); }, [hits]);
 
-  const [entities, setEntities] = useState<RelationEntity[] | null>(null);
-  useEffect(() => { loadGraph().then(g => setEntities(g.entities)); }, []);
+  const [participants, setParticipants] = useState<Participant[] | null>(null);
+  useEffect(() => { loadGraph().then(g => setParticipants(g.participants)); }, []);
 
   const entityHits = useMemo(() => {
-    if (!entities || !query.trim() || query.startsWith("/")) return [];
-    return searchEntities(query, entities).slice(0, ENTITY_CAP);
-  }, [entities, query]);
+    if (!participants || !query.trim() || query.startsWith("/")) return [];
+    return searchParticipants(query, participants).slice(0, ENTITY_CAP);
+  }, [participants, query]);
 
   const displayed = hits.slice(0, visible);
   const remaining = hits.length - displayed.length;
@@ -40,21 +40,21 @@ export const SearchResults = memo(function SearchResults({ state, query, onNavig
         {entityHits.length > 0 && (
           <>
             <div className="px-4 py-2 text-xs border-b mono text-tan-3 border-border">
-              entities · {entityHits.length}
+              Agents · Alignment Conservers · Ecosystem Actors  {entityHits.length}
             </div>
             <ul>
-              {entityHits.map(({ entity }) => (
-                <li key={entity.id}>
+              {entityHits.map(({ participant }) => (
+                <li key={participant.id}>
                   <a
-                    href={`/entities?id=${entity.id}`}
-                    onClick={(e) => { e.preventDefault(); onNavigateEntity(entity.id); }}
+                    href={`/constellations?id=${participant.id}`}
+                    onClick={(e) => { e.preventDefault(); onNavigateEntity(participant.id); }}
                     className="search-result-link px-4 py-3 flex items-center gap-3"
                   >
-                    <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: ENTITY_TYPE_COLOR[entity.et] ?? "#888" }} />
-                    <span className="text-sm font-semibold text-tan">{entity.name}</span>
+                    <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: ENTITY_TYPE_COLOR[participant.et] ?? "#888" }} />
+                    <span className="text-sm font-semibold text-tan">{participant.name}</span>
                     <span className="mono text-[10px] text-tan-3">
-                      {ENTITY_TYPE_LABEL[entity.et] ?? entity.et}
-                      {entity.st ? ` · ${SUBTYPE_LABEL[entity.st] ?? entity.st}` : ""}
+                      {ENTITY_TYPE_LABEL[participant.et] ?? participant.et}
+                      {participant.st ? ` · ${SUBTYPE_LABEL[participant.st] ?? participant.st}` : ""}
                     </span>
                   </a>
                 </li>

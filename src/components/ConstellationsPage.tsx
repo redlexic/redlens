@@ -6,12 +6,12 @@ import {
   buildEntityNodes, buildEntityEdges, buildEntityIndex,
   ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, CONNECTED_ENTITY_TYPES,
 } from "../lib/entityGraph";
-import { searchEntities, neighborhoodOfEntities, agentClusterIds } from "../lib/entitySearch";
+import { searchParticipants, neighborhoodOfParticipants, agentClusterIds } from "../lib/entitySearch";
 import { EntityFlow } from "./entities/EntityFlow";
 import { Loading } from "./Loading";
-import type { RelationEntity } from "../types";
+import type { Participant } from "../types";
 
-export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) => void; query: string }) {
+export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: string) => void; query: string }) {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [docNoToId, setDocNoToId] = useState<Map<string, string> | null>(null);
   const [, navigate] = useLocation();
@@ -21,17 +21,12 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
 
   const selectEntity = useCallback((id: string) => {
     setSelectedId(id);
-    navigate(`/entities?id=${id}`);
+    navigate(`/constellations?id=${id}`);
   }, [navigate]);
-  // Default focus: the agent hierarchy plus instances (temporarily visible so we
-  // can inspect the graph shape — will likely move back to hidden-by-default once
-  // a purpose-built instance panel exists). Types with no direct entity↔entity
-  // edges (scope, govops, facilitators, alignment conservers) start hidden.
+
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set([
-    "scope", "govops", "core_facilitator", "operational_facilitator", "alignment_conserver",
+    "govops_org", "facilitator_org", "delegate_org",
   ]));
-  // When set, narrow the graph to just this Prime Agent's cluster: executor,
-  // facilitator, govops, and all Instances the agent has invoked.
   const [focusAgentId, setFocusAgentId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,44 +36,42 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
     });
   }, []);
 
-  const entityById = useMemo(
-    () => (graphData ? buildEntityIndex(graphData.entities) : new Map<string, RelationEntity>()),
+  const allEntities = useMemo(
+    () => graphData ? [...graphData.participants, ...graphData.instances] : [],
     [graphData],
   );
 
-  // Query-driven scope: when a search is active, narrow to the matches and their
-  // 2-hop entity↔entity neighborhood so solitary primes don't look orphaned.
+  const entityById = useMemo(
+    () => buildEntityIndex(allEntities),
+    [allEntities],
+  );
+
   const queryScope = useMemo(() => {
     if (!graphData || !query.trim()) return null;
-    const matches = searchEntities(query, graphData.entities);
+    const matches = searchParticipants(query, allEntities);
     if (matches.length === 0) return { ids: new Set<string>(), topId: null as string | null };
-    const seedIds = matches.map(m => m.entity.id);
-    const ids = neighborhoodOfEntities(seedIds, graphData.edges, 2);
-    return { ids, topId: matches[0].entity.id };
-  }, [graphData, query]);
+    const seedIds = matches.map(m => m.participant.id);
+    const ids = neighborhoodOfParticipants(seedIds, graphData.edges, 2);
+    return { ids, topId: matches[0].participant.id };
+  }, [graphData, query, allEntities]);
 
-  // When the query changes and there's a top match, auto-select it.
   useEffect(() => {
     if (queryScope?.topId) selectEntity(queryScope.topId);
-  // selectEntity is stable; topId change is the real trigger.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryScope?.topId]);
 
-  // URL ?id= pre-selection (only when no active query).
   useEffect(() => {
     if (!query.trim() && urlId) setSelectedId(urlId);
   }, [urlId, query]);
 
-  // Agent cluster for focus mode — transitively walks from the selected prime.
   const focusCluster = useMemo(() => {
     if (!graphData || !focusAgentId) return null;
-    return agentClusterIds(focusAgentId, graphData.entities, graphData.edges);
-  }, [graphData, focusAgentId]);
+    return agentClusterIds(focusAgentId, allEntities, graphData.edges);
+  }, [graphData, focusAgentId, allEntities]);
 
   const { nodes, edges } = useMemo(() => {
     if (!graphData) return { nodes: [], edges: [] };
     const allNodes = buildEntityNodes(graphData).filter(n => {
-      // Instances filter by composite et:st key so subtypes can be toggled independently.
       const subKey = n.entity.et === "instance" && n.entity.st ? `instance:${n.entity.st}` : null;
       if (hiddenTypes.has(n.entity.et)) return false;
       if (subKey && hiddenTypes.has(subKey)) return false;
@@ -91,11 +84,10 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
     return { nodes: allNodes, edges: allEdges };
   }, [graphData, hiddenTypes, queryScope, focusCluster]);
 
-  // Type pills: for instances, split per subtype; for others, aggregate by et.
   const typeRows = useMemo(() => {
     if (!graphData) return [] as { key: string; et: string; label: string; count: number; color: string }[];
     const m = new Map<string, { key: string; et: string; label: string; count: number; color: string }>();
-    for (const e of graphData.entities) {
+    for (const e of allEntities) {
       const key = e.et === "instance" && e.st ? `instance:${e.st}` : e.et;
       const label = e.et === "instance" && e.st
         ? e.st.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")
@@ -105,18 +97,20 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
       if (cur) cur.count++; else m.set(key, { key, et: e.et, label, count: 1, color });
     }
     return [...m.values()].sort((a, b) => b.count - a.count);
-  }, [graphData]);
+  }, [graphData, allEntities]);
 
   const primeAgents = useMemo(() => {
-    if (!graphData) return [] as RelationEntity[];
-    return graphData.entities
+    if (!graphData) return [] as Participant[];
+    return graphData.participants
       .filter(e => e.et === "agent" && e.st === "prime")
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [graphData]);
 
   if (!graphData || !docNoToId) {
-    return <Loading>loading entity graph</Loading>;
+    return <Loading>loading constellations</Loading>;
   }
+
+  const totalShown = graphData.participants.length + graphData.instances.length;
 
   return (
     <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
@@ -124,9 +118,9 @@ export function EntitiesPage({ onNavigate, query }: { onNavigate: (id: string) =
         <p className="mono text-[10px] uppercase tracking-wide" style={{ color: "var(--tan-3)" }}>
           {queryScope
             ? (nodes.length === 0
-                ? `no entities match "${query}"`
-                : `"${query}" · ${nodes.length} entities · ${edges.length} relationships`)
-            : `${graphData.entities.length} entities · ${edges.length} relationships shown`}
+                ? `no results for "${query}"`
+                : `"${query}" · ${nodes.length} shown · ${edges.length} relationships`)
+            : `${totalShown} total · ${nodes.length} shown · ${edges.length} relationships`}
         </p>
         <div className="flex items-center gap-2 flex-wrap">
           <button

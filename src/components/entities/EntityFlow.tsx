@@ -14,7 +14,7 @@ import {
   getEntityRelations,
 } from "../../lib/entityGraph";
 import type { GraphData } from "../../lib/graph";
-import type { RelationEntity } from "../../types";
+import type { Participant } from "../../types";
 
 const EDGE_COLOR = "#5a3a32";
 const EDGE_HIGHLIGHT = "#c67267";
@@ -25,9 +25,9 @@ type CardData = {
   entityType: string;
   subtype: string | null;
   degree: number;
-  entity: RelationEntity;
+  entity: Participant;
   graphData: GraphData;
-  entityById: Map<string, RelationEntity>;
+  entityById: Map<string, Participant>;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 };
@@ -89,9 +89,9 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
 function CardBody({
   entity, graphData, entityById, onSelect, onNavigateDoc,
 }: {
-  entity: RelationEntity;
+  entity: Participant;
   graphData: GraphData;
-  entityById: Map<string, RelationEntity>;
+  entityById: Map<string, Participant>;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 }) {
@@ -226,7 +226,7 @@ export function EntityFlow({
   selectedId: string | null;
   onSelect: (id: string) => void;
   graphData: GraphData;
-  entityById: Map<string, RelationEntity>;
+  entityById: Map<string, Participant>;
   onNavigateDoc: (id: string) => void;
 }) {
   // Compute positions once per nodes/edges reference using forceatlas2 + noverlap.

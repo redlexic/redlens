@@ -35,9 +35,9 @@ type GraphEdge = {
 };
 type Graph = { meta: unknown; entities: GraphEntity[]; edges: GraphEdge[] };
 
-type RelationEntity = { id: string; slug: string; name: string; et: string; st: string | null; did: string | null };
+type RawParticipant = { id: string; slug: string; name: string; et: string; st: string | null; did: string | null };
 type RelationEdge = { f: string; ft: string; t: string; tt: string; e: string; s?: string[]; m?: string };
-type Relations = { meta: unknown; entities: RelationEntity[]; edges: RelationEdge[] };
+type Relations = { meta: unknown; entities: RawParticipant[]; edges: RelationEdge[] };
 
 const graph: Graph = JSON.parse(fs.readFileSync(path.join(PUBLIC, "graph.json"), "utf8"));
 const relations: Relations = JSON.parse(fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"));

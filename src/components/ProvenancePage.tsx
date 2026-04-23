@@ -82,11 +82,11 @@ const STAGES: Stage[] = [
       "Parsing rules: .claude/skills/graph-atlas/",
     ],
     outputs: [
-      { name: "public/atlas-graph.json", note: "full typed-edge graph: docs, entities, addresses, roles" },
+      { name: "public/atlas-graph.json", note: "full typed-edge graph: docs, agents & parties, instances, addresses, roles" },
       { name: "public/relations.json", note: "compacted/reduced projection of atlas-graph for runtime use" },
     ],
     powers: [
-      "Entities view — visual graph of agents, orgs, facilitators, and their relationships",
+      "Constellations — visual graph of agents, facilitators, governance parties, and their relationships",
       "Graph-aware search and reports that join across the Sky ecosystem",
     ],
     verify: "Every edge carries source_doc_nos, so any relationship can be traced back to the atlas sections that establish it. Parsing rules are the graph-atlas skill.",
@@ -98,7 +98,7 @@ const FRONTEND: { where: string; reads: string }[] = [
   { where: "src/workers/search.worker.ts", reads: "docs.json + search-index.json — lunr queries off the main thread" },
   { where: "src/lib/addresses.ts", reads: "addresses.json — shared map; NodeContent rehype plugin resolves links against it" },
   { where: "src/components/Footer.tsx", reads: "chain-state.json — block pill + generatedAt tooltip" },
-  { where: "src/lib/graph.ts + graph.worker.ts", reads: "relations.json — entities view and graph-aware reports" },
+  { where: "src/lib/graph.ts + graph.worker.ts", reads: "relations.json — participants & instances; powers Constellations and reports" },
   { where: "src/components/atlas/HistoryView.tsx", reads: "public/history/<uuid>.json — on-demand per node" },
 ];
 

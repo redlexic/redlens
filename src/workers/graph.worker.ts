@@ -2,7 +2,7 @@
 import { MultiDirectedGraph } from "graphology";
 import { bfsFromNode } from "graphology-traversal";
 import type {
-  RelationEdge, ResolvedEdge, RelationEntity,
+  RelationEdge, ResolvedEdge, Participant,
   GraphWorkerInMessage, GraphWorkerOutMessage, SerializedSubgraph,
 } from "../types";
 import { fetchJsonVerified } from "../lib/verify";
@@ -10,13 +10,13 @@ import { fetchJsonVerified } from "../lib/verify";
 declare const self: DedicatedWorkerGlobalScope;
 
 let graph: MultiDirectedGraph | null = null;
-const entityBySlug = new Map<string, RelationEntity>();
-const entityById   = new Map<string, RelationEntity>();
+const entityBySlug = new Map<string, Participant>();
+const entityById   = new Map<string, Participant>();
 
 async function init() {
   const base = import.meta.env.BASE_URL;
   const data = await fetchJsonVerified<{
-    entities: RelationEntity[];
+    entities: Participant[];
     edges: RelationEdge[];
   }>(`${base}relations.json`, "relations.json");
 

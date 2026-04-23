@@ -1,4 +1,4 @@
-import type { AtlasNode, RelationEdge, RelationEntity } from "../types";
+import type { AtlasNode, RelationEdge, Participant } from "../types";
 import { agentsFromGraph, type AgentRef } from "./activeDataIndex";
 import type { GraphData } from "./graph";
 import type {
@@ -15,9 +15,9 @@ const UUID_LINK_RE = /\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 interface GraphCtx {
   paymentControllerByInstance: Map<string, AtlasNode>; // keyed by ICD doc_no
   rpByDocId: Map<string, EntityRef>;
-  entityById: Map<string, RelationEntity>;
+  entityById: Map<string, Participant>;
   edges: RelationEdge[];
-  instanceEntities: RelationEntity[];
+  instanceEntities: Participant[];
   instanceMetaById: Map<string, InstanceMeta>;
 }
 
@@ -38,17 +38,18 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
     const parts = controller.doc_no.split(".");
     if (parts.length > 2) paymentControllerByInstance.set(parts.slice(0, -2).join("."), controller);
   }
-  const entityById = new Map<string, RelationEntity>((graph?.entities ?? []).map(e => [e.id, e]));
+  const allEntities = [...(graph?.participants ?? []), ...(graph?.instances ?? [])];
+  const entityById = new Map<string, Participant>(allEntities.map(e => [e.id, e]));
   const rpByDocId = new Map<string, EntityRef>();
   for (const e of graph?.edges ?? []) {
     if (e.e !== "responsible_party_for") continue;
     const ent = entityById.get(e.f);
     if (ent) rpByDocId.set(e.t, { id: ent.id, name: ent.name, slug: ent.slug });
   }
-  const instanceEntities: RelationEntity[] = [];
+  const instanceEntities: Participant[] = [];
   const instanceMetaById = new Map<string, InstanceMeta>();
-  for (const ent of graph?.entities ?? []) {
-    if (ent.et !== "instance" || !ent.m) continue;
+  for (const ent of graph?.instances ?? []) {
+    if (!ent.m) continue;
     try {
       const m = JSON.parse(ent.m) as InstanceMeta;
       instanceEntities.push(ent);
@@ -102,7 +103,7 @@ function applyParamTuples(
 }
 
 function extractInstanceFromEntity(
-  ent: RelationEntity, meta: InstanceMeta, status: InstanceStatus,
+  ent: Participant, meta: InstanceMeta, status: InstanceStatus,
   kind: PrimitiveKind, ctx: GraphCtx, docs: Record<string, AtlasNode>,
 ): RewardsInstance {
   const icdDoc = ent.did ? docs[ent.did] : null;
@@ -146,9 +147,9 @@ export function buildRewardsIndex(docs: Record<string, AtlasNode>, graph?: Graph
   for (const n of Object.values(docs)) byDocNo.set(n.doc_no, n);
   const ctx = buildGraphCtx(byDocNo, graph);
 
-  const refs: AgentRef[] = graph ? agentsFromGraph(graph.entities, docs) : [];
+  const refs: AgentRef[] = graph ? agentsFromGraph(graph.participants, docs) : [];
   const agents: RewardsAgent[] = refs.map(ref => {
-    const ae: EntityRef = { id: ref.id, name: ref.name, slug: (graph?.entities ?? []).find(e => e.id === ref.id)?.slug ?? "" };
+    const ae: EntityRef = { id: ref.id, name: ref.name, slug: (graph?.participants ?? []).find(e => e.id === ref.id)?.slug ?? "" };
     return {
       name: ref.name, docNoPrefix: ref.docNoPrefix, agentEntity: ae,
       chain: resolveChain(ctx, ae.id),

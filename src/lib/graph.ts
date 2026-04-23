@@ -1,8 +1,9 @@
-import type { ResolvedEdge, RelationEntity, RelationEdge, GraphWorkerOutMessage, SerializedSubgraph } from "../types";
+import type { ResolvedEdge, Participant, RelationEdge, GraphWorkerOutMessage, SerializedSubgraph } from "../types";
 import { fetchJsonVerified } from "./verify";
 
 export interface GraphData {
-  entities: RelationEntity[];
+  participants: Participant[];  // agents, parties, facilitators, govops, delegates — et !== "instance"
+  instances: Participant[];    // primitive instances — et === "instance"
   edges: RelationEdge[];
 }
 
@@ -12,10 +13,14 @@ let graphCache: Promise<GraphData> | null = null;
 /** Load the full relations.json once and cache it. Used by reports that need bulk data. */
 export function loadGraph(): Promise<GraphData> {
   if (!graphCache) {
-    graphCache = fetchJsonVerified<{ entities: RelationEntity[]; edges: RelationEdge[] }>(
+    graphCache = fetchJsonVerified<{ entities: Participant[]; edges: RelationEdge[] }>(
       `${import.meta.env.BASE_URL}relations.json`,
       "relations.json"
-    ).then(data => ({ entities: data.entities, edges: data.edges }));
+    ).then(data => ({
+      participants: data.entities.filter(e => e.et !== "instance"),
+      instances: data.entities.filter(e => e.et === "instance"),
+      edges: data.edges,
+    }));
   }
   return graphCache;
 }
@@ -26,7 +31,7 @@ export interface EdgeResult {
 }
 
 export interface EntityResult {
-  entity: RelationEntity | null;
+  entity: Participant | null;
   edges:  ResolvedEdge[];
 }
 

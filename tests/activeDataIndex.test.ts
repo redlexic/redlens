@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
-import type { AtlasNode, RelationEntity, RelationEdge } from "../src/types";
+import type { AtlasNode, Participant, RelationEdge } from "../src/types";
 import {
   agentFromDocNo, agentsFromGraph, extractProcess, buildChainMap, buildActiveDataRows, activeDataRowsToCSV,
 } from "../src/lib/activeDataIndex";
@@ -12,15 +12,18 @@ import {
 const ROOT = path.resolve(__dirname, "..");
 const PUBLIC = path.join(ROOT, "public");
 
-type Relations = { meta: unknown; entities: RelationEntity[]; edges: RelationEdge[] };
+type Relations = { meta: unknown; entities: Participant[]; edges: RelationEdge[] };
 
 const relations: Relations = JSON.parse(fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"));
 const docs: Record<string, AtlasNode> = JSON.parse(fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"));
 
+const participants = relations.entities.filter(e => e.et !== "instance");
+const graphInput = { participants, instances: relations.entities.filter(e => e.et === "instance"), edges: relations.edges };
+
 const activeDataDocs = Object.values(docs).filter(d => d.type === "Active Data");
 const adEdges = relations.edges.filter(e => e.e === "active_data_for");
-const rows = buildActiveDataRows(docs, relations);
-const agents = agentsFromGraph(relations.entities, docs);
+const rows = buildActiveDataRows(docs, graphInput);
+const agents = agentsFromGraph(participants, docs);
 
 describe("agentFromDocNo", () => {
   it("matches agent prefixes for every prime agent in the graph", () => {
@@ -38,7 +41,7 @@ describe("agentFromDocNo", () => {
 
 describe("agentsFromGraph", () => {
   it("includes every prime agent with a defining doc", () => {
-    const primes = relations.entities.filter(e => e.et === "agent" && e.st === "prime" && e.did);
+    const primes = participants.filter(e => e.et === "agent" && e.st === "prime" && e.did);
     expect(agents.length).toBe(primes.length);
   });
   it("is ordered by doc_no naturally", () => {
@@ -60,10 +63,10 @@ describe("extractProcess", () => {
 });
 
 describe("buildChainMap", () => {
-  const chainMap = buildChainMap(relations.entities, relations.edges);
+  const chainMap = buildChainMap(participants, relations.edges);
 
   it("includes every prime agent", () => {
-    const primes = relations.entities.filter(e => e.et === "agent" && e.st === "prime");
+    const primes = participants.filter(e => e.et === "agent" && e.st === "prime");
     expect(chainMap.size).toBe(primes.length);
     for (const p of primes) expect(chainMap.get(p.name)?.agentId).toBe(p.id);
   });

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { loadGraph } from "../../lib/graph";
 import { loadAtlas } from "../../lib/docs";
-import type { RelationEntity } from "../../types";
+import type { Participant } from "../../types";
 import { CATEGORY_LABELS, type OFResponsibility, deriveResponsibilities } from "../../data/precalculated/ofResponsibilities";
 
 interface AgentChain {
@@ -19,11 +19,11 @@ function useAgentChains(): Map<string, AgentChain> {
   const [chains, setChains] = useState<Map<string, AgentChain>>(new Map());
 
   useEffect(() => {
-    loadGraph().then(({ entities, edges }) => {
-      const entityById = new Map<string, RelationEntity>(entities.map(e => [e.id, e]));
+    loadGraph().then(({ participants, edges }) => {
+      const entityById = new Map<string, Participant>(participants.map(e => [e.id, e]));
       const accords = edges.filter(e => e.e === "executor_accord");
       const memberOf = edges.filter(e => e.e === "member_of");
-      const primes = entities.filter(e => e.et === "agent" && e.st === "prime");
+      const primes = participants.filter(e => e.et === "agent" && e.st === "prime");
 
       const map = new Map<string, AgentChain>();
       for (const prime of primes) {

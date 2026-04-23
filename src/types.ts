@@ -150,15 +150,19 @@ export type WorkerOutMessage =
 // Graph types (relations.json — compact keys to minimise payload)
 // ---------------------------------------------------------------------------
 
-export interface RelationEntity {
+/** A named real-world actor in the Sky ecosystem — Prime Agents, Executor Agents,
+ *  Facilitators, GovOps orgs, Aligned Delegates, Governance Parties, and similar.
+ *  Also covers Instances (et="instance") which are stored separately in GraphData.instances. */
+export interface Participant {
   id: string;
   slug: string;
   name: string;
-  et: string;        // entity_type: agent | operational_facilitator | core_facilitator | govops | alignment_conserver | ecosystem_actor | scope | instance
-  st: string | null; // subtype: prime | executor | operational | core | aligned_delegate | <primitive-slug> for et=instance
-  did: string | null;// defining_doc_id — UUID of the Atlas doc that defines this entity
-  m?: string;        // meta JSON string; only present when non-null. For et=instance carries { primitive_doc_no, agent_doc_no, status, params }.
+  et: string;        // agent | facilitator_org | govops_org | delegate_org | development_company | foundation | composite_party | governance_body | operational_party | ecosystem_actor | instance
+  st: string | null; // agent subtypes: prime | operational_executor | core_executor; instance: <primitive-slug>
+  did: string | null;// defining_doc_id — UUID of the Atlas doc that defines this participant
+  m?: string;        // meta JSON, non-null only. For et=instance: { primitive_doc_no, agent_doc_no, status, params }.
 }
+
 
 export interface RelationEdge {
   f: string;          // from_id (UUID or "addr:chain")
@@ -193,7 +197,7 @@ export type GraphWorkerInMessage =
 export type GraphWorkerOutMessage =
   | { type: "ready" }
   | { type: "edges"; id: string; inbound: ResolvedEdge[]; outbound: ResolvedEdge[] }
-  | { type: "entity"; slug: string; entity: RelationEntity | null; edges: ResolvedEdge[] }
+  | { type: "entity"; slug: string; entity: Participant | null; edges: ResolvedEdge[] }
   | { type: "neighbors"; id: string } & SerializedSubgraph
   | { type: "subgraph"; rootId: string } & SerializedSubgraph
   | { type: "error"; message: string };

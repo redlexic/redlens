@@ -499,7 +499,7 @@ Regex: `/^\s*[-*]\s+\`([^\`\n]+)\`\s*:\s*(.+?)\s*$/gm`. Single-bullet leaves sti
 
 ### Pattern 15: `invoked_by` — instance → agent affiliation
 
-Every in-scope Instance entity emits an entity→entity `invoked_by` edge to its Prime Agent. Purpose: the `/entities` graph clusters Instances under their owning agent instead of leaving them as 170+ floating nodes.
+Every in-scope Instance entity emits an entity→entity `invoked_by` edge to its Prime Agent. Purpose: the `/constellations` graph clusters Instances under their owning agent instead of leaving them as 170+ floating nodes.
 
 - `invoked_by`: `entity(instance) → entity(agent/prime)`, source: `[ICD doc_no]`, meta mirrors the `instance_of` status payload
 - Resolver: match the ICD doc_no against `/^(A\.6\.1\.1\.\d+)/` to locate the prime agent doc, then its entity via `entityByDocId`
@@ -698,10 +698,10 @@ implements                         doc     → doc      Agent primitive → glob
 
 ### Entity meta serialization
 
-Entities ship with an optional `m: string` field in `relations.json` carrying JSON-serialised meta (see `RelationEntity` in `src/types.ts`). Previously meta was dropped at serialisation; the `m` field is now forwarded to browser consumers. Reader shape:
+Participants ship with an optional `m: string` field in `relations.json` carrying JSON-serialised meta (see `Participant` in `src/types.ts`). Previously meta was dropped at serialisation; the `m` field is now forwarded to browser consumers. Reader shape:
 
 ```typescript
-interface RelationEntity {
+interface Participant {
   id: string; slug: string; name: string;
   et: string; st: string | null; did: string | null;
   m?: string;  // JSON-stringified meta; present for et="instance"
@@ -739,7 +739,7 @@ For `et="instance"`, the parsed meta is:
 - **Pattern 14 (new) — Primitive Instance entities:** documents the scope allowlist, status-from-tier-title derivation, walk-by-title rule, `extractInstanceParams` traversal, the `[value, srcUuid, srcDocNo]` tuple shape, and the `PARAM_FORMATTERS` registry.
 - **Pattern 15 (new) — `invoked_by` edge:** entity→entity edge from each Instance to its Prime Agent; mirrors `instance_of` status meta.
 - **`instance_of` edge meta:** now carries `{status: "Active"|"Completed"|"Pending"}` for in-scope primitives.
-- **`RelationEntity.m`:** meta field is now shipped in `relations.json` (previously dropped); the `m` reader shape is documented in Entity meta serialization.
+- **`Participant.m`:** meta field is now shipped in `relations.json` (previously dropped); the `m` reader shape is documented in Entity meta serialization.
 - **Editorial Decisions added:**
   - §9 Instance-as-entity scope is an allowlist (excludes Agent Creation + Prime Transformation)
   - §10 Instance params are `[value, srcUuid, srcDocNo]` tuples with per-key formatters

@@ -1,14 +1,17 @@
-import type { RelationEntity, RelationEdge } from "../types";
+import type { Participant, RelationEdge } from "../types";
 import type { GraphData } from "./graph";
 
 export const ENTITY_TYPE_LABEL: Record<string, string> = {
   agent: "Agent",
-  operational_facilitator: "Operational Facilitator",
-  core_facilitator: "Core Facilitator",
-  govops: "GovOps",
-  alignment_conserver: "Alignment Conserver",
+  facilitator_org: "Facilitator",
+  govops_org: "GovOps",
+  delegate_org: "Aligned Delegate",
+  development_company: "Dev Company",
+  foundation: "Foundation",
+  composite_party: "Composite Party",
+  governance_body: "Governance Body",
+  operational_party: "Operational Party",
   ecosystem_actor: "Ecosystem Actor",
-  scope: "Scope",
   instance: "Instance",
 };
 
@@ -63,19 +66,22 @@ export function edgeLabel(edgeType: string, direction: "outbound" | "inbound"): 
 
 export const ENTITY_TYPE_COLOR: Record<string, string> = {
   agent: "#c67267",
-  operational_facilitator: "#e0a060",
-  core_facilitator: "#b88a4a",
-  govops: "#8fb8c2",
-  alignment_conserver: "#9ab58a",
+  facilitator_org: "#e0a060",
+  govops_org: "#8fb8c2",
+  delegate_org: "#9ab58a",
+  development_company: "#a0b0d0",
+  foundation: "#b8a0c8",
+  composite_party: "#c8b070",
+  governance_body: "#90a880",
+  operational_party: "#c09080",
   ecosystem_actor: "#a89090",
-  scope: "#d4b878",
   instance: "#7a8a9c",
 };
 
 export interface EntityNodeData {
   id: string;
   label: string;
-  entity: RelationEntity;
+  entity: Participant;
   color: string;
   degree: number;
   size: number;
@@ -98,7 +104,7 @@ export interface EntityRelation {
 }
 
 /** Visual importance: primes are the focal point, executors are the hubs they report to. */
-function nodeSize(ent: RelationEntity, degree: number): number {
+function nodeSize(ent: Participant, degree: number): number {
   if (ent.et === "agent" && ent.st === "prime") return 14;
   if (ent.et === "agent" && ent.st === "executor") return 10;
   return 4 + Math.min(degree, 8) * 0.8;
@@ -113,7 +119,7 @@ export function buildEntityNodes(data: GraphData): EntityNodeData[] {
       degree.set(e.t, (degree.get(e.t) ?? 0) + 1);
     }
   }
-  return data.entities.map(ent => {
+  return [...data.participants, ...data.instances].map(ent => {
     const d = degree.get(ent.id) ?? 0;
     return {
       id: ent.id,
@@ -126,8 +132,12 @@ export function buildEntityNodes(data: GraphData): EntityNodeData[] {
   });
 }
 
-/** Entity types that participate in direct entity↔entity edges. */
-export const CONNECTED_ENTITY_TYPES: ReadonlySet<string> = new Set(["agent", "ecosystem_actor", "instance"]);
+/** Participant types that participate in direct entity↔entity edges. */
+export const CONNECTED_ENTITY_TYPES: ReadonlySet<string> = new Set([
+  "agent", "facilitator_org", "govops_org", "delegate_org",
+  "development_company", "foundation", "composite_party",
+  "governance_body", "operational_party", "ecosystem_actor", "instance",
+]);
 
 /** Entity↔entity edges only, for the sigma canvas. */
 export function buildEntityEdges(data: GraphData): EntityEdgeData[] {
@@ -151,7 +161,7 @@ export function buildEntityEdges(data: GraphData): EntityEdgeData[] {
 export function getEntityRelations(
   entityId: string,
   data: GraphData,
-  entityById: Map<string, RelationEntity>,
+  entityById: Map<string, Participant>,
 ): EntityRelation[] {
   const rels: EntityRelation[] = [];
   for (const e of data.edges) {
@@ -176,14 +186,14 @@ export function getEntityRelations(
   return rels;
 }
 
-function labelFor(id: string, type: string, entityById: Map<string, RelationEntity>): string {
+function labelFor(id: string, type: string, entityById: Map<string, Participant>): string {
   if (type === "entity") return entityById.get(id)?.name ?? id.slice(0, 8);
   if (type === "address") return id.startsWith("addr:") ? id.slice(5, 17) + "…" : id.slice(0, 10);
   return id;
 }
 
-export function buildEntityIndex(entities: RelationEntity[]): Map<string, RelationEntity> {
-  const m = new Map<string, RelationEntity>();
-  for (const e of entities) m.set(e.id, e);
+export function buildEntityIndex(participants: Participant[]): Map<string, Participant> {
+  const m = new Map<string, Participant>();
+  for (const e of participants) m.set(e.id, e);
   return m;
 }

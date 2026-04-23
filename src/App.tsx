@@ -13,7 +13,7 @@ import { Footer } from "./components/Footer";
 
 // Secondary routes — lazy so xyflow/graphology/report code stays out of the
 // initial bundle. Initial search/atlas load only pulls what it needs.
-const EntitiesPage = lazy(() => import("./components/EntitiesPage").then(m => ({ default: m.EntitiesPage })));
+const ConstellationsPage = lazy(() => import("./components/ConstellationsPage").then(m => ({ default: m.ConstellationsPage })));
 const OFReport = lazy(() => import("./components/reports/OFReport").then(m => ({ default: m.OFReport })));
 const ActiveDataReport = lazy(() => import("./components/reports/ActiveDataReport").then(m => ({ default: m.ActiveDataReport })));
 const RewardsReport = lazy(() => import("./components/reports/RewardsReport").then(m => ({ default: m.RewardsReport })));
@@ -51,7 +51,7 @@ export default function App() {
   }, [navigate, search]);
 
   const navigateToEntity = useCallback((id: string) => {
-    navigate(`/entities?id=${id}`);
+    navigate(`/constellations?id=${id}`);
     setQuery(""); search("");
   }, [navigate, search]);
 
@@ -75,8 +75,8 @@ export default function App() {
 
     setQuery(q);
 
-    // On /entities, typing filters the graph in-place — no lunr, no nav.
-    if (location === "/entities") {
+    // On /constellations, typing filters the graph in-place — no lunr, no nav.
+    if (location === "/constellations") {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       search("");
       return;
@@ -91,7 +91,7 @@ export default function App() {
     }
   }, [location, navigate, search]);
 
-  const activeNavPage = location.startsWith("/entities") ? "entities"
+  const activeNavPage = location.startsWith("/constellations") ? "constellations"
     : location.startsWith("/reports") ? "reports"
     : null;
 
@@ -101,10 +101,10 @@ export default function App() {
         inputRef={inputRef} query={query} onChange={handleChange}
         ready={ready} isSearching={state.status === "searching"}
         onNavPage={(p) => { navigate(`/${p}`); setQuery(""); search(""); }}
-        activePage={activeNavPage as "reports" | "entities" | null}
+        activePage={activeNavPage as "reports" | "constellations" | null}
       />
       <div className="flex-1 flex overflow-hidden">
-        {location !== "/entities" && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} onShiftNavigate={setSplitId} />}
+        {location !== "/constellations" && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} onShiftNavigate={setSplitId} />}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Switch>
             <Route path="/">
@@ -129,7 +129,7 @@ export default function App() {
             <Route path="/reports/of-responsibilities"><Suspense fallback={<Loading />}><OFReport onNavigate={navigateToNode} /></Suspense></Route>
             <Route path="/reports/active-data"><Suspense fallback={<Loading />}><ActiveDataReport onNavigate={navigateToNode} /></Suspense></Route>
             <Route path="/reports/rewards"><Suspense fallback={<Loading />}><RewardsReport onNavigate={navigateToNode} onEntity={navigateToEntity} /></Suspense></Route>
-            <Route path="/entities"><Suspense fallback={<Loading />}><EntitiesPage onNavigate={navigateToNode} query={query} /></Suspense></Route>
+            <Route path="/constellations"><Suspense fallback={<Loading />}><ConstellationsPage onNavigate={navigateToNode} query={query} /></Suspense></Route>
             <Route path="/search-hints"><SearchHintsPage onHintClick={(q) => { navigate("/"); setQuery(q); search(q); }} /></Route>
             <Route path="/provenance"><Suspense fallback={<Loading />}><ProvenancePage /></Suspense></Route>
           </Switch>

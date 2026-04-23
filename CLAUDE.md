@@ -154,7 +154,7 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 - **Fix `0x` address search** — typing `0x` should auto-wildcard to return all address-bearing nodes.
 - **Reduce `unknown` role share** — many addresses sit in markdown tables; `findTableContext` / `annotationText` in `build-index.mjs` is partially done, could be tuned.
 - **Research [pretext](https://github.com/chenglou/pretext)** — possible way to inline structured data into Atlas content.
-- **Thematic views** — e.g. an "agent profile" view (Spark, etc.) presenting Atlas nodes as richer domain objects.
+- **Thematic views** — agent profile view (Spark, etc.) presenting Atlas nodes as richer domain objects. Constellations (`/constellations`) is the first such view; reports are another.
 
 ## File map
 
@@ -198,7 +198,11 @@ src/components/SearchBar.tsx        header: home link, input, scope pills
 src/components/SearchResults.tsx    result list + status line
 src/components/SearchResult.tsx     single result card
 src/components/SearchHints.tsx      idle-state syntax hints
-src/types.ts                        AtlasNode, SearchHit, AddressInfo, worker messages
+src/components/ConstellationsPage.tsx  /constellations route — participant graph (agents, parties, instances)
+src/components/entities/EntityFlow.tsx ReactFlow canvas + card + relation chips
+src/lib/entityGraph.ts              ENTITY_TYPE_LABEL/COLOR, buildEntityNodes/Edges/Index, getEntityRelations
+src/lib/entitySearch.ts             searchParticipants, neighborhoodOfParticipants, agentClusterIds
+src/types.ts                        AtlasNode, Participant, SearchHit, AddressInfo, worker messages
 src/index.css                       Tailwind import + CSS variables + KaTeX overrides
 index.html                          title, fonts, favicon, preload links
 vite.config.ts                      base: '/redlens/', integrity hashing

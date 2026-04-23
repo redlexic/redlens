@@ -2,15 +2,15 @@
 // from the React component so it's trivially testable against docs.json +
 // relations.json.
 
-import type { AtlasNode, RelationEntity, RelationEdge } from "../types";
+import type { AtlasNode, Participant, RelationEdge } from "../types";
 
 export interface AgentRef { name: string; id: string; docNoPrefix: string; docNo: string; }
 
 // Prime agents resolved from the graph, ordered by their defining doc_no
 // (A.6.1.1.1 < A.6.1.1.2 < …). An agent without a resolvable defining doc is
 // dropped — every prime in the atlas is expected to have one.
-export function agentsFromGraph(entities: RelationEntity[], docs: Record<string, AtlasNode>): AgentRef[] {
-  return entities
+export function agentsFromGraph(participants: Participant[], docs: Record<string, AtlasNode>): AgentRef[] {
+  return participants
     .filter(e => e.et === "agent" && e.st === "prime")
     .map(e => {
       const doc = e.did ? docs[e.did] : null;
@@ -94,12 +94,12 @@ export function extractProcess(content: string): ProcessKind {
 // Each slot carries the source doc_no of the edge that established it — this
 // is what drives the Evidence column in the Active Data Index.
 export function buildChainMap(
-  entities: RelationEntity[],
+  participants: Participant[],
   edges: RelationEdge[],
   docs?: Record<string, AtlasNode>,
 ): Map<string, AgentChain> {
-  const entityById = new Map(entities.map(e => [e.id, e]));
-  const primes = entities.filter(e => e.et === "agent" && e.st === "prime");
+  const entityById = new Map(participants.map(e => [e.id, e]));
+  const primes = participants.filter(e => e.et === "agent" && e.st === "prime");
 
   const execEdges = edges.filter(e => e.e === "operational_executor_agent_for" || e.e === "core_executor_agent_for");
   const facEdges  = edges.filter(e => e.e === "operational_facilitator_for" || e.e === "core_facilitator_for");
@@ -132,7 +132,7 @@ export function buildChainMap(
 }
 
 export interface GraphInput {
-  entities: RelationEntity[];
+  participants: Participant[];
   edges: RelationEdge[];
 }
 
@@ -153,7 +153,8 @@ export function buildActiveDataRows(
   docs: Record<string, AtlasNode>,
   graph: GraphInput,
 ): ActiveDataRow[] {
-  const { entities, edges } = graph;
+  const entities = graph.participants;
+  const { edges } = graph;
   const entityById = new Map(entities.map(e => [e.id, e]));
   const chainMap = buildChainMap(entities, edges, docs);
   const agents = agentsFromGraph(entities, docs);
