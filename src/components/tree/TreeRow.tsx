@@ -21,6 +21,7 @@ export interface TreeRowData {
   sidebarWidth: number;
   onNavigate: (id: string) => void;
   onToggle: (id: string, e: React.MouseEvent) => void;
+  onShiftNavigate?: (id: string) => void;
 }
 
 const DOC_NUM_STYLE: React.CSSProperties = {
@@ -38,7 +39,7 @@ export const ROW_LAYOUT_STYLE: React.CSSProperties = {
 
 export function TreeRow({
   index, style,
-  visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth, onNavigate, onToggle,
+  visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth, onNavigate, onToggle, onShiftNavigate,
 }: RowComponentProps<TreeRowData>) {
   const item = visibleNodes[index];
   const node = item?.node;
@@ -76,7 +77,7 @@ export function TreeRow({
     <div
       style={{ ...style, ...ROW_LAYOUT_STYLE, boxShadow }}
       className={`tree-row ${isSelected ? "is-selected" : ""} ${isFocused ? "is-focused" : ""}`}
-      onClick={() => onNavigate(node.id)}
+      onClick={(e) => { if (e.shiftKey && onShiftNavigate) { e.preventDefault(); onShiftNavigate(node.id); } else onNavigate(node.id); }}
     >
       <span className="mono" style={DOC_NUM_STYLE}>
         {docNoSegments.parts.map((seg, i) => (

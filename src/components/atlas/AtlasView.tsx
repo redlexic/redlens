@@ -8,9 +8,10 @@ import { getEdges, type EdgeResult } from "../../lib/graph";
 import { setAddressMap } from "../../lib/addressMap";
 import { loadGlossary, buildLookup, type GlossaryEntry } from "../../lib/glossary";
 import { type AtlasNode, type AddressInfo } from "../../types";
-import { CollapsibleNode, flattenTree } from "./CollapsibleNode";
+import { CollapsibleNode, ViewChildrenFill, flattenTree } from "./CollapsibleNode";
 import { useDepth6Expand } from "./useDepth6Expand";
 import { RightPanel } from "./RightPanel";
+import { JuniorPane } from "./JuniorPane";
 import {
   extractLinkedIds, buildAncestors,
   ATLAS_GRID_STYLE, ATLAS_LEFT_PANE_STYLE, ATLAS_EMPTY_SET,
@@ -19,14 +20,13 @@ import {
 
 const EMPTY_EDGES: EdgeResult = { outbound: [], inbound: [] };
 
-const ViewChildrenFill = ({ nodeId, docNo, onExpand }: { nodeId: string; docNo: string; onExpand: (id: string) => void }) =>
-  <button type="button" onClick={() => onExpand(nodeId)} className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer">view all descendants of {docNo}</button>;
-
-export function AtlasView({ id, onNavigate, view, onViewChange }: {
+export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplitChange }: {
   id: string;
   onNavigate: (id: string) => void;
   view: "annotations" | "history";
   onViewChange: (v: "annotations" | "history") => void;
+  splitId: string | null;
+  onSplitChange: (id: string | null) => void;
 }) {
   const [data, setData] = useState<LoadedData | null>(null);
   const [userToggles, setUserToggles] = useState<Set<string>>(new Set());
@@ -120,7 +120,7 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
     });
   }, [id, data, expandedParents]);
 
-  const nodeList = useMemo(() => {
+  const docList = useMemo(() => {
     if (!data) return null;
     const items: ReactElement[] = [];
     for (const entry of data.flatNodes) {
@@ -129,14 +129,14 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
         <CollapsibleNode key={entry.node.id} entry={entry}
           isSelected={entry.node.id === id}
           isExpanded={autoExpanded.has(entry.node.id) !== userToggles.has(entry.node.id)}
-          onNavigate={onNavigate} onToggle={handleToggle} />
+          onNavigate={onNavigate} onToggle={handleToggle} onShiftNavigate={onSplitChange} />
       );
       if (hasDeepChildren.has(entry.node.id) && !expandedParents.has(entry.node.id)) {
         items.push(<ViewChildrenFill key={`fill-${entry.node.id}`} nodeId={entry.node.id} docNo={entry.node.doc_no} onExpand={expandParent} />);
       }
     }
     return items;
-  }, [data, id, autoExpanded, userToggles, onNavigate, handleToggle, expandedParents, hasDeepChildren, expandParent]);
+  }, [data, id, autoExpanded, userToggles, onNavigate, handleToggle, expandedParents, hasDeepChildren, expandParent, onSplitChange]);
 
   if (!data) {
     return <Loading />;
@@ -152,10 +152,27 @@ export function AtlasView({ id, onNavigate, view, onViewChange }: {
     <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
       {id && <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />}
       <div className="flex-1 lg:grid lg:grid-cols-[3fr_2fr]" style={ATLAS_GRID_STYLE}>
-        <div className="overflow-y-auto" style={ATLAS_LEFT_PANE_STYLE}>
-          <div className="mx-auto px-3 py-2">
-            {nodeList}
+        <div className="relative flex flex-col overflow-hidden" style={{ ...ATLAS_LEFT_PANE_STYLE, minHeight: 0 }}>
+          {id && !splitId && (
+            <button type="button" title="Open comparison pane (or shift-click any node)"
+              onClick={() => onSplitChange(id)}
+              className="absolute top-2 right-2 z-10 mono text-[10px] px-1.5 py-0.5 rounded text-tan-3 hover:text-tan"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <rect x="0.5" y="0.5" width="11" height="3.5" rx="0.5" />
+                <rect x="0.5" y="6" width="11" height="3.5" rx="0.5" />
+              </svg>
+            </button>
+          )}
+          <div className="overflow-y-auto flex-1" style={{ minHeight: 0 }}>
+            <div className="mx-auto px-3 py-2">
+              {docList}
+            </div>
           </div>
+          {splitId && data && (
+            <JuniorPane splitId={splitId} data={data}
+              onShiftNavigate={onSplitChange} onClose={() => onSplitChange(null)} />
+          )}
         </div>
         {id && (
           <div className="flex flex-col hidden lg:flex" style={{ minHeight: 0 }}>

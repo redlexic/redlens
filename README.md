@@ -108,7 +108,7 @@ Three tools are exposed:
 ### Smoke tests
 
 ```bash
-node scripts/query-rag.mjs "what is spark"   # direct RAG query, no MCP layer
+pnpm query "what is spark"   # direct RAG query, no MCP layer
 node scripts/test-mcp.mjs                     # exercise the JSON-RPC stdio protocol
 ```
 

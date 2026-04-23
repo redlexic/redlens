@@ -28,8 +28,13 @@ export default function App() {
   const [location, navigate] = useLocation();
   const { state, search, ready } = useSearch();
   const [query, setQuery] = useState("");
+  const [splitId, setSplitId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (location !== "/atlas") setSplitId(null);
+  }, [location]);
 
   // nodeId and view derived reactively from URL search params via wouter
   const [searchParams] = useSearchParams();
@@ -99,7 +104,7 @@ export default function App() {
         activePage={activeNavPage as "reports" | "entities" | null}
       />
       <div className="flex-1 flex overflow-hidden">
-        {location !== "/entities" && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} />}
+        {location !== "/entities" && <TreeSidebar nodeId={nodeId} onNavigate={navigateToNode} onShiftNavigate={setSplitId} />}
         <div className="flex-1 flex flex-col overflow-hidden">
           <Switch>
             <Route path="/">
@@ -116,6 +121,8 @@ export default function App() {
                 onNavigate={navigateToNode}
                 view={atlasView}
                 onViewChange={handleViewChange}
+                splitId={splitId}
+                onSplitChange={setSplitId}
               />
             </Route>
             <Route path="/reports"><Suspense fallback={<Loading />}><ReportsIndex onNavigate={navigateToReport} /></Suspense></Route>

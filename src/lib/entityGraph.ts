@@ -50,6 +50,7 @@ export const EDGE_TYPE_LABELS: Record<string, { forward: string; reverse: string
   cites:                           { forward: "cites",                         reverse: "cited by" },
   implements:                      { forward: "implements",                    reverse: "implemented by" },
   instance_of:                     { forward: "instance of",                   reverse: "has instance" },
+  invoked_by:                      { forward: "invoked by",                    reverse: "invoked" },
   located_at:                      { forward: "located at",                    reverse: "location of" },
   has_status:                      { forward: "has status",                    reverse: "status of" },
 };
@@ -126,7 +127,7 @@ export function buildEntityNodes(data: GraphData): EntityNodeData[] {
 }
 
 /** Entity types that participate in direct entity↔entity edges. */
-export const CONNECTED_ENTITY_TYPES: ReadonlySet<string> = new Set(["agent", "ecosystem_actor"]);
+export const CONNECTED_ENTITY_TYPES: ReadonlySet<string> = new Set(["agent", "ecosystem_actor", "instance"]);
 
 /** Entity↔entity edges only, for the sigma canvas. */
 export function buildEntityEdges(data: GraphData): EntityEdgeData[] {

@@ -2,6 +2,9 @@ import { memo } from "react";
 import { realDepth, depthColor, type AtlasNode } from "../../types";
 import { NodeContent } from "../NodeContent";
 
+export const ViewChildrenFill = ({ nodeId, docNo, onExpand }: { nodeId: string; docNo: string; onExpand: (id: string) => void }) =>
+  <button type="button" onClick={() => onExpand(nodeId)} className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer">view all descendants of {docNo}</button>;
+
 export interface FlatEntry {
   node: AtlasNode;
   depth: number;
@@ -52,18 +55,22 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   isExpanded,
   onNavigate,
   onToggle,
+  onShiftNavigate,
+  idPrefix,
 }: {
   entry: FlatEntry;
   isSelected: boolean;
   isExpanded: boolean;
   onNavigate: (id: string) => void;
   onToggle: (id: string) => void;
+  onShiftNavigate?: (id: string) => void;
+  idPrefix?: string;
 }) {
   const { node, depth, color, indentPadding, hasContent } = entry;
 
   return (
     <div
-      id={node.id}
+      id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
       className="atlas-node relative"
       style={{
         padding: 4,
@@ -99,7 +106,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           role="button"
           tabIndex={0}
           className="atlas-node-title flex items-center gap-2 py-1.5 cursor-pointer"
-          onClick={() => onNavigate(node.id)}
+          onClick={(e: React.MouseEvent) => { if (e.shiftKey && onShiftNavigate) { e.preventDefault(); onShiftNavigate(node.id); } else onNavigate(node.id); }}
           onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onNavigate(node.id); } }}
         >
           <span

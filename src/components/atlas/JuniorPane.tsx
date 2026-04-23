@@ -1,0 +1,110 @@
+import { useState, useEffect, useCallback, useMemo, type ReactElement } from "react";
+import { buildAncestors, type LoadedData } from "../../lib/atlasHelpers";
+import { CollapsibleNode, ViewChildrenFill, type FlatEntry } from "./CollapsibleNode";
+import { depthColor, realDepth } from "../../types";
+
+const DEPTH_LIMIT = 6;
+
+const TopNote = () =>
+  <div className="mono text-[10px] py-1 text-tan-3" style={{ opacity: 0.55, borderBottom: "1px solid var(--border)" }}>
+    SplitView only renders selected doc and its children — Shift-Click a doc to view it here.
+  </div>;
+
+const NoMoreNote = ({ docNo }: { docNo: string }) =>
+  <div className="mono text-[10px] py-1 text-tan-3" style={{ opacity: 0.55, borderTop: "1px solid var(--border)" }}>
+    no more descendants of {docNo} to view
+  </div>;
+
+
+export function JuniorPane({ splitId, data, onShiftNavigate, onClose }: {
+  splitId: string;
+  data: LoadedData;
+  onShiftNavigate: (id: string) => void;
+  onClose: () => void;
+}) {
+  const [userToggles, setUserToggles] = useState<Set<string>>(new Set());
+  const [showMore, setShowMore] = useState(false);
+
+  useEffect(() => { setUserToggles(new Set()); setShowMore(false); }, [splitId]);
+
+  const handleToggle = useCallback((nodeId: string) => {
+    setUserToggles(prev => {
+      const next = new Set(prev);
+      next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId);
+      return next;
+    });
+  }, []);
+
+  const ancestors = useMemo(() =>
+    buildAncestors(data.atlas.docs, data.atlas.docNoToId, splitId),
+  [data, splitId]);
+
+  const { slice, hasMore, autoExpanded } = useMemo(() => {
+    const node = data.atlas.docs[splitId];
+    if (!node) return { slice: [] as FlatEntry[], hasMore: false, autoExpanded: new Set<string>() };
+    const entry = data.flatNodes.find(e => e.node.id === splitId);
+    if (!entry) return { slice: [] as FlatEntry[], hasMore: false, autoExpanded: new Set<string>() };
+    const maxDepth = entry.depth + DEPTH_LIMIT;
+    const docNoPrefix = node.doc_no + ".";
+    const slice: FlatEntry[] = [entry];
+    let hasMore = false;
+    for (const e of data.flatNodes) {
+      if (e.node.doc_no.startsWith(docNoPrefix)) {
+        if (e.depth <= maxDepth || showMore) slice.push(e);
+        else hasMore = true;
+      }
+    }
+    const autoExpanded = new Set<string>([splitId]);
+    return { slice, hasMore, autoExpanded };
+  }, [data, splitId, showMore]);
+
+  const node = data.atlas.docs[splitId];
+  const docNo = node?.doc_no ?? "";
+  const hasAbove = ancestors.length > 0;
+
+  const items = useMemo(() => {
+    const result: ReactElement[] = [];
+    if (hasAbove) result.push(<TopNote key="top" />);
+    for (const entry of slice) {
+      result.push(
+        <CollapsibleNode key={entry.node.id} entry={entry} idPrefix="junior"
+          isSelected={entry.node.id === splitId}
+          isExpanded={autoExpanded.has(entry.node.id) !== userToggles.has(entry.node.id)}
+          onNavigate={onShiftNavigate} onToggle={handleToggle} onShiftNavigate={onShiftNavigate}
+        />
+      );
+    }
+    if (hasMore) result.push(<ViewChildrenFill key="bottom" nodeId={splitId} docNo={docNo} onExpand={() => setShowMore(true)} />);
+    else result.push(<NoMoreNote key="bottom" docNo={docNo} />);
+    return result;
+  }, [slice, hasMore, hasAbove, splitId, docNo, autoExpanded, userToggles, handleToggle, onShiftNavigate]);
+
+  return (
+    <div className="flex flex-col" style={{ flex: "0 0 45%", minHeight: 0, overflow: "hidden" }}>
+      <div className="flex items-center gap-1 px-3 py-1 shrink-0 mono text-xs overflow-hidden"
+        style={{ borderTop: "2px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--bg)" }}>
+        <span className="truncate flex-1 text-tan-3">
+          {ancestors.map((a, i) => (
+            <span key={a.id}>
+              {i > 0 && <span> / </span>}
+              <a href={`/atlas?id=${a.id}`} onClick={(e) => { e.preventDefault(); onShiftNavigate(a.id); }}
+                className="hover:text-tan" style={{ color: depthColor(realDepth(a.doc_no)) }}>
+                {a.title}
+              </a>
+            </span>
+          ))}
+          {node && (
+            <span>
+              {ancestors.length > 0 && <span> / </span>}
+              <span style={{ color: depthColor(realDepth(node.doc_no)) }}>{node.title}</span>
+            </span>
+          )}
+        </span>
+        <button type="button" onClick={onClose} className="shrink-0 px-1 text-tan-3 hover:text-tan">✕</button>
+      </div>
+      <div className="overflow-y-auto flex-1">
+        <div className="mx-auto px-3 py-2">{items}</div>
+      </div>
+    </div>
+  );
+}

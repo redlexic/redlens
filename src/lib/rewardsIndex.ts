@@ -2,7 +2,7 @@ import type { AtlasNode, RelationEdge, RelationEntity } from "../types";
 import { agentsFromGraph, type AgentRef } from "./activeDataIndex";
 import type { GraphData } from "./graph";
 import type {
-  AgentPrimitive, EntityRef, InstanceStatus, OperationalChain,
+  AgentPrimitive, EntityRef, InstanceStatus, OperationalChain, ParamTuple,
   PrimitiveKind, RewardsAgent, RewardsEcosystemNode, RewardsIndex, RewardsInstance,
 } from "./rewardsTypes";
 
@@ -11,23 +11,14 @@ export * from "./rewardsTypes";
 const STATUS_BY_TIER: Record<string, InstanceStatus> = { "2": "Active", "3": "Completed", "4": "InProgress" };
 const plain = (n: AtlasNode | undefined) => (n?.content ?? "").trim();
 const unwrapBackticks = (s: string) => s.match(/^`([^`\n]+)`\.?$/)?.[1] ?? s;
-
-// Atlas wraps addresses in backticks; check that form first so Solana matches too.
-function firstAddress(s: string): string | undefined {
-  const quoted = s.match(/`([^`\n]{32,44})`/);
-  if (quoted) {
-    const v = quoted[1];
-    if (/^0x[0-9a-fA-F]{40}$/.test(v)) return v;
-    if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v)) return v;
-  }
-  return s.match(/0x[0-9a-fA-F]{40}/)?.[0];
-}
+const UUID_LINK_RE = /\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/;
 
 interface GraphCtx {
   paymentControllerByInstance: Map<string, AtlasNode>;
   rpByDocId: Map<string, EntityRef>;
   entityById: Map<string, RelationEntity>;
   edges: RelationEdge[];
+  paramsByInstanceId: Map<string, Record<string, ParamTuple>>;
 }
 
 function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): GraphCtx {
@@ -50,7 +41,15 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
     const ent = entityById.get(e.f);
     if (ent) rpByDocId.set(e.t, { id: ent.id, name: ent.name, slug: ent.slug });
   }
-  return { paymentControllerByInstance, rpByDocId, entityById, edges: graph?.edges ?? [] };
+  const paramsByInstanceId = new Map<string, Record<string, ParamTuple>>();
+  for (const ent of graph?.entities ?? []) {
+    if (ent.et !== "instance" || !ent.m) continue;
+    try {
+      const p = (JSON.parse(ent.m) as { params?: Record<string, ParamTuple> }).params;
+      if (p) paramsByInstanceId.set(ent.id, p);
+    } catch { /* ignore */ }
+  }
+  return { paymentControllerByInstance, rpByDocId, entityById, edges: graph?.edges ?? [], paramsByInstanceId };
 }
 
 function resolveChain(ctx: GraphCtx, primeId: string): OperationalChain | null {
@@ -65,36 +64,61 @@ function resolveChain(ctx: GraphCtx, primeId: string): OperationalChain | null {
   };
 }
 
+// Read each well-known field from meta.params tuples. No prose stripping here;
+// build-graph already applies PARAM_FORMATTERS at extraction time.
+function applyParamTuples(
+  inst: RewardsInstance, params: Record<string, ParamTuple>,
+  kind: PrimitiveKind, docs: Record<string, AtlasNode>,
+): void {
+  const take = (key: string): [string, string, string] | null => {
+    const t = params[key]; return t && t[0] ? t : null;
+  };
+  if (kind === "DR") {
+    const rc = take("Reward Code"); if (rc) { inst.rewardCode = rc[0]; inst.rewardCodeDocId = rc[1]; }
+    const tr = take("Tracking Methodology");
+    if (tr) {
+      inst.tracking = tr[0];
+      // If the sub-doc's raw content links to a shared methodology, target that;
+      // otherwise fall through to the ICD's own Tracking Methodology sub-doc.
+      const rawContent = docs[tr[1]]?.content ?? "";
+      const linkedId = rawContent.match(UUID_LINK_RE)?.[1];
+      const target = linkedId ? docs[linkedId] : null;
+      inst.trackingDocId = target?.id ?? tr[1];
+      inst.trackingDocNo = target?.doc_no ?? tr[2];
+    }
+  } else {
+    const pn = take("Integration Partner Name"); if (pn) { inst.partnerName = pn[0]; inst.partnerNameDocId = pn[1]; }
+    const ra = take("Integration Partner Reward Address"); if (ra) inst.rewardAddress = ra[0];
+    const ch = take("Integration Partner Chain"); if (ch) { inst.rewardChain = ch[0]; inst.rewardChainDocId = ch[1]; }
+    const cd = take("Integration Boost Cadence"); if (cd) { inst.cadence = cd[0]; inst.cadenceDocId = cd[1]; }
+  }
+}
+
 function extractInstance(
-  byDocNo: Map<string, AtlasNode>, baseDocNo: string, title: string,
+  byDocNo: Map<string, AtlasNode>, docs: Record<string, AtlasNode>,
+  baseDocNo: string, title: string,
   status: InstanceStatus, kind: PrimitiveKind, ctx: GraphCtx,
 ): RewardsInstance {
   const head = byDocNo.get(baseDocNo);
   const name = title.replace(/\s+Instance Configuration Document\s*$/i, "").trim();
   const inst: RewardsInstance = { id: head?.id ?? "", docNo: baseDocNo, name, status };
-  const p11 = plain(byDocNo.get(`${baseDocNo}.1.1`));
-  const p12 = plain(byDocNo.get(`${baseDocNo}.1.2`));
-  const p13 = plain(byDocNo.get(`${baseDocNo}.1.3`));
-  const p14 = plain(byDocNo.get(`${baseDocNo}.1.4`));
+  const params = inst.id ? ctx.paramsByInstanceId.get(inst.id) : undefined;
+  if (params) {
+    applyParamTuples(inst, params, kind, docs);
+    if (Object.keys(params).length > 0) inst.params = params;
+  }
   if (kind === "DR") {
-    if (p11) inst.rewardCode = unwrapBackticks(p11);
-    if (p12) inst.tracking = p12;
     const controller = ctx.paymentControllerByInstance.get(baseDocNo);
     if (controller) {
       inst.paymentsControllerId = controller.id;
       inst.paymentsControllerDocNo = controller.doc_no;
       inst.paymentsResponsibleParty = ctx.rpByDocId.get(controller.id) ?? undefined;
     }
-  } else {
-    if (p11) inst.partnerName = p11.replace(/^The partner for the [^]*? is /i, "").replace(/\.$/, "").trim();
-    if (p12) inst.rewardAddress = firstAddress(p12);
-    if (p13) inst.rewardChain = p13.replace(/^The [^]*? is on (the )?/i, "").replace(/\s*blockchain\.?$/i, "").replace(/\.$/, "").trim();
-    if (p14) inst.cadence = p14.replace(/^The payment cadence for the [^]*? is /i, "").replace(/\.$/, "").trim();
   }
   return inst;
 }
 
-function extractPrimitive(byDocNo: Map<string, AtlasNode>, ctx: GraphCtx, agent: AgentRef, kind: PrimitiveKind): AgentPrimitive | null {
+function extractPrimitive(byDocNo: Map<string, AtlasNode>, docs: Record<string, AtlasNode>, ctx: GraphCtx, agent: AgentRef, kind: PrimitiveKind): AgentPrimitive | null {
   const primitiveDocNo = `${agent.docNo}.2.5.${kind === "DR" ? "1" : "2"}`;
   const head = byDocNo.get(primitiveDocNo);
   if (!head) return null;
@@ -106,7 +130,7 @@ function extractPrimitive(byDocNo: Map<string, AtlasNode>, ctx: GraphCtx, agent:
       const base = `${primitiveDocNo}.${tier}.${n}`;
       const node = byDocNo.get(base);
       if (!node || !/Instance Configuration Document/i.test(node.title)) break;
-      buckets[status].push(extractInstance(byDocNo, base, node.title, status, kind, ctx));
+      buckets[status].push(extractInstance(byDocNo, docs, base, node.title, status, kind, ctx));
     }
   }
   return {
@@ -126,8 +150,8 @@ export function buildRewardsIndex(docs: Record<string, AtlasNode>, graph?: Graph
     return {
       name: ref.name, docNoPrefix: ref.docNoPrefix, agentEntity: ae,
       chain: resolveChain(ctx, ae.id),
-      dr: extractPrimitive(byDocNo, ctx, ref, "DR"),
-      ib: extractPrimitive(byDocNo, ctx, ref, "IB"),
+      dr: extractPrimitive(byDocNo, docs, ctx, ref, "DR"),
+      ib: extractPrimitive(byDocNo, docs, ctx, ref, "IB"),
     };
   });
 

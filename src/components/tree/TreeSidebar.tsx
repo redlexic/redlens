@@ -8,9 +8,10 @@ import { TreeRow, ROW_HEIGHT, type VisibleNode, type TreeRowData } from "./TreeR
 interface Props {
   nodeId: string | null;
   onNavigate: (id: string) => void;
+  onShiftNavigate?: (id: string) => void;
 }
 
-export function TreeSidebar({ nodeId, onNavigate }: Props) {
+export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   const bundle = useAtlasTree();
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -114,8 +115,8 @@ export function TreeSidebar({ nodeId, onNavigate }: Props) {
 
   const rowProps: TreeRowData = useMemo(() => ({
     visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth,
-    onNavigate: handleRowClick, onToggle: toggleExpand,
-  }), [visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth, handleRowClick, toggleExpand]);
+    onNavigate: handleRowClick, onToggle: toggleExpand, onShiftNavigate,
+  }), [visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth, handleRowClick, toggleExpand, onShiftNavigate]);
 
   if (!bundle) return <div className="tree-sidebar" ref={containerRef} />;
 

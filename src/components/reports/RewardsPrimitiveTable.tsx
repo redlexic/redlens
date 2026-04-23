@@ -7,7 +7,6 @@ function InstanceRow({ inst, kind, onNavigate, onEntity, addrMap }: {
   onNavigate: (id: string) => void; onEntity: (slug: string) => void;
   addrMap: Record<string, AddressInfo>;
 }) {
-  const trackingRef = kind === "DR" && inst.tracking ? inst.tracking.match(/A\.\d[\w.]*/)?.[0] ?? null : null;
   return (
     <tr className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
       <td className="py-2 px-3 align-top w-20"><StatusPill s={inst.status} /></td>
@@ -15,21 +14,32 @@ function InstanceRow({ inst, kind, onNavigate, onEntity, addrMap }: {
         <button onClick={() => onNavigate(inst.id)} className="text-sm text-tan hover:underline text-left">
           {inst.name}
         </button>
-        <div className="mono text-[10px] text-tan-3 mt-0.5">{inst.docNo}</div>
+        <div className="mono text-[10px] text-tan-3 mt-0.5 flex items-center gap-2">
+          <span>{inst.docNo}</span>
+          {inst.params && Object.keys(inst.params).length > 0 && (
+            <span className="opacity-70" title={Object.keys(inst.params).join(" · ")}>
+              ⚙ {Object.keys(inst.params).length}
+            </span>
+          )}
+        </div>
       </td>
       {kind === "DR" ? (
         <>
           <td className="py-2 px-3 align-top w-24 mono text-xs text-tan-2">
             {inst.rewardCode
-              ? <code className="px-1.5 py-0.5 rounded bg-[var(--hover)] text-tan">{inst.rewardCode}</code>
+              ? <button onClick={() => onNavigate(inst.rewardCodeDocId ?? inst.id)}
+                  className="px-1.5 py-0.5 rounded bg-[var(--hover)] text-tan hover:underline">
+                  {inst.rewardCode}
+                </button>
               : <span className="text-tan-3">—</span>}
           </td>
           <td className="py-2 px-3 align-top text-xs text-tan-2">
-            {trackingRef
-              ? <span className="mono text-[11px] text-tan-3">{trackingRef}</span>
-              : inst.tracking
-                ? <span className="text-tan-3">inline</span>
-                : <span className="text-tan-3">—</span>}
+            {inst.trackingDocId && inst.trackingDocNo
+              ? <button onClick={() => onNavigate(inst.trackingDocId!)}
+                  className="mono text-[11px] text-accent hover:underline">
+                  {inst.trackingDocNo}
+                </button>
+              : <span className="text-tan-3">—</span>}
           </td>
           <td className="py-2 px-3 align-top w-32 text-[11px]">
             {inst.paymentsResponsibleParty
@@ -43,14 +53,31 @@ function InstanceRow({ inst, kind, onNavigate, onEntity, addrMap }: {
         </>
       ) : (
         <>
-          <td className="py-2 px-3 align-top text-xs text-tan-2">{inst.partnerName ?? <span className="text-tan-3">—</span>}</td>
+          <td className="py-2 px-3 align-top text-xs text-tan-2">
+            {inst.partnerName
+              ? <button onClick={() => onNavigate(inst.partnerNameDocId ?? inst.id)}
+                  className="text-tan-2 hover:underline text-left">
+                  {inst.partnerName}
+                </button>
+              : <span className="text-tan-3">—</span>}
+          </td>
           <td className="py-2 px-3 align-top text-xs">
             {inst.rewardAddress
               ? <AddressLink addr={inst.rewardAddress} chain={inst.rewardChain} addrMap={addrMap} />
               : <span className="text-tan-3">—</span>}
           </td>
-          <td className="py-2 px-3 align-top mono text-[11px] text-tan-3 w-28">{inst.rewardChain ?? "—"}</td>
-          <td className="py-2 px-3 align-top mono text-[11px] text-tan-3 w-20">{inst.cadence ?? "—"}</td>
+          <td className="py-2 px-3 align-top mono text-[11px] w-28">
+            {inst.rewardChain
+              ? <button onClick={() => onNavigate(inst.rewardChainDocId ?? inst.id)}
+                  className="text-tan-3 hover:underline">{inst.rewardChain}</button>
+              : <span className="text-tan-3">—</span>}
+          </td>
+          <td className="py-2 px-3 align-top mono text-[11px] w-20">
+            {inst.cadence
+              ? <button onClick={() => onNavigate(inst.cadenceDocId ?? inst.id)}
+                  className="text-tan-3 hover:underline">{inst.cadence}</button>
+              : <span className="text-tan-3">—</span>}
+          </td>
         </>
       )}
     </tr>

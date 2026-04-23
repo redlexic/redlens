@@ -111,6 +111,16 @@ function CardBody({
     return [...byType.values()].sort((a, b) => b.rels.length - a.rels.length);
   }, [entity, graphData, entityById]);
 
+  // Parse meta.params for instance entities — structured tuples of
+  // [formattedValue, srcUuid, srcDocNo] per key.
+  const params = useMemo(() => {
+    if (!entity.m) return null;
+    try {
+      const m = JSON.parse(entity.m) as { params?: Record<string, [string, string, string]> };
+      return m.params && Object.keys(m.params).length > 0 ? m.params : null;
+    } catch { return null; }
+  }, [entity.m]);
+
   return (
     <div className="mt-3 pt-3 border-t" style={{ borderColor: "var(--border)" }}>
       {entity.did && (
@@ -121,6 +131,31 @@ function CardBody({
         >
           → defining document
         </button>
+      )}
+      {params && (
+        <div className="mb-3">
+          <p className="mono text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--tan-3)" }}>
+            parameters · {Object.keys(params).length}
+          </p>
+          <div className="space-y-1">
+            {Object.entries(params).map(([key, [value, srcId, srcDocNo]]) => (
+              <div key={key} className="text-[10px] leading-tight">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onNavigateDoc(srcId); }}
+                  className="mono hover:underline"
+                  style={{ color: "var(--tan-3)" }}
+                  title={srcDocNo}
+                >
+                  {key}
+                </button>
+                <span className="mx-1" style={{ color: "var(--tan-3)" }}>:</span>
+                <span style={{ color: "var(--tan-2)" }}>
+                  {value.length > 90 ? value.slice(0, 90) + "…" : value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
       {grouped.length === 0 ? (
         <p className="mono text-[10px]" style={{ color: "var(--tan-3)" }}>No relations.</p>

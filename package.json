@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "tva": "bash scripts/tva.sh",
+    "query": "node scripts/query-rag.mjs",
     "mcp:atlas": "node mcp-atlas/server.mjs",
     "knip": "knip"
   },

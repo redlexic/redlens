@@ -84,6 +84,8 @@ const KNOWN_EDGE_TYPES = new Set([
   // structural doc ↔ doc
   "parent_of", "cites", "annotates", "active_data_for",
   "located_at", "instance_of", "has_status", "implements",
+  // instance → agent
+  "invoked_by",
 ]);
 
 // ---------------------------------------------------------------------------
@@ -186,13 +188,17 @@ describe("Pattern 2 — Sky Primitives", () => {
     expect(bad).toEqual([]);
   });
 
-  it("every located_at edge's source is titled '… Instance Configuration Document Location'", () => {
+  it("every located_at edge's source is an ICD Location (by title or by content)", () => {
+    // The atlas occasionally has an ICD Location misnamed (title missing the
+    // "Location" suffix); build-graph identifies them by content match too.
     const bad: string[] = [];
+    const LOCATED_AT_CONTENT_RE = /^\s*This Instance[’']s associated Instance Configuration Document is located at/i;
     for (const e of edgesOfType("located_at")) {
       const src = docs[e.from_id];
-      if (!src || !/instance configuration document location/i.test(src.title)) {
-        bad.push(`${src?.doc_no}: ${src?.title}`);
-      }
+      if (!src) { bad.push(`missing source for edge ${e.id}`); continue; }
+      const byTitle = /instance configuration document location/i.test(src.title);
+      const byContent = LOCATED_AT_CONTENT_RE.test(src.content ?? "");
+      if (!byTitle && !byContent) bad.push(`${src.doc_no}: ${src.title}`);
     }
     expect(bad).toEqual([]);
   });

@@ -10,16 +10,33 @@ export interface RewardsInstance {
   name: string;
   status: InstanceStatus;
   rewardCode?: string;    // DR only
+  rewardCodeDocId?: string;   // DR — the .1.1 Reward Code sub-doc
   partnerName?: string;   // IB only
+  partnerNameDocId?: string;  // IB — the .1.1 Partner Name sub-doc
   rewardAddress?: string; // IB only — EVM or Solana
   rewardChain?: string;   // IB only
+  rewardChainDocId?: string;  // IB — the .1.3 Partner Chain sub-doc
   cadence?: string;       // IB only
+  cadenceDocId?: string;      // IB — the .1.4 Cadence sub-doc
   tracking?: string;      // DR only — full methodology text incl. A-link
+  // For DR: referenced methodology doc UUID if the text links out, else the
+  // ICD's own Tracking Methodology sub-doc (the inline case).
+  trackingDocId?: string;
+  trackingDocNo?: string;   // doc_no of whichever doc trackingDocId targets
   // Active Data Controller owning this instance's Payment list + its declared RP.
   paymentsControllerId?: string;
   paymentsControllerDocNo?: string;
   paymentsResponsibleParty?: EntityRef;
+  // Full params extracted from the ICD's Parameters subtree. Each value is a
+  // 3-tuple [formattedValue, srcUuid, srcDocNo] so consumers always have both
+  // a display string and a navigation target back to the source doc for the
+  // raw content. Flat for DR/IB; flattened from nested subdirectories for
+  // Allocation System. Source: graph entity meta.
+  params?: Record<string, ParamTuple>;
 }
+
+/** [formattedValue, srcUuid, srcDocNo] — tuple shipped on entity meta params. */
+export type ParamTuple = [string, string, string];
 
 export interface AgentPrimitive {
   kind: PrimitiveKind;

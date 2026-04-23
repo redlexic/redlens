@@ -85,3 +85,112 @@ describe("instance_of edges", () => {
     }
   });
 });
+
+describe("instance params (extracted from ICD Parameters subtree)", () => {
+  type Tuple = [string, string, string];
+  function meta(ent: RelationEntity): { status?: string; params?: Record<string, Tuple> } {
+    try { return ent.m ? JSON.parse(ent.m) : {}; } catch { return {}; }
+  }
+  function paramsOf(ent: RelationEntity) { return meta(ent).params ?? {}; }
+
+  it("every param is a 3-tuple [value, uuid, docNo]", () => {
+    for (const e of instances) {
+      for (const [key, tup] of Object.entries(paramsOf(e))) {
+        expect(Array.isArray(tup), `${e.name}.${key}: not an array`).toBe(true);
+        expect(tup.length, `${e.name}.${key}: expected length 3, got ${tup.length}`).toBe(3);
+        expect(typeof tup[0], `${e.name}.${key}: value not string`).toBe("string");
+        expect(tup[1]).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+        expect(tup[2]).toMatch(/^A\.[\d.]+/);
+      }
+    }
+  });
+
+  it("every Distribution Reward instance has a Reward Code param", () => {
+    for (const e of instances.filter(x => x.st === "distribution-reward")) {
+      const p = paramsOf(e);
+      expect(p["Reward Code"]?.[0], `${e.name}: missing Reward Code value`).toBeTruthy();
+    }
+  });
+
+  it("every Integration Boost instance carries Partner Name + Reward Address + Chain", () => {
+    for (const e of instances.filter(x => x.st === "integration-boost")) {
+      const p = paramsOf(e);
+      expect(p["Integration Partner Name"]?.[0], `${e.name}: partner name`).toBeTruthy();
+      expect(p["Integration Partner Reward Address"]?.[0], `${e.name}: reward address`).toBeTruthy();
+      expect(p["Integration Partner Chain"]?.[0], `${e.name}: chain`).toBeTruthy();
+    }
+  });
+
+  it("every Agent Token instance has Token Name + Token Symbol + some Token Address* key", () => {
+    for (const e of instances.filter(x => x.st === "agent-token")) {
+      const p = paramsOf(e);
+      expect(p["Token Name"]?.[0], `${e.name}: token name`).toBeTruthy();
+      expect(p["Token Symbol"]?.[0], `${e.name}: token symbol`).toBeTruthy();
+      // Compound-prose expansion: agents with deployed tokens get one key per
+      // chain ("Token Address (Ethereum Mainnet)", "Token Address (Base)").
+      // Agents whose token is unannounced keep a single "Token Address" key
+      // carrying the placeholder prose.
+      const tokenKey = Object.keys(p).find(k => /^Token Address(?:$| \()/.test(k));
+      expect(tokenKey, `${e.name}: no Token Address* key; have [${Object.keys(p).join(", ")}]`).toBeTruthy();
+    }
+  });
+
+  it("bullet-list rate-limit leaves expand into per-field keys", () => {
+    // Allocation System inflow/outflow/deposit/withdrawal/swap rate limits use
+    // a backtick-bullet list in prose — the generic expander splits them.
+    const sl = instances.find(e => e.name === "Ethereum Mainnet - SparkLend USDS");
+    expect(sl, "SparkLend USDS allocation instance").toBeTruthy();
+    const p = paramsOf(sl!);
+    expect(p["Inflow Rate Limits / maxAmount"]?.[0]).toBe("200,000,000 USDS");
+    expect(p["Inflow Rate Limits / slope"]?.[0]).toBe("400,000,000 USDS per day");
+    expect(p["Outflow Rate Limits / maxAmount"]?.[0]).toBe("Unlimited");
+    // The outer "Inflow Rate Limits" / "Outflow Rate Limits" keys should NOT
+    // be present as single entries — they've been expanded into sub-keys.
+    expect(p["Inflow Rate Limits"]).toBeUndefined();
+    expect(p["Outflow Rate Limits"]).toBeUndefined();
+  });
+
+  it("multi-chain Agent Token produces one key per chain", () => {
+    // Spark has SPK on Ethereum Mainnet + Base; the expander must emit both.
+    const spark = instances.find(e => e.st === "agent-token" && e.slug.startsWith("spark-"));
+    expect(spark, "Spark agent-token instance").toBeTruthy();
+    const p = paramsOf(spark!);
+    expect(p["Token Address (Ethereum Mainnet)"]?.[0]).toMatch(/^0x[0-9a-fA-F]{40}$/);
+    expect(p["Token Address (Base)"]?.[0]).toMatch(/^0x[0-9a-fA-F]{40}$/);
+    expect(p["Token Address"]).toBeUndefined();
+  });
+
+  it("every Allocation System instance has Network + at least one *Address key", () => {
+    for (const e of instances.filter(x => x.st === "allocation-system")) {
+      const p = paramsOf(e);
+      expect(p["Network"]?.[0], `${e.name}: network`).toBeTruthy();
+      const addrKey = Object.keys(p).find(k => /Address$|Address\s*\(/.test(k));
+      expect(addrKey, `${e.name}: no *Address key; have [${Object.keys(p).join(", ")}]`).toBeTruthy();
+    }
+  });
+
+  it("at least 95% of instances carry at least one param", () => {
+    const populated = instances.filter(e => Object.keys(paramsOf(e)).length > 0).length;
+    expect(populated / instances.length).toBeGreaterThanOrEqual(0.95);
+  });
+});
+
+describe("invoked_by edges (instance → prime agent)", () => {
+  const invokedBy = relations.edges.filter(e => e.e === "invoked_by");
+
+  it("every instance entity has exactly one invoked_by edge to an agent/prime", () => {
+    const agentPrimes = new Map(
+      relations.entities.filter(e => e.et === "agent" && e.st === "prime").map(e => [e.id, e])
+    );
+    const bySource = new Map<string, number>();
+    for (const e of invokedBy) bySource.set(e.f, (bySource.get(e.f) ?? 0) + 1);
+    for (const inst of instances) {
+      expect(bySource.get(inst.id), `${inst.name}: expected 1 invoked_by edge`).toBe(1);
+    }
+    for (const e of invokedBy) {
+      expect(agentPrimes.has(e.t), `invoked_by target is not a prime agent`).toBe(true);
+      expect(e.ft).toBe("entity");
+      expect(e.tt).toBe("entity");
+    }
+  });
+});

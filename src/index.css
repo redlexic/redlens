@@ -142,6 +142,7 @@ input[type="search"]::-webkit-search-cancel-button {
 .breadcrumb-link:focus-visible .short { display: none; }
 .breadcrumb-link:focus-visible .full  { display: inline; }
 
+
 /* ScopeNode UUID link — pure CSS hover */
 .scope-uuid-link {
   color: var(--tan-3);

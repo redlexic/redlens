@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { loadGraph } from "../../lib/graph";
+import { loadAtlas } from "../../lib/docs";
 import type { RelationEntity } from "../../types";
-import { OF_RESPONSIBILITIES, CATEGORY_LABELS, type OFResponsibility } from "../../data/precalculated/ofResponsibilities";
+import { CATEGORY_LABELS, type OFResponsibility, deriveResponsibilities } from "../../data/precalculated/ofResponsibilities";
 
 interface AgentChain {
   agentName: string;
@@ -110,10 +111,17 @@ export function OFReport({ onNavigate }: { onNavigate: (id: string) => void }) {
   const chains = useAgentChains();
   const [agentFilter, setAgentFilter] = useState<string | null>(null);
   const [facilitatorFilter, setFacilitatorFilter] = useState<string | null>(null);
+  const [responsibilities, setResponsibilities] = useState<OFResponsibility[]>([]);
+
+  useEffect(() => {
+    Promise.all([loadAtlas(), loadGraph()]).then(([atlas, graph]) => {
+      setResponsibilities(deriveResponsibilities(atlas, graph));
+    });
+  }, []);
 
   const allAgents = useMemo(() => [...new Set(
-    OF_RESPONSIBILITIES.flatMap(r => r.agents ?? (r.agent ? [r.agent] : []))
-  )], []);
+    responsibilities.flatMap(r => r.agents ?? (r.agent ? [r.agent] : []))
+  )], [responsibilities]);
 
   const facilitators = useMemo(() => {
     const seen = new Map<string, { name: string; executorName: string }>();
@@ -125,7 +133,7 @@ export function OFReport({ onNavigate }: { onNavigate: (id: string) => void }) {
     return [...seen.entries()].map(([id, v]) => ({ id, ...v }));
   }, [chains]);
 
-  const filtered = OF_RESPONSIBILITIES.flatMap(r => {
+  const filtered = responsibilities.flatMap(r => {
     // Expand multi-agent entries into one row per agent
     const expanded: OFResponsibility[] = r.agents
       ? r.agents.map(a => ({ ...r, agents: undefined, agent: a }))

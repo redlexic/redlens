@@ -13,7 +13,7 @@ description: >
 license: MIT
 metadata:
   author: anscharo
-  version: "1.5"
+  version: "1.6"
 ---
 
 # graph-atlas
@@ -138,6 +138,7 @@ Every entity type below either has a defining Atlas doc number pattern, or is bo
 | `govops_org` | — | Named in `"(Operational\|Core) GovOps for {Executor} is {Name}."` |
 | `delegate_org` | — | Named in the Aligned Delegates list (`A.1.5.1.5.0.6.1`) or Ranked Delegates list (`A.1.5.4.1.{L}.3.1`); also `addresses.json` entries with `roles: ["delegate"]` |
 | `ecosystem_actor` | — | Catch-all: named actors surfaced by patterns that don't fit a more specific kind (ERG members, role-binding holders, etc.) |
+| `instance` | `<primitive-slug>` | Primitive Instance Configuration Document. Entity id = ICD doc UUID. Emitted for every in-scope primitive (see Pattern 14 for the allowlist). `st` is the primitive slug (`distribution-reward`, `integration-boost`, `allocation-system`, etc.). |
 
 **Halo Agents** are mentioned in `A.6.1.1.5.1` as a future category but have no structural pattern yet — do not classify.
 
@@ -183,16 +184,38 @@ A.6.1.1.X.2.Z.3            Completed Instances
 A.6.1.1.X.2.Z.4            In Progress Invocations
 ```
 
-**ICD directory positions vary** — ICDs can be under Active (`.Z.2.N`), Completed (`.Z.3.N`), or In-Progress (`.Z.4.N`). Never assume Active Instances is the only position.
+**ICD directory positions vary** — ICDs can be under Active (`.Z.2.N`), Completed (`.Z.3.N`), or In-Progress (`.Z.4.N`). Never assume Active Instances is the only position. **Allocation System inserts a `Multi-Instance Coordinator Document` at `.Z.2`**, shifting Active Instances to `.Z.3` and Completed to `.Z.4` — one more reason to walk by title rather than by tier index.
 
 **All extraction uses doc_no arithmetic, not parentId** (depth cap makes parentId unreliable for docs deeper than 6 segments).
+
+**Primitive-root resolver (shared helper).** A previous convention (`ancestorByStripping(d, 2)`) landed 77 Allocation System edges on directory intermediaries like "Ethereum Mainnet Instances" because ICDs there sit several levels below the Primitive root. Use this instead:
+
+```javascript
+// Locates the real Primitive root for any per-agent ICD.
+// Primitive roots always live at A.6.1.1.X.2.G.P — agent X, Sky Primitives
+// section (.2), primitive group (.G), primitive (.P).
+function primitiveRootFor(doc) {
+  const m = doc.doc_no.match(/^(A\.6\.1\.1\.\d+\.2\.\d+\.\d+)(?:$|\.)/);
+  if (!m) return null;
+  const root = docByDocNo.get(m[1]);
+  return root && /Primitive$/i.test(root.title) ? root : null;
+}
+```
+
+`scripts/build-graph.mjs:226`. Must be used everywhere that previously called `ancestorByStripping(d, 2)` to reach a primitive root.
 
 **Extraction rules:**
 
 - `implements`: The primitive root always opens with `"... See [Global Name](uuid)."` — match the literal `"See [text](uuid)"` pattern where the target is under `A.2.2`. Only for `A.6.1.1.*` docs. Do not derive from `cites` edges (too broad).
-- `instance_of`: ICD doc_no = `{primRoot}.{dir}.{N}`. Strip 2 segments → primitive root. Only for `A.6.1.1.*` ICDs — not global `A.2.2.*` docs whose titles mention "Instance Configuration Document".
-- `located_at`: ICD Location doc always contains a UUID link to the actual ICD in its content. Extract UUID from content — do not guess from doc_no (directory position varies).
-- `has_status`: Global Activation Status is at `{primRoot}.1.1`. Strip 2 segments → primitive root. Only for `A.6.1.1.*` docs.
+- `instance_of`: ICD → primitive root via `primitiveRootFor(icd)`. Only for `A.6.1.1.*` ICDs — not global `A.2.2.*` docs whose titles mention "Instance Configuration Document". Edge meta carries `{status: "Active"|"Completed"|"Pending"}` for in-scope primitives (see Pattern 14).
+- `located_at`: ICD Location doc always contains a UUID link to the actual ICD in its content. Extract UUID from content — do not guess from doc_no (directory position varies). **A handful of ICD Location docs in the atlas are misnamed** (title lacks the "Location" suffix, reading just "X Instance Configuration Document" instead of "X Instance Configuration Document Location"). Detect by content too, not title alone:
+  ```javascript
+  const isICDLocation = d =>
+    /instance configuration document location/i.test(d.title) ||
+    /^\s*This Instance['’]s associated Instance Configuration Document is located at/i.test(d.content ?? "");
+  ```
+  `scripts/build-graph.mjs:128`. Without the content fallback, misnamed Location docs get emitted as duplicate ICD entities that overwrite the real ones.
+- `has_status`: Global Activation Status is at `{primRoot}.1.1`. Only for `A.6.1.1.*` docs.
 
 ### Pattern 3: Executor Agent role assignment (Prime → Executor)
 
@@ -375,6 +398,113 @@ These are the only hardcoded entities. Everything else is pattern-derived from a
 
 **Sky Frontier Foundation** and **Sky Fortification Foundation** are NOT bootstraps — they have defining grant docs under `A.2.13.1` and surface through ordinary `foundation` extraction (grants recipients list + address labels).
 
+### Pattern 14: Primitive Instance entities
+
+Every ICD under an allowlisted primitive becomes an `et="instance"` entity. Entity id == ICD doc UUID, `st` = primitive slug, `did` = ICD UUID, meta carries `{primitive_doc_no, agent_doc_no, status, params}`.
+
+**Scope allowlist** (`scripts/build-graph.mjs:526`). Add here when a new primitive should get instance entities:
+
+```javascript
+const INSTANCE_SCOPED_PRIMITIVES = {
+  "Distribution Reward Primitive":      "distribution-reward",
+  "Integration Boost Primitive":        "integration-boost",
+  "Allocation System Primitive":        "allocation-system",
+  "Pioneer Chain Primitive":            "pioneer-chain",
+  "Core Governance Reward Primitive":   "core-governance-reward",
+  "Agent Token Primitive":              "agent-token",
+  "Executor Accord Primitive":          "executor-accord",
+  "Root Edit Primitive":                "root-edit",
+  "Distribution Requirement Primitive": "distribution-requirement",
+  "Upkeep Rebate Primitive":            "upkeep-rebate",
+};
+```
+
+**Excluded deliberately:** `Agent Creation Primitive`, `Prime Transformation Primitive`. Both are single-invocation lifecycle milestones whose outcome is already captured by the Prime Agent entity (created, transformed). Emitting instance entities for them would add 16 low-information boilerplate entities with no distinguishing params.
+
+**Status derivation.** `{status}` lives on both the entity meta and the `instance_of` edge meta. Derive by **reading the tier doc's title**, not its position — Allocation System inserts a Multi-Instance Coordinator Document that shifts every tier down by one:
+
+```javascript
+function instanceStatusFor(icd, primRoot) {
+  const rest = icd.doc_no.slice(primRoot.doc_no.length + 1);
+  if (!rest) return null;
+  const tierSeg = rest.split(".")[0];
+  const tierDoc = docByDocNo.get(`${primRoot.doc_no}.${tierSeg}`);
+  const title = tierDoc?.title.toLowerCase() ?? "";
+  if (title === "active instances") return "Active";
+  if (title === "completed instances") return "Completed";
+  if (title === "in progress invocations") return "Pending";
+  return null;
+}
+```
+
+`scripts/build-graph.mjs:539`.
+
+**Walk by title, not by doc_no position.** The ICD sub-structure is inconsistent across primitives:
+
+| Primitive | ICD.1 | ICD.2 | Reward Code location |
+|---|---|---|---|
+| DR/IB/Agent Token (Active instance) | `Parameters` | `Operational Process Definition` | `ICD.1.1` |
+| DR/IB (In-progress invocation) | `Invocation Status` | `Parameters` | `ICD.2.1` |
+| Allocation System | `RRC Framework Full Implementation` | `Parameters` | deeper under `ICD.2.{subdir}.N` |
+
+Walk children of the ICD until you find `title === "Parameters"`, then walk that subtree. Never assume `ICD.1 = Parameters`.
+
+**Params extraction** (`scripts/build-graph.mjs:611`, `extractInstanceParams`). BFS from the Parameters doc; each leaf becomes a key/value pair in `meta.params`. Leaf = doc with no children, content not matching `DIRECTORY_RE = /^The documents? herein (define|contain|organize|govern|specify|describe|set|compose|hold)\b/i`. On title collision (e.g. Pioneer Chain has two `Network` leaves), disambiguate with `"{parentTitle} / {leafTitle}"`. The `Custom Instance Parameters` subtree is skipped at every level — it's a reserved extension slot that's empty in practice.
+
+**Params shape: tuple `[value, srcUuid, srcDocNo]`.** Each param key maps to a 3-tuple, not a bare string:
+
+```json
+"params": {
+  "Reward Code": ["128", "1e5d71a8-…", "A.6.1.1.1.2.5.1.2.1.1.1"],
+  "Integration Partner Reward Address": ["0xac140648…", "5b5f88ff-…", "A.6.1.1.1.2.5.2.2.1.1.2"]
+}
+```
+
+The source UUID is the leaf doc's id; `docs[uuid].content` is always the raw pre-formatted content. Consumers get display strings + navigation targets without re-walking the tree at render time.
+
+**Per-key formatters** (`scripts/build-graph.mjs:582`, `PARAM_FORMATTERS`). Each well-known leaf title has a registered formatter that turns raw prose into the value slot. Unknown keys fall through to `unwrapBackticks + trim`. Current registry keys:
+
+```
+Reward Code / Integration Partner Name / Integration Partner Reward Address /
+Integration Partner Chain / Integration Boost Cadence / Token Name /
+Token Symbol / Genesis Supply / Token Address / Underlying Asset Address /
+Allocator Role Address / Pool Address / Address / Network / Target Protocol /
+Token / Asset Supplied By Spark Liquidity Layer
+```
+
+**Per-key expanders** (`scripts/build-graph.mjs`, `PARAM_EXPANDERS`). When a single leaf packs multiple values into prose, a registered expander returns `Array<[key, value]>` and each tuple becomes its own param entry (sharing the source doc). The expander runs before the formatter; returning `null` falls through to the regular formatter path. Currently one entry:
+
+- `Token Address` (Agent Token only). Pattern:
+  *"The address of SPK on the Ethereum Mainnet is `0x…`. The address of SPK on Base is `0x…`."*
+  Expands to `Token Address (Ethereum Mainnet)` + `Token Address (Base)` tuples — one per chain clause. When the content doesn't match (e.g. Allocation System's single backtick-wrapped address, or unset Agent Token prose like *"The address of KEEL will be specified in a future iteration"*), the expander returns `null` and the regular formatter runs — preserving the single-`Token Address`-key behaviour for those consumers.
+
+**Generic bullet-list expansion** (`scripts/build-graph.mjs`, `expandBulletList`). Runs AFTER per-title expanders as a fallback. Matches the atlas convention used for rate limits and similar parameter groupings:
+
+```
+The {variant} rate limits are:
+
+- `maxAmount`: 200,000,000 USDS
+- `slope`: 400,000,000 USDS per day
+```
+
+Any leaf whose content contains `- \`key\`: value` bullets is expanded into `{leafTitle} / {bulletKey}` sub-keys. Produces 343 rate-limit sub-keys today across 95 Allocation System instances (Inflow / Outflow / Deposit / Withdrawal / Swap rate limits, each with `maxAmount` / `slope` / `maxSlippage`). Consumers get direct field lookup instead of regex-parsing prose.
+
+Regex: `/^\s*[-*]\s+\`([^\`\n]+)\`\s*:\s*(.+?)\s*$/gm`. Single-bullet leaves still expand — the backtick-key + colon shape is distinctive enough that false positives haven't appeared in the atlas today. If a future doc uses casual backtick-bullet prose that shouldn't be expanded, add an intro-anchor gate (e.g. require `/\bare\s*:\s*\n/` preceding the bullets).
+
+**Known key variations** — the atlas doesn't always use the same title for structurally similar params. Record normalisation is a consumer problem, not an extractor one:
+
+- `Token Address` vs `Token Address (ERC4626 Vault)` — Allocation System ICDs suffix vault type
+- `Token Address` vs `Pool Address` vs `Underlying Asset Address` — Allocation System uses whichever matches the protocol shape
+- `Token Address` vs `Token Address (<Chain>)` — Agent Token's per-chain expansion. Agents with deployed tokens get one chain-qualified key per chain; agents whose token is unannounced still emit a single `Token Address` key carrying the placeholder prose.
+
+### Pattern 15: `invoked_by` — instance → agent affiliation
+
+Every in-scope Instance entity emits an entity→entity `invoked_by` edge to its Prime Agent. Purpose: the `/entities` graph clusters Instances under their owning agent instead of leaving them as 170+ floating nodes.
+
+- `invoked_by`: `entity(instance) → entity(agent/prime)`, source: `[ICD doc_no]`, meta mirrors the `instance_of` status payload
+- Resolver: match the ICD doc_no against `/^(A\.6\.1\.1\.\d+)/` to locate the prime agent doc, then its entity via `entityByDocId`
+- `scripts/build-graph.mjs:747`
+
 ---
 
 ## Editorial Decisions
@@ -457,6 +587,40 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 
 **Future:** edge weights may eventually reflect something like "strength of institutional coupling" — but this is deferred until we have a concrete consumer and a principled scoring rule. Treating weight as meaningful today would be false precision.
 
+### 9. Instance-as-entity scope is an allowlist, not every ICD
+
+**Atlas phrasing:** every Primitive can be invoked, and every invocation produces an ICD (A.2.2.1.3). A uniform reading would emit an `et="instance"` entity for every ICD the atlas contains.
+
+**Choice:** only the 10 primitives in `INSTANCE_SCOPED_PRIMITIVES` get instance entities. `Agent Creation Primitive` and `Prime Transformation Primitive` are intentionally excluded.
+
+**Why:** both excluded primitives are single-invocation lifecycle milestones. The outcome of "Agent X invoked Agent Creation" is already modelled by the existence of the Prime Agent entity itself. Emitting 16 boilerplate "Single" instances (8 agents × 2 primitives) with empty params would add noise without signal. The allowlist also bounds entity count — adding all ICDs would roughly double the entity count for primitives that have nothing meaningful to expose.
+
+**What we lose:** two minor gaps in the structural model. If a future consumer needs to cite "Spark invoked Agent Creation Primitive at doc A.6.1.1.1.2.1.1.3.1", they walk the atlas directly — there is no entity to query.
+
+### 10. Instance params are `[value, srcUuid, srcDocNo]` tuples with per-key formatters
+
+**Atlas phrasing:** ICD Parameters children encode structured configuration (`Reward Code: 128`, `Integration Partner Chain: Ethereum Mainnet`, `Token Address: 0x…`) as prose — usually one-sentence leaves like *"The partner for the Aave Integration Boost is Aave."*
+
+**Choice:** at build time, every Parameters leaf becomes a 3-tuple on the Instance entity's `meta.params`: `[formattedValue, srcDocUuid, srcDocNo]`. A per-key formatter registry (`PARAM_FORMATTERS`) strips the prose so the value slot is the clean datum ("Aave", "Ethereum Mainnet", "0x…"). Unknown keys fall through to a backtick-unwrap + trim fallback.
+
+**Why:**
+- Consumers get display strings without re-implementing prose-stripping at render time
+- Source UUID + doc_no always accompany the value, so the raw content is one navigation away (`docs[uuid].content`) if a consumer wants it
+- Formatters live in one place — adding a new key means one registry entry, not per-consumer duplication
+- Builds the foundation for future MCP queries: "what's the Reward Code for Spark's SparkLend instance?" is a direct lookup, no regex
+
+**What we lose:** the value slot is destructive — the formatter has a single authoritative output. Compound prose like Agent Token's Token Address (multi-chain addresses in one blob) gets the first address only; accessing the rest requires walking the source content. Key variations (`Token Address` vs `Pool Address` vs `Token Address (ERC4626 Vault)`) are preserved as-written; consumer-side normalization is on the consumer.
+
+### 11. Walk by title, not by doc_no position within an ICD
+
+**Atlas phrasing:** ICD sub-structure is *not* uniform. Active instances start with `.1 = Parameters`. In-progress invocations interpose `.1 = Invocation Status`, shifting Parameters to `.2`. Allocation System starts with `.1 = RRC Framework Full Implementation`, with Parameters at `.2` and deeper nesting (`Parameters → Instance Identifiers → Network`).
+
+**Choice:** every ICD-descent traversal in the extractor (`extractInstanceParams`, `instanceStatusFor`, and consumer helpers like `rewardsIndex.findParamDoc`) walks by matching titles ("Parameters", "Active Instances", "Reward Code") rather than by tier index.
+
+**Why:** tier indexing silently breaks when the atlas introduces a new sibling doc at `.1` or renumbers. The extractor from v1.5 assumed `{ICD}.1.1 = Reward Code` for DR — which was correct for active instances but missed every in-progress invocation's Reward Code because its path is `{ICD}.2.1`. Title-match is structurally stable.
+
+**What we lose:** a handful of ms per ICD for the title match. In exchange, resilience to atlas restructures.
+
 ---
 
 ## Global Primitive Categories (A.2.2)
@@ -491,13 +655,14 @@ aligned_delegate_for               entity  → entity   delegate_org       → S
 ranked_delegate_for                entity  → entity   delegate_org       → Sky Governance; meta.level
 ```
 
-**Composition / membership**:
+**Composition / membership / affiliation**:
 
 ```
 comprises                          entity  → entity   composite_party → member entity
 erg_member_for                     entity  → doc      ERG member → A.1.8.1.2.2.0.6.1
 responsible_party_for              entity  → doc      Responsible Party → Active Data Controller
 holds_role_for                     entity  → doc      Named role binding; meta.role
+invoked_by                         entity  → entity   instance → agent(prime); meta.status
 ```
 
 **Accord / definition**:
@@ -529,7 +694,30 @@ has_status                         doc     → doc      Primitive root → Globa
 implements                         doc     → doc      Agent primitive → global def in A.2.2 (via "See" cite)
 ```
 
-**Total: 25 edge types.**
+**Total: 26 edge types.**
+
+### Entity meta serialization
+
+Entities ship with an optional `m: string` field in `relations.json` carrying JSON-serialised meta (see `RelationEntity` in `src/types.ts`). Previously meta was dropped at serialisation; the `m` field is now forwarded to browser consumers. Reader shape:
+
+```typescript
+interface RelationEntity {
+  id: string; slug: string; name: string;
+  et: string; st: string | null; did: string | null;
+  m?: string;  // JSON-stringified meta; present for et="instance"
+}
+```
+
+For `et="instance"`, the parsed meta is:
+
+```typescript
+{
+  primitive_doc_no: string;   // e.g. "A.6.1.1.1.2.5.1"
+  agent_doc_no: string;       // e.g. "A.6.1.1.1"
+  status: "Active" | "Completed" | "Pending" | null;
+  params: Record<string, [value: string, srcUuid: string, srcDocNo: string]>;
+}
+```
 
 **v1.3 diff from v1.2:**
 - **Added (role edges):** `prime_agent_for`, `operational_executor_agent_for`, `core_executor_agent_for`, `operational_facilitator_for`, `core_facilitator_for`, `operational_govops_for`, `core_govops_for`, `aligned_delegate_for`, `ranked_delegate_for`
@@ -543,6 +731,23 @@ implements                         doc     → doc      Agent primitive → glob
 - **Pattern 12 — Atomic parties:** documents the `ATOMIC_PARTY_RE` fallback for party-details docs that use "The party 'X' is ..." phrasing (e.g., Moonbow at `A.2.8.2.2.1.1.4`). Atomic parties are `composite_party` entities with zero `comprises` edges.
 - **Pattern 13 — Bootstrap table:** `sky-ecosystem` row removed; only `sky-core` and `sky-governance` remain.
 - **Output shape note:** dual `graph.json` / `relations.json` contract formalized in Editorial Decision §7. Test invariants in `tests/graph.test.ts`.
+
+**v1.6 diff from v1.5:**
+- **Entity Types table:** `instance` added. Entity id = ICD doc UUID; `st` = primitive slug from `INSTANCE_SCOPED_PRIMITIVES` (10 primitives).
+- **Pattern 2 — primitive root resolver:** `primitiveRootFor(doc)` via `A.6.1.1.X.2.G.P` regex replaces the previous `ancestorByStripping(d, 2)` convention. The old heuristic landed 77 Allocation System edges on directory intermediaries (e.g. "Ethereum Mainnet Instances").
+- **Pattern 2 — ICD Location content fallback:** `isICDLocation` now also matches by content (`This Instance's associated Instance Configuration Document is located at …`) so misnamed Location docs don't pollute the ICD entity set.
+- **Pattern 14 (new) — Primitive Instance entities:** documents the scope allowlist, status-from-tier-title derivation, walk-by-title rule, `extractInstanceParams` traversal, the `[value, srcUuid, srcDocNo]` tuple shape, and the `PARAM_FORMATTERS` registry.
+- **Pattern 15 (new) — `invoked_by` edge:** entity→entity edge from each Instance to its Prime Agent; mirrors `instance_of` status meta.
+- **`instance_of` edge meta:** now carries `{status: "Active"|"Completed"|"Pending"}` for in-scope primitives.
+- **`RelationEntity.m`:** meta field is now shipped in `relations.json` (previously dropped); the `m` reader shape is documented in Entity meta serialization.
+- **Editorial Decisions added:**
+  - §9 Instance-as-entity scope is an allowlist (excludes Agent Creation + Prime Transformation)
+  - §10 Instance params are `[value, srcUuid, srcDocNo]` tuples with per-key formatters
+  - §11 Walk by title, not by doc_no position within an ICD
+- **Edge total:** 25 → 26 (`invoked_by`).
+- **Vocabulary tests:** `KNOWN_ENTITY_TYPES` gained `instance`; `KNOWN_EDGE_TYPES` gained `invoked_by` (`tests/graph.test.ts`).
+- **`PARAM_EXPANDERS` added:** Agent Token's `Token Address` compound prose is now split into per-chain keys (`Token Address (Ethereum Mainnet)`, `Token Address (Base)`, …). Unset agents keep the single `Token Address` key with placeholder prose. Backward-incompatible for any consumer that expected a plain `Token Address` on Spark or Grove.
+- **Generic bullet-list expansion:** any leaf whose content contains `` - `key`: value `` bullets splits into `{leafTitle} / {bulletKey}` sub-keys. Primary use: Allocation System rate limits — 343 new sub-keys across 95 instances, replacing opaque "Inflow Rate Limits" prose values with direct `{Inflow,Outflow,Deposit,Withdrawal,Swap} Rate Limits / {maxAmount,slope,maxSlippage}` lookups. Fires after per-title `PARAM_EXPANDERS`.
 
 ---
 
@@ -564,3 +769,6 @@ Categories the atlas itself excludes or frames as non-entities. Do not extract.
 - **Executor Accord position**: currently `.2.2` for all checked agents — derive from citation, not position
 - **Spell Roster roles** (Crafter, Reviewer, `A.1.9.2.1.9`): not verified; defer until we decide to extract spell-level roles
 - **Grant events**: per-grant disbursements (e.g., `A.2.13.1.1.1` — August 2025 grant to SFF) are per-event data, not roles. Currently unextracted; revisit when time-series events become part of the model
+- ~~**Compound prose values**~~ — **addressed**: `PARAM_EXPANDERS["Token Address"]` splits multi-chain prose into per-chain `Token Address (<Chain>)` keys for Agent Token. Unset agents (Keel, Skybase, Obex, Pattern, Launch Agent 6/7) still emit a single `Token Address` key with the placeholder prose. Future compound-prose patterns in other primitives can be handled by adding more expanders.
+- **Key-variation normalisation**: `Token Address` vs `Pool Address` vs `Token Address (ERC4626 Vault)` are preserved as-written. A consumer-side normaliser (e.g. "any `*Address` key is an on-chain contract") has not been specified. Document the taxonomy once use cases converge
+- **Integrator partners as entities**: Aave, Kamino, CoW Swap, Morpho vault operators etc. appear as Instance param values but have no entity identity. Promoting them would unlock per-partner cross-agent queries but requires defining the scope (all IB partners? Allocation System protocols too?) and a shape (`entity_type = "integrator"`?)
