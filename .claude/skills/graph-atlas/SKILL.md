@@ -2,7 +2,7 @@
 name: graph-atlas
 description: >
   Knowledge base for the RedLens Atlas graph schema. Use when writing or
-  modifying redlens-mcp/scripts/build-graph.mjs, designing edge types, querying
+  modifying scripts/build-graph.mjs, designing edge types, querying
   the Atlas MCP for relationships, reading raw Atlas markdown to understand
   doc_no patterns, or reviewing Atlas PRs for new structural conventions.
   Covers Atlas document numbering rules, the heading depth cap (parentId
