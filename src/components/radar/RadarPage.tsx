@@ -27,9 +27,9 @@ export function RadarPage({ onNavigate }: Props) {
   }, []);
 
   const sidebarGroups = useMemo((): SidebarGroup[] => {
-    if (!graph) return [];
-    return buildSidebarActors(graph);
-  }, [graph]);
+    if (!graph || !docs) return [];
+    return buildSidebarActors(graph, docs);
+  }, [graph, docs]);
 
   const rewardsIndex = useMemo(() => {
     if (!docs || !graph) return null;

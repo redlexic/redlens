@@ -34,9 +34,14 @@ function isSignal(key: string, val: string) {
   return EVM_RE.test(val) || SOL_RE.test(val) || ADDR_KEY_RE.test(key) || TOKEN_KEY_RE.test(key) || PARTNER_KEY_RE.test(key) || RATE_KEY_RE.test(key);
 }
 
-export function buildSidebarActors(graph: GraphData): SidebarGroup[] {
+export function buildSidebarActors(graph: GraphData, docs: Record<string, AtlasNode>): SidebarGroup[] {
   const by = (pred: (p: Participant) => boolean): SidebarActor[] =>
-    graph.participants.filter(pred).sort((a,b) => a.name.localeCompare(b.name))
+    graph.participants.filter(pred)
+      .sort((a, b) => {
+        const da = (a.did && docs[a.did]?.doc_no) ?? "";
+        const db = (b.did && docs[b.did]?.doc_no) ?? "";
+        return da.localeCompare(db, undefined, { numeric: true });
+      })
       .map(e => ({ id: e.id, slug: e.slug, name: e.name, et: e.et, st: e.st, docId: e.did }));
   return [
     { label: "Prime Agents",    actors: by(e => e.et==="agent" && e.st==="prime") },
