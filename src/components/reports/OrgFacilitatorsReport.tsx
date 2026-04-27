@@ -30,7 +30,10 @@ function Row({
   chains: Map<string, AgentChain>;
   onNavigate: (id: string) => void;
 }) {
-  const agentNames = r.agents ?? (r.agent ? [r.agent] : []);
+  const agentNames = useMemo(
+    () => r.agents ?? (r.agent ? [r.agent] : []),
+    [r.agents, r.agent],
+  );
 
   // Collect unique facilitators across all agents for this row
   const facilitators = useMemo(() => {

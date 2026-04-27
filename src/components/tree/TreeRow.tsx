@@ -48,7 +48,7 @@ const TITLE_BASE: React.CSSProperties = {
   whiteSpace: "nowrap",
   letterSpacing: "0.035em",
 };
-export const ROW_LAYOUT_STYLE: React.CSSProperties = {
+const ROW_LAYOUT_STYLE: React.CSSProperties = {
   paddingLeft: 5,
   paddingRight: PAD_X,
   display: "flex",
@@ -72,6 +72,7 @@ export function TreeRow({
   const node = item?.node;
   const title = node?.title ?? "";
   const docNo = node?.doc_no ?? "";
+  const treeDepth = item?.treeDepth ?? 0;
 
   const docNumWidth = docNo.length * 4;
   const availableWidth = sidebarWidth - 5 - docNumWidth - TOGGLE_WIDTH - PAD_X - 6;
@@ -81,9 +82,6 @@ export function TreeRow({
     [title, availableWidth],
   );
 
-  if (!item) return null;
-  const { hasChildren, treeDepth } = item;
-
   const docNoSegments = useMemo(() => {
     if (!docNo) return { parts: [] as string[], depths: [] as number[], needsPad: false };
     const parts = docNo.split(".");
@@ -92,6 +90,9 @@ export function TreeRow({
     const depths = docNo.startsWith("NR-") ? [treeDepth] : segmentDepths(docNo);
     return { parts, depths, needsPad: parts[parts.length - 1].length < 2 };
   }, [docNo, treeDepth]);
+
+  if (!item) return null;
+  const { hasChildren } = item;
   const isSelected = index === selectedIndex;
   const isFocused = index === focusedIndex;
   const isExpanded = expandedIds.has(node!.id);

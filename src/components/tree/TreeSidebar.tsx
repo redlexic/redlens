@@ -29,8 +29,8 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
     for (const node of Object.values(bundle.docs)) {
       if (node.depth <= 1) initial.add(node.id);
     }
-    startTransition(() => setExpandedIds(initial)); // eslint-disable-line react-hooks/set-state-in-effect
-  }, [bundle]); // eslint-disable-line react-hooks/exhaustive-deps
+    startTransition(() => setExpandedIds(initial));
+  }, [bundle]);
 
   useEffect(() => {
     if (!bundle || !nodeId) return;
@@ -38,7 +38,6 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
     const target = docs[nodeId];
     if (!target) return;
     const parts = target.doc_no.split(".");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpandedIds((prev) => {
       const next = new Set(prev);
       let changed = false;

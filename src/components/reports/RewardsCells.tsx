@@ -12,7 +12,7 @@ export function EntityChip({ e, onEntity }: { e: EntityRef; onEntity: (slug: str
   );
 }
 
-export function explorerFor(
+function explorerFor(
   addr: string,
   chain: string | undefined,
   addrMap: Record<string, AddressInfo>,

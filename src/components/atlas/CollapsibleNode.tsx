@@ -61,6 +61,9 @@ export const CollapsibleNode = memo(function CollapsibleNode({
     <div
       id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
       className="atlas-node relative"
+      onClick={(e: React.MouseEvent) => {
+        if (!(e.target as Element).closest('a, button, [role="button"]')) onNavigate(node.id);
+      }}
       style={{
         padding: 4,
         boxShadow: isSelected ? `inset ${BORDER_WIDTH}px 0 0 ${color}` : undefined,
