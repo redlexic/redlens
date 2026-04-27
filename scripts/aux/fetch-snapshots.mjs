@@ -63,7 +63,7 @@ const addresses = JSON.parse(await fs.readFile(ADDRS_PATH, "utf8"));
 
 // Only process chainlog mainnet addresses — we have their ABIs.
 const chainlogEntries = Object.entries(addresses).filter(
-  ([, info]) => info.chainlogId && info.chain === "ethereum"
+  ([, info]) => info.chainlogId && info.chain === "ethereum",
 );
 console.log(`Chainlog addresses: ${chainlogEntries.length}`);
 
@@ -93,7 +93,9 @@ for (const [addr, info] of chainlogEntries) {
     if (abi) {
       proxyUpgraded++;
     } else {
-      console.warn(`  ! proxy ${info.chainlogId}: no impl ABI for ${info.implementation}, falling back to proxy ABI`);
+      console.warn(
+        `  ! proxy ${info.chainlogId}: no impl ABI for ${info.implementation}, falling back to proxy ABI`,
+      );
     }
   }
 
@@ -112,7 +114,7 @@ for (const [addr, info] of chainlogEntries) {
     (fn) =>
       fn.type === "function" &&
       (fn.stateMutability === "view" || fn.stateMutability === "pure") &&
-      (fn.inputs ?? []).length === 0
+      (fn.inputs ?? []).length === 0,
   );
 
   for (const fn of viewFns) {
@@ -120,7 +122,9 @@ for (const [addr, info] of chainlogEntries) {
   }
 }
 
-console.log(`Total calls: ${calls.length} across ${chainlogEntries.length} contracts (${proxyUpgraded} using impl ABI)`);
+console.log(
+  `Total calls: ${calls.length} across ${chainlogEntries.length} contracts (${proxyUpgraded} using impl ABI)`,
+);
 
 // ---------------------------------------------------------------------------
 // Determine block before multicall so all batches are pinned to the same height.
@@ -183,7 +187,8 @@ let successCount = 0;
 let failCount = 0;
 for (const fns of Object.values(values)) {
   for (const v of Object.values(fns)) {
-    if (v !== null) successCount++; else failCount++;
+    if (v !== null) successCount++;
+    else failCount++;
   }
 }
 

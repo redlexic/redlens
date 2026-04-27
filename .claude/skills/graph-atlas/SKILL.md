@@ -27,12 +27,12 @@ Read that file before making any changes to graph extraction logic. This skill s
 
 ## Terminology
 
-| Term | Meaning |
-|---|---|
-| **doc** | An Atlas Document — has `uuid`, `doc_no`, `title`, `type`, `content`. The Atlas calls these "Documents". Do not call them "nodes" (that is a graph term). |
-| **entity** | A named real-world actor extracted from Atlas content (agent, foundation, dev company, facilitator org, delegate, ecosystem concept, etc.) |
-| **address** | An on-chain address (EVM or Solana) |
-| **edge** | A typed, auditable relationship between docs, entities, and/or addresses |
+| Term        | Meaning                                                                                                                                                   |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **doc**     | An Atlas Document — has `uuid`, `doc_no`, `title`, `type`, `content`. The Atlas calls these "Documents". Do not call them "nodes" (that is a graph term). |
+| **entity**  | A named real-world actor extracted from Atlas content (agent, foundation, dev company, facilitator org, delegate, ecosystem concept, etc.)                |
+| **address** | An on-chain address (EVM or Solana)                                                                                                                       |
+| **edge**    | A typed, auditable relationship between docs, entities, and/or addresses                                                                                  |
 
 **Auditable edge requirement:** Every edge MUST carry `source_doc_nos` — a JSON array of the doc_nos that establish the relationship. Without provenance, an edge cannot be shown to users or cited in reports.
 
@@ -48,13 +48,13 @@ Read that file before making any changes to graph extraction logic. This skill s
 
 The atlas distinguishes several "Sky" concepts. Do not collapse the named legal entities.
 
-| Atlas term | Role | entity_type | Becomes target of |
-|---|---|---|---|
-| ~~Sky Ecosystem~~ | Scope that regulates Agents (A.6). **Editorial: collapsed into `sky-core`** — see Editorial Decisions. | — (not emitted) | — |
-| **Sky Core** | Operational party representing "Sky" in every Ecosystem Accord (verbatim "The party 'Sky' comprises Sky Core" in 8 accords). Also serves as the target for `prime_agent_for` edges. | `operational_party` | `prime_agent_for`, `ecosystem_accord` (as party), `comprises` (inbound) |
-| **Sky Governance** | Decision body that selects delegates and approves spells | `governance_body` | `aligned_delegate_for`, `ranked_delegate_for` |
-| **Sky Frontier Foundation** | Legal entity; grant recipient (A.2.13.1.1; address `0xca5183FB9997046fbd9bA8113139bf5a5Af122A0`) | `foundation` | normal entity edges |
-| **Sky Fortification Foundation** | Legal entity; grant recipient (A.2.13.1.2) | `foundation` | normal entity edges |
+| Atlas term                       | Role                                                                                                                                                                                | entity_type         | Becomes target of                                                       |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------- |
+| ~~Sky Ecosystem~~                | Scope that regulates Agents (A.6). **Editorial: collapsed into `sky-core`** — see Editorial Decisions.                                                                              | — (not emitted)     | —                                                                       |
+| **Sky Core**                     | Operational party representing "Sky" in every Ecosystem Accord (verbatim "The party 'Sky' comprises Sky Core" in 8 accords). Also serves as the target for `prime_agent_for` edges. | `operational_party` | `prime_agent_for`, `ecosystem_accord` (as party), `comprises` (inbound) |
+| **Sky Governance**               | Decision body that selects delegates and approves spells                                                                                                                            | `governance_body`   | `aligned_delegate_for`, `ranked_delegate_for`                           |
+| **Sky Frontier Foundation**      | Legal entity; grant recipient (A.2.13.1.1; address `0xca5183FB9997046fbd9bA8113139bf5a5Af122A0`)                                                                                    | `foundation`        | normal entity edges                                                     |
+| **Sky Fortification Foundation** | Legal entity; grant recipient (A.2.13.1.2)                                                                                                                                          | `foundation`        | normal entity edges                                                     |
 
 **"Sky Foundation" does not exist in the atlas.** Be specific with names.
 
@@ -62,24 +62,24 @@ The atlas distinguishes several "Sky" concepts. Do not collapse the named legal 
 
 ## Atlas Document Numbering
 
-*From `vendor/next-gen-atlas/ATLAS_MARKDOWN_SYNTAX.md` §8*
+_From `vendor/next-gen-atlas/ATLAS_MARKDOWN_SYNTAX.md` §8_
 
 ### Doc_no patterns by type
 
-| Type | Pattern | Example |
-|---|---|---|
-| Scope | `A.{N}` | `A.1`, `A.2` |
-| Article | `{Scope}.{N}` | `A.1.1` |
-| Section | `{Article}.{N}` or `{Section}.{N}` | `A.1.1.1` |
-| Core | `{Section}.{N}` (nestable arbitrarily) | `A.1.1.1.1` |
-| Type Specification | `{Section}.{N}` | `A.1.2.2.2.1` |
-| Active Data Controller | `{Section}.{N}` | `A.1.1.3.1` |
-| Annotation | `{Target}.0.3.{N}` | `A.1.12.1.2.0.3.1` |
-| Action Tenet | `{Target}.0.4.{N}` | `A.1.4.5.0.4.1` |
-| Scenario | `{Tenet}.1.{N}` | `A.1.4.5.0.4.1.1.1` |
-| Scenario Variation | `{Scenario}.var{N}` | `A.1.4.5.0.4.1.1.1.var1` |
-| Active Data | `{Controller}.0.6.{N}` | `A.1.1.3.1.0.6.1` |
-| Needed Research | `NR-{N}` (global) | `NR-5` |
+| Type                   | Pattern                                | Example                  |
+| ---------------------- | -------------------------------------- | ------------------------ |
+| Scope                  | `A.{N}`                                | `A.1`, `A.2`             |
+| Article                | `{Scope}.{N}`                          | `A.1.1`                  |
+| Section                | `{Article}.{N}` or `{Section}.{N}`     | `A.1.1.1`                |
+| Core                   | `{Section}.{N}` (nestable arbitrarily) | `A.1.1.1.1`              |
+| Type Specification     | `{Section}.{N}`                        | `A.1.2.2.2.1`            |
+| Active Data Controller | `{Section}.{N}`                        | `A.1.1.3.1`              |
+| Annotation             | `{Target}.0.3.{N}`                     | `A.1.12.1.2.0.3.1`       |
+| Action Tenet           | `{Target}.0.4.{N}`                     | `A.1.4.5.0.4.1`          |
+| Scenario               | `{Tenet}.1.{N}`                        | `A.1.4.5.0.4.1.1.1`      |
+| Scenario Variation     | `{Scenario}.var{N}`                    | `A.1.4.5.0.4.1.1.1.var1` |
+| Active Data            | `{Controller}.0.6.{N}`                 | `A.1.1.3.1.0.6.1`        |
+| Needed Research        | `NR-{N}` (global)                      | `NR-5`                   |
 
 ### Special directory numbers
 
@@ -97,14 +97,17 @@ The atlas distinguishes several "Sky" concepts. Do not collapse the named legal 
 **Consequence for `parentId` in `docs.json`:** The parser uses a heading-level stack. When a doc at semantic depth > 6 is encountered, it still gets `######`. Its `parentId` is set to whatever was last seen at heading level 5 — the nearest depth-5 ancestor — NOT its true semantic parent.
 
 **Rule:**
+
 - `doc_no.split(".").length <= 7` (semantic depth ≤ 6): `parentId` is reliable
 - `doc_no.split(".").length > 7` (semantic depth > 6): `parentId` jumps to nearest depth-5 ancestor. **Use doc_no arithmetic instead.**
 
 **Examples of the depth cap breaking parentId:**
+
 - `A.6.1.1.1.2.1.1.1.1` (9 parts, depth 8) → `parentId = A.6.1.1.1.2` (Sky Primitives, not Hub Document)
 - All ICDs, Hub Documents, Global Activation Status docs under Sky Primitives are affected
 
 **Helper functions for build-graph.mjs:**
+
 ```javascript
 function semanticParent(doc) {
   if (doc.doc_no.split(".").length <= 7) return docById.get(doc.parentId); // reliable
@@ -123,22 +126,22 @@ function ancestorByStripping(doc, n) {
 
 Every entity type below either has a defining Atlas doc number pattern, or is bootstrapped because it's the target of a role edge with no single defining doc.
 
-| entity_type | subtype | How to identify |
-|---|---|---|
-| `agent` | `proto` | Pre-Transformation-Primitive Agent. Reserved — no named instances yet. |
-| `agent` | `prime` | Direct child of `A.6.1.1` (List Of Prime Agent Artifacts) |
-| `agent` | `operational_executor` | Direct child of `A.6.1.2` whose title starts `"Operational Executor Agent "` |
-| `agent` | `core_executor` | Direct child of `A.6.1.2` whose title starts `"Core Council Executor Agent "` |
-| `composite_party` | — | Entity named as a party in `A.2.8.2.Y.1.1.N` (Ecosystem Accord party details). Holds treaty-level identity; its members are resolved via `comprises`. |
-| `foundation` | — | Named `"X Foundation"` — in party-comprises lists (e.g. Spark Foundation) or grant recipients (Sky Frontier Foundation, Sky Fortification Foundation) |
-| `development_company` | — | Third slot in party-comprises lists. Examples: Phoenix Labs, Elodin, Treadstone, Stablewatch, Rubicon, "Development Company" |
-| `operational_party` | — | Bootstrapped: **Sky Core** (also serves as the target of `prime_agent_for`; see Editorial Decisions) |
-| `governance_body` | — | Bootstrapped: **Sky Governance** |
-| `facilitator_org` | — | Named in `"The (Operational\|Core) Facilitator for {Executor} is {Name}."` |
-| `govops_org` | — | Named in `"(Operational\|Core) GovOps for {Executor} is {Name}."` |
-| `delegate_org` | — | Named in the Aligned Delegates list (`A.1.5.1.5.0.6.1`) or Ranked Delegates list (`A.1.5.4.1.{L}.3.1`); also `addresses.json` entries with `roles: ["delegate"]` |
-| `ecosystem_actor` | — | Catch-all: named actors surfaced by patterns that don't fit a more specific kind (ERG members, role-binding holders, etc.) |
-| `instance` | `<primitive-slug>` | Primitive Instance Configuration Document. Entity id = ICD doc UUID. Emitted for every in-scope primitive (see Pattern 14 for the allowlist). `st` is the primitive slug (`distribution-reward`, `integration-boost`, `allocation-system`, etc.). |
+| entity_type           | subtype                | How to identify                                                                                                                                                                                                                                   |
+| --------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agent`               | `proto`                | Pre-Transformation-Primitive Agent. Reserved — no named instances yet.                                                                                                                                                                            |
+| `agent`               | `prime`                | Direct child of `A.6.1.1` (List Of Prime Agent Artifacts)                                                                                                                                                                                         |
+| `agent`               | `operational_executor` | Direct child of `A.6.1.2` whose title starts `"Operational Executor Agent "`                                                                                                                                                                      |
+| `agent`               | `core_executor`        | Direct child of `A.6.1.2` whose title starts `"Core Council Executor Agent "`                                                                                                                                                                     |
+| `composite_party`     | —                      | Entity named as a party in `A.2.8.2.Y.1.1.N` (Ecosystem Accord party details). Holds treaty-level identity; its members are resolved via `comprises`.                                                                                             |
+| `foundation`          | —                      | Named `"X Foundation"` — in party-comprises lists (e.g. Spark Foundation) or grant recipients (Sky Frontier Foundation, Sky Fortification Foundation)                                                                                             |
+| `development_company` | —                      | Third slot in party-comprises lists. Examples: Phoenix Labs, Elodin, Treadstone, Stablewatch, Rubicon, "Development Company"                                                                                                                      |
+| `operational_party`   | —                      | Bootstrapped: **Sky Core** (also serves as the target of `prime_agent_for`; see Editorial Decisions)                                                                                                                                              |
+| `governance_body`     | —                      | Bootstrapped: **Sky Governance**                                                                                                                                                                                                                  |
+| `facilitator_org`     | —                      | Named in `"The (Operational\|Core) Facilitator for {Executor} is {Name}."`                                                                                                                                                                        |
+| `govops_org`          | —                      | Named in `"(Operational\|Core) GovOps for {Executor} is {Name}."`                                                                                                                                                                                 |
+| `delegate_org`        | —                      | Named in the Aligned Delegates list (`A.1.5.1.5.0.6.1`) or Ranked Delegates list (`A.1.5.4.1.{L}.3.1`); also `addresses.json` entries with `roles: ["delegate"]`                                                                                  |
+| `ecosystem_actor`     | —                      | Catch-all: named actors surfaced by patterns that don't fit a more specific kind (ERG members, role-binding holders, etc.)                                                                                                                        |
+| `instance`            | `<primitive-slug>`     | Primitive Instance Configuration Document. Entity id = ICD doc UUID. Emitted for every in-scope primitive (see Pattern 14 for the allowlist). `st` is the primitive slug (`distribution-reward`, `integration-boost`, `allocation-system`, etc.). |
 
 **Halo Agents** are mentioned in `A.6.1.1.5.1` as a future category but have no structural pattern yet — do not classify.
 
@@ -210,9 +213,11 @@ function primitiveRootFor(doc) {
 - `instance_of`: ICD → primitive root via `primitiveRootFor(icd)`. Only for `A.6.1.1.*` ICDs — not global `A.2.2.*` docs whose titles mention "Instance Configuration Document". Edge meta carries `{status: "Active"|"Completed"|"Pending"}` for in-scope primitives (see Pattern 14).
 - `located_at`: ICD Location doc always contains a UUID link to the actual ICD in its content. Extract UUID from content — do not guess from doc_no (directory position varies). **A handful of ICD Location docs in the atlas are misnamed** (title lacks the "Location" suffix, reading just "X Instance Configuration Document" instead of "X Instance Configuration Document Location"). Detect by content too, not title alone:
   ```javascript
-  const isICDLocation = d =>
+  const isICDLocation = (d) =>
     /instance configuration document location/i.test(d.title) ||
-    /^\s*This Instance['’]s associated Instance Configuration Document is located at/i.test(d.content ?? "");
+    /^\s*This Instance['’]s associated Instance Configuration Document is located at/i.test(
+      d.content ?? "",
+    );
   ```
   `scripts/build-graph.mjs:128`. Without the content fallback, misnamed Location docs get emitted as duplicate ICD entities that overwrite the real ones.
 - `has_status`: Global Activation Status is at `{primRoot}.1.1`. Only for `A.6.1.1.*` docs.
@@ -220,9 +225,11 @@ function primitiveRootFor(doc) {
 ### Pattern 3: Executor Agent role assignment (Prime → Executor)
 
 Within an Executor Accord active instance:
+
 ```
 A.6.1.1.X.2.Z.2.N.1.1.1    Operational/Core Executor Agent
 ```
+
 This doc's content cites `A.6.1.2.Y` via a UUID link — authoritative link from Prime to Executor.
 
 Emit a **role-specific** edge in the **executor → prime** direction (Atlas framing: "Ozone's work in supporting the Agents that it serves **as the Operational Executor Agent for**", A.2.8.2.9.2.1.2):
@@ -245,27 +252,30 @@ The "Sky" party always comprises "Sky Core" verbatim in all 8 accords.
 ### Pattern 5: Facilitator / GovOps assignment
 
 **Operational Executor Agents** (full prefix):
+
 - `"The Operational Facilitator for {Executor} is {Name}."`
 - `"Operational GovOps for {Executor} is {Name}."`
 
 **Core Council Executor Agents** (no prefix — make regex optional):
+
 - `"The Facilitator for {Executor} is {Name}."`
 - `"GovOps for {Executor} is {Name}."`
 
 Emit one of four **role-specific** edges (entity → agent(executor)):
 
-| Source doc | Edge |
-|---|---|
+| Source doc                  | Edge                          |
+| --------------------------- | ----------------------------- |
 | `A.6.1.2.Y.1` (Operational) | `operational_facilitator_for` |
-| `A.6.1.2.Y.1` (Core) | `core_facilitator_for` |
-| `A.6.1.2.Y.2` (Operational) | `operational_govops_for` |
-| `A.6.1.2.Y.2` (Core) | `core_govops_for` |
+| `A.6.1.2.Y.1` (Core)        | `core_facilitator_for`        |
+| `A.6.1.2.Y.2` (Operational) | `operational_govops_for`      |
+| `A.6.1.2.Y.2` (Core)        | `core_govops_for`             |
 
 Source: `[A.6.1.2.Y.1]` or `[A.6.1.2.Y.2]`. Entity gets `entity_type = facilitator_org` or `govops_org` respectively.
 
 ### Pattern 6: Active Data
 
 Every `type = "Active Data Controller"` contains:
+
 - `"The Responsible Party is {Entity Name}."` → `responsible_party_for` edge
 - Active Data docs at `*.0.6.X`
 
@@ -284,12 +294,12 @@ Every `[text](uuid)` markdown link → `cites` edge, source: `[source_doc_no]`
 
 ### Pattern 9: Supporting doc suffixes
 
-| Suffix | Type | Edge |
-|---|---|---|
-| `*.0.3.X` | Annotation | `annotates` → parent |
-| `*.0.4.X` | Action Tenet | `annotates` → parent |
-| `*.0.6.X` | Active Data | `active_data_for` → parent controller |
-| `*.varX` | Scenario Variation | `annotates` → parent |
+| Suffix    | Type               | Edge                                  |
+| --------- | ------------------ | ------------------------------------- |
+| `*.0.3.X` | Annotation         | `annotates` → parent                  |
+| `*.0.4.X` | Action Tenet       | `annotates` → parent                  |
+| `*.0.6.X` | Active Data        | `active_data_for` → parent controller |
+| `*.varX`  | Scenario Variation | `annotates` → parent                  |
 
 ### Pattern 10: Aligned + Ranked Delegates
 
@@ -303,10 +313,10 @@ Each delegate entity has `entity_type = delegate_org`.
 
 **Ranked Delegates** (subset with budget). Doc_no template is `A.1.5.4.1.{level}.3.1`:
 
-| doc_no | Content (verified) |
-|---|---|
-| `A.1.5.4.1.1.3.1` | "The current Level 1 Ranked Delegates are BLUE and Cloaky." |
-| `A.1.5.4.1.2.3.1` | "The current Level 2 Ranked Delegate is Bonapublica." |
+| doc_no            | Content (verified)                                                                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `A.1.5.4.1.1.3.1` | "The current Level 1 Ranked Delegates are BLUE and Cloaky."                                                                                    |
+| `A.1.5.4.1.2.3.1` | "The current Level 2 Ranked Delegate is Bonapublica."                                                                                          |
 | `A.1.5.4.1.3.3.1` | **Does not exist.** L3 has selection criteria (`A.1.5.4.1.3.3`) and one annotation (`A.1.5.4.1.3.3.0.3.1`) but no current-members enumeration. |
 
 Content shape varies by count — L1 plural (`Delegates are X and Y`), L2 singular (`Delegate is X`). Regex must accept both:
@@ -325,8 +335,8 @@ Ranked delegate status is layered on top of Aligned Delegate status — if the e
 
 Ad-hoc role assignments where a named entity holds a specific atlas-defined role. Currently one instance:
 
-| doc_no | Role slug | Holder (content) |
-|---|---|---|
+| doc_no        | Role slug                   | Holder (content)                                         |
+| ------------- | --------------------------- | -------------------------------------------------------- |
 | `A.1.7.1.1.2` | `core_council_risk_advisor` | "The Core Council Risk Advisor role is held by BA Labs." |
 
 Extraction: match `/role is held by\s+([^.]+)\./i`. Ensure the holder exists in `entityMap` (create as `ecosystem_actor` if new). Emit:
@@ -344,6 +354,7 @@ Source: `A.2.8.2.Y.1.1` ("Parties To The Accord"). Each party has a details subd
 **Both the composite and its members are entities.** Users directed: "we definitely want A [composite as entity] but we might also need B [members as entities] — both."
 
 **Examples from the atlas:**
+
 - `A.2.8.2.2.1.1.2` — "The party 'Spark' comprises the Spark Prime Agent, Spark Foundation, and Phoenix Labs."
 - `A.2.8.2.2.1.1.3` — "The party 'Grove' comprises the Grove Prime Agent, and Grove Foundation."
 - `A.2.8.2.3.1.1.2` — "The party 'Keel' comprises the Keel Prime Agent, Keel Foundation, and Elodin."
@@ -370,6 +381,7 @@ const ATOMIC_PARTY_RE = /The party ['‘]([^'’]+)['’]\s+is\b/i;
 Atomic parties are modelled as `composite_party` entities with **zero** `comprises` edges. This keeps the `ecosystem_accord` edge shape uniform (accord → composite_party) regardless of whether the party decomposes. See Editorial Decisions.
 
 **Extraction:**
+
 1. For each doc_no matching `A.2.8.2.\d+.1.1.\d+`, match `/The party ['‘]([^'’]+)['’] comprises\s+(.+?)\./i`. Handles both ASCII `'` and typographic `‘’` quotes.
 2. Create/reuse a `composite_party` entity for the party name (e.g. `Spark`). Distinct slug from member entities (`spark` vs `spark-prime-agent`).
 3. Parse the member list: split on `,\s*` then on `\s+and\s+`. Strip leading articles (`the\s+`).
@@ -387,10 +399,10 @@ The single-member case (Ozone, Amatsu) is still modelled as a composite_party en
 
 These atlas concepts are targets of role edges but have no single defining doc to key on. Bootstrap them by name with stable slugs:
 
-| Slug | Name | entity_type | Target of |
-|---|---|---|---|
-| `sky-core` | Sky Core | `operational_party` | `prime_agent_for`, `ecosystem_accord`, `comprises` (inbound from "Sky" composite party) |
-| `sky-governance` | Sky Governance | `governance_body` | `aligned_delegate_for`, `ranked_delegate_for` |
+| Slug             | Name           | entity_type         | Target of                                                                               |
+| ---------------- | -------------- | ------------------- | --------------------------------------------------------------------------------------- |
+| `sky-core`       | Sky Core       | `operational_party` | `prime_agent_for`, `ecosystem_accord`, `comprises` (inbound from "Sky" composite party) |
+| `sky-governance` | Sky Governance | `governance_body`   | `aligned_delegate_for`, `ranked_delegate_for`                                           |
 
 These are the only hardcoded entities. Everything else is pattern-derived from atlas docs. Bootstraps have no `defining_doc_id`.
 
@@ -406,16 +418,16 @@ Every ICD under an allowlisted primitive becomes an `et="instance"` entity. Enti
 
 ```javascript
 const INSTANCE_SCOPED_PRIMITIVES = {
-  "Distribution Reward Primitive":      "distribution-reward",
-  "Integration Boost Primitive":        "integration-boost",
-  "Allocation System Primitive":        "allocation-system",
-  "Pioneer Chain Primitive":            "pioneer-chain",
-  "Core Governance Reward Primitive":   "core-governance-reward",
-  "Agent Token Primitive":              "agent-token",
-  "Executor Accord Primitive":          "executor-accord",
-  "Root Edit Primitive":                "root-edit",
+  "Distribution Reward Primitive": "distribution-reward",
+  "Integration Boost Primitive": "integration-boost",
+  "Allocation System Primitive": "allocation-system",
+  "Pioneer Chain Primitive": "pioneer-chain",
+  "Core Governance Reward Primitive": "core-governance-reward",
+  "Agent Token Primitive": "agent-token",
+  "Executor Accord Primitive": "executor-accord",
+  "Root Edit Primitive": "root-edit",
   "Distribution Requirement Primitive": "distribution-requirement",
-  "Upkeep Rebate Primitive":            "upkeep-rebate",
+  "Upkeep Rebate Primitive": "upkeep-rebate",
 };
 ```
 
@@ -441,11 +453,11 @@ function instanceStatusFor(icd, primRoot) {
 
 **Walk by title, not by doc_no position.** The ICD sub-structure is inconsistent across primitives:
 
-| Primitive | ICD.1 | ICD.2 | Reward Code location |
-|---|---|---|---|
-| DR/IB/Agent Token (Active instance) | `Parameters` | `Operational Process Definition` | `ICD.1.1` |
-| DR/IB (In-progress invocation) | `Invocation Status` | `Parameters` | `ICD.2.1` |
-| Allocation System | `RRC Framework Full Implementation` | `Parameters` | deeper under `ICD.2.{subdir}.N` |
+| Primitive                           | ICD.1                               | ICD.2                            | Reward Code location            |
+| ----------------------------------- | ----------------------------------- | -------------------------------- | ------------------------------- |
+| DR/IB/Agent Token (Active instance) | `Parameters`                        | `Operational Process Definition` | `ICD.1.1`                       |
+| DR/IB (In-progress invocation)      | `Invocation Status`                 | `Parameters`                     | `ICD.2.1`                       |
+| Allocation System                   | `RRC Framework Full Implementation` | `Parameters`                     | deeper under `ICD.2.{subdir}.N` |
 
 Walk children of the ICD until you find `title === "Parameters"`, then walk that subtree. Never assume `ICD.1 = Parameters`.
 
@@ -475,8 +487,8 @@ Token / Asset Supplied By Spark Liquidity Layer
 **Per-key expanders** (`scripts/build-graph.mjs`, `PARAM_EXPANDERS`). When a single leaf packs multiple values into prose, a registered expander returns `Array<[key, value]>` and each tuple becomes its own param entry (sharing the source doc). The expander runs before the formatter; returning `null` falls through to the regular formatter path. Currently one entry:
 
 - `Token Address` (Agent Token only). Pattern:
-  *"The address of SPK on the Ethereum Mainnet is `0x…`. The address of SPK on Base is `0x…`."*
-  Expands to `Token Address (Ethereum Mainnet)` + `Token Address (Base)` tuples — one per chain clause. When the content doesn't match (e.g. Allocation System's single backtick-wrapped address, or unset Agent Token prose like *"The address of KEEL will be specified in a future iteration"*), the expander returns `null` and the regular formatter runs — preserving the single-`Token Address`-key behaviour for those consumers.
+  _"The address of SPK on the Ethereum Mainnet is `0x…`. The address of SPK on Base is `0x…`."_
+  Expands to `Token Address (Ethereum Mainnet)` + `Token Address (Base)` tuples — one per chain clause. When the content doesn't match (e.g. Allocation System's single backtick-wrapped address, or unset Agent Token prose like _"The address of KEEL will be specified in a future iteration"_), the expander returns `null` and the regular formatter runs — preserving the single-`Token Address`-key behaviour for those consumers.
 
 **Generic bullet-list expansion** (`scripts/build-graph.mjs`, `expandBulletList`). Runs AFTER per-title expanders as a fallback. Matches the atlas convention used for rate limits and similar parameter groupings:
 
@@ -487,9 +499,9 @@ The {variant} rate limits are:
 - `slope`: 400,000,000 USDS per day
 ```
 
-Any leaf whose content contains `- \`key\`: value` bullets is expanded into `{leafTitle} / {bulletKey}` sub-keys. Produces 343 rate-limit sub-keys today across 95 Allocation System instances (Inflow / Outflow / Deposit / Withdrawal / Swap rate limits, each with `maxAmount` / `slope` / `maxSlippage`). Consumers get direct field lookup instead of regex-parsing prose.
+Any leaf whose content contains `- \`key\`: value`bullets is expanded into`{leafTitle} / {bulletKey}`sub-keys. Produces 343 rate-limit sub-keys today across 95 Allocation System instances (Inflow / Outflow / Deposit / Withdrawal / Swap rate limits, each with`maxAmount`/`slope`/`maxSlippage`). Consumers get direct field lookup instead of regex-parsing prose.
 
-Regex: `/^\s*[-*]\s+\`([^\`\n]+)\`\s*:\s*(.+?)\s*$/gm`. Single-bullet leaves still expand — the backtick-key + colon shape is distinctive enough that false positives haven't appeared in the atlas today. If a future doc uses casual backtick-bullet prose that shouldn't be expanded, add an intro-anchor gate (e.g. require `/\bare\s*:\s*\n/` preceding the bullets).
+Regex: `/^\s*[-*]\s+\`([^\`\n]+)\`\s*:\s*(.+?)\s*$/gm`. Single-bullet leaves still expand — the backtick-key + colon shape is distinctive enough that false positives haven't appeared in the atlas today. If a future doc uses casual backtick-bullet prose that shouldn't be expanded, add an intro-anchor gate (e.g. require `/\bare\s*:\s\*\n/` preceding the bullets).
 
 **Known key variations** — the atlas doesn't always use the same title for structurally similar params. Record normalisation is a consumer problem, not an extractor one:
 
@@ -518,6 +530,7 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 **Choice:** We do not emit a `sky-ecosystem` entity. `prime_agent_for` edges target `sky-core` instead.
 
 **Why:**
+
 - Sky Ecosystem has no legal, operational, or governance identity of its own — every concrete action attributed to "Sky" in accords is performed by Sky Core ("The party 'Sky' comprises Sky Core" in all 8 accords).
 - Emitting a separate `sky-ecosystem` entity created a second dangling hub in the entity subgraph with exactly one inbound edge kind, no outbound edges, and no usable defining doc.
 - Downstream consumers always want the same answer to "who represents Sky here?" — this keeps that answer stable across `prime_agent_for`, `ecosystem_accord`, and `comprises`.
@@ -573,6 +586,7 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 ### 7. Dual output: `graph.json` vs `relations.json`
 
 **Choice:** we emit two artifacts — a full `graph.json` with every entity and edge, and a lean `relations.json` that:
+
 - drops `ecosystem_actor` entities and their edges
 - drops all `parent_of` edges (structural hierarchy is recoverable from `doc_no`)
 - drops entity-free doc→doc edges not needed by the entity UI
@@ -599,11 +613,12 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 
 ### 10. Instance params are `[value, srcUuid, srcDocNo]` tuples with per-key formatters
 
-**Atlas phrasing:** ICD Parameters children encode structured configuration (`Reward Code: 128`, `Integration Partner Chain: Ethereum Mainnet`, `Token Address: 0x…`) as prose — usually one-sentence leaves like *"The partner for the Aave Integration Boost is Aave."*
+**Atlas phrasing:** ICD Parameters children encode structured configuration (`Reward Code: 128`, `Integration Partner Chain: Ethereum Mainnet`, `Token Address: 0x…`) as prose — usually one-sentence leaves like _"The partner for the Aave Integration Boost is Aave."_
 
 **Choice:** at build time, every Parameters leaf becomes a 3-tuple on the Instance entity's `meta.params`: `[formattedValue, srcDocUuid, srcDocNo]`. A per-key formatter registry (`PARAM_FORMATTERS`) strips the prose so the value slot is the clean datum ("Aave", "Ethereum Mainnet", "0x…"). Unknown keys fall through to a backtick-unwrap + trim fallback.
 
 **Why:**
+
 - Consumers get display strings without re-implementing prose-stripping at render time
 - Source UUID + doc_no always accompany the value, so the raw content is one navigation away (`docs[uuid].content`) if a consumer wants it
 - Formatters live in one place — adding a new key means one registry entry, not per-consumer duplication
@@ -613,7 +628,7 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 
 ### 11. Walk by title, not by doc_no position within an ICD
 
-**Atlas phrasing:** ICD sub-structure is *not* uniform. Active instances start with `.1 = Parameters`. In-progress invocations interpose `.1 = Invocation Status`, shifting Parameters to `.2`. Allocation System starts with `.1 = RRC Framework Full Implementation`, with Parameters at `.2` and deeper nesting (`Parameters → Instance Identifiers → Network`).
+**Atlas phrasing:** ICD sub-structure is _not_ uniform. Active instances start with `.1 = Parameters`. In-progress invocations interpose `.1 = Invocation Status`, shifting Parameters to `.2`. Allocation System starts with `.1 = RRC Framework Full Implementation`, with Parameters at `.2` and deeper nesting (`Parameters → Instance Identifiers → Network`).
 
 **Choice:** every ICD-descent traversal in the extractor (`extractInstanceParams`, `instanceStatusFor`, and consumer helpers like `rewardsIndex.findParamDoc`) walks by matching titles ("Parameters", "Active Instances", "Reward Code") rather than by tier index.
 
@@ -627,15 +642,15 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 
 Derive category from the `implements` citation target's parent section:
 
-| doc_no | Category |
-|---|---|
-| `A.2.2.4` | Genesis |
-| `A.2.2.5` | Operational |
-| `A.2.2.6` | Ecosystem Upkeep |
-| `A.2.2.7` | SkyLink |
-| `A.2.2.8` | Demand Side Stablecoin |
-| `A.2.2.9` | Supply Side Stablecoin |
-| `A.2.2.10` | Core Governance |
+| doc_no     | Category               |
+| ---------- | ---------------------- |
+| `A.2.2.4`  | Genesis                |
+| `A.2.2.5`  | Operational            |
+| `A.2.2.6`  | Ecosystem Upkeep       |
+| `A.2.2.7`  | SkyLink                |
+| `A.2.2.8`  | Demand Side Stablecoin |
+| `A.2.2.9`  | Supply Side Stablecoin |
+| `A.2.2.10` | Core Governance        |
 
 ---
 
@@ -702,9 +717,13 @@ Participants ship with an optional `m: string` field in `relations.json` carryin
 
 ```typescript
 interface Participant {
-  id: string; slug: string; name: string;
-  et: string; st: string | null; did: string | null;
-  m?: string;  // JSON-stringified meta; present for et="instance"
+  id: string;
+  slug: string;
+  name: string;
+  et: string;
+  st: string | null;
+  did: string | null;
+  m?: string; // JSON-stringified meta; present for et="instance"
 }
 ```
 
@@ -712,20 +731,22 @@ For `et="instance"`, the parsed meta is:
 
 ```typescript
 {
-  primitive_doc_no: string;   // e.g. "A.6.1.1.1.2.5.1"
-  agent_doc_no: string;       // e.g. "A.6.1.1.1"
+  primitive_doc_no: string; // e.g. "A.6.1.1.1.2.5.1"
+  agent_doc_no: string; // e.g. "A.6.1.1.1"
   status: "Active" | "Completed" | "Pending" | null;
   params: Record<string, [value: string, srcUuid: string, srcDocNo: string]>;
 }
 ```
 
 **v1.3 diff from v1.2:**
+
 - **Added (role edges):** `prime_agent_for`, `operational_executor_agent_for`, `core_executor_agent_for`, `operational_facilitator_for`, `core_facilitator_for`, `operational_govops_for`, `core_govops_for`, `aligned_delegate_for`, `ranked_delegate_for`
 - **Added (other):** `comprises`
 - **Renamed:** `member_of_erg` → `erg_member_for`; `responsible_for` → `responsible_party_for`; `holds_role` → `holds_role_for`
 - **Removed (replaced by role edges):** `member_of` (flat Facilitator/GovOps edge), `executor_accord` (flat Prime→Executor edge)
 
 **v1.4 diff from v1.3:**
+
 - **Editorial Decisions section added** — surfaces the 8 judgment calls baked into the extractor (Sky Ecosystem → Sky Core merge; Sky party short-circuit; atomic parties as composite_party; single-member parties; ecosystem_actor catch-all; delegate_org naming; dual output shape; edge weight placeholder).
 - **Sky Ecosystem → Sky Core merge:** `prime_agent_for` now targets `sky-core`; `sky-ecosystem` entity and `ecosystem` entity_type removed from the schema.
 - **Pattern 12 — Atomic parties:** documents the `ATOMIC_PARTY_RE` fallback for party-details docs that use "The party 'X' is ..." phrasing (e.g., Moonbow at `A.2.8.2.2.1.1.4`). Atomic parties are `composite_party` entities with zero `comprises` edges.
@@ -733,6 +754,7 @@ For `et="instance"`, the parsed meta is:
 - **Output shape note:** dual `graph.json` / `relations.json` contract formalized in Editorial Decision §7. Test invariants in `tests/graph.test.ts`.
 
 **v1.6 diff from v1.5:**
+
 - **Entity Types table:** `instance` added. Entity id = ICD doc UUID; `st` = primitive slug from `INSTANCE_SCOPED_PRIMITIVES` (10 primitives).
 - **Pattern 2 — primitive root resolver:** `primitiveRootFor(doc)` via `A.6.1.1.X.2.G.P` regex replaces the previous `ancestorByStripping(d, 2)` convention. The old heuristic landed 77 Allocation System edges on directory intermediaries (e.g. "Ethereum Mainnet Instances").
 - **Pattern 2 — ICD Location content fallback:** `isICDLocation` now also matches by content (`This Instance's associated Instance Configuration Document is located at …`) so misnamed Location docs don't pollute the ICD entity set.
@@ -747,7 +769,7 @@ For `et="instance"`, the parsed meta is:
 - **Edge total:** 25 → 26 (`invoked_by`).
 - **Vocabulary tests:** `KNOWN_ENTITY_TYPES` gained `instance`; `KNOWN_EDGE_TYPES` gained `invoked_by` (`tests/graph.test.ts`).
 - **`PARAM_EXPANDERS` added:** Agent Token's `Token Address` compound prose is now split into per-chain keys (`Token Address (Ethereum Mainnet)`, `Token Address (Base)`, …). Unset agents keep the single `Token Address` key with placeholder prose. Backward-incompatible for any consumer that expected a plain `Token Address` on Spark or Grove.
-- **Generic bullet-list expansion:** any leaf whose content contains `` - `key`: value `` bullets splits into `{leafTitle} / {bulletKey}` sub-keys. Primary use: Allocation System rate limits — 343 new sub-keys across 95 instances, replacing opaque "Inflow Rate Limits" prose values with direct `{Inflow,Outflow,Deposit,Withdrawal,Swap} Rate Limits / {maxAmount,slope,maxSlippage}` lookups. Fires after per-title `PARAM_EXPANDERS`.
+- **Generic bullet-list expansion:** any leaf whose content contains ``- `key`: value`` bullets splits into `{leafTitle} / {bulletKey}` sub-keys. Primary use: Allocation System rate limits — 343 new sub-keys across 95 instances, replacing opaque "Inflow Rate Limits" prose values with direct `{Inflow,Outflow,Deposit,Withdrawal,Swap} Rate Limits / {maxAmount,slope,maxSlippage}` lookups. Fires after per-title `PARAM_EXPANDERS`.
 
 ---
 
@@ -756,7 +778,7 @@ For `et="instance"`, the parsed meta is:
 Categories the atlas itself excludes or frames as non-entities. Do not extract.
 
 - **Shadow Delegates** (`A.1.9.2.2.4.2`): atlas says verbatim "They are not officially recorded in the Atlas and do not receive any compensation from Sky." Do not create entities for them.
-- **Core Council** (`A.0.1.1.46`): defined as a *group of Executor Agents*, not a distinct actor. Already covered as the set of `agent/core_executor` entities whose titles start "Core Council Executor Agent". No separate entity kind.
+- **Core Council** (`A.0.1.1.46`): defined as a _group of Executor Agents_, not a distinct actor. Already covered as the set of `agent/core_executor` entities whose titles start "Core Council Executor Agent". No separate entity kind.
 - **SPK Company Ltd** (`A.6.1.1.1.2.1.4.2.1.2.1`): named legal entity with no atlas-level category. Extract as `ecosystem_actor` if a pattern surfaces it.
 
 ---

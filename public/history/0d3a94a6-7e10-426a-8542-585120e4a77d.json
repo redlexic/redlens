@@ -1,1 +1,21 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","The minimum transaction size for operations on Ethereum Mainnet is (`MAINNET_MIN_OPERATION_SIZE`):"],["+",""],["+","- This parameter will be specified in a future iteration of the Pattern Artifact."]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The minimum transaction size for operations on Ethereum Mainnet is (`MAINNET_MIN_OPERATION_SIZE`):"
+      ],
+      ["+", ""],
+      ["+", "- This parameter will be specified in a future iteration of the Pattern Artifact."]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

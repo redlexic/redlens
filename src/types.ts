@@ -1,4 +1,3 @@
-
 export type ReportId = "of-responsibilities" | "active-data" | "rewards";
 
 export interface AtlasNode {
@@ -9,7 +8,7 @@ export interface AtlasNode {
   depth: number;
   parentId: string | null;
   content: string;
-  contentHash: string;   // sha256 of the raw markdown slice between this heading and the next — reproducible from Sky Atlas.md at the pinned submodule SHA
+  contentHash: string; // sha256 of the raw markdown slice between this heading and the next — reproducible from Sky Atlas.md at the pinned submodule SHA
   order: number; // parse order, used for sorting within a scope
   addressRefs: string[]; // normalized address keys; resolved via loadAddresses()
 }
@@ -17,14 +16,14 @@ export interface AtlasNode {
 export interface AddressInfo {
   chain: string;
   explorerUrl: string;
-  label: string | null;     // resolved by chainlogId > atlas entityLabel > etherscan ContractName
-  chainlogId?: string;      // mainnet only
-  etherscanName?: string;   // verified contract name
-  isContract: boolean;      // false for unverified contracts and EOAs
+  label: string | null; // resolved by chainlogId > atlas entityLabel > etherscan ContractName
+  chainlogId?: string; // mainnet only
+  etherscanName?: string; // verified contract name
+  isContract: boolean; // false for unverified contracts and EOAs
   isProxy: boolean;
-  implementation?: string;  // lowercase address, only when isProxy
-  roles: string[];          // multi-label tags from build-index.mjs ROLE_VOCAB
-  aliases: string[];        // other labels found for this address (atlas + losing candidates)
+  implementation?: string; // lowercase address, only when isProxy
+  roles: string[]; // multi-label tags from build-index.mjs ROLE_VOCAB
+  aliases: string[]; // other labels found for this address (atlas + losing candidates)
   expectedTokens: string[]; // text-derived guess at which ERC20s to query
 }
 
@@ -44,9 +43,7 @@ export interface SearchHit {
 }
 
 // Worker message types — search
-export type WorkerInMessage =
-  | { type: "query"; id: number; q: string }
-  | { type: "ping" };
+export type WorkerInMessage = { type: "query"; id: number; q: string } | { type: "ping" };
 
 export type WorkerOutMessage =
   | { type: "ready" }
@@ -64,27 +61,26 @@ export interface Participant {
   id: string;
   slug: string;
   name: string;
-  et: string;        // agent | facilitator_org | govops_org | delegate_org | development_company | foundation | composite_party | governance_body | operational_party | ecosystem_actor | instance
+  et: string; // agent | facilitator_org | govops_org | delegate_org | development_company | foundation | composite_party | governance_body | operational_party | ecosystem_actor | instance
   st: string | null; // agent subtypes: prime | operational_executor | core_executor; instance: <primitive-slug>
-  did: string | null;// defining_doc_id — UUID of the Atlas doc that defines this participant
-  m?: string;        // meta JSON, non-null only. For et=instance: { primitive_doc_no, agent_doc_no, status, params }.
+  did: string | null; // defining_doc_id — UUID of the Atlas doc that defines this participant
+  m?: string; // meta JSON, non-null only. For et=instance: { primitive_doc_no, agent_doc_no, status, params }.
 }
 
-
 export interface RelationEdge {
-  f: string;          // from_id (UUID or "addr:chain")
-  ft: string;         // from_type: doc | entity | address
-  t: string;          // to_id
-  tt: string;         // to_type: doc | entity | address
-  e: string;          // edge_type
-  s?: string[];       // source_doc_nos — Atlas doc_nos that prove this edge
-  m?: string;         // meta JSON string, only present when non-null
+  f: string; // from_id (UUID or "addr:chain")
+  ft: string; // from_type: doc | entity | address
+  t: string; // to_id
+  tt: string; // to_type: doc | entity | address
+  e: string; // edge_type
+  s?: string[]; // source_doc_nos — Atlas doc_nos that prove this edge
+  m?: string; // meta JSON string, only present when non-null
 }
 
 // RelationEdge with worker-resolved labels for entity endpoints
 export interface ResolvedEdge extends RelationEdge {
   from_label?: string; // entity name when from_type === 'entity'
-  to_label?: string;   // entity name when to_type   === 'entity'
+  to_label?: string; // entity name when to_type   === 'entity'
 }
 
 // Serialized subgraph — passed over postMessage to the main thread (and eventually sigma.js)
@@ -98,13 +94,13 @@ export type GraphWorkerInMessage =
   | { type: "ping" }
   | { type: "edges"; id: string }
   | { type: "entity"; slug: string }
-  | { type: "neighbors"; id: string; depth?: number }   // BFS depth 1 by default
+  | { type: "neighbors"; id: string; depth?: number } // BFS depth 1 by default
   | { type: "subgraph"; rootId: string; depth: number }; // BFS subgraph for viz
 
 export type GraphWorkerOutMessage =
   | { type: "ready" }
   | { type: "edges"; id: string; inbound: ResolvedEdge[]; outbound: ResolvedEdge[] }
   | { type: "entity"; slug: string; entity: Participant | null; edges: ResolvedEdge[] }
-  | { type: "neighbors"; id: string } & SerializedSubgraph
-  | { type: "subgraph"; rootId: string } & SerializedSubgraph
+  | ({ type: "neighbors"; id: string } & SerializedSubgraph)
+  | ({ type: "subgraph"; rootId: string } & SerializedSubgraph)
   | { type: "error"; message: string };

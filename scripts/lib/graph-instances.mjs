@@ -6,16 +6,16 @@
 // entities. Agent Creation and Prime Transformation are intentionally omitted:
 // their lifecycle is already captured by the Prime Agent entity.
 export const INSTANCE_SCOPED_PRIMITIVES = {
-  "Distribution Reward Primitive":      "distribution-reward",
-  "Integration Boost Primitive":        "integration-boost",
-  "Allocation System Primitive":        "allocation-system",
-  "Pioneer Chain Primitive":            "pioneer-chain",
-  "Core Governance Reward Primitive":   "core-governance-reward",
-  "Agent Token Primitive":              "agent-token",
-  "Executor Accord Primitive":          "executor-accord",
-  "Root Edit Primitive":                "root-edit",
+  "Distribution Reward Primitive": "distribution-reward",
+  "Integration Boost Primitive": "integration-boost",
+  "Allocation System Primitive": "allocation-system",
+  "Pioneer Chain Primitive": "pioneer-chain",
+  "Core Governance Reward Primitive": "core-governance-reward",
+  "Agent Token Primitive": "agent-token",
+  "Executor Accord Primitive": "executor-accord",
+  "Root Edit Primitive": "root-edit",
   "Distribution Requirement Primitive": "distribution-requirement",
-  "Upkeep Rebate Primitive":            "upkeep-rebate",
+  "Upkeep Rebate Primitive": "upkeep-rebate",
 };
 
 export function instanceStatusFor(icd, primRoot, docByDocNo) {
@@ -48,39 +48,42 @@ export function buildChildrenIndex(allDocs) {
 // Atlas "directory" placeholder content is a convention — a doc whose content
 // is just "The documents herein (define|contain|organize|govern)…" and whose
 // real data lives in children. Those are NOT leaves.
-export const DIRECTORY_RE = /^The documents? herein (define|contain|organize|govern|specify|describe|set|compose|hold)\b/i;
+export const DIRECTORY_RE =
+  /^The documents? herein (define|contain|organize|govern|specify|describe|set|compose|hold)\b/i;
 
 // Value formatters — normalize raw content into a displayable value. Keyed by
 // leaf title. Each takes the raw trimmed content and returns a cleaned string.
 // Fallback is backtick-unwrap + trim.
-export const unwrapBt = s => s.match(/^`([^`\n]+)`\.?$/)?.[1] ?? s;
-export const firstBtOrAddr = s => {
+export const unwrapBt = (s) => s.match(/^`([^`\n]+)`\.?$/)?.[1] ?? s;
+export const firstBtOrAddr = (s) => {
   const bt = s.match(/`([^`\n]+)`/)?.[1];
   if (bt && (/^0x[0-9a-fA-F]{40}$/.test(bt) || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(bt))) return bt;
   return s.match(/0x[0-9a-fA-F]{40}/)?.[0] ?? s;
 };
-export const stripSentence = (prefixRe, suffixRe = null) => (s) => {
-  let v = s.replace(prefixRe, "");
-  if (suffixRe) v = v.replace(suffixRe, "");
-  return v.replace(/\.$/, "").trim();
-};
+export const stripSentence =
+  (prefixRe, suffixRe = null) =>
+  (s) => {
+    let v = s.replace(prefixRe, "");
+    if (suffixRe) v = v.replace(suffixRe, "");
+    return v.replace(/\.$/, "").trim();
+  };
 export const PARAM_FORMATTERS = {
-  "Reward Code":                       unwrapBt,
-  "Integration Partner Name":          stripSentence(/^The partner for the [^.]*? is /i),
+  "Reward Code": unwrapBt,
+  "Integration Partner Name": stripSentence(/^The partner for the [^.]*? is /i),
   "Integration Partner Reward Address": firstBtOrAddr,
-  "Integration Partner Chain":         stripSentence(/^The [^.]*? is on (the )?/i, /\s*blockchain\.?$/i),
-  "Integration Boost Cadence":         stripSentence(/^The payment cadence for the [^.]*? is /i),
-  "Token Name":                        stripSentence(/^The name of [^.]*? is /i),
-  "Token Symbol":                      stripSentence(/^The symbol of [^.]*? is /i),
-  "Genesis Supply":                    stripSentence(/^The Genesis Supply of [^.]*? is /i),
-  "Token Address":                     firstBtOrAddr,
-  "Underlying Asset Address":          firstBtOrAddr,
-  "Allocator Role Address":            firstBtOrAddr,
-  "Pool Address":                      firstBtOrAddr,
-  "Address":                           firstBtOrAddr,
-  "Network":                           (s) => s.replace(/\.$/, "").trim(),
-  "Target Protocol":                   (s) => s.replace(/\.$/, "").trim(),
-  "Token":                             (s) => s.replace(/\.$/, "").trim(),
+  "Integration Partner Chain": stripSentence(/^The [^.]*? is on (the )?/i, /\s*blockchain\.?$/i),
+  "Integration Boost Cadence": stripSentence(/^The payment cadence for the [^.]*? is /i),
+  "Token Name": stripSentence(/^The name of [^.]*? is /i),
+  "Token Symbol": stripSentence(/^The symbol of [^.]*? is /i),
+  "Genesis Supply": stripSentence(/^The Genesis Supply of [^.]*? is /i),
+  "Token Address": firstBtOrAddr,
+  "Underlying Asset Address": firstBtOrAddr,
+  "Allocator Role Address": firstBtOrAddr,
+  "Pool Address": firstBtOrAddr,
+  Address: firstBtOrAddr,
+  Network: (s) => s.replace(/\.$/, "").trim(),
+  "Target Protocol": (s) => s.replace(/\.$/, "").trim(),
+  Token: (s) => s.replace(/\.$/, "").trim(),
   "Asset Supplied By Spark Liquidity Layer": (s) => s.replace(/\.$/, "").trim(),
 };
 export function formatParam(title, raw) {
@@ -126,7 +129,7 @@ export function expandBulletList(content, outerTitle) {
 // "{parentTitle} / " to disambiguate.
 export function extractInstanceParams(icd, childrenByDocNo) {
   const direct = childrenByDocNo.get(icd.doc_no) ?? [];
-  const paramsDoc = direct.find(c => c.title === "Parameters");
+  const paramsDoc = direct.find((c) => c.title === "Parameters");
   if (!paramsDoc) return {};
   const params = {};
   const pending = [{ doc: paramsDoc, parents: [] }];
@@ -138,16 +141,18 @@ export function extractInstanceParams(icd, childrenByDocNo) {
     if (isLeaf) {
       if (!content || DIRECTORY_RE.test(content)) continue;
       // Expansion order: per-title expander → generic bullet-list → formatter.
-      const expanded = PARAM_EXPANDERS[doc.title]?.(content)
-        ?? expandBulletList(content, doc.title);
+      const expanded =
+        PARAM_EXPANDERS[doc.title]?.(content) ?? expandBulletList(content, doc.title);
       if (expanded) {
         for (const [key, value] of expanded) {
-          const finalKey = key in params ? `${parents[parents.length - 1] ?? ""} / ${key}`.trim() : key;
+          const finalKey =
+            key in params ? `${parents[parents.length - 1] ?? ""} / ${key}`.trim() : key;
           params[finalKey] = [value, doc.id, doc.doc_no];
         }
       } else {
         const baseKey = doc.title;
-        const key = baseKey in params ? `${parents[parents.length - 1] ?? ""} / ${baseKey}`.trim() : baseKey;
+        const key =
+          baseKey in params ? `${parents[parents.length - 1] ?? ""} / ${baseKey}`.trim() : baseKey;
         params[key] = [formatParam(doc.title, content), doc.id, doc.doc_no];
       }
     } else {

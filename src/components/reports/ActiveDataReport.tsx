@@ -4,8 +4,10 @@ import { loadGraph } from "../../lib/graph";
 import { loadHistory } from "../../lib/history";
 import { useLoaded } from "../../hooks/useAtlasData";
 import {
-  buildActiveDataRows, activeDataRowsToCSV,
-  type ActiveDataRow, type EvidenceStep,
+  buildActiveDataRows,
+  activeDataRowsToCSV,
+  type ActiveDataRow,
+  type EvidenceStep,
 } from "../../lib/activeDataIndex";
 
 type Row = ActiveDataRow;
@@ -19,7 +21,11 @@ function exportCSV(rows: Row[]) {
   a.click();
 }
 
-function EvidenceChain({ title, steps, onNavigate }: {
+function EvidenceChain({
+  title,
+  steps,
+  onNavigate,
+}: {
   title: string;
   steps: EvidenceStep[];
   onNavigate: (id: string) => void;
@@ -32,13 +38,17 @@ function EvidenceChain({ title, steps, onNavigate }: {
         <span key={i}>
           {i > 0 && <span className="text-tan-3 text-[10px]"> → </span>}
           {s.docId ? (
-            <button onClick={() => onNavigate(s.docId!)}
+            <button
+              onClick={() => onNavigate(s.docId!)}
               title={s.label}
-              className="mono text-[10px] text-accent hover:underline">
+              className="mono text-[10px] text-accent hover:underline"
+            >
               {s.docNo}
             </button>
           ) : (
-            <span className="mono text-[10px] text-tan-3" title={s.label}>{s.docNo}</span>
+            <span className="mono text-[10px] text-tan-3" title={s.label}>
+              {s.docNo}
+            </span>
           )}
         </span>
       ))}
@@ -60,12 +70,11 @@ function EvidenceCell({ r, onNavigate }: { r: Row; onNavigate: (id: string) => v
   );
 }
 
-
 export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => void }) {
   const docs = useLoaded(loadDocs);
   const graph = useLoaded(loadGraph);
   const rows = useMemo(
-    () => docs && graph ? buildActiveDataRows(docs, graph) : [],
+    () => (docs && graph ? buildActiveDataRows(docs, graph) : []),
     [docs, graph],
   );
   const [agentFilter, setAgentFilter] = useState<string | null>(null);
@@ -75,16 +84,19 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
   useEffect(() => {
     if (!rows.length) return;
     let cancelled = false;
-    Promise.all(rows.map(r => loadHistory(r.activeDataId).then(h => [r.activeDataId, h] as const)))
-      .then(pairs => {
-        if (cancelled) return;
-        const m = new Map<string, string>();
-        for (const [id, entries] of pairs) {
-          if (entries?.length) m.set(id, entries[entries.length - 1].date);
-        }
-        setLastEditDates(m);
-      });
-    return () => { cancelled = true; };
+    Promise.all(
+      rows.map((r) => loadHistory(r.activeDataId).then((h) => [r.activeDataId, h] as const)),
+    ).then((pairs) => {
+      if (cancelled) return;
+      const m = new Map<string, string>();
+      for (const [id, entries] of pairs) {
+        if (entries?.length) m.set(id, entries[entries.length - 1].date);
+      }
+      setLastEditDates(m);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [rows]);
 
   // Agents are derived from the rows themselves (graph-resolved in buildActiveDataRows).
@@ -95,67 +107,90 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
     const ordered: string[] = ["Governance"];
     for (const r of rows) {
       const name = r.agent;
-      if (name && !seen.has(name)) { seen.add(name); ordered.push(name); }
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        ordered.push(name);
+      }
     }
-    return ordered.filter(a => a === "Governance" ? rows.some(r => r.agent === null) : true);
+    return ordered.filter((a) => (a === "Governance" ? rows.some((r) => r.agent === null) : true));
   }, [rows]);
 
   // Unique names for the Entity filter: responsible parties + facilitators.
   const entityNames = useMemo(() => {
     const names = new Set<string>();
-    rows.forEach(r => {
+    rows.forEach((r) => {
       if (r.responsibleParty?.name) names.add(r.responsibleParty.name);
       if (r.facilitator?.name) names.add(r.facilitator.name);
     });
     return [...names].sort();
   }, [rows]);
 
-  const filtered = useMemo(() => rows.filter(r => {
-    if (agentFilter === "Governance" && r.agent !== null) return false;
-    if (agentFilter && agentFilter !== "Governance" && r.agent !== agentFilter) return false;
-    if (entityFilter) {
-      const match =
-        r.responsibleParty?.name === entityFilter ||
-        r.facilitator?.name === entityFilter;
-      if (!match) return false;
-    }
-    return true;
-  }), [rows, agentFilter, entityFilter]);
+  const filtered = useMemo(
+    () =>
+      rows.filter((r) => {
+        if (agentFilter === "Governance" && r.agent !== null) return false;
+        if (agentFilter && agentFilter !== "Governance" && r.agent !== agentFilter) return false;
+        if (entityFilter) {
+          const match =
+            r.responsibleParty?.name === entityFilter || r.facilitator?.name === entityFilter;
+          if (!match) return false;
+        }
+        return true;
+      }),
+    [rows, agentFilter, entityFilter],
+  );
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6">
       <div className="max-w-7xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
-        <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>Active Data Index</h1>
+        <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>
+          Active Data Index
+        </h1>
         <p className="text-sm text-tan-3 mb-5">
           All Active Data sections with full responsibility chain — sourced from the Atlas graph.{" "}
-          <button className="text-accent hover:underline" onClick={() => onNavigate("75e8fd51-a540-4c3a-aaa9-1a38502f89b2")}>
+          <button
+            className="text-accent hover:underline"
+            onClick={() => onNavigate("75e8fd51-a540-4c3a-aaa9-1a38502f89b2")}
+          >
             A.1.12 ↗
           </button>
         </p>
 
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <span className="text-xs text-tan-3">Scope:</span>
-          {agents.map(a => (
-            <button key={a} onClick={() => setAgentFilter(agentFilter === a ? null : a)}
+          {agents.map((a) => (
+            <button
+              key={a}
+              onClick={() => setAgentFilter(agentFilter === a ? null : a)}
               data-active={agentFilter === a ? "true" : undefined}
-              className="scope-pill mono text-xs px-2 py-0.5 rounded">{a}</button>
+              className="scope-pill mono text-xs px-2 py-0.5 rounded"
+            >
+              {a}
+            </button>
           ))}
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <span className="text-xs text-tan-3">Entity:</span>
-          {entityNames.map(e => (
-            <button key={e} onClick={() => setEntityFilter(entityFilter === e ? null : e)}
+          {entityNames.map((e) => (
+            <button
+              key={e}
+              onClick={() => setEntityFilter(entityFilter === e ? null : e)}
               data-active={entityFilter === e ? "true" : undefined}
-              className="scope-pill mono text-xs px-2 py-0.5 rounded">{e}</button>
+              className="scope-pill mono text-xs px-2 py-0.5 rounded"
+            >
+              {e}
+            </button>
           ))}
         </div>
 
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-tan-3">{filtered.length} sections</p>
-          <button onClick={() => exportCSV(filtered)}
-            className="mono text-xs px-3 py-1 rounded border border-[var(--border)] text-tan-3 hover:text-tan hover:border-[var(--accent)] transition-colors">
+          <button
+            onClick={() => exportCSV(filtered)}
+            className="mono text-xs px-3 py-1 rounded border border-[var(--border)] text-tan-3 hover:text-tan hover:border-[var(--accent)] transition-colors"
+          >
             Download CSV
           </button>
         </div>
@@ -175,22 +210,31 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
               </tr>
             </thead>
             <tbody>
-              {filtered.map(r => (
-                <tr key={r.activeDataId} className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
+              {filtered.map((r) => (
+                <tr
+                  key={r.activeDataId}
+                  className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
+                >
                   <td className="py-2 px-3 align-top">
-                    <button onClick={() => onNavigate(r.activeDataId)}
-                      className="text-sm text-tan hover:underline text-left block">
+                    <button
+                      onClick={() => onNavigate(r.activeDataId)}
+                      className="text-sm text-tan hover:underline text-left block"
+                    >
                       {r.activeDataTitle}
                     </button>
                     <span className="mono text-[10px] text-accent">{r.activeDataDocNo}</span>
                   </td>
                   <td className="py-2 px-3 align-top">
                     {r.controllerId && r.controllerDocNo ? (
-                      <button onClick={() => onNavigate(r.controllerId!)}
-                        className="mono text-xs text-tan-2 hover:underline text-left">
+                      <button
+                        onClick={() => onNavigate(r.controllerId!)}
+                        className="mono text-xs text-tan-2 hover:underline text-left"
+                      >
                         {r.controllerDocNo}
                       </button>
-                    ) : <span className="mono text-[10px] text-tan-3">—</span>}
+                    ) : (
+                      <span className="mono text-[10px] text-tan-3">—</span>
+                    )}
                   </td>
                   <td className="py-2 px-3 align-top">
                     <span className="mono text-xs text-tan-3">{r.agent ?? "—"}</span>
@@ -198,24 +242,33 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                   <td className="py-2 px-3 align-top">
                     {r.responsibleParty ? (
                       r.responsibleParty.docId ? (
-                        <button onClick={() => onNavigate(r.responsibleParty!.docId!)}
+                        <button
+                          onClick={() => onNavigate(r.responsibleParty!.docId!)}
                           className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
-                          title={r.responsibleParty.declared ?? undefined}>
+                          title={r.responsibleParty.declared ?? undefined}
+                        >
                           {r.responsibleParty.name}
                         </button>
                       ) : (
-                        <span className="text-xs text-tan-2" title={r.responsibleParty.declared ?? undefined}>
+                        <span
+                          className="text-xs text-tan-2"
+                          title={r.responsibleParty.declared ?? undefined}
+                        >
                           {r.responsibleParty.name}
                         </span>
                       )
-                    ) : <span className="mono text-[10px] text-tan-3">Governance</span>}
+                    ) : (
+                      <span className="mono text-[10px] text-tan-3">Governance</span>
+                    )}
                   </td>
                   <td className="py-2 px-3 align-top">
                     {r.facilitator ? (
                       r.facilitator.docId ? (
-                        <button onClick={() => onNavigate(r.facilitator!.docId!)}
+                        <button
+                          onClick={() => onNavigate(r.facilitator!.docId!)}
                           className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
-                          title={r.facilitator.role}>
+                          title={r.facilitator.role}
+                        >
                           {r.facilitator.name}
                         </button>
                       ) : (
@@ -223,7 +276,9 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                           {r.facilitator.name}
                         </span>
                       )
-                    ) : <span className="mono text-[10px] text-tan-3">—</span>}
+                    ) : (
+                      <span className="mono text-[10px] text-tan-3">—</span>
+                    )}
                   </td>
                   <td className="py-2 px-3 align-top">
                     <EvidenceCell r={r} onNavigate={onNavigate} />

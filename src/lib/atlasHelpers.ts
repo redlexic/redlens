@@ -4,18 +4,26 @@ import type { AtlasBundle } from "./docs";
 import type { Glossary } from "./glossary";
 import { realDepth, depthColor } from "./depth";
 
-const UUID_LINK_RE = /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
+const UUID_LINK_RE =
+  /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
 
 export function extractLinkedIds(node: AtlasNode): string[] {
   const seen = new Set<string>();
   const ids: string[] = [];
   for (const m of node.content.matchAll(UUID_LINK_RE)) {
-    if (!seen.has(m[1])) { seen.add(m[1]); ids.push(m[1]); }
+    if (!seen.has(m[1])) {
+      seen.add(m[1]);
+      ids.push(m[1]);
+    }
   }
   return ids;
 }
 
-export function buildAncestors(docs: Record<string, AtlasNode>, docNoToId: Map<string, string>, nodeId: string): AtlasNode[] {
+export function buildAncestors(
+  docs: Record<string, AtlasNode>,
+  docNoToId: Map<string, string>,
+  nodeId: string,
+): AtlasNode[] {
   const node = docs[nodeId];
   if (!node || node.doc_no.startsWith("NR-")) return [];
   const ancestors: AtlasNode[] = [];
@@ -64,5 +72,7 @@ export interface LoadedData {
 }
 
 export const ATLAS_GRID_STYLE: React.CSSProperties = { minHeight: 0, overflow: "hidden" };
-export const ATLAS_LEFT_PANE_STYLE: React.CSSProperties = { borderRight: "1px solid var(--border)" };
+export const ATLAS_LEFT_PANE_STYLE: React.CSSProperties = {
+  borderRight: "1px solid var(--border)",
+};
 export const ATLAS_EMPTY_SET: Set<string> = new Set();

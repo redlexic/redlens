@@ -22,17 +22,13 @@ function sha256(s) {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const ATLAS_PATH = path.join(
-  ROOT,
-  "vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md"
-);
+const ATLAS_PATH = path.join(ROOT, "vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md");
 const OUT_DIR = path.join(ROOT, "public");
 
 // ---------------------------------------------------------------------------
 // Heading pattern: `## A.0.1 - Title [Type]  <!-- UUID: <uuid> -->`
 // ---------------------------------------------------------------------------
-const HEADING_RE =
-  /^(#{1,6}) ([\w.-]+) - (.+?) \[([^\]]+)\]\s+<!-- UUID: ([0-9a-f-]{36}) -->$/;
+const HEADING_RE = /^(#{1,6}) ([\w.-]+) - (.+?) \[([^\]]+)\]\s+<!-- UUID: ([0-9a-f-]{36}) -->$/;
 
 // ---------------------------------------------------------------------------
 // Onchain address extraction
@@ -54,24 +50,24 @@ const WINDOW = 300; // chars before the address to scan for chain hints
 
 // Ordered by specificity — more specific patterns first within each entry
 const CHAIN_HINTS = [
-  { chain: "ethereum",  patterns: [/\bethereum\b/i, /\bmainnet\b/i] },
-  { chain: "base",      patterns: [/\bbase\b/i] },
-  { chain: "arbitrum",  patterns: [/\barbitrum\b/i, /\barb\b/i] },
-  { chain: "optimism",  patterns: [/\boptimism\b/i, /\bop mainnet\b/i] },
-  { chain: "polygon",   patterns: [/\bpolygon\b/i, /\bmatic\b/i] },
+  { chain: "ethereum", patterns: [/\bethereum\b/i, /\bmainnet\b/i] },
+  { chain: "base", patterns: [/\bbase\b/i] },
+  { chain: "arbitrum", patterns: [/\barbitrum\b/i, /\barb\b/i] },
+  { chain: "optimism", patterns: [/\boptimism\b/i, /\bop mainnet\b/i] },
+  { chain: "polygon", patterns: [/\bpolygon\b/i, /\bmatic\b/i] },
   { chain: "avalanche", patterns: [/\bavalanche\b/i, /\bavax\b/i] },
-  { chain: "gnosis",    patterns: [/\bgnosis\b/i, /\bxdai\b/i] },
+  { chain: "gnosis", patterns: [/\bgnosis\b/i, /\bxdai\b/i] },
 ];
 
 const EXPLORER = {
-  ethereum:  "https://etherscan.io/address/",
-  base:      "https://basescan.org/address/",
-  arbitrum:  "https://arbiscan.io/address/",
-  optimism:  "https://optimistic.etherscan.io/address/",
-  polygon:   "https://polygonscan.com/address/",
+  ethereum: "https://etherscan.io/address/",
+  base: "https://basescan.org/address/",
+  arbitrum: "https://arbiscan.io/address/",
+  optimism: "https://optimistic.etherscan.io/address/",
+  polygon: "https://polygonscan.com/address/",
   avalanche: "https://snowtrace.io/address/",
-  gnosis:    "https://gnosisscan.io/address/",
-  solana:    "https://explorer.solana.com/address/",
+  gnosis: "https://gnosisscan.io/address/",
+  solana: "https://explorer.solana.com/address/",
 };
 
 // "address on [the] CHAIN is 0x..." — most reliable signal
@@ -147,13 +143,22 @@ const ROLE_VOCAB = {
 // Tokens we can plausibly query via viem. Case-sensitive — sUSDS / stUSDS are
 // distinct from USDS, and we want to preserve the canonical casing.
 const TOKEN_SYMBOLS = [
-  "USDS", "DAI", "SKY", "MKR", "sUSDS", "stUSDS",
-  "USDC", "ETH", "WETH", "SPK", "GROVE",
+  "USDS",
+  "DAI",
+  "SKY",
+  "MKR",
+  "sUSDS",
+  "stUSDS",
+  "USDC",
+  "ETH",
+  "WETH",
+  "SPK",
+  "GROVE",
 ];
 
 const TOKEN_RE = new RegExp(
   `\\b(${TOKEN_SYMBOLS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\b`,
-  "g"
+  "g",
 );
 
 // Entity label patterns — try to pull a proper-noun phrase near the address
@@ -196,7 +201,10 @@ function isSeparatorRow(line) {
 }
 function splitRow(line) {
   // Strip leading/trailing pipes, split, trim cells
-  return line.slice(1, -1).split("|").map((c) => c.trim());
+  return line
+    .slice(1, -1)
+    .split("|")
+    .map((c) => c.trim());
 }
 
 function findTableContext(content, matchIndex) {
@@ -276,8 +284,18 @@ function extractRoles(content, matchIndex, addrLength, table) {
 // Column-header keywords that suggest the cell contains a human-readable name
 // for the row's subject.
 const LABEL_HEADER_KEYWORDS = [
-  "name", "label", "entity", "description", "role", "party",
-  "who", "organization", "contract", "subject", "details", "purpose",
+  "name",
+  "label",
+  "entity",
+  "description",
+  "role",
+  "party",
+  "who",
+  "organization",
+  "contract",
+  "subject",
+  "details",
+  "purpose",
 ];
 
 function cleanCellLabel(cell) {
@@ -457,8 +475,14 @@ function mergeAddressAnnotations(nodes) {
 
   // Pass 2 — canonicalize each entry
   const GENERIC_LABELS = new Set([
-    "contract", "address", "registry", "multisig", "the contract",
-    "the address", "the multisig", "agreement",
+    "contract",
+    "address",
+    "registry",
+    "multisig",
+    "the contract",
+    "the address",
+    "the multisig",
+    "agreement",
   ]);
   const merged = {};
   for (const [addr, g] of Object.entries(global)) {
@@ -471,9 +495,7 @@ function mergeAddressAnnotations(nodes) {
     // Label: filter out generic single-word labels; pick the longest remaining.
     // Ties broken by lexicographic order for determinism.
     const labelPool = [...g.labels];
-    const nonGeneric = labelPool.filter(
-      (l) => !GENERIC_LABELS.has(l.toLowerCase())
-    );
+    const nonGeneric = labelPool.filter((l) => !GENERIC_LABELS.has(l.toLowerCase()));
     const candidates = nonGeneric.length ? nonGeneric : labelPool;
     let entityLabel = null;
     if (candidates.length) {
@@ -747,24 +769,14 @@ for (const node of Object.values(docs)) {
 // Hand the merged map to scripts/build-addresses.mjs as an intermediate file.
 // Not a shipping artifact — build-addresses overwrites public/addresses.json
 // and deletes this baton afterwards.
-fs.writeFileSync(
-  path.join(OUT_DIR, "addresses.merged.json"),
-  JSON.stringify(mergedAddrs)
-);
+fs.writeFileSync(path.join(OUT_DIR, "addresses.merged.json"), JSON.stringify(mergedAddrs));
 
 fs.writeFileSync(path.join(OUT_DIR, "docs.json"), JSON.stringify(docs));
-fs.writeFileSync(
-  path.join(OUT_DIR, "search-index.json"),
-  JSON.stringify(idx)
-);
+fs.writeFileSync(path.join(OUT_DIR, "search-index.json"), JSON.stringify(idx));
 
-const docsSize = (
-  fs.statSync(path.join(OUT_DIR, "docs.json")).size / 1024
-).toFixed(1);
-const idxSize = (
-  fs.statSync(path.join(OUT_DIR, "search-index.json")).size / 1024
-).toFixed(1);
+const docsSize = (fs.statSync(path.join(OUT_DIR, "docs.json")).size / 1024).toFixed(1);
+const idxSize = (fs.statSync(path.join(OUT_DIR, "search-index.json")).size / 1024).toFixed(1);
 
 console.log(
-  `\nWrote public/docs.json (${docsSize} KB) and public/search-index.json (${idxSize} KB)`
+  `\nWrote public/docs.json (${docsSize} KB) and public/search-index.json (${idxSize} KB)`,
 );

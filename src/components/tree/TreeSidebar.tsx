@@ -44,7 +44,10 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
       let changed = false;
       for (let i = 2; i < parts.length; i++) {
         const aid = docNoToId.get(parts.slice(0, i).join("."));
-        if (aid && !next.has(aid)) { next.add(aid); changed = true; }
+        if (aid && !next.has(aid)) {
+          next.add(aid);
+          changed = true;
+        }
       }
       return changed ? next : prev;
     });
@@ -58,11 +61,14 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
       const newWidth = entry.contentRect.width;
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        setSidebarWidth(prev => Math.abs(prev - newWidth) > 10 ? newWidth : prev);
+        setSidebarWidth((prev) => (Math.abs(prev - newWidth) > 10 ? newWidth : prev));
       });
     });
     ro.observe(el);
-    return () => { ro.disconnect(); cancelAnimationFrame(rafId); };
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const visibleNodes = useMemo(() => {
@@ -81,12 +87,15 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   }, [bundle, expandedIds]);
 
   const selectedIndex = useMemo(
-    () => nodeId ? visibleNodes.findIndex((v) => v.node.id === nodeId) : -1,
-    [visibleNodes, nodeId]
+    () => (nodeId ? visibleNodes.findIndex((v) => v.node.id === nodeId) : -1),
+    [visibleNodes, nodeId],
   );
 
   useEffect(() => {
-    if (clickedRef.current) { clickedRef.current = false; return; }
+    if (clickedRef.current) {
+      clickedRef.current = false;
+      return;
+    }
     if (selectedIndex >= 0 && listRef.current) {
       listRef.current.scrollToRow({ index: selectedIndex, align: "smart" });
     }
@@ -103,25 +112,59 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   }, []);
 
   const handleKeyDown = useTreeKeyboard({
-    visibleNodes, focusedIndex, selectedIndex, expandedIds,
-    listRef, onNavigate, setFocusedIndex, setExpandedIds,
+    visibleNodes,
+    focusedIndex,
+    selectedIndex,
+    expandedIds,
+    listRef,
+    onNavigate,
+    setFocusedIndex,
+    setExpandedIds,
   });
 
-  const handleRowClick = useCallback((id: string) => {
-    clickedRef.current = true;
-    setFocusedIndex(-1);
-    onNavigate(id);
-  }, [onNavigate]);
+  const handleRowClick = useCallback(
+    (id: string) => {
+      clickedRef.current = true;
+      setFocusedIndex(-1);
+      onNavigate(id);
+    },
+    [onNavigate],
+  );
 
-  const rowProps: TreeRowData = useMemo(() => ({
-    visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth,
-    onNavigate: handleRowClick, onToggle: toggleExpand, onShiftNavigate,
-  }), [visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth, handleRowClick, toggleExpand, onShiftNavigate]);
+  const rowProps: TreeRowData = useMemo(
+    () => ({
+      visibleNodes,
+      selectedIndex,
+      focusedIndex,
+      expandedIds,
+      sidebarWidth,
+      onNavigate: handleRowClick,
+      onToggle: toggleExpand,
+      onShiftNavigate,
+    }),
+    [
+      visibleNodes,
+      selectedIndex,
+      focusedIndex,
+      expandedIds,
+      sidebarWidth,
+      handleRowClick,
+      toggleExpand,
+      onShiftNavigate,
+    ],
+  );
 
   if (!bundle) return <div className="tree-sidebar" ref={containerRef} />;
 
   return (
-    <div className="tree-sidebar" ref={containerRef} tabIndex={0} onKeyDown={handleKeyDown} role="tree" aria-label="Atlas tree">
+    <div
+      className="tree-sidebar"
+      ref={containerRef}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      role="tree"
+      aria-label="Atlas tree"
+    >
       <List
         listRef={listRef}
         rowCount={visibleNodes.length}

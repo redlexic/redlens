@@ -11,7 +11,9 @@ import { ActorList } from "./ActorList";
 import { ActorDashboard } from "./ActorDashboard";
 import { Drawer, DrawerToggle } from "../Drawer";
 
-interface Props { onNavigate: (id: string) => void; }
+interface Props {
+  onNavigate: (id: string) => void;
+}
 
 export function RadarPage({ onNavigate }: Props) {
   const [, navigate] = useLocation();
@@ -24,7 +26,8 @@ export function RadarPage({ onNavigate }: Props) {
 
   useEffect(() => {
     Promise.all([loadDocs(), loadGraph()]).then(([d, g]) => {
-      setDocs(d); setGraph(g);
+      setDocs(d);
+      setGraph(g);
     });
   }, []);
 
@@ -58,9 +61,13 @@ export function RadarPage({ onNavigate }: Props) {
   return (
     <div className="flex-1 flex overflow-hidden">
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} breakpoint={850}>
-        {ready
-          ? <ActorList groups={sidebarGroups} selectedSlug={actorSlug} onSelect={selectActor} />
-          : <div className="p-4 mono text-xs" style={{ color: "var(--tan-3)" }}>Loading…</div>}
+        {ready ? (
+          <ActorList groups={sidebarGroups} selectedSlug={actorSlug} onSelect={selectActor} />
+        ) : (
+          <div className="p-4 mono text-xs" style={{ color: "var(--tan-3)" }}>
+            Loading…
+          </div>
+        )}
       </Drawer>
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -68,15 +75,21 @@ export function RadarPage({ onNavigate }: Props) {
 
         {!ready ? (
           <div className="flex-1 flex items-center justify-center">
-            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>Loading graph…</span>
+            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>
+              Loading graph…
+            </span>
           </div>
         ) : !actorSlug ? (
           <div className="flex-1 flex items-center justify-center">
-            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>Select an Agent or Facilitator or GovOps</span>
+            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>
+              Select an Agent or Facilitator or GovOps
+            </span>
           </div>
         ) : !profile ? (
           <div className="flex-1 flex items-center justify-center">
-            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>Actor not found</span>
+            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>
+              Actor not found
+            </span>
           </div>
         ) : (
           <ActorDashboard profile={profile} onNavigate={onNavigate} onActor={selectActor} />

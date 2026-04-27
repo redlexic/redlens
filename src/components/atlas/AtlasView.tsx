@@ -1,4 +1,12 @@
-import { useState, useEffect, useRef, useMemo, useCallback, startTransition, type ReactElement } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  startTransition,
+  type ReactElement,
+} from "react";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { Loading } from "../Loading";
 import { loadAtlas } from "../../lib/docs";
@@ -13,33 +21,54 @@ import { flattenTree } from "../../lib/atlasHelpers";
 import { useDepth6Expand } from "./useDepth6Expand";
 import { RightPanel } from "./RightPanel";
 import { JuniorPane } from "./JuniorPane";
+import { DrawerToggle } from "../Drawer";
 import {
-  extractLinkedIds, buildAncestors,
-  ATLAS_GRID_STYLE, ATLAS_LEFT_PANE_STYLE, ATLAS_EMPTY_SET,
+  extractLinkedIds,
+  buildAncestors,
+  ATLAS_GRID_STYLE,
+  ATLAS_LEFT_PANE_STYLE,
+  ATLAS_EMPTY_SET,
   type LoadedData,
 } from "../../lib/atlasHelpers";
 
 const EMPTY_EDGES: EdgeResult = { outbound: [], inbound: [] };
 
-export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplitChange }: {
+export function AtlasView({
+  id,
+  onNavigate,
+  view,
+  onViewChange,
+  splitId,
+  onSplitChange,
+  onOpenTree,
+}: {
   id: string;
   onNavigate: (id: string) => void;
   view: "annotations" | "history";
   onViewChange: (v: "annotations" | "history") => void;
   splitId: string | null;
   onSplitChange: (id: string | null) => void;
+  onOpenTree?: () => void;
 }) {
   const [data, setData] = useState<LoadedData | null>(null);
   const [userToggles, setUserToggles] = useState<Set<string>>(new Set());
   const [graphEdges, setGraphEdges] = useState<EdgeResult>(EMPTY_EDGES);
 
   useEffect(() => {
-    Promise.all([loadAtlas(), loadAddresses(), loadChainState(), loadGlossary()]).then(([atlas, addresses, chainState, glossary]) => {
-      setAddressMap(addresses);
-      startTransition(() => {
-        setData({ atlas, flatNodes: flattenTree(atlas.byParent), addresses, chainState, glossary });
-      });
-    });
+    Promise.all([loadAtlas(), loadAddresses(), loadChainState(), loadGlossary()]).then(
+      ([atlas, addresses, chainState, glossary]) => {
+        setAddressMap(addresses);
+        startTransition(() => {
+          setData({
+            atlas,
+            flatNodes: flattenTree(atlas.byParent),
+            addresses,
+            chainState,
+            glossary,
+          });
+        });
+      },
+    );
   }, []);
 
   useEffect(() => {
@@ -47,8 +76,12 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
     setGraphEdges(EMPTY_EDGES);
     if (!id) return;
     let cancelled = false;
-    getEdges(id).then(r => { if (!cancelled) setGraphEdges(r); });
-    return () => { cancelled = true; };
+    getEdges(id).then((r) => {
+      if (!cancelled) setGraphEdges(r);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const autoExpanded = useMemo(() => {
@@ -69,12 +102,20 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
   }, [data, id]);
 
   const { target, linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {
-    const empty = { target: null as AtlasNode | null, linkedNodes: [] as AtlasNode[], targetAddresses: {} as Record<string, AddressInfo>, chainValues: {} as Record<string, Record<string, ChainValue>>, glossaryTerms: [] as GlossaryEntry[][] };
+    const empty = {
+      target: null as AtlasNode | null,
+      linkedNodes: [] as AtlasNode[],
+      targetAddresses: {} as Record<string, AddressInfo>,
+      chainValues: {} as Record<string, Record<string, ChainValue>>,
+      glossaryTerms: [] as GlossaryEntry[][],
+    };
     if (!data || !id) return empty;
     const { docs } = data.atlas;
     const target = docs[id] ?? null;
     if (!target) return empty;
-    const linkedNodes = extractLinkedIds(target).map(lid => docs[lid]).filter((n): n is AtlasNode => !!n);
+    const linkedNodes = extractLinkedIds(target)
+      .map((lid) => docs[lid])
+      .filter((n): n is AtlasNode => !!n);
     const targetAddresses: Record<string, AddressInfo> = {};
     const cv: Record<string, Record<string, ChainValue>> = {};
     for (const ref of target.addressRefs ?? []) {
@@ -88,7 +129,7 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
     const seen = new Set<GlossaryEntry[]>();
     const glossaryTerms: GlossaryEntry[][] = [];
     for (const entries of Object.values(lookup)) {
-      if (!seen.has(entries) && entries.some(e => contentLower.includes(e.term.toLowerCase()))) {
+      if (!seen.has(entries) && entries.some((e) => contentLower.includes(e.term.toLowerCase()))) {
         seen.add(entries);
         glossaryTerms.push(entries);
       }
@@ -98,7 +139,7 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
   }, [data, id]);
 
   const handleToggle = useCallback((nodeId: string) => {
-    setUserToggles(prev => {
+    setUserToggles((prev) => {
       const next = new Set(prev);
       if (next.has(nodeId)) next.delete(nodeId);
       else next.add(nodeId);
@@ -106,7 +147,10 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
     });
   }, []);
 
-  const { expandedParents, hasDeepChildren, expandParent } = useDepth6Expand(data?.flatNodes ?? [], id);
+  const { expandedParents, hasDeepChildren, expandParent } = useDepth6Expand(
+    data?.flatNodes ?? [],
+    id,
+  );
 
   // Scroll after expand: the target may be hidden (depth >= 6) until expandedParents is
   // populated, so we depend on expandedParents and guard with a ref to avoid re-scrolling
@@ -130,23 +174,50 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
     for (const entry of data.flatNodes) {
       if (entry.depth >= 6 && !expandedParents.has(entry.node.parentId ?? "")) continue;
       items.push(
-        <CollapsibleNode key={entry.node.id} entry={entry}
+        <CollapsibleNode
+          key={entry.node.id}
+          entry={entry}
           isSelected={entry.node.id === id}
           isExpanded={autoExpanded.has(entry.node.id) !== userToggles.has(entry.node.id)}
-          onNavigate={onNavigate} onToggle={handleToggle} onShiftNavigate={onSplitChange} />
+          onNavigate={onNavigate}
+          onToggle={handleToggle}
+          onShiftNavigate={onSplitChange}
+        />,
       );
       if (hasDeepChildren.has(entry.node.id) && !expandedParents.has(entry.node.id)) {
-        items.push(<ViewChildrenFill key={`fill-${entry.node.id}`} nodeId={entry.node.id} docNo={entry.node.doc_no} onExpand={expandParent} />);
+        items.push(
+          <ViewChildrenFill
+            key={`fill-${entry.node.id}`}
+            nodeId={entry.node.id}
+            docNo={entry.node.doc_no}
+            onExpand={expandParent}
+          />,
+        );
       }
     }
     return items;
-  }, [data, id, autoExpanded, userToggles, onNavigate, handleToggle, expandedParents, hasDeepChildren, expandParent, onSplitChange]);
+  }, [
+    data,
+    id,
+    autoExpanded,
+    userToggles,
+    onNavigate,
+    handleToggle,
+    expandedParents,
+    hasDeepChildren,
+    expandParent,
+    onSplitChange,
+  ]);
 
   if (!data) {
     return <Loading />;
   }
   if (id && !data.atlas.docs[id]) {
-    return <div className="flex items-center justify-center py-24 text-sm text-red">Node not found: {id}</div>;
+    return (
+      <div className="flex items-center justify-center py-24 text-sm text-red">
+        Node not found: {id}
+      </div>
+    );
   }
 
   const addressCount = Object.keys(targetAddresses).length;
@@ -154,29 +225,53 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
 
   return (
     <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
-      {id && <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />}
-      <div className="flex-1 min-[750px]:grid min-[750px]:grid-cols-[3fr_2fr]" style={ATLAS_GRID_STYLE}>
-        <div className="relative flex flex-col overflow-hidden" style={{ ...ATLAS_LEFT_PANE_STYLE, minHeight: 0 }}>
+      <div className="flex items-center" style={{
+          borderBottom: "1px solid var(--border)",
+      }}>
+        <DrawerToggle label="Atlas" onClick={onOpenTree} breakpoint={1050} />
+        {id && <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />}
+      </div>
+      <div
+        className="flex-1 min-[750px]:grid min-[750px]:grid-cols-[3fr_2fr]"
+        style={ATLAS_GRID_STYLE}
+      >
+        <div
+          className="relative flex flex-col overflow-hidden"
+          style={{ ...ATLAS_LEFT_PANE_STYLE, minHeight: 0 }}
+        >
           {id && !splitId && (
-            <button type="button" title="Open comparison pane (or shift-click any node)"
+            <button
+              type="button"
+              title="Open comparison pane (or shift-click any node)"
               onClick={() => onSplitChange(id)}
               aria-label="Open comparison pane"
               className="absolute top-2 right-2 z-10 mono text-[10px] px-1.5 py-0.5 rounded text-tan-3 hover:text-tan"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-              <svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
+              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+            >
+              <svg
+                width="12"
+                height="10"
+                viewBox="0 0 12 10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                aria-hidden="true"
+              >
                 <rect x="0.5" y="0.5" width="11" height="3.5" rx="0.5" />
                 <rect x="0.5" y="6" width="11" height="3.5" rx="0.5" />
               </svg>
             </button>
           )}
           <div className="overflow-y-auto flex-1" style={{ minHeight: 0 }}>
-            <div className="mx-auto px-3 py-2">
-              {docList}
-            </div>
+            <div className="mx-auto px-3 py-2">{docList}</div>
           </div>
           {splitId && data && (
-            <JuniorPane splitId={splitId} data={data}
-              onShiftNavigate={onSplitChange} onClose={() => onSplitChange(null)} />
+            <JuniorPane
+              splitId={splitId}
+              data={data}
+              onShiftNavigate={onSplitChange}
+              onClose={() => onSplitChange(null)}
+            />
           )}
         </div>
         {id && (

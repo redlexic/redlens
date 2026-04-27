@@ -82,11 +82,23 @@ export async function fetchEtherscan(chainid, addr, apiKey) {
   // Negative response shape: { status: "0", message: "NOTOK", result: "..." }
   if (data.status === "0" && typeof data.result === "string") {
     // Treat as unverified / unknown — cache an empty entry so we don't retry.
-    return makeEntry(chainid, addr, { ContractName: "", ABI: "", Proxy: "0", Implementation: "", SourceCode: "" });
+    return makeEntry(chainid, addr, {
+      ContractName: "",
+      ABI: "",
+      Proxy: "0",
+      Implementation: "",
+      SourceCode: "",
+    });
   }
   const result = Array.isArray(data.result) ? data.result[0] : null;
   if (!result) {
-    return makeEntry(chainid, addr, { ContractName: "", ABI: "", Proxy: "0", Implementation: "", SourceCode: "" });
+    return makeEntry(chainid, addr, {
+      ContractName: "",
+      ABI: "",
+      Proxy: "0",
+      Implementation: "",
+      SourceCode: "",
+    });
   }
   return makeEntry(chainid, addr, result);
 }
@@ -178,7 +190,9 @@ export async function enrichAddresses(atlas, chainlog, apiKey) {
 
     // Aliases: every distinct non-winning candidate label, plus the atlas's own
     // alias list, de-duped, sorted, excluding the resolved winner.
-    const candidates = [chainlogId, info.entityLabel, etherscanName].filter((l) => l && l !== label);
+    const candidates = [chainlogId, info.entityLabel, etherscanName].filter(
+      (l) => l && l !== label,
+    );
     const aliases = [
       ...new Set([...(info.aliases || []), ...candidates].filter((l) => l && l !== label)),
     ].sort();
@@ -216,11 +230,13 @@ export async function enrichAddresses(atlas, chainlog, apiKey) {
 // the snapshot step runs.
 // ---------------------------------------------------------------------------
 export async function fetchImplABIs(out, apiKey) {
-  const implAddrs = [...new Set(
-    Object.values(out)
-      .filter((a) => a.isProxy && a.implementation)
-      .map((a) => a.implementation)
-  )];
+  const implAddrs = [
+    ...new Set(
+      Object.values(out)
+        .filter((a) => a.isProxy && a.implementation)
+        .map((a) => a.implementation),
+    ),
+  ];
 
   if (!implAddrs.length) return;
 

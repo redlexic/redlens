@@ -24,27 +24,48 @@ export function Drawer({ open, onClose, breakpoint = 1050, width = 220, children
   const isDrawer = useIsNarrow(breakpoint);
   return (
     <>
-      {isDrawer && open && (
-        <div className="fixed inset-0 z-20 bg-black/40" onClick={onClose} />
-      )}
-      <div style={isDrawer ? {
-        position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 30, width,
-        background: "var(--bg)", transform: open ? "translateX(0)" : "translateX(-100%)",
-        transition: "transform 200ms",
-      } : { width, flexShrink: 0, background: "var(--bg)" }}>
+      {isDrawer && open && <div className="fixed inset-0 z-20 bg-black/40" onClick={onClose} />}
+      <div
+        style={
+          isDrawer
+            ? {
+                position: "fixed",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                zIndex: 30,
+                width,
+                background: "var(--bg)",
+                transform: open ? "translateX(0)" : "translateX(-100%)",
+                transition: "transform 200ms",
+              }
+            : { width, flexShrink: 0, background: "var(--bg)" }
+        }
+      >
         {children}
       </div>
     </>
   );
 }
 
-export function DrawerToggle({ label, onClick, breakpoint = 1050 }: { label: string; onClick: () => void; breakpoint?: number }) {
+export function DrawerToggle({
+  label,
+  onClick,
+  breakpoint = 1050,
+}: {
+  label: string;
+  onClick?: () => void;
+  breakpoint?: number;
+}) {
   const isDrawer = useIsNarrow(breakpoint);
   if (!isDrawer) return null;
   return (
-    <div className="shrink-0 px-3 pt-2">
-      <button onClick={onClick} className="mono text-xs px-2 py-1 rounded border"
-        style={{ color: "var(--tan-3)", borderColor: "var(--hover)" }}>
+    <div className="shrink-0 px-1 py-1">
+      <button
+        onClick={onClick}
+        className="mono text-xs px-1 py-1 rounded border"
+        style={{ color: "var(--tan-3)", borderColor: "var(--hover)" }}
+      >
         ☰ {label}
       </button>
     </div>

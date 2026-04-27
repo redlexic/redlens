@@ -7,18 +7,26 @@ interface Props {
 }
 
 const SUBTYPE_BADGE: Record<string, string> = {
-  prime: "Prime", operational_executor: "Exec", core_executor: "Core Exec",
+  prime: "Prime",
+  operational_executor: "Exec",
+  core_executor: "Core Exec",
 };
 
 export function ActorList({ groups, selectedSlug, onSelect }: Props) {
   return (
-    <nav className="h-full overflow-y-auto py-4 border-r border-[var(--border)]" style={{ minWidth: 200, maxWidth: 220 }}>
-      {groups.map(g => (
+    <nav
+      className="h-full overflow-y-auto py-4 border-r border-[var(--border)]"
+      style={{ minWidth: 200, maxWidth: 220 }}
+    >
+      {groups.map((g) => (
         <div key={g.label} className="mb-4">
-          <div className="px-3 pb-1 mono text-[10px] uppercase tracking-wider" style={{ color: "var(--tan-3)" }}>
+          <div
+            className="px-3 pb-1 mono text-[10px] uppercase tracking-wider"
+            style={{ color: "var(--tan-3)" }}
+          >
             {g.label}
           </div>
-          {g.actors.map(a => (
+          {g.actors.map((a) => (
             <button
               key={a.id}
               data-active={a.slug === selectedSlug ? "true" : undefined}

@@ -98,7 +98,10 @@ for (const h of hits) {
   console.log(`[${h.score.toFixed(3)}] ${c.doc_no} ${c.title} [${c.type}]`);
   if (c.parentDocNo) console.log(`        in: ${c.parentDocNo} ${c.parentTitle}`);
   if (snippet) {
-    const indented = snippet.split("\n").map((l) => "        " + l).join("\n");
+    const indented = snippet
+      .split("\n")
+      .map((l) => "        " + l)
+      .join("\n");
     console.log(indented);
   }
   console.log();

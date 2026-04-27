@@ -71,13 +71,22 @@ export const ROLE_VOCAB = {
 // Tokens we can plausibly query via viem. Case-sensitive — sUSDS / stUSDS are
 // distinct from USDS, and we want to preserve the canonical casing.
 export const TOKEN_SYMBOLS = [
-  "USDS", "DAI", "SKY", "MKR", "sUSDS", "stUSDS",
-  "USDC", "ETH", "WETH", "SPK", "GROVE",
+  "USDS",
+  "DAI",
+  "SKY",
+  "MKR",
+  "sUSDS",
+  "stUSDS",
+  "USDC",
+  "ETH",
+  "WETH",
+  "SPK",
+  "GROVE",
 ];
 
 export const TOKEN_RE = new RegExp(
   `\\b(${TOKEN_SYMBOLS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\b`,
-  "g"
+  "g",
 );
 
 // Entity label patterns — try to pull a proper-noun phrase near the address
@@ -129,8 +138,18 @@ export function extractRoles(content, matchIndex, addrLength, table) {
 // Column-header keywords that suggest the cell contains a human-readable name
 // for the row's subject.
 export const LABEL_HEADER_KEYWORDS = [
-  "name", "label", "entity", "description", "role", "party",
-  "who", "organization", "contract", "subject", "details", "purpose",
+  "name",
+  "label",
+  "entity",
+  "description",
+  "role",
+  "party",
+  "who",
+  "organization",
+  "contract",
+  "subject",
+  "details",
+  "purpose",
 ];
 
 export function cleanCellLabel(cell) {

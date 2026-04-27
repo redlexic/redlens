@@ -6,10 +6,7 @@ export type WordSegment = ["=" | "+" | "-", string];
  *  ["~", segments]       — modified line with intraline word diff
  *  ["…"]                 — gap between context hunks
  */
-export type DiffLine =
-  | ["=" | "+" | "-", string]
-  | ["~", WordSegment[]]
-  | ["…"];
+export type DiffLine = ["=" | "+" | "-", string] | ["~", WordSegment[]] | ["…"];
 
 export interface HistoryEntry {
   date: string;
@@ -39,8 +36,8 @@ let manifestPromise: Promise<Set<string>> | null = null;
 function loadManifest(): Promise<Set<string>> {
   if (!manifestPromise) {
     manifestPromise = fetch(`${import.meta.env.BASE_URL}history/_manifest.json`)
-      .then(r => r.ok ? r.json() : {})
-      .then(obj => new Set(Object.keys(obj)))
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((obj) => new Set(Object.keys(obj)))
       .catch(() => new Set());
   }
   return manifestPromise;
@@ -55,7 +52,7 @@ export function loadHistory(nodeId: string): Promise<HistoryEntry[] | null> {
   let p = cache.get(nodeId);
   if (!p) {
     p = fetch(`${import.meta.env.BASE_URL}history/${nodeId}.json`)
-      .then(r => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .catch(() => null);
     cache.set(nodeId, p);
   }

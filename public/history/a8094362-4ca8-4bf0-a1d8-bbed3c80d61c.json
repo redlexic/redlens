@@ -1,1 +1,19 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","The ALMProxy for Pattern must be whitelisted on the LitePSM. This will effectively allow Pattern to call `buyGemNoFee` and `sellGemNoFee` on the `MCD_LITE_PSM_USDC_A` contract."]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The ALMProxy for Pattern must be whitelisted on the LitePSM. This will effectively allow Pattern to call `buyGemNoFee` and `sellGemNoFee` on the `MCD_LITE_PSM_USDC_A` contract."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

@@ -12,16 +12,26 @@ interface Props {
 }
 
 const NavigateContext = createContext<((id: string) => void) | undefined>(undefined);
-function useNavigateContext() { return useContext(NavigateContext); }
+function useNavigateContext() {
+  return useContext(NavigateContext);
+}
 
 // UUID and eth-address links — styling via .atlas-md a in CSS
-function MarkdownLink({ href, children, node: _node, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode; node?: unknown }) {
+function MarkdownLink({
+  href,
+  children,
+  node: _node,
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode; node?: unknown }) {
   const onNavigate = useNavigateContext();
   if (href && UUID_RE.test(href) && onNavigate) {
     return (
       <a
         href={`/atlas?id=${href}`}
-        onClick={(e) => { e.preventDefault(); onNavigate(href); }}
+        onClick={(e) => {
+          e.preventDefault();
+          onNavigate(href);
+        }}
         {...props}
       >
         {children}

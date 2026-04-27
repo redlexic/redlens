@@ -32,7 +32,13 @@ describe("manifest", () => {
     // Anything added to the build pipeline without a manifest entry would be
     // silently unverifiable on the frontend — fail on new artifacts that
     // haven't been registered.
-    const required = ["docs.json", "search-index.json", "addresses.json", "chain-state.json", "relations.json"];
+    const required = [
+      "docs.json",
+      "search-index.json",
+      "addresses.json",
+      "chain-state.json",
+      "relations.json",
+    ];
     for (const name of required) {
       if (fs.existsSync(path.join(PUBLIC, name))) {
         expect(manifest.artifacts[name], `${name} missing from manifest`).toBeDefined();

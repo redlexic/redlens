@@ -1,4 +1,8 @@
-import { prepareWithSegments, layoutWithLines, type PreparedTextWithSegments } from "@chenglou/pretext";
+import {
+  prepareWithSegments,
+  layoutWithLines,
+  type PreparedTextWithSegments,
+} from "@chenglou/pretext";
 
 const FONT = "10px Lora";
 

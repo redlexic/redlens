@@ -13,10 +13,9 @@ let cached: Promise<AtlasBundle> | null = null;
 export function loadAtlas(): Promise<AtlasBundle> {
   if (!cached) {
     cached = new Promise((resolve, reject) => {
-      const worker = new Worker(
-        new URL("../workers/atlas.worker.ts", import.meta.url),
-        { type: "module" }
-      );
+      const worker = new Worker(new URL("../workers/atlas.worker.ts", import.meta.url), {
+        type: "module",
+      });
       worker.addEventListener("message", (e) => {
         const msg = e.data;
         if (msg.type === "ready") {

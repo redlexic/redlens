@@ -17,7 +17,7 @@ export function loadChainState(): Promise<ChainState> {
   if (!cached) {
     cached = fetchJsonVerified<ChainState>(
       `${import.meta.env.BASE_URL}chain-state.json`,
-      "chain-state.json"
+      "chain-state.json",
     ).catch(() => ({ generatedAt: "", block: "", values: {} }));
   }
   return cached;

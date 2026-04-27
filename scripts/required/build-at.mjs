@@ -59,7 +59,11 @@ if (blockIdx !== -1) {
 // Block-pin helpers
 // ---------------------------------------------------------------------------
 function readPins() {
-  try { return JSON.parse(fs.readFileSync(PINS_PATH, "utf8")); } catch { return {}; }
+  try {
+    return JSON.parse(fs.readFileSync(PINS_PATH, "utf8"));
+  } catch {
+    return {};
+  }
 }
 
 function pinBlock(atlasSha, block) {

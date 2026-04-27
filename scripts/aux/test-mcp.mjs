@@ -29,7 +29,11 @@ proc.stdout.on("data", (d) => {
     buf = buf.slice(i + 1);
     if (!line) continue;
     let msg;
-    try { msg = JSON.parse(line); } catch { continue; }
+    try {
+      msg = JSON.parse(line);
+    } catch {
+      continue;
+    }
     if (msg.id != null && pending.has(msg.id)) {
       const { resolve: r, reject: rej } = pending.get(msg.id);
       pending.delete(msg.id);

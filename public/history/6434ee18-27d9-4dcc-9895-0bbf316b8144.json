@@ -1,1 +1,22 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","The admin role (DEFAULT_ADMIN_ROLE) is the role that can grant and revoke any role, including itself and all other roles defined in the contract. The admin role is also used for general admin functions in all contracts. This role is fully controlled by Sky Governance via the Pattern Proxy."],["+",""],["+","`constructor(address admin) {"],["+","_grantRole(DEFAULT_ADMIN_ROLE, admin);`"]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The admin role (DEFAULT_ADMIN_ROLE) is the role that can grant and revoke any role, including itself and all other roles defined in the contract. The admin role is also used for general admin functions in all contracts. This role is fully controlled by Sky Governance via the Pattern Proxy."
+      ],
+      ["+", ""],
+      ["+", "`constructor(address admin) {"],
+      ["+", "_grantRole(DEFAULT_ADMIN_ROLE, admin);`"]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

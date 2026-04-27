@@ -1,1 +1,21 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","The documents herein define processes for invoking (onboarding) new Pattern Liquidity Layer Instances and offboarding existing ones. This process will be specified in a future iteration of the Pattern Artifact."]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1,"summary":"Add Solana Bridge Distribution Reward Instance To Keel Artifact","description":"Adds documentation for the Solana Bridge Distribution Reward Primitive Instance to the Keel Artifact, with Reward Code 4001."}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define processes for invoking (onboarding) new Pattern Liquidity Layer Instances and offboarding existing ones. This process will be specified in a future iteration of the Pattern Artifact."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Solana Bridge Distribution Reward Instance To Keel Artifact",
+    "description": "Adds documentation for the Solana Bridge Distribution Reward Primitive Instance to the Keel Artifact, with Reward Code 4001."
+  }
+]

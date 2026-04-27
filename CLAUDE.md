@@ -48,6 +48,7 @@ Scripts are split: `scripts/required/` holds the build pipeline entry-points wir
 - **`scripts/required/build-at.mjs`** — reproducible build at a pinned atlas commit; orchestrates the other `build:*` scripts.
 
 Heading regex (each node):
+
 ```
 ^(#{1,6}) ([\w.-]+) - (.+?) \[([^\]]+)\]\s+<!-- UUID: ([0-9a-f-]{36}) -->$
 ```
@@ -56,13 +57,14 @@ Each node has: `id` (uuid), `doc_no` (e.g. `A.0.1.1`), `title`, `type`, `depth` 
 
 **Atlas document types** (from the syntax spec): Scope, Article, Section, Core, Type Specification, Active Data Controller, Annotation, Action Tenet, Scenario, Scenario Variation, Active Data, Needed Research. Supporting documents (Annotations, Action Tenets, Scenarios, Scenario Variations, Active Data) use special directory-number patterns (`.0.3.X`, `.0.4.X`, `.1.X`, `.varX`, `.0.6.X`). Needed Research uses global `NR-X` numbering.
 
-`cleanContent()` strips wrapping single-backtick markers from multi-line backtick blocks (an Atlas authoring quirk) — but does NOT remove code/backtick *content*.
+`cleanContent()` strips wrapping single-backtick markers from multi-line backtick blocks (an Atlas authoring quirk) — but does NOT remove code/backtick _content_.
 
 ### On-chain address extraction
 
 Detected at build time in `scripts/required/build-index.mjs` (regex + chain detection live in `scripts/lib/address-chains.mjs`; role/label/token annotation in `scripts/lib/address-annotate.mjs`). Each node stores `addressRefs: string[]` pointing into the shared `addresses.json`.
 
 **Patterns:**
+
 - EVM: `/(?<![0-9a-fA-F])0x[0-9a-fA-F]{40}(?![0-9a-fA-F])/g`
 - Solana: `/\b[1-9A-HJ-NP-Za-km-z]{43,44}\b/g` (base58, 43–44 chars — assumed Solana by pattern alone)
 
@@ -71,6 +73,7 @@ The hex-boundary lookarounds on the EVM pattern are **load-bearing**: without th
 **0x + 64 hex values** (tx hashes, bytes32 constants, role IDs, domain separators, etc.) are **not linked** — they are visually identical and cannot be reliably distinguished from context.
 
 **Chain detection (`detectChain`)** — three-pass priority:
+
 1. Explicit phrase: `address on [the] CHAIN is` in the 120 chars before the address (most reliable signal — user explicitly asked for this).
 2. Tight-window keyword scan (120 chars before).
 3. Wide-window keyword scan (300 chars before).
@@ -79,6 +82,7 @@ The hex-boundary lookarounds on the EVM pattern are **load-bearing**: without th
 Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanche, gnosis, solana.
 
 **Address classification:** each address gets:
+
 - `roles`: `string[]` — flat multi-tag array from a closed vocabulary (`ROLE_VOCAB` in `scripts/lib/address-annotate.mjs`).
 - `entityLabel`: best-effort proper-noun phrase pulled from the 200 chars before the address.
 - `expectedTokens`: `string[]` of token symbols mentioned within ±300 chars.
@@ -88,17 +92,20 @@ Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanc
 `App.tsx` is the shell (routing, URL sync, layout). The main atlas view is `src/components/atlas/AtlasView.tsx`.
 
 **Workers:**
+
 - **`src/workers/search.worker.ts`** — loads `docs.json` + `search-index.json`, runs lunr queries, generates highlighted snippets. Phrase post-filter: `"quoted"` phrases are stripped before the lunr query, then every hit is checked for literal substring containment.
 - **`src/workers/atlas.worker.ts`** — loads and parses `docs.json` for the atlas tree view.
 - **`src/workers/graph.worker.ts`** — loads `relations.json` into a graphology `MultiDirectedGraph`; answers edge queries, BFS neighbor/subgraph requests for the main thread.
 
 **Atlas view (`src/components/atlas/`):**
+
 - **`AtlasView.tsx`** — main atlas page. Loads atlas + addresses + chain-state + glossary in parallel. Renders a flat virtualized list via `CollapsibleNode`. Computes `linkedNodes`, `targetAddresses`, `glossaryTerms` in a single `useMemo` keyed on `[data, id]`. Passes everything to `RightPanel`.
 - **`CollapsibleNode.tsx`** — single row in the atlas tree. Expand/collapse, depth-based indent, renders node content via `NodeContent`. Nodes at depth ≥ 6 are hidden behind a "view all descendants" button until expanded.
 - **`RightPanel.tsx`** — right annotations panel. Tabs: `annotations` (linked docs, backlinks, graph relations, addresses, glossary terms, integrity) and `history`. All data arrives as props from `AtlasView`.
 - **`Integrity.tsx`** — shows `doc_no`, `uuid`, `sha256` content hash and provenance link for the selected node.
 
 **Shared components (`src/components/`):**
+
 - **`NodeContent.tsx`** / **`NodeContentInner.tsx`** — markdown rendering. `rehypeEthAddresses` plugin linkifies on-chain addresses; KaTeX loaded lazily on demand. `onNavigate` via React context. UUID hrefs intercepted for SPA navigation.
 - **`RelatedNode.tsx`** — linked-node card in the right panel.
 - **`AddressCard.tsx`** — address card with entity label, aliases, explorer link, role pills.
@@ -107,6 +114,7 @@ Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanc
 - **`SearchHints.tsx`** — idle-state syntax cheat sheet.
 
 **Hooks / lib:**
+
 - **`src/hooks/useSearch.ts`** — debounced search hook with pending-id race guard.
 - **`src/lib/docs.ts`** — `loadAtlas()` module-level Promise cache for `docs.json`.
 - **`src/lib/addresses.ts`** — `loadAddresses()` module-level cache for `addresses.json`.
@@ -123,7 +131,7 @@ Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanc
 Color tokens live as CSS variables in `src/index.css`:
 
 - `--bg #160e0d` (charcoal w/ red undertone), `--surface`, `--hover #3a1f1a`
-- `--red #a63228`, `--accent #c67267` (links/focus, browner-pinker — *not* the original error-looking red)
+- `--red #a63228`, `--accent #c67267` (links/focus, browner-pinker — _not_ the original error-looking red)
 - `--tan #f3e7ce` / `--tan-2` / `--tan-3` (tans/browns)
 - Fonts: Lora (serif body), Source Code Pro (mono)
 - KaTeX is overridden to use `--tan` color

@@ -22,7 +22,10 @@ function loadJson<T>(name: string): T | null {
 const docs = loadJson<Record<string, AtlasNode>>("docs.json")!;
 const addresses = loadJson<Record<string, AddressInfo>>("addresses.json");
 const chainState = loadJson<{ block: string; values: Record<string, unknown> }>("chain-state.json");
-const relations = loadJson<{ entities: { id: string; slug: string }[]; edges: { f: string; t: string; e: string; s?: string[] }[] }>("relations.json");
+const relations = loadJson<{
+  entities: { id: string; slug: string }[];
+  edges: { f: string; t: string; e: string; s?: string[] }[];
+}>("relations.json");
 
 describe("cross-artifact consistency", () => {
   it("docs.json and addresses.json are in sync (within tolerance)", () => {
@@ -42,10 +45,14 @@ describe("cross-artifact consistency", () => {
     expect(missingInAddresses.length / Math.max(refsInDocs.size, 1)).toBeLessThan(0.01);
 
     if (missingInAddresses.length > 0) {
-      console.warn(`  ${missingInAddresses.length} addressRefs in docs.json lack addresses.json entries — run \`pnpm build:addresses\``);
+      console.warn(
+        `  ${missingInAddresses.length} addressRefs in docs.json lack addresses.json entries — run \`pnpm build:addresses\``,
+      );
     }
     if (orphanInAddresses.length > 0) {
-      console.warn(`  ${orphanInAddresses.length} stale entries in addresses.json (no longer referenced by any node)`);
+      console.warn(
+        `  ${orphanInAddresses.length} stale entries in addresses.json (no longer referenced by any node)`,
+      );
     }
   });
 
@@ -78,17 +85,21 @@ describe("cross-artifact consistency", () => {
     const dir = path.join(PUBLIC, "history");
     if (!fs.existsSync(dir)) return;
     const files = fs.readdirSync(dir).filter((f) => f.endsWith(".json"));
-    let live = 0, orphan = 0;
+    let live = 0,
+      orphan = 0;
     for (const f of files) {
       const uuid = f.replace(/\.json$/, "");
       JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
-      if (docs[uuid]) live++; else orphan++;
+      if (docs[uuid]) live++;
+      else orphan++;
     }
     if (files.length > 0) {
       expect(live / files.length).toBeGreaterThan(0.5);
     }
     if (orphan > 0) {
-      console.warn(`  ${orphan} history files reference UUIDs no longer in docs.json (atlas drift)`);
+      console.warn(
+        `  ${orphan} history files reference UUIDs no longer in docs.json (atlas drift)`,
+      );
     }
   });
 });

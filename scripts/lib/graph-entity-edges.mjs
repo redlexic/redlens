@@ -8,10 +8,17 @@
  */
 
 import {
-  slugify, isPrimeAgent, isFacilitatorDoc, isGovOpsDoc,
+  slugify,
+  isPrimeAgent,
+  isFacilitatorDoc,
+  isGovOpsDoc,
   isEcosystemAccord,
-  extractAssignment, extractRP, rpRoleAndName,
-  ALIGNED_DELEGATES_DOC_NO, CORE_COUNCIL_RISK_ADVISOR_DOC_NO, ERG_DOC_NO,
+  extractAssignment,
+  extractRP,
+  rpRoleAndName,
+  ALIGNED_DELEGATES_DOC_NO,
+  CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
+  ERG_DOC_NO,
 } from "./graph-patterns.mjs";
 
 export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, addressesRaw) {
@@ -29,15 +36,15 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   } = entityContext;
 
   const edges = [];
-  const docIds = new Set(allDocs.map(d => d.id));
+  const docIds = new Set(allDocs.map((d) => d.id));
 
   // Bootstrap entity refs (always present from Phase 1)
   const skyCore = entityMap.get("sky-core");
   const skyGovernance = entityMap.get("sky-governance");
   const supportFacilitators = entityMap.get("support-facilitators");
 
-  const entityById = new Map([...entityMap.values()].map(e => [e.id, e]));
-  const entityByName = name => entityMap.get(slugify(name));
+  const entityById = new Map([...entityMap.values()].map((e) => [e.id, e]));
+  const entityByName = (name) => entityMap.get(slugify(name));
 
   function addEdge(fromId, fromType, toId, toType, edgeType, sourceDocNos = [], meta = null) {
     edges.push({ fromId, fromType, toId, toType, edgeType, sourceDocNos, meta });
@@ -53,13 +60,17 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   // Source: ICD parameter docs titled "Operational/Core Executor Agent" at
   // A.6.1.1.X.2.Z.2.N.1.1.1. Content cites the executor's defining doc. Walk parentId
   // chain to find the prime agent.
-  const UUID_LINK_RE = /\[([^\]]*)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;
-  for (const paramDoc of allDocs.filter(d =>
-    /^(operational|core)(?: council)? executor agent$/i.test(d.title)
+  const UUID_LINK_RE =
+    /\[([^\]]*)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;
+  for (const paramDoc of allDocs.filter((d) =>
+    /^(operational|core)(?: council)? executor agent$/i.test(d.title),
   )) {
     let executorDocId = null;
     for (const m of (paramDoc.content ?? "").matchAll(UUID_LINK_RE)) {
-      if (docIds.has(m[2])) { executorDocId = m[2]; break; }
+      if (docIds.has(m[2])) {
+        executorDocId = m[2];
+        break;
+      }
     }
     if (!executorDocId) continue;
     const executorEntity = entityByDocId.get(executorDocId);
@@ -69,7 +80,10 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
     let primeDoc = null;
     for (let i = 0; i < 20 && cur?.parentId; i++) {
       const parent = docById.get(cur.parentId);
-      if (parent && isPrimeAgent(parent)) { primeDoc = parent; break; }
+      if (parent && isPrimeAgent(parent)) {
+        primeDoc = parent;
+        break;
+      }
       cur = parent;
     }
     if (!primeDoc) continue;
@@ -78,17 +92,20 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
 
     // Best-effort matching accord doc (by party name containing the executor name).
     const primeName = primeEntity.name;
-    const accordDoc = allDocs.find(a => {
+    const accordDoc = allDocs.find((a) => {
       if (!isEcosystemAccord(a)) return false;
       const partyDocs = accordPartyDocsByAccordDocNo.get(a.doc_no) ?? [];
-      return partyDocs.some(pd => pd.partyEntity.id === primeEntity.id || (pd.memberStr ?? "").includes(primeName));
+      return partyDocs.some(
+        (pd) => pd.partyEntity.id === primeEntity.id || (pd.memberStr ?? "").includes(primeName),
+      );
     });
     const sources = [paramDoc.doc_no];
     if (accordDoc) sources.push(accordDoc.doc_no);
 
-    const edgeType = executorEntity.subtype === "core_executor"
-      ? "core_executor_agent_for"
-      : "operational_executor_agent_for";
+    const edgeType =
+      executorEntity.subtype === "core_executor"
+        ? "core_executor_agent_for"
+        : "operational_executor_agent_for";
     addEdge(executorEntity.id, "entity", primeEntity.id, "entity", edgeType, sources);
   }
 
@@ -97,7 +114,7 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
     const isCore = /core executor facilitator/i.test(d.title);
     const name = extractAssignment(
       d.content,
-      "(?:The )?(?:(?:Operational|Core) (?:Executor )?)?Facilitator for [^.]+"
+      "(?:The )?(?:(?:Operational|Core) (?:Executor )?)?Facilitator for [^.]+",
     );
     if (!name) continue;
     const facEntity = entityByName(name);
@@ -111,10 +128,7 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   // --- 2l. {operational,core}_govops_for (Pattern 5) ---
   for (const d of allDocs.filter(isGovOpsDoc)) {
     const isCore = /core govops/i.test(d.title);
-    const name = extractAssignment(
-      d.content,
-      "(?:(?:Operational|Core) )?GovOps for [^.]+"
-    );
+    const name = extractAssignment(d.content, "(?:(?:Operational|Core) )?GovOps for [^.]+");
     if (!name) continue;
     const govEntity = entityByName(name);
     const executorDoc = d.parentId ? docById.get(d.parentId) : null;
@@ -128,7 +142,9 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   for (const name of alignedDelegateNames) {
     const entity = entityByName(name);
     if (entity) {
-      addEdge(entity.id, "entity", skyGovernance.id, "entity", "aligned_delegate_for", [ALIGNED_DELEGATES_DOC_NO]);
+      addEdge(entity.id, "entity", skyGovernance.id, "entity", "aligned_delegate_for", [
+        ALIGNED_DELEGATES_DOC_NO,
+      ]);
     }
   }
 
@@ -137,7 +153,15 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
     for (const { name, docNo } of items) {
       const entity = entityByName(name);
       if (entity) {
-        addEdge(entity.id, "entity", skyGovernance.id, "entity", "ranked_delegate_for", [docNo], JSON.stringify({ level }));
+        addEdge(
+          entity.id,
+          "entity",
+          skyGovernance.id,
+          "entity",
+          "ranked_delegate_for",
+          [docNo],
+          JSON.stringify({ level }),
+        );
       }
     }
   }
@@ -145,8 +169,12 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   // --- 2o. holds_role_for (Pattern 11) ---
   if (ccraHolder && ccraDoc) {
     addEdge(
-      ccraHolder.id, "entity", ccraDoc.id, "doc",
-      "holds_role_for", [CORE_COUNCIL_RISK_ADVISOR_DOC_NO],
+      ccraHolder.id,
+      "entity",
+      ccraDoc.id,
+      "doc",
+      "holds_role_for",
+      [CORE_COUNCIL_RISK_ADVISOR_DOC_NO],
       JSON.stringify({ role: "core_council_risk_advisor" }),
     );
   }
@@ -166,9 +194,15 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   // Inline parseNameList & resolveAccordMember-style resolution since we don't
   // need new entities here — every member was already created in Phase 1.
   const parseNameList = (str) =>
-    str.split(/,\s*/)
-      .flatMap(p => p.split(/\s+and\s+/i))
-      .map(s => s.trim().replace(/^(?:the|and)\s+/i, "").trim())
+    str
+      .split(/,\s*/)
+      .flatMap((p) => p.split(/\s+and\s+/i))
+      .map((s) =>
+        s
+          .trim()
+          .replace(/^(?:the|and)\s+/i, "")
+          .trim(),
+      )
       .filter(Boolean);
 
   function resolveMember(rawName) {
@@ -210,30 +244,36 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   //   role   — declaration names a role-binding doc's title (holds_role_for edge)
   // Edges carry meta.role_declared (raw declaration) and meta.resolution.
   const opExecByPrime = new Map();
-  const opFacByExec   = new Map();
-  const opGovByExec   = new Map();
+  const opFacByExec = new Map();
+  const opGovByExec = new Map();
   const roleHolderByDocTitle = new Map(); // normalized title → source entity id
   for (const e of edges) {
-    if      (e.edgeType === "operational_executor_agent_for") opExecByPrime.set(e.toId, e.fromId);
-    else if (e.edgeType === "operational_facilitator_for")    opFacByExec.set(e.toId, e.fromId);
-    else if (e.edgeType === "operational_govops_for")         opGovByExec.set(e.toId, e.fromId);
+    if (e.edgeType === "operational_executor_agent_for") opExecByPrime.set(e.toId, e.fromId);
+    else if (e.edgeType === "operational_facilitator_for") opFacByExec.set(e.toId, e.fromId);
+    else if (e.edgeType === "operational_govops_for") opGovByExec.set(e.toId, e.fromId);
     else if (e.edgeType === "holds_role_for") {
       const targetDoc = docById.get(e.toId);
       if (targetDoc?.title) roleHolderByDocTitle.set(targetDoc.title.toLowerCase(), e.fromId);
     }
   }
   // Core Facilitator / GovOps resolve to a single entity across the atlas.
-  const coreFacId = edges.find(e => e.edgeType === "core_facilitator_for")?.fromId ?? null;
-  const coreGovId = edges.find(e => e.edgeType === "core_govops_for")?.fromId     ?? null;
+  const coreFacId = edges.find((e) => e.edgeType === "core_facilitator_for")?.fromId ?? null;
+  const coreGovId = edges.find((e) => e.edgeType === "core_govops_for")?.fromId ?? null;
   // Unique operational_govops entity — fallback for A.2.* ADCs that declare
   // "Operational GovOps" without a Prime Agent context (e.g. Support Scope primitives).
   const uniqueOpGovIds = [...new Set(opGovByExec.values())];
   const uniqueOpGovId = uniqueOpGovIds.length === 1 ? uniqueOpGovIds[0] : null;
 
-  let rpDirect = 0, rpChain = 0, rpRole = 0, rpUnresolved = 0;
-  for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
+  let rpDirect = 0,
+    rpChain = 0,
+    rpRole = 0,
+    rpUnresolved = 0;
+  for (const d of allDocs.filter((d) => d.type === "Active Data Controller")) {
     const raw = extractRP(d.content);
-    if (!raw) { rpUnresolved++; continue; }
+    if (!raw) {
+      rpUnresolved++;
+      continue;
+    }
     const { role, name } = rpRoleAndName(raw);
 
     let entity = null;
@@ -247,7 +287,10 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
       for (const [title, holderId] of roleHolderByDocTitle) {
         if (title === needle || title.includes(needle)) {
           entity = entityById.get(holderId);
-          if (entity) { resolution = "role"; break; }
+          if (entity) {
+            resolution = "role";
+            break;
+          }
         }
       }
     }
@@ -262,14 +305,17 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
       if (m) {
         const primeEntity = entityByDocId.get(docByDocNo.get(`A.6.1.1.${m[1]}`)?.id);
         const execId = primeEntity ? opExecByPrime.get(primeEntity.id) : null;
-        if (role === "operational_govops"      && execId) entity = entityById.get(opGovByExec.get(execId));
-        else if (role === "operational_facilitator" && execId) entity = entityById.get(opFacByExec.get(execId));
-        else if (role === "core_facilitator")  entity = entityById.get(coreFacId);
-        else if (role === "core_govops")       entity = entityById.get(coreGovId);
+        if (role === "operational_govops" && execId)
+          entity = entityById.get(opGovByExec.get(execId));
+        else if (role === "operational_facilitator" && execId)
+          entity = entityById.get(opFacByExec.get(execId));
+        else if (role === "core_facilitator") entity = entityById.get(coreFacId);
+        else if (role === "core_govops") entity = entityById.get(coreGovId);
       } else {
-        if      (role === "core_facilitator")   entity = entityById.get(coreFacId);
-        else if (role === "core_govops")        entity = entityById.get(coreGovId);
-        else if (role === "operational_govops" && uniqueOpGovId) entity = entityById.get(uniqueOpGovId);
+        if (role === "core_facilitator") entity = entityById.get(coreFacId);
+        else if (role === "core_govops") entity = entityById.get(coreGovId);
+        else if (role === "operational_govops" && uniqueOpGovId)
+          entity = entityById.get(uniqueOpGovId);
         else if (role === "support_facilitators") entity = supportFacilitators;
       }
       if (entity) resolution = "chain";
@@ -277,18 +323,24 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
 
     if (entity) {
       addEdge(
-        entity.id, "entity", d.id, "doc",
-        "responsible_party_for", [d.doc_no],
+        entity.id,
+        "entity",
+        d.id,
+        "doc",
+        "responsible_party_for",
+        [d.doc_no],
         JSON.stringify({ role_declared: raw, resolution }),
       );
-      if      (resolution === "direct") rpDirect++;
-      else if (resolution === "chain")  rpChain++;
-      else                              rpRole++;
+      if (resolution === "direct") rpDirect++;
+      else if (resolution === "chain") rpChain++;
+      else rpRole++;
     } else {
       rpUnresolved++;
     }
   }
-  console.log(`  responsible_party_for: ${rpDirect} direct, ${rpChain} via chain, ${rpRole} via role-binding, ${rpUnresolved} unresolved`);
+  console.log(
+    `  responsible_party_for: ${rpDirect} direct, ${rpChain} via chain, ${rpRole} via role-binding, ${rpUnresolved} unresolved`,
+  );
 
   // --- 2t. defines_entity (doc → entity it defines) ---
   for (const e of entityMap.values()) {
@@ -306,7 +358,7 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
 
   // --- 2v. mentions (doc → address) ---
   for (const d of allDocs) {
-    for (const addr of (d.addressRefs ?? [])) {
+    for (const addr of d.addressRefs ?? []) {
       const info = addressesRaw[addr] ?? addressesRaw[addr.toLowerCase()];
       const chain = info?.chain ?? "ethereum";
       addEdge(d.id, "doc", `${addr.toLowerCase()}:${chain}`, "address", "mentions", [d.doc_no]);
@@ -318,9 +370,12 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
     if (info.implementation) {
       const chain = info.chain ?? "ethereum";
       addEdge(
-        `${addr.toLowerCase()}:${chain}`, "address",
-        `${info.implementation.toLowerCase()}:${chain}`, "address",
-        "proxies_to", [],
+        `${addr.toLowerCase()}:${chain}`,
+        "address",
+        `${info.implementation.toLowerCase()}:${chain}`,
+        "address",
+        "proxies_to",
+        [],
       );
     }
   }

@@ -6,7 +6,12 @@ import fs from "node:fs";
 import path from "node:path";
 import type { AtlasNode, Participant, RelationEdge } from "../types";
 import {
-  agentFromDocNo, agentsFromGraph, extractProcess, buildChainMap, buildActiveDataRows, activeDataRowsToCSV,
+  agentFromDocNo,
+  agentsFromGraph,
+  extractProcess,
+  buildChainMap,
+  buildActiveDataRows,
+  activeDataRowsToCSV,
 } from "./activeDataIndex";
 
 const ROOT = path.resolve(__dirname, "../..");
@@ -14,14 +19,22 @@ const PUBLIC = path.join(ROOT, "public");
 
 type Relations = { meta: unknown; entities: Participant[]; edges: RelationEdge[] };
 
-const relations: Relations = JSON.parse(fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"));
-const docs: Record<string, AtlasNode> = JSON.parse(fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"));
+const relations: Relations = JSON.parse(
+  fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"),
+);
+const docs: Record<string, AtlasNode> = JSON.parse(
+  fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"),
+);
 
-const participants = relations.entities.filter(e => e.et !== "instance");
-const graphInput = { participants, instances: relations.entities.filter(e => e.et === "instance"), edges: relations.edges };
+const participants = relations.entities.filter((e) => e.et !== "instance");
+const graphInput = {
+  participants,
+  instances: relations.entities.filter((e) => e.et === "instance"),
+  edges: relations.edges,
+};
 
-const activeDataDocs = Object.values(docs).filter(d => d.type === "Active Data");
-const adEdges = relations.edges.filter(e => e.e === "active_data_for");
+const activeDataDocs = Object.values(docs).filter((d) => d.type === "Active Data");
+const adEdges = relations.edges.filter((e) => e.e === "active_data_for");
 const rows = buildActiveDataRows(docs, graphInput);
 const agents = agentsFromGraph(participants, docs);
 
@@ -41,18 +54,22 @@ describe("agentFromDocNo", () => {
 
 describe("agentsFromGraph", () => {
   it("includes every prime agent with a defining doc", () => {
-    const primes = participants.filter(e => e.et === "agent" && e.st === "prime" && e.did);
+    const primes = participants.filter((e) => e.et === "agent" && e.st === "prime" && e.did);
     expect(agents.length).toBe(primes.length);
   });
   it("is ordered by doc_no naturally", () => {
-    const sorted = [...agents].sort((a, b) => a.docNo.localeCompare(b.docNo, undefined, { numeric: true }));
-    expect(agents.map(a => a.docNo)).toEqual(sorted.map(a => a.docNo));
+    const sorted = [...agents].sort((a, b) =>
+      a.docNo.localeCompare(b.docNo, undefined, { numeric: true }),
+    );
+    expect(agents.map((a) => a.docNo)).toEqual(sorted.map((a) => a.docNo));
   });
 });
 
 describe("extractProcess", () => {
   it("returns 'Alignment Conserver Changes' when phrase is present", () => {
-    expect(extractProcess("Edits flow through the Alignment Conserver.")).toBe("Alignment Conserver Changes");
+    expect(extractProcess("Edits flow through the Alignment Conserver.")).toBe(
+      "Alignment Conserver Changes",
+    );
   });
   it("is case-insensitive", () => {
     expect(extractProcess("alignment conserver")).toBe("Alignment Conserver Changes");
@@ -66,7 +83,7 @@ describe("buildChainMap", () => {
   const chainMap = buildChainMap(participants, relations.edges);
 
   it("includes every prime agent", () => {
-    const primes = participants.filter(e => e.et === "agent" && e.st === "prime");
+    const primes = participants.filter((e) => e.et === "agent" && e.st === "prime");
     expect(chainMap.size).toBe(primes.length);
     for (const p of primes) expect(chainMap.get(p.name)?.agentId).toBe(p.id);
   });
@@ -75,8 +92,10 @@ describe("buildChainMap", () => {
     for (const [agentName, chain] of chainMap) {
       for (const key of ["executor", "facilitator", "govops"] as const) {
         const name = chain[`${key}Name`];
-        const id   = chain[`${key}Id`];
-        expect(name === null, `${agentName}.${key}: name=${String(name)} id=${String(id)}`).toBe(id === null);
+        const id = chain[`${key}Id`];
+        expect(name === null, `${agentName}.${key}: name=${String(name)} id=${String(id)}`).toBe(
+          id === null,
+        );
       }
     }
   });
@@ -85,10 +104,13 @@ describe("buildChainMap", () => {
     for (const [, chain] of chainMap) {
       if (!chain.executorId) continue;
       const edge = relations.edges.find(
-        e => (e.e === "operational_executor_agent_for" || e.e === "core_executor_agent_for")
-          && e.t === chain.agentId,
+        (e) =>
+          (e.e === "operational_executor_agent_for" || e.e === "core_executor_agent_for") &&
+          e.t === chain.agentId,
       );
-      expect(edge?.f, `${chain.agentName}: executorId doesn't match edge source`).toBe(chain.executorId);
+      expect(edge?.f, `${chain.agentName}: executorId doesn't match edge source`).toBe(
+        chain.executorId,
+      );
     }
   });
 
@@ -96,10 +118,13 @@ describe("buildChainMap", () => {
     for (const [, chain] of chainMap) {
       if (!chain.facilitatorId || !chain.executorId) continue;
       const edge = relations.edges.find(
-        e => (e.e === "operational_facilitator_for" || e.e === "core_facilitator_for")
-          && e.t === chain.executorId,
+        (e) =>
+          (e.e === "operational_facilitator_for" || e.e === "core_facilitator_for") &&
+          e.t === chain.executorId,
       );
-      expect(edge?.f, `${chain.agentName}: facilitatorId doesn't match edge source`).toBe(chain.facilitatorId);
+      expect(edge?.f, `${chain.agentName}: facilitatorId doesn't match edge source`).toBe(
+        chain.facilitatorId,
+      );
     }
   });
 
@@ -107,10 +132,13 @@ describe("buildChainMap", () => {
     for (const [, chain] of chainMap) {
       if (!chain.govopsId || !chain.executorId) continue;
       const edge = relations.edges.find(
-        e => (e.e === "operational_govops_for" || e.e === "core_govops_for")
-          && e.t === chain.executorId,
+        (e) =>
+          (e.e === "operational_govops_for" || e.e === "core_govops_for") &&
+          e.t === chain.executorId,
       );
-      expect(edge?.f, `${chain.agentName}: govopsId doesn't match edge source`).toBe(chain.govopsId);
+      expect(edge?.f, `${chain.agentName}: govopsId doesn't match edge source`).toBe(
+        chain.govopsId,
+      );
     }
   });
 });
@@ -118,24 +146,24 @@ describe("buildChainMap", () => {
 describe("buildActiveDataRows", () => {
   it("returns exactly one row per Active Data doc", () => {
     expect(rows.length).toBe(activeDataDocs.length);
-    expect(new Set(rows.map(r => r.activeDataId)).size).toBe(rows.length);
+    expect(new Set(rows.map((r) => r.activeDataId)).size).toBe(rows.length);
   });
 
   it("covers every active_data_for edge's source doc", () => {
-    const adEdgeSources = new Set(adEdges.map(e => e.f));
-    const rowIds = new Set(rows.map(r => r.activeDataId));
+    const adEdgeSources = new Set(adEdges.map((e) => e.f));
+    const rowIds = new Set(rows.map((r) => r.activeDataId));
     for (const id of adEdgeSources) expect(rowIds.has(id)).toBe(true);
   });
 
   it("is sorted by active data doc_no (natural)", () => {
     const sorted = [...rows].sort((a, b) =>
-      a.activeDataDocNo.localeCompare(b.activeDataDocNo, undefined, { numeric: true })
+      a.activeDataDocNo.localeCompare(b.activeDataDocNo, undefined, { numeric: true }),
     );
-    expect(rows.map(r => r.activeDataDocNo)).toEqual(sorted.map(r => r.activeDataDocNo));
+    expect(rows.map((r) => r.activeDataDocNo)).toEqual(sorted.map((r) => r.activeDataDocNo));
   });
 
   it("links each row to its controller via active_data_for", () => {
-    const ctrlByAd = new Map(adEdges.map(e => [e.f, e.t]));
+    const ctrlByAd = new Map(adEdges.map((e) => [e.f, e.t]));
     for (const r of rows) {
       const expected = ctrlByAd.get(r.activeDataId) ?? null;
       expect(r.controllerId).toBe(expected);
@@ -157,7 +185,7 @@ describe("buildActiveDataRows", () => {
 
   it("responsibleParty matches the responsible_party_for edge target", () => {
     const respByCtrl = new Map(
-      relations.edges.filter(e => e.e === "responsible_party_for").map(e => [e.t, e.f]),
+      relations.edges.filter((e) => e.e === "responsible_party_for").map((e) => [e.t, e.f]),
     );
     for (const r of rows) {
       if (r.controllerId && respByCtrl.has(r.controllerId)) {
@@ -179,7 +207,7 @@ describe("buildActiveDataRows", () => {
   });
 
   it("every Sky Core Atlas row (A.1.*) gets the Core Facilitator", () => {
-    const coreFacEdge = relations.edges.find(e => e.e === "core_facilitator_for");
+    const coreFacEdge = relations.edges.find((e) => e.e === "core_facilitator_for");
     if (!coreFacEdge) return;
     for (const r of rows) {
       if (r.agent) continue;

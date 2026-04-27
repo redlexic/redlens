@@ -20,24 +20,24 @@ export const WINDOW = 300; // chars before the address to scan for chain hints
 
 // Ordered by specificity — more specific patterns first within each entry
 export const CHAIN_HINTS = [
-  { chain: "ethereum",  patterns: [/\bethereum\b/i, /\bmainnet\b/i] },
-  { chain: "base",      patterns: [/\bbase\b/i] },
-  { chain: "arbitrum",  patterns: [/\barbitrum\b/i, /\barb\b/i] },
-  { chain: "optimism",  patterns: [/\boptimism\b/i, /\bop mainnet\b/i] },
-  { chain: "polygon",   patterns: [/\bpolygon\b/i, /\bmatic\b/i] },
+  { chain: "ethereum", patterns: [/\bethereum\b/i, /\bmainnet\b/i] },
+  { chain: "base", patterns: [/\bbase\b/i] },
+  { chain: "arbitrum", patterns: [/\barbitrum\b/i, /\barb\b/i] },
+  { chain: "optimism", patterns: [/\boptimism\b/i, /\bop mainnet\b/i] },
+  { chain: "polygon", patterns: [/\bpolygon\b/i, /\bmatic\b/i] },
   { chain: "avalanche", patterns: [/\bavalanche\b/i, /\bavax\b/i] },
-  { chain: "gnosis",    patterns: [/\bgnosis\b/i, /\bxdai\b/i] },
+  { chain: "gnosis", patterns: [/\bgnosis\b/i, /\bxdai\b/i] },
 ];
 
 export const EXPLORER = {
-  ethereum:  "https://etherscan.io/address/",
-  base:      "https://basescan.org/address/",
-  arbitrum:  "https://arbiscan.io/address/",
-  optimism:  "https://optimistic.etherscan.io/address/",
-  polygon:   "https://polygonscan.com/address/",
+  ethereum: "https://etherscan.io/address/",
+  base: "https://basescan.org/address/",
+  arbitrum: "https://arbiscan.io/address/",
+  optimism: "https://optimistic.etherscan.io/address/",
+  polygon: "https://polygonscan.com/address/",
   avalanche: "https://snowtrace.io/address/",
-  gnosis:    "https://gnosisscan.io/address/",
-  solana:    "https://explorer.solana.com/address/",
+  gnosis: "https://gnosisscan.io/address/",
+  solana: "https://explorer.solana.com/address/",
 };
 
 // "address on [the] CHAIN is 0x..." — most reliable signal
@@ -69,7 +69,10 @@ export function isSeparatorRow(line) {
 }
 export function splitRow(line) {
   // Strip leading/trailing pipes, split, trim cells
-  return line.slice(1, -1).split("|").map((c) => c.trim());
+  return line
+    .slice(1, -1)
+    .split("|")
+    .map((c) => c.trim());
 }
 
 export function findTableContext(content, matchIndex) {

@@ -8,14 +8,31 @@
 
 import crypto from "crypto";
 import {
-  slugify, ERG_DOC_NO, ALIGNED_DELEGATES_DOC_NO, CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
-  isPrimeAgent, isExecutorAgent, isFacilitatorDoc, isGovOpsDoc, isGrantDoc, isPartyDetails,
-  isICD, COMPRISES_RE, ATOMIC_PARTY_RE,
-  extractAssignment, extractRP, rpRoleAndName, parseNameList, extractListItems,
+  slugify,
+  ERG_DOC_NO,
+  ALIGNED_DELEGATES_DOC_NO,
+  CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
+  isPrimeAgent,
+  isExecutorAgent,
+  isFacilitatorDoc,
+  isGovOpsDoc,
+  isGrantDoc,
+  isPartyDetails,
+  isICD,
+  COMPRISES_RE,
+  ATOMIC_PARTY_RE,
+  extractAssignment,
+  extractRP,
+  rpRoleAndName,
+  parseNameList,
+  extractListItems,
   primitiveRootFor,
 } from "./graph-patterns.mjs";
 import {
-  INSTANCE_SCOPED_PRIMITIVES, instanceStatusFor, buildChildrenIndex, extractInstanceParams,
+  INSTANCE_SCOPED_PRIMITIVES,
+  instanceStatusFor,
+  buildChildrenIndex,
+  extractInstanceParams,
 } from "./graph-instances.mjs";
 
 export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
@@ -37,14 +54,32 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
     return ent;
   }
 
-  function entityByName(name) { return entityMap.get(slugify(name)); }
+  function entityByName(name) {
+    return entityMap.get(slugify(name));
+  }
 
   // --- 1a. Bootstrap entities (Pattern 13) ---
   // Sky Core / Sky Governance — targets of role edges; no defining doc.
-  const skyCore      = addEntity("sky-core", "Sky Core", "operational_party", null, null, { source: "bootstrap" });
-  const skyGovernance = addEntity("sky-governance", "Sky Governance", "governance_body", null, "18ac7dd3-c646-4352-9b0d-d01a2932d7d1", { source: "bootstrap", defining_doc_no: "A.1" });
+  const skyCore = addEntity("sky-core", "Sky Core", "operational_party", null, null, {
+    source: "bootstrap",
+  });
+  addEntity(
+    "sky-governance",
+    "Sky Governance",
+    "governance_body",
+    null,
+    "18ac7dd3-c646-4352-9b0d-d01a2932d7d1",
+    { source: "bootstrap", defining_doc_no: "A.1" },
+  );
   // Support Facilitators — role defined at A.2.10.1.1; no named current holder in Atlas.
-  const supportFacilitators = addEntity("support-facilitators", "Support Facilitators", "governance_body", null, "aeb75fe3-f52b-4cdf-a206-1e54ef648d88", { source: "bootstrap", defining_doc_no: "A.2.10.1.1" });
+  addEntity(
+    "support-facilitators",
+    "Support Facilitators",
+    "governance_body",
+    null,
+    "aeb75fe3-f52b-4cdf-a206-1e54ef648d88",
+    { source: "bootstrap", defining_doc_no: "A.2.10.1.1" },
+  );
 
   // --- 1b. Prime Agents (Pattern 1) ---
   for (const d of allDocs.filter(isPrimeAgent)) {
@@ -59,9 +94,7 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
   // suffix IS their identity ("Core Council Executor Agent 1").
   for (const d of allDocs.filter(isExecutorAgent)) {
     const isCore = /^Core Council Executor Agent/i.test(d.title);
-    const name = isCore
-      ? d.title
-      : d.title.replace(/^Operational Executor Agent\s+/i, "").trim();
+    const name = isCore ? d.title : d.title.replace(/^Operational Executor Agent\s+/i, "").trim();
     const subtype = isCore ? "core_executor" : "operational_executor";
     const ent = addEntity(slugify(name), name, "agent", subtype, d.id);
     ent.id = d.id;
@@ -71,24 +104,23 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
   for (const d of allDocs.filter(isFacilitatorDoc)) {
     const name = extractAssignment(
       d.content,
-      "(?:The )?(?:(?:Operational|Core) (?:Executor )?)?Facilitator for [^.]+"
+      "(?:The )?(?:(?:Operational|Core) (?:Executor )?)?Facilitator for [^.]+",
     );
-    if (name) addEntity(slugify(name), name, "facilitator_org", null, d.id, {
-      source: "facilitator_doc",
-      source_doc_no: d.doc_no,
-    });
+    if (name)
+      addEntity(slugify(name), name, "facilitator_org", null, d.id, {
+        source: "facilitator_doc",
+        source_doc_no: d.doc_no,
+      });
   }
 
   // --- 1e. GovOps (Pattern 5) — entity_type = govops_org ---
   for (const d of allDocs.filter(isGovOpsDoc)) {
-    const name = extractAssignment(
-      d.content,
-      "(?:(?:Operational|Core) )?GovOps for [^.]+"
-    );
-    if (name) addEntity(slugify(name), name, "govops_org", null, d.id, {
-      source: "govops_doc",
-      source_doc_no: d.doc_no,
-    });
+    const name = extractAssignment(d.content, "(?:(?:Operational|Core) )?GovOps for [^.]+");
+    if (name)
+      addEntity(slugify(name), name, "govops_org", null, d.id, {
+        source: "govops_doc",
+        source_doc_no: d.doc_no,
+      });
   }
 
   // --- 1f. Named Responsible Parties from Active Data Controllers (Pattern 6) ---
@@ -100,15 +132,19 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
   const roleBindingTitles = new Set();
   const ccraDocEarly = docByDocNo.get(CORE_COUNCIL_RISK_ADVISOR_DOC_NO);
   if (ccraDocEarly?.title) roleBindingTitles.add(ccraDocEarly.title.toLowerCase());
-  for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
+  for (const d of allDocs.filter((d) => d.type === "Active Data Controller")) {
     const raw = extractRP(d.content);
     if (!raw) continue;
     const { role, name } = rpRoleAndName(raw);
-    if (role && !name) continue;   // "Operational GovOps" — no name to create
+    if (role && !name) continue; // "Operational GovOps" — no name to create
     if (!name) continue;
     const needle = name.toLowerCase();
     let hitRoleTitle = false;
-    for (const t of roleBindingTitles) if (t === needle || t.includes(needle)) { hitRoleTitle = true; break; }
+    for (const t of roleBindingTitles)
+      if (t === needle || t.includes(needle)) {
+        hitRoleTitle = true;
+        break;
+      }
     if (hitRoleTitle) continue;
     const s = slugify(name);
     if (entityMap.has(s)) continue;
@@ -180,7 +216,10 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
     const m = d.content?.match(/Ranked Delegates?\s+(?:are|is)\s+([^.]+)\./i);
     if (!m) continue;
     const names = parseNameList(m[1]);
-    rankedDelegatesByLevel.set(level, names.map(name => ({ name, docNo })));
+    rankedDelegatesByLevel.set(
+      level,
+      names.map((name) => ({ name, docNo })),
+    );
     for (const name of names) {
       const s = slugify(name);
       if (!entityMap.has(s)) {
@@ -213,9 +252,10 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
 
   // --- 1l. Grant recipients (foundations surface here) ---
   for (const d of allDocs.filter(isGrantDoc)) {
-    const m = d.content?.match(/\*\s*Recipient:\s*([^\n]+?)(?:\n|$)/i)
-          ?? d.content?.match(/-\s*Recipient:\s*([^\n]+?)(?:\n|$)/i)
-          ?? d.content?.match(/\bRecipient:\s*([^\n]+?)(?:\n|$)/i);
+    const m =
+      d.content?.match(/\*\s*Recipient:\s*([^\n]+?)(?:\n|$)/i) ??
+      d.content?.match(/-\s*Recipient:\s*([^\n]+?)(?:\n|$)/i) ??
+      d.content?.match(/\bRecipient:\s*([^\n]+?)(?:\n|$)/i);
     if (!m) continue;
     const name = m[1].trim();
     const s = slugify(name);
@@ -294,8 +334,11 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
       }
     }
 
-    if (!accordPartyDocsByAccordDocNo.has(accordDocNo)) accordPartyDocsByAccordDocNo.set(accordDocNo, []);
-    accordPartyDocsByAccordDocNo.get(accordDocNo).push({ partyEntity, sourceDocNo: d.doc_no, memberStr, isSky: /^Sky$/i.test(partyName) });
+    if (!accordPartyDocsByAccordDocNo.has(accordDocNo))
+      accordPartyDocsByAccordDocNo.set(accordDocNo, []);
+    accordPartyDocsByAccordDocNo
+      .get(accordDocNo)
+      .push({ partyEntity, sourceDocNo: d.doc_no, memberStr, isSky: /^Sky$/i.test(partyName) });
 
     // Resolve members now so they exist before edges are emitted in Phase 2.
     for (const memberName of parseNameList(memberStr)) {
@@ -306,7 +349,7 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
   // --- 1i. Primitive Instance entities (Pattern: per-agent ICD → entity) ---
   const childrenByDocNo = buildChildrenIndex(allDocs);
 
-  for (const icd of allDocs.filter(d => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
+  for (const icd of allDocs.filter((d) => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
     const primRoot = primitiveRootFor(icd, docByDocNo);
     if (!primRoot) continue;
     const primitiveSlug = INSTANCE_SCOPED_PRIMITIVES[primRoot.title];

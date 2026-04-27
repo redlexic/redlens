@@ -2,15 +2,15 @@ import type { HistoryEntry } from "../../lib/history";
 import { DiffView } from "./DiffView";
 
 const CHANGE_COLOR: Record<string, string> = {
-  added:    "var(--depth-6)",
+  added: "var(--depth-6)",
   modified: "var(--tan-3)",
-  removed:  "var(--red)",
+  removed: "var(--red)",
 };
 
 const CHANGE_LABEL: Record<string, string> = {
-  added:    "added",
+  added: "added",
   modified: "edited",
-  removed:  "removed",
+  removed: "removed",
 };
 
 export function EntryRow({ entry }: { entry: HistoryEntry }) {

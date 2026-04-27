@@ -1,8 +1,18 @@
 import { useMemo, useEffect, useCallback, memo } from "react";
 import {
-  ReactFlow, Background, Controls, BackgroundVariant, Handle, Position,
-  useNodesState, useEdgesState, MarkerType,
-  type Node, type Edge, type NodeProps, type NodeMouseHandler,
+  ReactFlow,
+  Background,
+  Controls,
+  BackgroundVariant,
+  Handle,
+  Position,
+  useNodesState,
+  useEdgesState,
+  MarkerType,
+  type Node,
+  type Edge,
+  type NodeProps,
+  type NodeMouseHandler,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { MultiDirectedGraph } from "graphology";
@@ -11,7 +21,9 @@ import noverlap from "graphology-layout-noverlap";
 import { parseMeta } from "../../lib/meta";
 import type { EntityNodeData, EntityEdgeData, EntityRelation } from "../../lib/entityGraph";
 import {
-  edgeLabel, ENTITY_TYPE_LABEL, SUBTYPE_LABEL,
+  edgeLabel,
+  ENTITY_TYPE_LABEL,
+  SUBTYPE_LABEL,
   getEntityRelations,
 } from "../../lib/entityGraph";
 import type { GraphData } from "../../lib/graph";
@@ -37,12 +49,20 @@ type CardNode = Node<CardData, "entity">;
 
 const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNode>) {
   const {
-    label, color, entityType, subtype, degree,
-    entity, graphData, entityById, onSelect, onNavigateDoc,
+    label,
+    color,
+    entityType,
+    subtype,
+    degree,
+    entity,
+    graphData,
+    entityById,
+    onSelect,
+    onNavigateDoc,
   } = data;
 
   const typeLabel = ENTITY_TYPE_LABEL[entityType] ?? entityType;
-  const subLabel = subtype ? SUBTYPE_LABEL[subtype] ?? subtype : null;
+  const subLabel = subtype ? (SUBTYPE_LABEL[subtype] ?? subtype) : null;
 
   return (
     <div
@@ -59,23 +79,34 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
       }}
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: "none" }} />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{ opacity: 0, pointerEvents: "none" }}
+      />
 
       <div className="flex items-center gap-2">
-        <span className="inline-block rounded-full shrink-0"
-          style={{ background: color, width: selected ? 10 : 8, height: selected ? 10 : 8 }} />
-        <span className="font-semibold text-sm truncate" style={{ color: "var(--tan)" }}>{label}</span>
+        <span
+          className="inline-block rounded-full shrink-0"
+          style={{ background: color, width: selected ? 10 : 8, height: selected ? 10 : 8 }}
+        />
+        <span className="font-semibold text-sm truncate" style={{ color: "var(--tan)" }}>
+          {label}
+        </span>
       </div>
 
       <div className="mono text-[10px] mt-0.5" style={{ color: "var(--tan-3)" }}>
-        {typeLabel}{subLabel ? ` · ${subLabel}` : ""}
+        {typeLabel}
+        {subLabel ? ` · ${subLabel}` : ""}
       </div>
 
       {selected && (
         <CardBody
-          entity={entity} graphData={graphData}
+          entity={entity}
+          graphData={graphData}
           entityById={entityById}
-          onSelect={onSelect} onNavigateDoc={onNavigateDoc}
+          onSelect={onSelect}
+          onNavigateDoc={onNavigateDoc}
         />
       )}
       {!selected && degree > 0 && (
@@ -88,7 +119,11 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
 });
 
 function CardBody({
-  entity, graphData, entityById, onSelect, onNavigateDoc,
+  entity,
+  graphData,
+  entityById,
+  onSelect,
+  onNavigateDoc,
 }: {
   entity: Participant;
   graphData: GraphData;
@@ -99,7 +134,10 @@ function CardBody({
   const grouped = useMemo(() => {
     const rels = getEntityRelations(entity.id, graphData, entityById);
     // Key includes direction so the group label matches every chip in the group.
-    const byType = new Map<string, { edgeType: string; direction: "outbound" | "inbound"; rels: EntityRelation[] }>();
+    const byType = new Map<
+      string,
+      { edgeType: string; direction: "outbound" | "inbound"; rels: EntityRelation[] }
+    >();
     for (const r of rels) {
       const k = `${r.edge.e}|${r.direction}`;
       let bucket = byType.get(k);
@@ -125,28 +163,39 @@ function CardBody({
         <button
           className="mono text-[11px] hover:underline mb-3"
           style={{ color: "var(--accent)" }}
-          onClick={(e) => { e.stopPropagation(); onNavigateDoc(entity.did!); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigateDoc(entity.did!);
+          }}
         >
           → defining document
         </button>
       )}
       {params && (
         <div className="mb-3">
-          <p className="mono text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--tan-3)" }}>
+          <p
+            className="mono text-[9px] uppercase tracking-wide mb-1"
+            style={{ color: "var(--tan-3)" }}
+          >
             parameters · {Object.keys(params).length}
           </p>
           <div className="space-y-1">
             {Object.entries(params).map(([key, [value, srcId, srcDocNo]]) => (
               <div key={key} className="text-[10px] leading-tight">
                 <button
-                  onClick={(e) => { e.stopPropagation(); onNavigateDoc(srcId); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNavigateDoc(srcId);
+                  }}
                   className="mono hover:underline"
                   style={{ color: "var(--tan-3)" }}
                   title={srcDocNo}
                 >
                   {key}
                 </button>
-                <span className="mx-1" style={{ color: "var(--tan-3)" }}>:</span>
+                <span className="mx-1" style={{ color: "var(--tan-3)" }}>
+                  :
+                </span>
                 <span style={{ color: "var(--tan-2)" }}>
                   {value.length > 90 ? value.slice(0, 90) + "…" : value}
                 </span>
@@ -156,17 +205,21 @@ function CardBody({
         </div>
       )}
       {grouped.length === 0 ? (
-        <p className="mono text-[10px]" style={{ color: "var(--tan-3)" }}>No relations.</p>
+        <p className="mono text-[10px]" style={{ color: "var(--tan-3)" }}>
+          No relations.
+        </p>
       ) : (
         grouped.map(({ edgeType, direction, rels }) => (
           <div key={`${edgeType}|${direction}`} className="mb-2.5 last:mb-0">
-            <p className="mono text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--tan-3)" }}>
+            <p
+              className="mono text-[9px] uppercase tracking-wide mb-1"
+              style={{ color: "var(--tan-3)" }}
+            >
               {edgeLabel(edgeType, direction)} · {rels.length}
             </p>
             <div className="flex flex-wrap gap-1">
               {rels.map((r, i) => (
-                <RelationChip key={i} rel={r}
-                  onSelect={onSelect} onNavigateDoc={onNavigateDoc} />
+                <RelationChip key={i} rel={r} onSelect={onSelect} onNavigateDoc={onNavigateDoc} />
               ))}
             </div>
           </div>
@@ -177,7 +230,9 @@ function CardBody({
 }
 
 function RelationChip({
-  rel, onSelect, onNavigateDoc,
+  rel,
+  onSelect,
+  onNavigateDoc,
 }: {
   rel: EntityRelation;
   onSelect: (id: string) => void;
@@ -216,8 +271,13 @@ function RelationChip({
 const nodeTypes = { entity: EntityCard };
 
 export function EntityFlow({
-  nodes: entityNodes, edges: entityEdges, selectedId, onSelect,
-  graphData, entityById, onNavigateDoc,
+  nodes: entityNodes,
+  edges: entityEdges,
+  selectedId,
+  onSelect,
+  graphData,
+  entityById,
+  onNavigateDoc,
 }: {
   nodes: EntityNodeData[];
   edges: EntityEdgeData[];
@@ -261,7 +321,7 @@ export function EntityFlow({
       graph.forEachNode((_, a) => pts.push({ x: a.x as number, y: a.y as number }));
       const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
       const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-      const dists = pts.map(p => Math.hypot(p.x - cx, p.y - cy)).sort((a, b) => a - b);
+      const dists = pts.map((p) => Math.hypot(p.x - cx, p.y - cy)).sort((a, b) => a - b);
       const cap = dists[Math.floor(dists.length * 0.85)] * 1.2;
       graph.updateEachNodeAttributes((_, attrs) => {
         const dx = (attrs.x as number) - cx;
@@ -275,7 +335,7 @@ export function EntityFlow({
       });
     }
 
-    const rfNodes: CardNode[] = entityNodes.map(n => {
+    const rfNodes: CardNode[] = entityNodes.map((n) => {
       const attrs = graph.getNodeAttributes(n.id);
       return {
         id: n.id,
@@ -288,13 +348,15 @@ export function EntityFlow({
           subtype: n.entity.st,
           degree: n.degree,
           entity: n.entity,
-          graphData, entityById,
-          onSelect, onNavigateDoc,
+          graphData,
+          entityById,
+          onSelect,
+          onNavigateDoc,
         },
       };
     });
 
-    const rfEdges: Edge[] = entityEdges.map(e => ({
+    const rfEdges: Edge[] = entityEdges.map((e) => ({
       id: e.key,
       source: e.src,
       target: e.tgt,
@@ -316,30 +378,48 @@ export function EntityFlow({
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(rfEdges);
 
   // Rebuild state when the incoming (filtered) set changes.
-  useEffect(() => { setNodes(rfNodes); }, [rfNodes, setNodes]);
-  useEffect(() => { setEdges(rfEdges); }, [rfEdges, setEdges]);
+  useEffect(() => {
+    setNodes(rfNodes);
+  }, [rfNodes, setNodes]);
+  useEffect(() => {
+    setEdges(rfEdges);
+  }, [rfEdges, setEdges]);
 
   // Drive "selected" attribute from external selectedId so the card can expand.
   useEffect(() => {
-    setNodes(ns => ns.map(n => (n.selected === (n.id === selectedId) ? n : { ...n, selected: n.id === selectedId })));
+    setNodes((ns) =>
+      ns.map((n) =>
+        n.selected === (n.id === selectedId) ? n : { ...n, selected: n.id === selectedId },
+      ),
+    );
   }, [selectedId, setNodes]);
 
   // Highlight edges incident to selection.
   useEffect(() => {
-    setEdges(es => es.map(e => {
-      const active = selectedId && (e.source === selectedId || e.target === selectedId);
-      return {
-        ...e,
-        style: { stroke: active ? EDGE_HIGHLIGHT : EDGE_COLOR, strokeWidth: active ? 2 : 1.2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: active ? EDGE_HIGHLIGHT : EDGE_COLOR, width: 16, height: 16 },
-        zIndex: active ? 1 : 0,
-      };
-    }));
+    setEdges((es) =>
+      es.map((e) => {
+        const active = selectedId && (e.source === selectedId || e.target === selectedId);
+        return {
+          ...e,
+          style: { stroke: active ? EDGE_HIGHLIGHT : EDGE_COLOR, strokeWidth: active ? 2 : 1.2 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: active ? EDGE_HIGHLIGHT : EDGE_COLOR,
+            width: 16,
+            height: 16,
+          },
+          zIndex: active ? 1 : 0,
+        };
+      }),
+    );
   }, [selectedId, setEdges]);
 
-  const handleNodeClick = useCallback<NodeMouseHandler<CardNode>>((_, node) => {
-    onSelect(node.id);
-  }, [onSelect]);
+  const handleNodeClick = useCallback<NodeMouseHandler<CardNode>>(
+    (_, node) => {
+      onSelect(node.id);
+    },
+    [onSelect],
+  );
 
   return (
     <ReactFlow

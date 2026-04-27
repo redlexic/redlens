@@ -9,7 +9,6 @@ const NAV_STYLE_BASE: React.CSSProperties = {
   paddingRight: 8,
   paddingTop: 6,
   paddingBottom: 6,
-  borderBottom: "1px solid var(--border)",
   background: "var(--bg)",
   overflow: "hidden",
 };
@@ -36,7 +35,10 @@ export const Breadcrumbs = memo(function Breadcrumbs({ ancestors, onNavigate }: 
 
   const fittedTitles = useMemo(() => {
     if (ancestors.length === 0) return [];
-    return fitBreadcrumbs(ancestors.map((a) => a.title), breadcrumbWidth - 28);
+    return fitBreadcrumbs(
+      ancestors.map((a) => a.title),
+      breadcrumbWidth - 28,
+    );
   }, [ancestors, breadcrumbWidth]);
 
   if (ancestors.length === 0) return null;
@@ -53,7 +55,10 @@ export const Breadcrumbs = memo(function Breadcrumbs({ ancestors, onNavigate }: 
           {i > 0 && <span style={SEPARATOR_STYLE}>/</span>}
           <a
             href={`/atlas?id=${a.id}`}
-            onClick={(e) => { e.preventDefault(); onNavigate(a.id); }}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(a.id);
+            }}
             className="breadcrumb-link"
             style={{ "--crumb-color": depthColor(realDepth(a.doc_no)) } as React.CSSProperties}
           >

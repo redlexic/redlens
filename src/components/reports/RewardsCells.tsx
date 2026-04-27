@@ -2,10 +2,21 @@ import type { AddressInfo } from "../../types";
 import type { EntityRef } from "../../lib/rewardsIndex";
 
 export function EntityChip({ e, onEntity }: { e: EntityRef; onEntity: (slug: string) => void }) {
-  return <button onClick={() => onEntity(e.slug)} className="text-[11px] text-accent hover:underline mono">{e.name}</button>;
+  return (
+    <button
+      onClick={() => onEntity(e.slug)}
+      className="text-[11px] text-accent hover:underline mono"
+    >
+      {e.name}
+    </button>
+  );
 }
 
-export function explorerFor(addr: string, chain: string | undefined, addrMap: Record<string, AddressInfo>): string {
+export function explorerFor(
+  addr: string,
+  chain: string | undefined,
+  addrMap: Record<string, AddressInfo>,
+): string {
   const known = addrMap[addr.toLowerCase()] ?? addrMap[addr];
   if (known?.explorerUrl) return known.explorerUrl;
   const c = (chain ?? "").toLowerCase();
@@ -23,16 +34,31 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export function StatusPill({ s }: { s: string }) {
-  return <span className={`mono text-[10px] px-1.5 py-0.5 rounded ${STATUS_STYLE[s] ?? ""}`}>{s}</span>;
+  return (
+    <span className={`mono text-[10px] px-1.5 py-0.5 rounded ${STATUS_STYLE[s] ?? ""}`}>{s}</span>
+  );
 }
 
-export function AddressLink({ addr, chain, addrMap }: { addr: string; chain?: string; addrMap: Record<string, AddressInfo> }) {
+export function AddressLink({
+  addr,
+  chain,
+  addrMap,
+}: {
+  addr: string;
+  chain?: string;
+  addrMap: Record<string, AddressInfo>;
+}) {
   const short = `${addr.slice(0, 6)}…${addr.slice(-4)}`;
   const info = addrMap[addr.toLowerCase()] ?? addrMap[addr];
   const label = info?.label ?? null;
   return (
-    <a href={explorerFor(addr, chain, addrMap)} target="_blank" rel="noopener"
-       className="mono text-[11px] text-accent hover:underline" title={addr}>
+    <a
+      href={explorerFor(addr, chain, addrMap)}
+      target="_blank"
+      rel="noopener"
+      className="mono text-[11px] text-accent hover:underline"
+      title={addr}
+    >
       {label ? `${label} · ${short}` : short}
     </a>
   );

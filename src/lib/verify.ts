@@ -13,7 +13,9 @@
 
 const EXPECTED: Record<string, string> = import.meta.env.DEV
   ? {}
-  : (typeof __ARTIFACT_HASHES__ !== "undefined" ? __ARTIFACT_HASHES__ : {});
+  : typeof __ARTIFACT_HASHES__ !== "undefined"
+    ? __ARTIFACT_HASHES__
+    : {};
 
 async function sha256Hex(buf: ArrayBuffer): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", buf);
@@ -35,7 +37,7 @@ export async function fetchVerified(url: string, name: string): Promise<ArrayBuf
     const actual = await sha256Hex(buf);
     if (actual !== expected) {
       console.warn(
-        `${name} integrity check failed (expected ${expected.slice(0, 12)}…, got ${actual.slice(0, 12)}…)`
+        `${name} integrity check failed (expected ${expected.slice(0, 12)}…, got ${actual.slice(0, 12)}…)`,
       );
     }
   }

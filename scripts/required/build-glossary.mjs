@@ -93,10 +93,14 @@ function printStats(glossary, definitionsSections) {
 
   // Sample: first, middle, last alphabetically
   const sorted = [...keys].sort();
-  const samplePicks = [0, 1, 2,
+  const samplePicks = [
+    0,
+    1,
+    2,
     Math.floor(sorted.length / 2),
     Math.floor(sorted.length / 2) + 1,
-    sorted.length - 2, sorted.length - 1,
+    sorted.length - 2,
+    sorted.length - 1,
   ].filter((i) => i >= 0 && i < sorted.length);
   console.log("\nSample terms:");
   for (const i of samplePicks) {

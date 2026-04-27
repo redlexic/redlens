@@ -1,1 +1,21 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","Pattern Dev Co. will operate the Pattern Liquidity Layer and agrees to stay at or below a 90% Encumbrance Ratio. See [A.3.2.2.7.2.1.1.1 - Encumbrance Ratio](5435f680-aaaa-461a-bcae-4056bb8964d9)."]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1,"summary":"Add Pattern Liquidity Layer Documentation","description":"Adds documentation for the Pattern Liquidity Layer, including ALM contract addresses, rate limits, Relayer and Freezer Multisigs, and the Maple syrupUSDC Active Instance."}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Pattern Dev Co. will operate the Pattern Liquidity Layer and agrees to stay at or below a 90% Encumbrance Ratio. See [A.3.2.2.7.2.1.1.1 - Encumbrance Ratio](5435f680-aaaa-461a-bcae-4056bb8964d9)."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Pattern Liquidity Layer Documentation",
+    "description": "Adds documentation for the Pattern Liquidity Layer, including ALM contract addresses, rate limits, Relayer and Freezer Multisigs, and the Maple syrupUSDC Active Instance."
+  }
+]

@@ -9,7 +9,7 @@ export function NodeHistory({ nodeId }: { nodeId: string }) {
   useEffect(() => {
     setLoading(true);
     setEntries(null);
-    loadHistory(nodeId).then(data => {
+    loadHistory(nodeId).then((data) => {
       setEntries(data);
       setLoading(false);
     });

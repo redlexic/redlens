@@ -20,12 +20,12 @@ describe.runIf(run)("reproducible build:index", () => {
   it("docs.json and search-index.json are byte-identical across two runs", () => {
     const before = {
       docs: sha256(path.join(ROOT, "public/docs.json")),
-      idx:  sha256(path.join(ROOT, "public/search-index.json")),
+      idx: sha256(path.join(ROOT, "public/search-index.json")),
     };
     execSync("pnpm build:index", { cwd: ROOT, stdio: "pipe" });
     const after = {
       docs: sha256(path.join(ROOT, "public/docs.json")),
-      idx:  sha256(path.join(ROOT, "public/search-index.json")),
+      idx: sha256(path.join(ROOT, "public/search-index.json")),
     };
     expect(after.docs).toBe(before.docs);
     expect(after.idx).toBe(before.idx);

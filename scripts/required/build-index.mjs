@@ -13,20 +13,30 @@ import { fileURLToPath } from "url";
 import lunr from "lunr";
 
 import { sha256, HEADING_RE, parse, cleanContent } from "../lib/atlas-parser.mjs";
-import { ETH_ADDR_RE, SOL_ADDR_RE, normalizeAddress, detectChain, findTableContext, EXPLORER } from "../lib/address-chains.mjs";
-import { extractRoles, extractEntityLabel, extractExpectedTokens } from "../lib/address-annotate.mjs";
+import {
+  ETH_ADDR_RE,
+  SOL_ADDR_RE,
+  normalizeAddress,
+  detectChain,
+  findTableContext,
+  EXPLORER,
+} from "../lib/address-chains.mjs";
+import {
+  extractRoles,
+  extractEntityLabel,
+  extractExpectedTokens,
+} from "../lib/address-annotate.mjs";
 import { mergeAddressAnnotations } from "../lib/address-merge.mjs";
 
 // Avoid unused-import noise — keep these here so the file documents the full
 // surface of atlas-parser even though parse() is the only caller.
-void HEADING_RE; void cleanContent; void sha256;
+void HEADING_RE;
+void cleanContent;
+void sha256;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
-const ATLAS_PATH = path.join(
-  ROOT,
-  "vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md"
-);
+const ATLAS_PATH = path.join(ROOT, "vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md");
 const OUT_DIR = path.join(ROOT, "public");
 
 // ---------------------------------------------------------------------------
@@ -188,24 +198,14 @@ for (const node of Object.values(docs)) {
 // Hand the merged map to scripts/build-addresses.mjs as an intermediate file.
 // Not a shipping artifact — build-addresses overwrites public/addresses.json
 // and deletes this baton afterwards.
-fs.writeFileSync(
-  path.join(OUT_DIR, "addresses.merged.json"),
-  JSON.stringify(mergedAddrs)
-);
+fs.writeFileSync(path.join(OUT_DIR, "addresses.merged.json"), JSON.stringify(mergedAddrs));
 
 fs.writeFileSync(path.join(OUT_DIR, "docs.json"), JSON.stringify(docs));
-fs.writeFileSync(
-  path.join(OUT_DIR, "search-index.json"),
-  JSON.stringify(idx)
-);
+fs.writeFileSync(path.join(OUT_DIR, "search-index.json"), JSON.stringify(idx));
 
-const docsSize = (
-  fs.statSync(path.join(OUT_DIR, "docs.json")).size / 1024
-).toFixed(1);
-const idxSize = (
-  fs.statSync(path.join(OUT_DIR, "search-index.json")).size / 1024
-).toFixed(1);
+const docsSize = (fs.statSync(path.join(OUT_DIR, "docs.json")).size / 1024).toFixed(1);
+const idxSize = (fs.statSync(path.join(OUT_DIR, "search-index.json")).size / 1024).toFixed(1);
 
 console.log(
-  `\nWrote public/docs.json (${docsSize} KB) and public/search-index.json (${idxSize} KB)`
+  `\nWrote public/docs.json (${docsSize} KB) and public/search-index.json (${idxSize} KB)`,
 );

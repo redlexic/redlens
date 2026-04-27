@@ -62,7 +62,7 @@ for (const name of ARTIFACTS) {
 
 const chainStatePath = path.join(PUBLIC, "chain-state.json");
 const blockNumber = fs.existsSync(chainStatePath)
-  ? JSON.parse(fs.readFileSync(chainStatePath, "utf8")).block ?? null
+  ? (JSON.parse(fs.readFileSync(chainStatePath, "utf8")).block ?? null)
   : null;
 
 const manifest = {

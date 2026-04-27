@@ -36,8 +36,14 @@ export function mergeAddressAnnotations(nodes) {
 
   // Pass 2 — canonicalize each entry
   const GENERIC_LABELS = new Set([
-    "contract", "address", "registry", "multisig", "the contract",
-    "the address", "the multisig", "agreement",
+    "contract",
+    "address",
+    "registry",
+    "multisig",
+    "the contract",
+    "the address",
+    "the multisig",
+    "agreement",
   ]);
   const merged = {};
   for (const [addr, g] of Object.entries(global)) {
@@ -50,9 +56,7 @@ export function mergeAddressAnnotations(nodes) {
     // Label: filter out generic single-word labels; pick the longest remaining.
     // Ties broken by lexicographic order for determinism.
     const labelPool = [...g.labels];
-    const nonGeneric = labelPool.filter(
-      (l) => !GENERIC_LABELS.has(l.toLowerCase())
-    );
+    const nonGeneric = labelPool.filter((l) => !GENERIC_LABELS.has(l.toLowerCase()));
     const candidates = nonGeneric.length ? nonGeneric : labelPool;
     let entityLabel = null;
     if (candidates.length) {

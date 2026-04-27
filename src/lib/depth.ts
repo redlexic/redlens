@@ -7,7 +7,10 @@ export function realDepth(doc_no: string, parentDocNo?: string): number {
 
   let markerIdx = -1;
   for (let i = 1; i < parts.length - 1; i++) {
-    if (parts[i] === "0" && (parts[i + 1] === "3" || parts[i + 1] === "4" || parts[i + 1] === "6")) {
+    if (
+      parts[i] === "0" &&
+      (parts[i + 1] === "3" || parts[i + 1] === "4" || parts[i + 1] === "6")
+    ) {
       markerIdx = i;
     }
   }
@@ -21,9 +24,11 @@ export function realDepth(doc_no: string, parentDocNo?: string): number {
     let i = 0;
     while (i < after.length) {
       if (after[i] === "1" && i + 1 < after.length) {
-        extra++; i += 2;
+        extra++;
+        i += 2;
       } else {
-        extra++; i++;
+        extra++;
+        i++;
       }
     }
     return baseDepth + extra;
@@ -48,7 +53,11 @@ export function segmentDepths(doc_no: string): number[] {
       i++;
       continue;
     }
-    if (parts[i] === "0" && i + 2 < parts.length && (parts[i + 1] === "3" || parts[i + 1] === "4" || parts[i + 1] === "6")) {
+    if (
+      parts[i] === "0" &&
+      i + 2 < parts.length &&
+      (parts[i + 1] === "3" || parts[i + 1] === "4" || parts[i + 1] === "6")
+    ) {
       curDepth++;
       depths[i] = curDepth;
       depths[i + 1] = curDepth;

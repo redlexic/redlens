@@ -1,1 +1,19 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","Operational GovOps Soter Labs can change the signers of the Relayer Multisig at any time, so long as there are at least three (3) signers and at least two-thirds of signers are required to execute transactions."]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Operational GovOps Soter Labs can change the signers of the Relayer Multisig at any time, so long as there are at least three (3) signers and at least two-thirds of signers are required to execute transactions."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

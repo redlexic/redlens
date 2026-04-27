@@ -9,17 +9,28 @@ import type { AtlasNode, Participant, RelationEdge } from "../src/types";
 const ROOT = path.resolve(__dirname, "..");
 const PUBLIC = path.join(ROOT, "public");
 type Relations = { meta: unknown; entities: Participant[]; edges: RelationEdge[] };
-const relations: Relations = JSON.parse(fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"));
-const docs: Record<string, AtlasNode> = JSON.parse(fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"));
+const relations: Relations = JSON.parse(
+  fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"),
+);
+const docs: Record<string, AtlasNode> = JSON.parse(
+  fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"),
+);
 
 const INSTANCE_SLUGS = new Set([
-  "distribution-reward", "integration-boost", "allocation-system",
-  "pioneer-chain", "core-governance-reward", "agent-token", "executor-accord",
-  "root-edit", "distribution-requirement", "upkeep-rebate",
+  "distribution-reward",
+  "integration-boost",
+  "allocation-system",
+  "pioneer-chain",
+  "core-governance-reward",
+  "agent-token",
+  "executor-accord",
+  "root-edit",
+  "distribution-requirement",
+  "upkeep-rebate",
 ]);
 
-const instances = relations.entities.filter(e => e.et === "instance");
-const instanceOfEdges = relations.edges.filter(e => e.e === "instance_of");
+const instances = relations.entities.filter((e) => e.et === "instance");
+const instanceOfEdges = relations.edges.filter((e) => e.e === "instance_of");
 
 describe("instance entity emission", () => {
   it("emits ~170 instance entities across the approved primitive scope", () => {
@@ -29,8 +40,10 @@ describe("instance entity emission", () => {
 
   it("every instance entity has st set to an allowlisted primitive slug", () => {
     for (const e of instances) {
-      expect(INSTANCE_SLUGS.has(e.st ?? ""),
-        `${e.name} (${e.id.slice(0,8)}): unexpected st=${e.st}`).toBe(true);
+      expect(
+        INSTANCE_SLUGS.has(e.st ?? ""),
+        `${e.name} (${e.id.slice(0, 8)}): unexpected st=${e.st}`,
+      ).toBe(true);
     }
   });
 
@@ -54,17 +67,22 @@ describe("instance_of edges", () => {
   it("every edge lands on a doc whose title ends in 'Primitive'", () => {
     for (const edge of instanceOfEdges) {
       const target = docs[edge.t];
-      expect(target, `edge ${edge.f.slice(0,8)} → ${edge.t.slice(0,8)}: target missing`).toBeTruthy();
-      expect(/Primitive$/i.test(target!.title),
-        `edge target is "${target!.title}" (${target!.doc_no}) — should end in "Primitive"`).toBe(true);
+      expect(
+        target,
+        `edge ${edge.f.slice(0, 8)} → ${edge.t.slice(0, 8)}: target missing`,
+      ).toBeTruthy();
+      expect(
+        /Primitive$/i.test(target!.title),
+        `edge target is "${target!.title}" (${target!.doc_no}) — should end in "Primitive"`,
+      ).toBe(true);
     }
   });
 
   it("every instance entity has a matching instance_of edge whose source is that entity", () => {
-    const edgeBySource = new Map(instanceOfEdges.map(e => [e.f, e]));
+    const edgeBySource = new Map(instanceOfEdges.map((e) => [e.f, e]));
     for (const ent of instances) {
       const edge = edgeBySource.get(ent.id);
-      expect(edge, `no instance_of edge for ${ent.name} (${ent.id.slice(0,8)})`).toBeTruthy();
+      expect(edge, `no instance_of edge for ${ent.name} (${ent.id.slice(0, 8)})`).toBeTruthy();
     }
   });
 
@@ -77,7 +95,7 @@ describe("instance_of edges", () => {
   });
 
   it("every instance entity's edge carries a status in meta (in-scope primitives only)", () => {
-    const edgeBySource = new Map(instanceOfEdges.map(e => [e.f, e]));
+    const edgeBySource = new Map(instanceOfEdges.map((e) => [e.f, e]));
     for (const ent of instances) {
       const edge = edgeBySource.get(ent.id);
       expect(edge?.m, `${ent.name}: missing status meta`).toBeTruthy();
@@ -88,9 +106,15 @@ describe("instance_of edges", () => {
 describe("instance params (extracted from ICD Parameters subtree)", () => {
   type Tuple = [string, string, string];
   function meta(ent: Participant): { status?: string; params?: Record<string, Tuple> } {
-    try { return ent.m ? JSON.parse(ent.m) : {}; } catch { return {}; }
+    try {
+      return ent.m ? JSON.parse(ent.m) : {};
+    } catch {
+      return {};
+    }
   }
-  function paramsOf(ent: Participant) { return meta(ent).params ?? {}; }
+  function paramsOf(ent: Participant) {
+    return meta(ent).params ?? {};
+  }
 
   it("every param is a 3-tuple [value, uuid, docNo]", () => {
     for (const e of instances) {
@@ -105,23 +129,26 @@ describe("instance params (extracted from ICD Parameters subtree)", () => {
   });
 
   it("every Distribution Reward instance has a Reward Code param", () => {
-    for (const e of instances.filter(x => x.st === "distribution-reward")) {
+    for (const e of instances.filter((x) => x.st === "distribution-reward")) {
       const p = paramsOf(e);
       expect(p["Reward Code"]?.[0], `${e.name}: missing Reward Code value`).toBeTruthy();
     }
   });
 
   it("every Integration Boost instance carries Partner Name + Reward Address + Chain", () => {
-    for (const e of instances.filter(x => x.st === "integration-boost")) {
+    for (const e of instances.filter((x) => x.st === "integration-boost")) {
       const p = paramsOf(e);
       expect(p["Integration Partner Name"]?.[0], `${e.name}: partner name`).toBeTruthy();
-      expect(p["Integration Partner Reward Address"]?.[0], `${e.name}: reward address`).toBeTruthy();
+      expect(
+        p["Integration Partner Reward Address"]?.[0],
+        `${e.name}: reward address`,
+      ).toBeTruthy();
       expect(p["Integration Partner Chain"]?.[0], `${e.name}: chain`).toBeTruthy();
     }
   });
 
   it("every Agent Token instance has Token Name + Token Symbol + some Token Address* key", () => {
-    for (const e of instances.filter(x => x.st === "agent-token")) {
+    for (const e of instances.filter((x) => x.st === "agent-token")) {
       const p = paramsOf(e);
       expect(p["Token Name"]?.[0], `${e.name}: token name`).toBeTruthy();
       expect(p["Token Symbol"]?.[0], `${e.name}: token symbol`).toBeTruthy();
@@ -129,15 +156,18 @@ describe("instance params (extracted from ICD Parameters subtree)", () => {
       // chain ("Token Address (Ethereum Mainnet)", "Token Address (Base)").
       // Agents whose token is unannounced keep a single "Token Address" key
       // carrying the placeholder prose.
-      const tokenKey = Object.keys(p).find(k => /^Token Address(?:$| \()/.test(k));
-      expect(tokenKey, `${e.name}: no Token Address* key; have [${Object.keys(p).join(", ")}]`).toBeTruthy();
+      const tokenKey = Object.keys(p).find((k) => /^Token Address(?:$| \()/.test(k));
+      expect(
+        tokenKey,
+        `${e.name}: no Token Address* key; have [${Object.keys(p).join(", ")}]`,
+      ).toBeTruthy();
     }
   });
 
   it("bullet-list rate-limit leaves expand into per-field keys", () => {
     // Allocation System inflow/outflow/deposit/withdrawal/swap rate limits use
     // a backtick-bullet list in prose — the generic expander splits them.
-    const sl = instances.find(e => e.name === "Ethereum Mainnet - SparkLend USDS");
+    const sl = instances.find((e) => e.name === "Ethereum Mainnet - SparkLend USDS");
     expect(sl, "SparkLend USDS allocation instance").toBeTruthy();
     const p = paramsOf(sl!);
     expect(p["Inflow Rate Limits / maxAmount"]?.[0]).toBe("200,000,000 USDS");
@@ -151,7 +181,7 @@ describe("instance params (extracted from ICD Parameters subtree)", () => {
 
   it("multi-chain Agent Token produces one key per chain", () => {
     // Spark has SPK on Ethereum Mainnet + Base; the expander must emit both.
-    const spark = instances.find(e => e.st === "agent-token" && e.slug.startsWith("spark-"));
+    const spark = instances.find((e) => e.st === "agent-token" && e.slug.startsWith("spark-"));
     expect(spark, "Spark agent-token instance").toBeTruthy();
     const p = paramsOf(spark!);
     expect(p["Token Address (Ethereum Mainnet)"]?.[0]).toMatch(/^0x[0-9a-fA-F]{40}$/);
@@ -160,26 +190,29 @@ describe("instance params (extracted from ICD Parameters subtree)", () => {
   });
 
   it("every Allocation System instance has Network + at least one *Address key", () => {
-    for (const e of instances.filter(x => x.st === "allocation-system")) {
+    for (const e of instances.filter((x) => x.st === "allocation-system")) {
       const p = paramsOf(e);
       expect(p["Network"]?.[0], `${e.name}: network`).toBeTruthy();
-      const addrKey = Object.keys(p).find(k => /Address$|Address\s*\(/.test(k));
-      expect(addrKey, `${e.name}: no *Address key; have [${Object.keys(p).join(", ")}]`).toBeTruthy();
+      const addrKey = Object.keys(p).find((k) => /Address$|Address\s*\(/.test(k));
+      expect(
+        addrKey,
+        `${e.name}: no *Address key; have [${Object.keys(p).join(", ")}]`,
+      ).toBeTruthy();
     }
   });
 
   it("at least 95% of instances carry at least one param", () => {
-    const populated = instances.filter(e => Object.keys(paramsOf(e)).length > 0).length;
+    const populated = instances.filter((e) => Object.keys(paramsOf(e)).length > 0).length;
     expect(populated / instances.length).toBeGreaterThanOrEqual(0.95);
   });
 });
 
 describe("invoked_by edges (instance → prime agent)", () => {
-  const invokedBy = relations.edges.filter(e => e.e === "invoked_by");
+  const invokedBy = relations.edges.filter((e) => e.e === "invoked_by");
 
   it("every instance entity has exactly one invoked_by edge to an agent/prime", () => {
     const agentPrimes = new Map(
-      relations.entities.filter(e => e.et === "agent" && e.st === "prime").map(e => [e.id, e])
+      relations.entities.filter((e) => e.et === "agent" && e.st === "prime").map((e) => [e.id, e]),
     );
     const bySource = new Map<string, number>();
     for (const e of invokedBy) bySource.set(e.f, (bySource.get(e.f) ?? 0) + 1);

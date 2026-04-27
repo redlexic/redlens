@@ -67,7 +67,11 @@ export function rehypeEthAddresses() {
               node: {
                 type: "element",
                 tagName: "a",
-                properties: { href: `https://etherscan.io/tx/${codeText}`, target: "_blank", rel: "noopener noreferrer" },
+                properties: {
+                  href: `https://etherscan.io/tx/${codeText}`,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                },
                 children: [node],
               },
             });
@@ -97,7 +101,8 @@ export function rehypeEthAddresses() {
             const addrParts = splitTextByPattern(part.value, ONCHAIN_RE, (m) => {
               const addr = m[0];
               const lookupKey = addr.startsWith("0x") ? addr.toLowerCase() : addr;
-              const url = addresses[lookupKey]?.explorerUrl ?? `https://etherscan.io/address/${addr}`;
+              const url =
+                addresses[lookupKey]?.explorerUrl ?? `https://etherscan.io/address/${addr}`;
               return { linkText: addr, url };
             });
             if (addrParts) finalParts.push(...addrParts);
@@ -113,7 +118,8 @@ export function rehypeEthAddresses() {
       const addrParts = splitTextByPattern(node.value, ONCHAIN_RE, (m) => {
         const addr = m[0];
         const lookupKey = addr.startsWith("0x") ? addr.toLowerCase() : addr;
-        const url = getAddressMap()[lookupKey]?.explorerUrl ?? `https://etherscan.io/address/${addr}`;
+        const url =
+          getAddressMap()[lookupKey]?.explorerUrl ?? `https://etherscan.io/address/${addr}`;
         return { linkText: addr, url };
       });
       if (addrParts) {

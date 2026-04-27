@@ -30,7 +30,7 @@ const OUT_PATH = path.join(ROOT, "public/addresses.json");
 const API_KEY = process.env.ETHERSCAN_API_KEY;
 if (!API_KEY) {
   console.error(
-    "ETHERSCAN_API_KEY not set. Add it to .env.local (the build script runs with --env-file-if-exists=.env.local)."
+    "ETHERSCAN_API_KEY not set. Add it to .env.local (the build script runs with --env-file-if-exists=.env.local).",
   );
   process.exit(1);
 }

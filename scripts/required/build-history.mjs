@@ -38,16 +38,24 @@ const REPO = "sky-ecosystem/next-gen-atlas";
 // ---------------------------------------------------------------------------
 
 function git(args, opts = {}) {
-  return execSync(`git ${args}`, { cwd: ATLAS_REPO, encoding: "utf8", maxBuffer: 100 * 1024 * 1024, ...opts }).trim();
+  return execSync(`git ${args}`, {
+    cwd: ATLAS_REPO,
+    encoding: "utf8",
+    maxBuffer: 100 * 1024 * 1024,
+    ...opts,
+  }).trim();
 }
 
 /** Get all commits (oldest-first) that touch the atlas file */
 function getCommits() {
   const raw = git(`log --reverse --format="%H %aI %s" -- "${ATLAS_FILE}"`);
-  return raw.split("\n").filter(Boolean).map(line => {
-    const [hash, date, ...rest] = line.split(" ");
-    return { hash, date, message: rest.join(" ") };
-  });
+  return raw
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [hash, date, ...rest] = line.split(" ");
+      return { hash, date, message: rest.join(" ") };
+    });
 }
 
 /** Read the atlas file at a specific commit */
@@ -102,22 +110,29 @@ function parseAtlas(text) {
 // ---------------------------------------------------------------------------
 
 function lcsOps(a, b) {
-  const m = a.length, n = b.length;
+  const m = a.length,
+    n = b.length;
   const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+      dp[i][j] =
+        a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
     }
   }
   const ops = [];
-  let i = m, j = n;
+  let i = m,
+    j = n;
   while (i > 0 || j > 0) {
-    if (i > 0 && j > 0 && a[i-1] === b[j-1]) {
-      ops.push(["=", a[i-1]]); i--; j--;
-    } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
-      ops.push(["+", b[j-1]]); j--;
+    if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+      ops.push(["=", a[i - 1]]);
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      ops.push(["+", b[j - 1]]);
+      j--;
     } else {
-      ops.push(["-", a[i-1]]); i--;
+      ops.push(["-", a[i - 1]]);
+      i--;
     }
   }
   ops.reverse();
@@ -283,7 +298,7 @@ async function fetchPr(prNum) {
   try {
     const raw = execSync(
       `gh pr view ${prNum} --repo ${REPO} --json title,body,author,comments,reviews,url`,
-      { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 }
+      { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
     );
     const pr = JSON.parse(raw);
     const data = {
@@ -294,7 +309,7 @@ async function fetchPr(prNum) {
       url: pr.url,
       commentCount: pr.comments?.length ?? 0,
       reviewCount: pr.reviews?.length ?? 0,
-      approvalCount: (pr.reviews ?? []).filter(r => r.state === "APPROVED").length,
+      approvalCount: (pr.reviews ?? []).filter((r) => r.state === "APPROVED").length,
     };
     fs.writeFileSync(cacheFile, JSON.stringify(data, null, 2));
     return data;
@@ -323,8 +338,30 @@ function parsePrBullets(body) {
 
 /** Tokenize a string into lowercase words, dropping stop words */
 function tokenize(s) {
-  const STOP = new Set(["the", "a", "an", "and", "or", "for", "in", "on", "to", "at", "by", "with", "from", "of", "is", "as"]);
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(w => w.length > 2 && !STOP.has(w));
+  const STOP = new Set([
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "for",
+    "in",
+    "on",
+    "to",
+    "at",
+    "by",
+    "with",
+    "from",
+    "of",
+    "is",
+    "as",
+  ]);
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOP.has(w));
 }
 
 /** Score how well a bullet title matches a node title.
@@ -410,7 +447,9 @@ async function main() {
   if (fs.existsSync(lastCommitFile) && fs.existsSync(manifestFile)) {
     lastCommitHash = fs.readFileSync(lastCommitFile, "utf8").trim();
     existingManifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
-    console.error(`incremental mode: last processed commit ${lastCommitHash.slice(0, 7)}, ${Object.keys(existingManifest).length} nodes in manifest`);
+    console.error(
+      `incremental mode: last processed commit ${lastCommitHash.slice(0, 7)}, ${Object.keys(existingManifest).length} nodes in manifest`,
+    );
   }
 
   console.error("loading commits…");
@@ -418,12 +457,14 @@ async function main() {
   console.error(`  ${allCommits.length} commits touch ${ATLAS_FILE}`);
 
   if (lastCommitHash) {
-    const idx = allCommits.findIndex(c => c.hash === lastCommitHash);
+    const idx = allCommits.findIndex((c) => c.hash === lastCommitHash);
     if (idx >= 0) {
       startIndex = idx + 1;
       // Reconstruct prevSnapshot from the last processed commit so diffs are correct
       prevSnapshot = parseAtlas(readAtlasAt(lastCommitHash));
-      console.error(`  skipping ${startIndex} already-processed commits, ${allCommits.length - startIndex} new`);
+      console.error(
+        `  skipping ${startIndex} already-processed commits, ${allCommits.length - startIndex} new`,
+      );
     } else {
       console.error(`  last commit not found in history, falling back to full rebuild`);
       lastCommitHash = null;
@@ -444,7 +485,7 @@ async function main() {
 
   for (let i = 0; i < commits.length; i++) {
     const commit = commits[i];
-    const pct = ((i + 1) / commits.length * 100).toFixed(0);
+    const pct = (((i + 1) / commits.length) * 100).toFixed(0);
     console.error(`[${pct}%] ${commit.hash.slice(0, 7)} ${commit.message.slice(0, 60)}`);
 
     const text = readAtlasAt(commit.hash);
@@ -477,7 +518,11 @@ async function main() {
 
     // Record history entries
     for (const node of allChanged) {
-      const changeType = added.includes(node) ? "added" : modified.includes(node) ? "modified" : "removed";
+      const changeType = added.includes(node)
+        ? "added"
+        : modified.includes(node)
+          ? "modified"
+          : "removed";
 
       const entry = {
         date: commit.date.slice(0, 10),
@@ -491,17 +536,17 @@ async function main() {
         const currContent = snapshot.get(node.id)?.content ?? "";
         const diff = lineDiff(prevContent, currContent);
         if (diff.length > 0) entry.diff = diff;
-      } else if (changeType === "added" && (startIndex + i) > 0) {
+      } else if (changeType === "added" && startIndex + i > 0) {
         // Node newly introduced mid-history: show its full content as added lines
         const currContent = snapshot.get(node.id)?.content ?? "";
         if (currContent) {
-          const lines = currContent.split("\n").map(l => ["+", l]);
+          const lines = currContent.split("\n").map((l) => ["+", l]);
           entry.diff = lines.length > 20 ? [...lines.slice(0, 20), ["…"]] : lines;
         }
       } else if (changeType === "removed") {
         const prevContent = prevSnapshot.get(node.id)?.content ?? "";
         if (prevContent) {
-          const lines = prevContent.split("\n").map(l => ["-", l]);
+          const lines = prevContent.split("\n").map((l) => ["-", l]);
           entry.diff = lines.length > 20 ? [...lines.slice(0, 20), ["…"]] : lines;
         }
       }
@@ -540,14 +585,14 @@ async function main() {
   let fileCount = 0;
   for (const [nodeId, newEntries] of newHistory) {
     const filePath = path.join(OUT_DIR, `${nodeId}.json`);
-    const existing = fs.existsSync(filePath)
-      ? JSON.parse(fs.readFileSync(filePath, "utf8"))
-      : [];
+    const existing = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, "utf8")) : [];
     fs.writeFileSync(filePath, JSON.stringify([...existing, ...newEntries]));
     fileCount++;
   }
 
-  console.error(`\ndone: ${fileCount} node history files updated, ${totalChanges} new change entries`);
+  console.error(
+    `\ndone: ${fileCount} node history files updated, ${totalChanges} new change entries`,
+  );
 
   // Merge new counts into existing manifest and write
   const manifest = { ...existingManifest };
@@ -562,4 +607,7 @@ async function main() {
   console.error(`checkpoint: ${lastCommitHash}`);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

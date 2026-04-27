@@ -71,12 +71,12 @@ async function writeBatched(filePath, tableName, cols, rows) {
     } else {
       out.write(",\n");
     }
-    out.write("(" + cols.map(c => esc(row[c])).join(",") + ")");
+    out.write("(" + cols.map((c) => esc(row[c])).join(",") + ")");
     i++;
   }
   if (i > 0) out.write(";\n");
   out.end();
-  return new Promise(r => out.on("finish", r));
+  return new Promise((r) => out.on("finish", r));
 }
 
 // ---------------------------------------------------------------------------
@@ -88,8 +88,8 @@ const rawDocs = JSON.parse(fs.readFileSync(path.join(ROOT, "public/docs.json"), 
 const allDocs = Object.values(rawDocs);
 console.log(`  ${allDocs.length} docs`);
 
-const docById = new Map(allDocs.map(d => [d.id, d]));
-const docByDocNo = new Map(allDocs.map(d => [d.doc_no, d]));
+const docById = new Map(allDocs.map((d) => [d.id, d]));
+const docByDocNo = new Map(allDocs.map((d) => [d.doc_no, d]));
 
 console.log("Loading addresses.json…");
 const addressesRaw = JSON.parse(fs.readFileSync(path.join(ROOT, "public/addresses.json"), "utf8"));
@@ -101,12 +101,22 @@ const chainStateByAddr = {};
 if (chainState.chains) {
   for (const [chain, data] of Object.entries(chainState.chains)) {
     for (const [addr, values] of Object.entries(data.values ?? {})) {
-      chainStateByAddr[addr.toLowerCase()] = { chain, block: data.block ?? data.slot ?? null, at: chainState.generatedAt, values };
+      chainStateByAddr[addr.toLowerCase()] = {
+        chain,
+        block: data.block ?? data.slot ?? null,
+        at: chainState.generatedAt,
+        values,
+      };
     }
   }
 } else {
   for (const [addr, values] of Object.entries(chainState.values ?? {})) {
-    chainStateByAddr[addr.toLowerCase()] = { chain: "ethereum", block: chainState.block ?? null, at: chainState.generatedAt, values };
+    chainStateByAddr[addr.toLowerCase()] = {
+      chain: "ethereum",
+      block: chainState.block ?? null,
+      at: chainState.generatedAt,
+      values,
+    };
   }
 }
 
@@ -141,16 +151,24 @@ for (const [et, count] of [...edgeTypeCounts.entries()].sort((a, b) => b[1] - a[
 // Phase 3: Prepare rows
 // ---------------------------------------------------------------------------
 
-const entityRows = [...entityMap.values()].map(e => ({
-  id: e.id, slug: e.slug, name: e.name,
-  entity_type: e.entity_type, subtype: e.subtype ?? null,
+const entityRows = [...entityMap.values()].map((e) => ({
+  id: e.id,
+  slug: e.slug,
+  name: e.name,
+  entity_type: e.entity_type,
+  subtype: e.subtype ?? null,
   defining_doc_id: e.defining_doc_id ?? null,
-  is_active: e.is_active ?? 1, meta: e.meta ?? null,
+  is_active: e.is_active ?? 1,
+  meta: e.meta ?? null,
 }));
 
-const docRows = allDocs.map(d => ({
-  id: d.id, doc_no: d.doc_no, title: d.title, type: d.type,
-  depth: d.depth ?? 0, parent_id: d.parentId ?? null,
+const docRows = allDocs.map((d) => ({
+  id: d.id,
+  doc_no: d.doc_no,
+  title: d.title,
+  type: d.type,
+  depth: d.depth ?? 0,
+  parent_id: d.parentId ?? null,
   content: (d.content ?? "").slice(0, 50000),
   ord: d.order ?? 0,
 }));
@@ -160,8 +178,10 @@ const addressRows = Object.entries(addressesRaw).map(([addr, info]) => {
   const cs = chainStateByAddr[addr.toLowerCase()];
   const s = info.label ? slugify(info.label) : null;
   return {
-    address: addr.toLowerCase(), chain,
-    label: info.label ?? null, chainlog_id: info.chainlogId ?? null,
+    address: addr.toLowerCase(),
+    chain,
+    label: info.label ?? null,
+    chainlog_id: info.chainlogId ?? null,
     etherscan_name: null,
     is_contract: info.isContract ? 1 : 0,
     is_proxy: info.isProxy ? 1 : 0,
@@ -170,15 +190,18 @@ const addressRows = Object.entries(addressesRaw).map(([addr, info]) => {
     aliases: JSON.stringify(info.aliases ?? []),
     expected_tokens: JSON.stringify(info.expectedTokens ?? []),
     chain_state: cs ? JSON.stringify(cs.values) : null,
-    state_block: cs?.block ?? null, state_at: cs?.at ?? null,
+    state_block: cs?.block ?? null,
+    state_at: cs?.at ?? null,
     entity_id: s ? (entityMap.get(s)?.id ?? null) : null,
   };
 });
 
 const edgeRows = edges.map((e, i) => ({
   id: i + 1,
-  from_id: e.fromId, from_type: e.fromType,
-  to_id: e.toId, to_type: e.toType,
+  from_id: e.fromId,
+  from_type: e.fromType,
+  to_id: e.toId,
+  to_type: e.toType,
   edge_type: e.edgeType,
   source_doc_nos: e.sourceDocNos?.length ? JSON.stringify(e.sourceDocNos) : null,
   weight: 1.0,
@@ -196,15 +219,23 @@ console.log(`  addresses:${addressRows.length}`);
 console.log(`  edges:    ${edgeRows.length}`);
 
 // graph.json — full export for local inspection / debugging
-fs.writeFileSync(path.join(ROOT, "public/graph.json"), JSON.stringify({
-  meta: {
-    generatedAt: new Date().toISOString(),
-    schemaVersion: 4,
-    counts: { entities: entityRows.length, docs: docRows.length, addresses: addressRows.length, edges: edgeRows.length },
-  },
-  entities: entityRows,
-  edges: edgeRows,
-}));
+fs.writeFileSync(
+  path.join(ROOT, "public/graph.json"),
+  JSON.stringify({
+    meta: {
+      generatedAt: new Date().toISOString(),
+      schemaVersion: 4,
+      counts: {
+        entities: entityRows.length,
+        docs: docRows.length,
+        addresses: addressRows.length,
+        edges: edgeRows.length,
+      },
+    },
+    entities: entityRows,
+    edges: edgeRows,
+  }),
+);
 console.log("  public/graph.json written");
 
 // relations.json — lean browser payload.
@@ -217,20 +248,24 @@ console.log("  public/graph.json written");
 const OMIT_ENTITY_TYPES = new Set(["ecosystem_actor"]);
 const KEEP_ACTOR_EDGE_TYPES = new Set(["holds_role_for", "responsible_party_for"]);
 const pinnedActorIds = new Set(
-  edges.filter(e => KEEP_ACTOR_EDGE_TYPES.has(e.edgeType) && e.fromType === "entity").map(e => e.fromId)
+  edges
+    .filter((e) => KEEP_ACTOR_EDGE_TYPES.has(e.edgeType) && e.fromType === "entity")
+    .map((e) => e.fromId),
 );
 const keptEntityIds = new Set(
-  entityRows.filter(e => !OMIT_ENTITY_TYPES.has(e.entity_type) || pinnedActorIds.has(e.id)).map(e => e.id)
+  entityRows
+    .filter((e) => !OMIT_ENTITY_TYPES.has(e.entity_type) || pinnedActorIds.has(e.id))
+    .map((e) => e.id),
 );
 
 const relationEdges = edges
-  .filter(e => e.edgeType !== "parent_of")
-  .filter(e => {
+  .filter((e) => e.edgeType !== "parent_of")
+  .filter((e) => {
     if (e.fromType === "entity" && !keptEntityIds.has(e.fromId)) return false;
     if (e.toType === "entity" && !keptEntityIds.has(e.toId)) return false;
     return true;
   })
-  .map(e => {
+  .map((e) => {
     const out = {
       f: e.fromId,
       ft: e.fromType,
@@ -244,8 +279,8 @@ const relationEdges = edges
   });
 
 const relationEntities = entityRows
-  .filter(e => keptEntityIds.has(e.id))
-  .map(e => {
+  .filter((e) => keptEntityIds.has(e.id))
+  .map((e) => {
     const out = {
       id: e.id,
       slug: e.slug,
@@ -258,17 +293,20 @@ const relationEntities = entityRows
     return out;
   });
 
-fs.writeFileSync(path.join(ROOT, "public/relations.json"), JSON.stringify({
-  meta: {
-    generatedAt: new Date().toISOString(),
-    schemaVersion: 4,
-    counts: { entities: relationEntities.length, edges: relationEdges.length },
-  },
-  entities: relationEntities,
-  edges: relationEdges,
-}));
+fs.writeFileSync(
+  path.join(ROOT, "public/relations.json"),
+  JSON.stringify({
+    meta: {
+      generatedAt: new Date().toISOString(),
+      schemaVersion: 4,
+      counts: { entities: relationEntities.length, edges: relationEdges.length },
+    },
+    entities: relationEntities,
+    edges: relationEdges,
+  }),
+);
 const relSize = fs.statSync(path.join(ROOT, "public/relations.json")).size;
-console.log(`  public/relations.json written (${(relSize/1024).toFixed(0)} KB)`);
+console.log(`  public/relations.json written (${(relSize / 1024).toFixed(0)} KB)`);
 
 if (APPLY_D1) {
   // Load order follows the FK graph: docs first (source of truth, referenced
@@ -276,26 +314,63 @@ if (APPLY_D1) {
   // addresses.entity_id), then addresses, then edges (which reference all three).
   const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "redlens-graph-"));
   const files = {
-    docs:      path.join(TMP, "_docs.sql"),
-    entities:  path.join(TMP, "_entities.sql"),
+    docs: path.join(TMP, "_docs.sql"),
+    entities: path.join(TMP, "_entities.sql"),
     addresses: path.join(TMP, "_addresses.sql"),
-    edges:     path.join(TMP, "_edges.sql"),
+    edges: path.join(TMP, "_edges.sql"),
   };
 
   console.log("\nWriting SQL files…");
-  await writeBatched(files.docs, "docs",
-    ["id","doc_no","title","type","depth","parent_id","content","ord"],
-    docRows);
-  await writeBatched(files.entities, "entities",
-    ["id","slug","name","entity_type","subtype","defining_doc_id","is_active","meta"],
-    entityRows);
-  await writeBatched(files.addresses, "addresses",
-    ["address","chain","label","chainlog_id","etherscan_name","is_contract","is_proxy",
-     "implementation","roles","aliases","expected_tokens","chain_state","state_block","state_at","entity_id"],
-    addressRows);
-  await writeBatched(files.edges, "edges",
-    ["id","from_id","from_type","to_id","to_type","edge_type","source_doc_nos","weight","meta"],
-    edgeRows);
+  await writeBatched(
+    files.docs,
+    "docs",
+    ["id", "doc_no", "title", "type", "depth", "parent_id", "content", "ord"],
+    docRows,
+  );
+  await writeBatched(
+    files.entities,
+    "entities",
+    ["id", "slug", "name", "entity_type", "subtype", "defining_doc_id", "is_active", "meta"],
+    entityRows,
+  );
+  await writeBatched(
+    files.addresses,
+    "addresses",
+    [
+      "address",
+      "chain",
+      "label",
+      "chainlog_id",
+      "etherscan_name",
+      "is_contract",
+      "is_proxy",
+      "implementation",
+      "roles",
+      "aliases",
+      "expected_tokens",
+      "chain_state",
+      "state_block",
+      "state_at",
+      "entity_id",
+    ],
+    addressRows,
+  );
+  await writeBatched(
+    files.edges,
+    "edges",
+    [
+      "id",
+      "from_id",
+      "from_type",
+      "to_id",
+      "to_type",
+      "edge_type",
+      "source_doc_nos",
+      "weight",
+      "meta",
+    ],
+    edgeRows,
+  );
 
   console.log(`\nApplying to D1 ${REMOTE ? "(remote)" : "(local)"}…`);
   for (const [name, file] of Object.entries(files)) {

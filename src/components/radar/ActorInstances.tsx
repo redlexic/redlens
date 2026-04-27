@@ -14,32 +14,53 @@ function ParamPill({ p }: { p: InstanceParam }) {
   if (isAddr) {
     const short = `${p.value.slice(0, 6)}…${p.value.slice(-4)}`;
     return (
-      <a href={explorerUrl(p.value)} target="_blank" rel="noopener"
-        className="mono text-[11px] text-accent hover:underline" title={p.value}>
+      <a
+        href={explorerUrl(p.value)}
+        target="_blank"
+        rel="noopener"
+        className="mono text-[11px] text-accent hover:underline"
+        title={p.value}
+      >
         {short}
       </a>
     );
   }
   return (
-    <span className="mono text-[11px] px-1.5 py-0.5 rounded" style={{ background: "var(--hover)", color: "var(--tan-2)" }}>
+    <span
+      className="mono text-[11px] px-1.5 py-0.5 rounded"
+      style={{ background: "var(--hover)", color: "var(--tan-2)" }}
+    >
       {p.value}
     </span>
   );
 }
 
-function InstanceRow({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (id: string) => void }) {
+function InstanceRow({
+  inst,
+  onNavigate,
+}: {
+  inst: RadarInstance;
+  onNavigate: (id: string) => void;
+}) {
   return (
     <div className="flex items-start gap-3 py-1.5 border-t border-[var(--border)]">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm" style={{ color: "var(--tan)" }}>{inst.displayName}</span>
-          {inst.signalParams.map(p => <ParamPill key={p.key} p={p} />)}
+          <span className="text-sm" style={{ color: "var(--tan)" }}>
+            {inst.displayName}
+          </span>
+          {inst.signalParams.map((p) => (
+            <ParamPill key={p.key} p={p} />
+          ))}
           {inst.status && <StatusPill s={inst.status} />}
         </div>
       </div>
       {inst.docId && (
-        <button onClick={() => onNavigate(inst.docId!)}
-          className="mono text-[10px] shrink-0 hover:underline" style={{ color: "var(--tan-3)" }}>
+        <button
+          onClick={() => onNavigate(inst.docId!)}
+          className="mono text-[10px] shrink-0 hover:underline"
+          style={{ color: "var(--tan-3)" }}
+        >
           {inst.docNo ?? "open"}
         </button>
       )}
@@ -47,7 +68,10 @@ function InstanceRow({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (i
   );
 }
 
-interface Props { instances: RadarInstance[]; onNavigate: (id: string) => void; }
+interface Props {
+  instances: RadarInstance[];
+  onNavigate: (id: string) => void;
+}
 
 export function ActorInstances({ instances, onNavigate }: Props) {
   const byType = new Map<string, RadarInstance[]>();
@@ -56,7 +80,7 @@ export function ActorInstances({ instances, onNavigate }: Props) {
     g.push(inst);
     byType.set(inst.st, g);
   }
-  const groups = [...byType.entries()].sort(([a],[b]) => a.localeCompare(b));
+  const groups = [...byType.entries()].sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="space-y-6">
@@ -70,7 +94,9 @@ export function ActorInstances({ instances, onNavigate }: Props) {
               ({insts.length})
             </span>
           </div>
-          {insts.map(inst => <InstanceRow key={inst.id} inst={inst} onNavigate={onNavigate} />)}
+          {insts.map((inst) => (
+            <InstanceRow key={inst.id} inst={inst} onNavigate={onNavigate} />
+          ))}
         </div>
       ))}
     </div>

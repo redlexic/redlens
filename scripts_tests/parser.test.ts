@@ -15,8 +15,7 @@ const ROOT = path.resolve(__dirname, "..");
 const ATLAS_PATH = path.join(ROOT, "vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md");
 const DOCS_PATH = path.join(ROOT, "public/docs.json");
 
-const HEADING_RE =
-  /^(#{1,6}) ([\w.-]+) - (.+?) \[([^\]]+)\]\s+<!-- UUID: ([0-9a-f-]{36}) -->$/;
+const HEADING_RE = /^(#{1,6}) ([\w.-]+) - (.+?) \[([^\]]+)\]\s+<!-- UUID: ([0-9a-f-]{36}) -->$/;
 
 const atlasSrc = fs.readFileSync(ATLAS_PATH, "utf8");
 const docs: Record<string, AtlasNode> = JSON.parse(fs.readFileSync(DOCS_PATH, "utf8"));
@@ -60,8 +59,10 @@ describe("parser invariants", () => {
     let cur: string | null = null;
     for (const line of atlasSrc.split("\n")) {
       const m = line.match(HEADING_RE);
-      if (m) { cur = m[5]; raw[cur] = []; }
-      else if (cur) raw[cur].push(line);
+      if (m) {
+        cur = m[5];
+        raw[cur] = [];
+      } else if (cur) raw[cur].push(line);
     }
     for (const [id, lines] of Object.entries(raw)) {
       const expected = sha256(lines.join("\n"));
@@ -70,7 +71,8 @@ describe("parser invariants", () => {
   });
 
   it("every intra-content UUID link resolves to a real node", () => {
-    const UUID_LINK = /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
+    const UUID_LINK =
+      /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
     const orphans: { from: string; to: string }[] = [];
     for (const node of Object.values(docs)) {
       for (const m of node.content.matchAll(UUID_LINK)) {

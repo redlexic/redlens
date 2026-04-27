@@ -17,7 +17,9 @@ export function matchParticipants(query: string, participants: Participant[]): E
     else if (name.includes(q)) score = 1;
     if (score > 0) hits.push({ participant: e, score });
   }
-  return hits.sort((a, b) => b.score - a.score || a.participant.name.length - b.participant.name.length);
+  return hits.sort(
+    (a, b) => b.score - a.score || a.participant.name.length - b.participant.name.length,
+  );
 }
 
 /** Collect participants reachable within `depth` hops via entity↔entity edges. */
@@ -32,8 +34,14 @@ export function neighborhoodOfParticipants(
     const next = new Set<string>();
     for (const e of edges) {
       if (e.ft !== "entity" || e.tt !== "entity") continue;
-      if (frontier.has(e.f) && !included.has(e.t)) { next.add(e.t); included.add(e.t); }
-      if (frontier.has(e.t) && !included.has(e.f)) { next.add(e.f); included.add(e.f); }
+      if (frontier.has(e.f) && !included.has(e.t)) {
+        next.add(e.t);
+        included.add(e.t);
+      }
+      if (frontier.has(e.t) && !included.has(e.f)) {
+        next.add(e.f);
+        included.add(e.f);
+      }
     }
     frontier = next;
   }
@@ -43,9 +51,12 @@ export function neighborhoodOfParticipants(
 // Edges we follow one extra hop from an executor agent — to pull in their
 // facilitator / govops / role-holders without also pulling in sibling primes.
 const EXECUTOR_ROLE_EDGES = new Set([
-  "operational_facilitator_for", "operational_govops_for",
-  "core_facilitator_for", "core_govops_for",
-  "holds_role_for", "erg_member_for",
+  "operational_facilitator_for",
+  "operational_govops_for",
+  "core_facilitator_for",
+  "core_govops_for",
+  "holds_role_for",
+  "erg_member_for",
 ]);
 
 /** Cluster of participants affiliated with a Prime Agent: direct neighbors, plus
@@ -56,7 +67,7 @@ export function agentClusterIds(
   allEntities: Array<{ id: string; et: string; st: string | null }>,
   edges: Array<{ f: string; t: string; ft: string; tt: string; e: string }>,
 ): Set<string> {
-  const entityById = new Map(allEntities.map(e => [e.id, e]));
+  const entityById = new Map(allEntities.map((e) => [e.id, e]));
   const included = new Set<string>([agentId]);
   // Level 1: every entity directly connected to the agent.
   for (const e of edges) {
@@ -65,7 +76,7 @@ export function agentClusterIds(
     if (e.t === agentId) included.add(e.f);
   }
   // Level 2: for executors in the set, pull in role-holders only.
-  const executors = [...included].filter(id => {
+  const executors = [...included].filter((id) => {
     const p = entityById.get(id);
     return p?.et === "agent" && p.st !== "prime";
   });

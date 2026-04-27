@@ -6,14 +6,19 @@
  */
 
 import {
-  isAnnotation, isActiveData, UUID_LINK_RE, isICDLocation, isICD,
-  isGlobalActivationStatus, ancestorByStripping,
+  isAnnotation,
+  isActiveData,
+  UUID_LINK_RE,
+  isICDLocation,
+  isICD,
+  isGlobalActivationStatus,
+  ancestorByStripping,
 } from "./graph-patterns.mjs";
 import { INSTANCE_SCOPED_PRIMITIVES, instanceStatusFor } from "./graph-instances.mjs";
 
 export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
   const edges = [];
-  const docIds = new Set(allDocs.map(d => d.id));
+  const docIds = new Set(allDocs.map((d) => d.id));
 
   function addEdge(fromId, fromType, toId, toType, edgeType, sourceDocNos = [], meta = null) {
     edges.push({ fromId, fromType, toId, toType, edgeType, sourceDocNos, meta });
@@ -58,7 +63,8 @@ export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
   console.log(`  ${citeCount} cites edges`);
 
   // --- 2e. implements (primitive root → global primitive in A.2.2) ---
-  const IMPLEMENTS_RE = /\bSee\s+\[([^\]]+)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/i;
+  const IMPLEMENTS_RE =
+    /\bSee\s+\[([^\]]+)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/i;
   for (const d of allDocs) {
     if (!d.doc_no.startsWith("A.6.1.1.")) continue;
     const m = (d.content ?? "").match(IMPLEMENTS_RE);
@@ -73,7 +79,7 @@ export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
   // for in-scope primitives; out-of-scope ICDs still get the edge but no status.
   // Also emit entity→entity `invoked_by` from the Instance to its Prime Agent
   // so instances surface in the entity graph clustered around their agent. ---
-  for (const d of allDocs.filter(d => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
+  for (const d of allDocs.filter((d) => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
     // Inline primitiveRootFor so we don't need to re-import it here.
     const m = d.doc_no.match(/^(A\.6\.1\.1\.\d+\.2\.\d+\.\d+)(?:$|\.)/);
     if (!m) continue;
@@ -105,7 +111,9 @@ export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
   }
 
   // --- 2h. has_status (primitive root → Global Activation Status) ---
-  for (const d of allDocs.filter(d => isGlobalActivationStatus(d) && d.doc_no.startsWith("A.6.1.1."))) {
+  for (const d of allDocs.filter(
+    (d) => isGlobalActivationStatus(d) && d.doc_no.startsWith("A.6.1.1."),
+  )) {
     const primRoot = ancestorByStripping(d, 2, docByDocNo);
     if (primRoot) addEdge(primRoot.id, "doc", d.id, "doc", "has_status", [primRoot.doc_no]);
   }

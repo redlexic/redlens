@@ -6,16 +6,16 @@ export interface OFResponsibility {
   uuid: string;
   title: string;
   duty: string;
-  category: 'universal' | 'root-edit' | 'artifact-edit' | 'active-data';
+  category: "universal" | "root-edit" | "artifact-edit" | "active-data";
   agent?: string;
   agents?: string[];
 }
 
-export const CATEGORY_LABELS: Record<OFResponsibility['category'], string> = {
-  'universal':     'Universal — all Operational Facilitators',
-  'root-edit':     'Root Edit Proposal Review & Vote (per agent)',
-  'artifact-edit': 'Artifact Edit Restrictions Enforcement (per agent)',
-  'active-data':   'Active Data Maintenance — OF as Responsible Party (per agent)',
+export const CATEGORY_LABELS: Record<OFResponsibility["category"], string> = {
+  universal: "Universal — all Operational Facilitators",
+  "root-edit": "Root Edit Proposal Review & Vote (per agent)",
+  "artifact-edit": "Artifact Edit Restrictions Enforcement (per agent)",
+  "active-data": "Active Data Maintenance — OF as Responsible Party (per agent)",
 };
 
 // These 4 nodes impose universal OF duties but no graph edge connects them to
@@ -43,7 +43,7 @@ function firstSentence(content: string): string {
 
 export function deriveResponsibilities(
   { docs, docNoToId, byParent }: AtlasBundle,
-  { edges }: GraphData
+  { edges }: GraphData,
 ): OFResponsibility[] {
   const results: OFResponsibility[] = [];
 
@@ -60,15 +60,28 @@ export function deriveResponsibilities(
 
   // 1. Universal duties: direct children of A.1.6
   const a16Id = docNoToId.get("A.1.6");
-  for (const n of (a16Id ? byParent.get(a16Id) ?? [] : [])) {
-    results.push({ docNo: n.doc_no, uuid: n.id, title: n.title, duty: firstSentence(n.content), category: 'universal' });
+  for (const n of a16Id ? (byParent.get(a16Id) ?? []) : []) {
+    results.push({
+      docNo: n.doc_no,
+      uuid: n.id,
+      title: n.title,
+      duty: firstSentence(n.content),
+      category: "universal",
+    });
   }
 
   // 2. Scattered universals — no graph edge marks them as OF duties
   for (const dn of SCATTERED_UNIVERSAL_DOC_NOS) {
     const id = docNoToId.get(dn);
     const n = id ? docs[id] : null;
-    if (n) results.push({ docNo: n.doc_no, uuid: n.id, title: n.title, duty: firstSentence(n.content), category: 'universal' });
+    if (n)
+      results.push({
+        docNo: n.doc_no,
+        uuid: n.id,
+        title: n.title,
+        duty: firstSentence(n.content),
+        category: "universal",
+      });
   }
 
   // 3. Root-edit duties and artifact-edit duties under A.6.1.1
@@ -76,19 +89,42 @@ export function deriveResponsibilities(
     if (!n.doc_no.startsWith("A.6.1.1.")) continue;
     const tl = n.title.toLowerCase();
     if (ROOT_EDIT_OF_TITLES.has(tl)) {
-      results.push({ docNo: n.doc_no, uuid: n.id, title: n.title, duty: firstSentence(n.content), category: 'root-edit', agent: getAgent(n.doc_no) });
+      results.push({
+        docNo: n.doc_no,
+        uuid: n.id,
+        title: n.title,
+        duty: firstSentence(n.content),
+        category: "root-edit",
+        agent: getAgent(n.doc_no),
+      });
     } else if (tl === "artifact edit restrictions") {
-      results.push({ docNo: n.doc_no, uuid: n.id, title: n.title, duty: firstSentence(n.content), category: 'artifact-edit', agent: getAgent(n.doc_no) });
+      results.push({
+        docNo: n.doc_no,
+        uuid: n.id,
+        title: n.title,
+        duty: firstSentence(n.content),
+        category: "artifact-edit",
+        agent: getAgent(n.doc_no),
+      });
     }
   }
 
   // 4. Active-data: responsible_party_for edges from OF facilitators
-  const ofFacIds = new Set(edges.filter(e => e.e === "operational_facilitator_for").map(e => e.f));
+  const ofFacIds = new Set(
+    edges.filter((e) => e.e === "operational_facilitator_for").map((e) => e.f),
+  );
   for (const edge of edges) {
     if (edge.e !== "responsible_party_for" || !ofFacIds.has(edge.f) || edge.tt !== "doc") continue;
     const n = docs[edge.t];
     if (!n?.doc_no.startsWith("A.6.1.1.")) continue;
-    results.push({ docNo: n.doc_no, uuid: n.id, title: n.title, duty: firstSentence(n.content), category: 'active-data', agent: getAgent(n.doc_no) });
+    results.push({
+      docNo: n.doc_no,
+      uuid: n.id,
+      title: n.title,
+      duty: firstSentence(n.content),
+      category: "active-data",
+      agent: getAgent(n.doc_no),
+    });
   }
 
   return results;

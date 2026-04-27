@@ -1,28 +1,35 @@
 export type InstanceStatus = "Active" | "Completed" | "InProgress";
 export type PrimitiveKind = "DR" | "IB";
 
-export interface EntityRef { id: string; name: string; slug: string; }
-export interface OperationalChain { executor: EntityRef | null; govops: EntityRef | null; }
+export interface EntityRef {
+  id: string;
+  name: string;
+  slug: string;
+}
+export interface OperationalChain {
+  executor: EntityRef | null;
+  govops: EntityRef | null;
+}
 
 export interface RewardsInstance {
   id: string;
   docNo: string;
   name: string;
   status: InstanceStatus;
-  rewardCode?: string;    // DR only
-  rewardCodeDocId?: string;   // DR — the .1.1 Reward Code sub-doc
-  partnerName?: string;   // IB only
-  partnerNameDocId?: string;  // IB — the .1.1 Partner Name sub-doc
+  rewardCode?: string; // DR only
+  rewardCodeDocId?: string; // DR — the .1.1 Reward Code sub-doc
+  partnerName?: string; // IB only
+  partnerNameDocId?: string; // IB — the .1.1 Partner Name sub-doc
   rewardAddress?: string; // IB only — EVM or Solana
-  rewardChain?: string;   // IB only
-  rewardChainDocId?: string;  // IB — the .1.3 Partner Chain sub-doc
-  cadence?: string;       // IB only
-  cadenceDocId?: string;      // IB — the .1.4 Cadence sub-doc
-  tracking?: string;      // DR only — full methodology text incl. A-link
+  rewardChain?: string; // IB only
+  rewardChainDocId?: string; // IB — the .1.3 Partner Chain sub-doc
+  cadence?: string; // IB only
+  cadenceDocId?: string; // IB — the .1.4 Cadence sub-doc
+  tracking?: string; // DR only — full methodology text incl. A-link
   // For DR: referenced methodology doc UUID if the text links out, else the
   // ICD's own Tracking Methodology sub-doc (the inline case).
   trackingDocId?: string;
-  trackingDocNo?: string;   // doc_no of whichever doc trackingDocId targets
+  trackingDocNo?: string; // doc_no of whichever doc trackingDocId targets
   // Active Data Controller owning this instance's Payment list + its declared RP.
   paymentsControllerId?: string;
   paymentsControllerDocNo?: string;

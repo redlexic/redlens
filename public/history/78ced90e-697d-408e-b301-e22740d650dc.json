@@ -1,1 +1,19 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","Synthetic tagging of deposits and withdrawals from the LayerZero contract on Ethereum (`0x1e1D42781FC170EF9da004Fb735f56F0276d01B8`) minus the running balances already attributed to a Distribution Reward Instance."]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Synthetic tagging of deposits and withdrawals from the LayerZero contract on Ethereum (`0x1e1D42781FC170EF9da004Fb735f56F0276d01B8`) minus the running balances already attributed to a Distribution Reward Instance."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

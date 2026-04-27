@@ -1,1 +1,21 @@
-[{"date":"2026-04-16","commitHash":"ede66d5","changeType":"added","diff":[["+","The documents herein contain operational procedures or monitoring requirements unique to this Instance that deviate from or otherwise supplement the general Pattern Liquidity Layer processes."]],"pr":222,"prTitle":"Atlas Edit Proposal — 2026-04-13","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/222","reviewCount":1,"approvalCount":1,"summary":"Transfer Integrator Program Responsibility To Operational GovOps","description":"Transfers responsibility for the Integrator Program from Ecosystem Actor Viridian Advisors to Operational GovOps."}]
+[
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein contain operational procedures or monitoring requirements unique to this Instance that deviate from or otherwise supplement the general Pattern Liquidity Layer processes."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Transfer Integrator Program Responsibility To Operational GovOps",
+    "description": "Transfers responsibility for the Integrator Program from Ecosystem Actor Viridian Advisors to Operational GovOps."
+  }
+]
