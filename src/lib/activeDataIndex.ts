@@ -3,18 +3,29 @@
 // relations.json.
 
 import type { AtlasNode, Participant, RelationEdge } from "../types";
+import { parseMeta } from "./meta";
 
-export interface AgentRef { name: string; id: string; docNoPrefix: string; docNo: string; }
+export interface AgentRef {
+  name: string;
+  id: string;
+  docNoPrefix: string;
+  docNo: string;
+}
 
 // Prime agents resolved from the graph, ordered by their defining doc_no
 // (A.6.1.1.1 < A.6.1.1.2 < …). An agent without a resolvable defining doc is
 // dropped — every prime in the atlas is expected to have one.
-export function agentsFromGraph(participants: Participant[], docs: Record<string, AtlasNode>): AgentRef[] {
+export function agentsFromGraph(
+  participants: Participant[],
+  docs: Record<string, AtlasNode>,
+): AgentRef[] {
   return participants
-    .filter(e => e.et === "agent" && e.st === "prime")
-    .map(e => {
+    .filter((e) => e.et === "agent" && e.st === "prime")
+    .map((e) => {
       const doc = e.did ? docs[e.did] : null;
-      return doc ? { name: e.name, id: e.id, docNo: doc.doc_no, docNoPrefix: doc.doc_no + "." } : null;
+      return doc
+        ? { name: e.name, id: e.id, docNo: doc.doc_no, docNoPrefix: doc.doc_no + "." }
+        : null;
     })
     .filter((a): a is AgentRef => a !== null)
     .sort((a, b) => a.docNoPrefix.localeCompare(b.docNoPrefix, undefined, { numeric: true }));
@@ -25,16 +36,16 @@ export type ProcessKind = "Direct Edit" | "Alignment Conserver Changes";
 export interface AgentChain {
   agentName: string;
   agentId: string;
-  agentDocNo: string | null;        // Prime Agent's defining doc_no
+  agentDocNo: string | null; // Prime Agent's defining doc_no
   executorName: string | null;
   executorId: string | null;
-  executorEdgeSource: string | null;    // source doc_no of the executor→prime edge
+  executorEdgeSource: string | null; // source doc_no of the executor→prime edge
   facilitatorName: string | null;
   facilitatorId: string | null;
   facilitatorEdgeSource: string | null; // source doc_no of the facilitator→executor edge
   govopsName: string | null;
   govopsId: string | null;
-  govopsEdgeSource: string | null;      // source doc_no of the govops→executor edge
+  govopsEdgeSource: string | null; // source doc_no of the govops→executor edge
 }
 
 export type FacilitatorRole = "Operational Facilitator" | "Core Facilitator";
@@ -49,7 +60,7 @@ export interface EvidenceStep {
 
 export interface ResponsibleParty {
   name: string;
-  id: string;           // entity UUID (not a doc)
+  id: string; // entity UUID (not a doc)
   docId: string | null; // defining Atlas doc — safe target for navigation
   resolution: "direct" | "chain" | "role";
   declared: string | null; // raw RP text from the ADC, for provenance
@@ -58,7 +69,7 @@ export interface ResponsibleParty {
 
 export interface Facilitator {
   name: string;
-  id: string;           // entity UUID (not a doc)
+  id: string; // entity UUID (not a doc)
   docId: string | null; // defining Atlas doc — safe target for navigation
   role: FacilitatorRole;
   evidence: EvidenceStep[];
@@ -98,20 +109,26 @@ export function buildChainMap(
   edges: RelationEdge[],
   docs?: Record<string, AtlasNode>,
 ): Map<string, AgentChain> {
-  const entityById = new Map(participants.map(e => [e.id, e]));
-  const primes = participants.filter(e => e.et === "agent" && e.st === "prime");
+  const entityById = new Map(participants.map((e) => [e.id, e]));
+  const primes = participants.filter((e) => e.et === "agent" && e.st === "prime");
 
-  const execEdges = edges.filter(e => e.e === "operational_executor_agent_for" || e.e === "core_executor_agent_for");
-  const facEdges  = edges.filter(e => e.e === "operational_facilitator_for" || e.e === "core_facilitator_for");
-  const govEdges  = edges.filter(e => e.e === "operational_govops_for" || e.e === "core_govops_for");
+  const execEdges = edges.filter(
+    (e) => e.e === "operational_executor_agent_for" || e.e === "core_executor_agent_for",
+  );
+  const facEdges = edges.filter(
+    (e) => e.e === "operational_facilitator_for" || e.e === "core_facilitator_for",
+  );
+  const govEdges = edges.filter(
+    (e) => e.e === "operational_govops_for" || e.e === "core_govops_for",
+  );
 
   const map = new Map<string, AgentChain>();
   for (const prime of primes) {
-    const execEdge = execEdges.find(e => e.t === prime.id);
+    const execEdge = execEdges.find((e) => e.t === prime.id);
     const executor = execEdge ? entityById.get(execEdge.f) : null;
 
-    const facEdge = executor ? facEdges.find(e => e.t === executor.id) : null;
-    const govEdge = executor ? govEdges.find(e => e.t === executor.id) : null;
+    const facEdge = executor ? facEdges.find((e) => e.t === executor.id) : null;
+    const govEdge = executor ? govEdges.find((e) => e.t === executor.id) : null;
 
     map.set(prime.name, {
       agentName: prime.name,
@@ -155,7 +172,7 @@ export function buildActiveDataRows(
 ): ActiveDataRow[] {
   const entities = graph.participants;
   const { edges } = graph;
-  const entityById = new Map(entities.map(e => [e.id, e]));
+  const entityById = new Map(entities.map((e) => [e.id, e]));
   const chainMap = buildChainMap(entities, edges, docs);
   const agents = agentsFromGraph(entities, docs);
 
@@ -178,134 +195,164 @@ export function buildActiveDataRows(
   }
 
   // Core Facilitator is the sole source of a `core_facilitator_for` edge.
-  const coreFacEdge = edges.find(e => e.e === "core_facilitator_for");
+  const coreFacEdge = edges.find((e) => e.e === "core_facilitator_for");
   const coreFacEntity = coreFacEdge ? (entityById.get(coreFacEdge.f) ?? null) : null;
 
-  const activeDataDocs = Object.values(docs).filter(d => d.type === "Active Data");
+  const activeDataDocs = Object.values(docs).filter((d) => d.type === "Active Data");
 
-  return activeDataDocs.map((ad): ActiveDataRow => {
-    const ctrl = controllerByAd.get(ad.id);
-    const controllerDoc = ctrl ? docs[ctrl.id] : null;
-    const controllerDocNo = controllerDoc?.doc_no ?? null;
+  return activeDataDocs
+    .map((ad): ActiveDataRow => {
+      const ctrl = controllerByAd.get(ad.id);
+      const controllerDoc = ctrl ? docs[ctrl.id] : null;
+      const controllerDocNo = controllerDoc?.doc_no ?? null;
 
-    const agent = controllerDocNo ? agentFromDocNo(controllerDocNo, agents) : null;
-    const chain = agent ? (chainMap.get(agent) ?? null) : null;
+      const agent = controllerDocNo ? agentFromDocNo(controllerDocNo, agents) : null;
+      const chain = agent ? (chainMap.get(agent) ?? null) : null;
 
-    const respEdge = ctrl ? respByCtrl.get(ctrl.id) : undefined;
-    const respEntity = respEdge ? entityById.get(respEdge.f) : null;
-    const respMeta = (() => {
-      if (!respEdge?.m) return null;
-      try { return JSON.parse(respEdge.m) as { role_declared?: string; resolution?: "direct" | "chain" | "role" }; }
-      catch { return null; }
-    })();
+      const respEdge = ctrl ? respByCtrl.get(ctrl.id) : undefined;
+      const respEntity = respEdge ? entityById.get(respEdge.f) : null;
+      const respMeta = parseMeta<{
+        role_declared?: string;
+        resolution?: "direct" | "chain" | "role";
+      }>(respEdge?.m);
 
-    const responsibleParty: ResponsibleParty | null = respEntity ? (() => {
-      const resolution = respMeta?.resolution ?? "direct";
-      const declared = respMeta?.role_declared ?? null;
-      const evidence: EvidenceStep[] = [];
-      const adcDocNo = respEdge?.s?.[0] ?? controllerDocNo;
-      const declaredLabel = declared ? `ADC declares Responsible Party ("${declared}")` : "ADC names Responsible Party";
-      const s0 = step(adcDocNo, declaredLabel); if (s0) evidence.push(s0);
+      const responsibleParty: ResponsibleParty | null = respEntity
+        ? (() => {
+            const resolution = respMeta?.resolution ?? "direct";
+            const declared = respMeta?.role_declared ?? null;
+            const evidence: EvidenceStep[] = [];
+            const adcDocNo = respEdge?.s?.[0] ?? controllerDocNo;
+            const declaredLabel = declared
+              ? `ADC declares Responsible Party ("${declared}")`
+              : "ADC names Responsible Party";
+            const s0 = step(adcDocNo, declaredLabel);
+            if (s0) evidence.push(s0);
 
-      if (resolution === "chain") {
-        const decl = (declared ?? "").toLowerCase();
-        if (chain) {
-          const s1 = step(chain.agentDocNo, `Prime Agent: ${chain.agentName}`); if (s1) evidence.push(s1);
+            if (resolution === "chain") {
+              const decl = (declared ?? "").toLowerCase();
+              if (chain) {
+                const s1 = step(chain.agentDocNo, `Prime Agent: ${chain.agentName}`);
+                if (s1) evidence.push(s1);
+                if (chain.executorEdgeSource && chain.executorName) {
+                  const s2 = step(
+                    chain.executorEdgeSource,
+                    `Executor Agent: ${chain.executorName}`,
+                  );
+                  if (s2) evidence.push(s2);
+                }
+                if (decl.includes("govops") && chain.govopsEdgeSource) {
+                  const s3 = step(chain.govopsEdgeSource, `${declared}: ${respEntity.name}`);
+                  if (s3) evidence.push(s3);
+                } else if (decl.includes("facilitator") && chain.facilitatorEdgeSource) {
+                  const s3 = step(chain.facilitatorEdgeSource, `${declared}: ${respEntity.name}`);
+                  if (s3) evidence.push(s3);
+                }
+              } else {
+                // Sky Core chain: no Prime/Executor hops. Look up the core role edge
+                // that names this entity and cite its source.
+                const coreType = decl.includes("govops")
+                  ? "core_govops_for"
+                  : decl.includes("facilitator")
+                    ? "core_facilitator_for"
+                    : null;
+                if (coreType) {
+                  const ed = edges.find((e) => e.e === coreType && e.f === respEntity.id);
+                  const roleLabel =
+                    coreType === "core_govops_for" ? "Core GovOps" : "Core Facilitator";
+                  const sx = step(ed?.s?.[0], `${roleLabel}: ${respEntity.name}`);
+                  if (sx) evidence.push(sx);
+                }
+              }
+            } else if (resolution === "role") {
+              const bindingDocNo = roleBindingDocByHolder.get(respEntity.id);
+              const sb = step(bindingDocNo, `Role held by ${respEntity.name}`);
+              if (sb) evidence.push(sb);
+            } else if (respEntity.did) {
+              const entDoc = docs[respEntity.did];
+              const sd = step(entDoc?.doc_no, `Entity: ${respEntity.name}`);
+              if (sd) evidence.push(sd);
+            }
+
+            return {
+              name: respEntity.name,
+              id: respEntity.id,
+              docId: respEntity.did ?? null,
+              resolution,
+              declared,
+              evidence,
+            };
+          })()
+        : null;
+
+      // A.1.12.1.3.1 only specifies a Facilitator for Agent Artifacts (A.6.1.1.*) and
+      // the Sky Core Atlas (A.1.*). For other areas (primitive specs A.2.*, ecosystem
+      // accords, etc.) the Atlas is silent — leave it null rather than guess.
+      const isSkyCoreAtlasAdc = (controllerDocNo ?? "").startsWith("A.1.");
+      const facilitator: Facilitator | null = (() => {
+        if (agent && chain?.facilitatorName && chain.facilitatorId) {
+          const evidence: EvidenceStep[] = [];
+          const s1 = step(chain.agentDocNo, `Prime Agent: ${chain.agentName}`);
+          if (s1) evidence.push(s1);
           if (chain.executorEdgeSource && chain.executorName) {
-            const s2 = step(chain.executorEdgeSource, `Executor Agent: ${chain.executorName}`); if (s2) evidence.push(s2);
+            const s2 = step(chain.executorEdgeSource, `Executor Agent: ${chain.executorName}`);
+            if (s2) evidence.push(s2);
           }
-          if (decl.includes("govops") && chain.govopsEdgeSource) {
-            const s3 = step(chain.govopsEdgeSource, `${declared}: ${respEntity.name}`); if (s3) evidence.push(s3);
-          } else if (decl.includes("facilitator") && chain.facilitatorEdgeSource) {
-            const s3 = step(chain.facilitatorEdgeSource, `${declared}: ${respEntity.name}`); if (s3) evidence.push(s3);
-          }
-        } else {
-          // Sky Core chain: no Prime/Executor hops. Look up the core role edge
-          // that names this entity and cite its source.
-          const coreType = decl.includes("govops") ? "core_govops_for"
-                        : decl.includes("facilitator") ? "core_facilitator_for"
-                        : null;
-          if (coreType) {
-            const ed = edges.find(e => e.e === coreType && e.f === respEntity.id);
-            const roleLabel = coreType === "core_govops_for" ? "Core GovOps" : "Core Facilitator";
-            const sx = step(ed?.s?.[0], `${roleLabel}: ${respEntity.name}`); if (sx) evidence.push(sx);
-          }
+          const s3 = step(
+            chain.facilitatorEdgeSource,
+            `Operational Facilitator: ${chain.facilitatorName}`,
+          );
+          if (s3) evidence.push(s3);
+          return {
+            name: chain.facilitatorName,
+            id: chain.facilitatorId,
+            docId: entityById.get(chain.facilitatorId)?.did ?? null,
+            role: "Operational Facilitator",
+            evidence,
+          };
         }
-      } else if (resolution === "role") {
-        const bindingDocNo = roleBindingDocByHolder.get(respEntity.id);
-        const sb = step(bindingDocNo, `Role held by ${respEntity.name}`); if (sb) evidence.push(sb);
-      } else if (respEntity.did) {
-        const entDoc = docs[respEntity.did];
-        const sd = step(entDoc?.doc_no, `Entity: ${respEntity.name}`); if (sd) evidence.push(sd);
-      }
+        if (!agent && isSkyCoreAtlasAdc && coreFacEntity) {
+          const evidence: EvidenceStep[] = [];
+          const s1 = step(coreFacEdge?.s?.[0], `Core Facilitator: ${coreFacEntity.name}`);
+          if (s1) evidence.push(s1);
+          return {
+            name: coreFacEntity.name,
+            id: coreFacEntity.id,
+            docId: coreFacEntity.did ?? null,
+            role: "Core Facilitator",
+            evidence,
+          };
+        }
+        return null;
+      })();
 
       return {
-        name: respEntity.name,
-        id: respEntity.id,
-        docId: respEntity.did ?? null,
-        resolution,
-        declared,
-        evidence,
+        activeDataId: ad.id,
+        activeDataDocNo: ad.doc_no,
+        activeDataTitle: ad.title,
+        controllerId: controllerDoc?.id ?? null,
+        controllerDocNo,
+        controllerTitle: controllerDoc?.title ?? null,
+        agent,
+        chain,
+        responsibleParty,
+        facilitator,
+        process: extractProcess((controllerDoc ?? ad).content),
+        sourceDocNo: respEdge?.s?.[0] ?? ctrl?.source ?? null,
       };
-    })() : null;
-
-    // A.1.12.1.3.1 only specifies a Facilitator for Agent Artifacts (A.6.1.1.*) and
-    // the Sky Core Atlas (A.1.*). For other areas (primitive specs A.2.*, ecosystem
-    // accords, etc.) the Atlas is silent — leave it null rather than guess.
-    const isSkyCoreAtlasAdc = (controllerDocNo ?? "").startsWith("A.1.");
-    const facilitator: Facilitator | null = (() => {
-      if (agent && chain?.facilitatorName && chain.facilitatorId) {
-        const evidence: EvidenceStep[] = [];
-        const s1 = step(chain.agentDocNo, `Prime Agent: ${chain.agentName}`); if (s1) evidence.push(s1);
-        if (chain.executorEdgeSource && chain.executorName) {
-          const s2 = step(chain.executorEdgeSource, `Executor Agent: ${chain.executorName}`); if (s2) evidence.push(s2);
-        }
-        const s3 = step(chain.facilitatorEdgeSource, `Operational Facilitator: ${chain.facilitatorName}`);
-        if (s3) evidence.push(s3);
-        return {
-          name: chain.facilitatorName,
-          id: chain.facilitatorId,
-          docId: entityById.get(chain.facilitatorId)?.did ?? null,
-          role: "Operational Facilitator",
-          evidence,
-        };
-      }
-      if (!agent && isSkyCoreAtlasAdc && coreFacEntity) {
-        const evidence: EvidenceStep[] = [];
-        const s1 = step(coreFacEdge?.s?.[0], `Core Facilitator: ${coreFacEntity.name}`);
-        if (s1) evidence.push(s1);
-        return {
-          name: coreFacEntity.name,
-          id: coreFacEntity.id,
-          docId: coreFacEntity.did ?? null,
-          role: "Core Facilitator",
-          evidence,
-        };
-      }
-      return null;
-    })();
-
-    return {
-      activeDataId: ad.id,
-      activeDataDocNo: ad.doc_no,
-      activeDataTitle: ad.title,
-      controllerId: controllerDoc?.id ?? null,
-      controllerDocNo,
-      controllerTitle: controllerDoc?.title ?? null,
-      agent,
-      chain,
-      responsibleParty,
-      facilitator,
-      process: extractProcess((controllerDoc ?? ad).content),
-      sourceDocNo: respEdge?.s?.[0] ?? ctrl?.source ?? null,
-    };
-  }).sort((a, b) => a.activeDataDocNo.localeCompare(b.activeDataDocNo, undefined, { numeric: true }));
+    })
+    .sort((a, b) =>
+      a.activeDataDocNo.localeCompare(b.activeDataDocNo, undefined, { numeric: true }),
+    );
 }
 
 export function activeDataRowsToCSV(rows: ActiveDataRow[]): string {
-  const header = "Active Data Doc,Active Data Title,Controller Doc,Controller Title,Agent,Responsible Party,Facilitator,Facilitator Role,Process\n";
-  const body = rows.map(r =>
-    `"${r.activeDataDocNo}","${r.activeDataTitle}","${r.controllerDocNo ?? ""}","${r.controllerTitle ?? ""}","${r.agent ?? ""}","${r.responsibleParty?.name ?? ""}","${r.facilitator?.name ?? ""}","${r.facilitator?.role ?? ""}","${r.process}"`
-  ).join("\n");
+  const header =
+    "Active Data Doc,Active Data Title,Controller Doc,Controller Title,Agent,Responsible Party,Facilitator,Facilitator Role,Process\n";
+  const body = rows
+    .map(
+      (r) =>
+        `"${r.activeDataDocNo}","${r.activeDataTitle}","${r.controllerDocNo ?? ""}","${r.controllerTitle ?? ""}","${r.agent ?? ""}","${r.responsibleParty?.name ?? ""}","${r.facilitator?.name ?? ""}","${r.facilitator?.role ?? ""}","${r.process}"`,
+    )
+    .join("\n");
   return header + body;
 }

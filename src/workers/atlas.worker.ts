@@ -46,7 +46,10 @@ function buildAndSend(docs: Record<string, AtlasNode>) {
   for (const node of Object.values(docs)) {
     const key = resolveParentId(node);
     let bucket = byParent.get(key);
-    if (!bucket) { bucket = []; byParent.set(key, bucket); }
+    if (!bucket) {
+      bucket = [];
+      byParent.set(key, bucket);
+    }
     bucket.push(node);
   }
   for (const bucket of byParent.values()) bucket.sort((a, b) => a.order - b.order);

@@ -1,6 +1,6 @@
 # RedLens Graph Schema — Research & Design
 
-*Research session: 2026-04-15. Do not build until reviewed.*
+_Research session: 2026-04-15. Do not build until reviewed._
 
 ---
 
@@ -9,16 +9,19 @@
 RedLens is a search-first interface for the Sky Atlas (`vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md`, ~48k lines, 9,825 nodes). The goal is to add a graph layer on top of the existing static site, backed by Cloudflare Workers + D1 (SQLite), serving both a REST API for the frontend and an MCP server for AI clients.
 
 Existing data artifacts (all in `public/`):
+
 - `docs.json` — `Record<uuid, AtlasNode>` — 9,825 nodes, full content
 - `search-index.json` — serialized lunr index
 - `addresses.json` — 294 on-chain addresses extracted from Atlas content
 - `chain-state.json` — view-function snapshots for 28 contracts (currently ETH mainnet only)
 
 The existing D1 schema stub (in memory from a prior session) is just:
+
 ```sql
 CREATE TABLE nodes (id TEXT PRIMARY KEY, doc_no TEXT, title TEXT, type TEXT, depth INTEGER, parent_id TEXT, content TEXT);
 CREATE TABLE edges (from_id TEXT, to_id TEXT, type TEXT);
 ```
+
 This research supersedes that stub entirely.
 
 ---
@@ -26,39 +29,42 @@ This research supersedes that stub entirely.
 ## Atlas Structure
 
 ### Document types (12 total)
+
 From `vendor/next-gen-atlas/ATLAS_MARKDOWN_SYNTAX.md`:
 
-| Type | Role |
-|---|---|
-| Scope | Top-level (A.1–A.6) |
-| Article | Second level |
-| Section | Third level |
-| Core | Primary working doc, nestable |
-| Type Specification | Defines document type characteristics |
-| Active Data Controller | Manages mutable state docs |
-| Annotation | Supporting, at `.0.3.X` — expands definitions |
-| Action Tenet | Supporting, at `.0.4.X` — conditional guidance |
-| Scenario | At `.0.4.X.1.X` — hypothetical fact patterns |
-| Scenario Variation | At `.X.varN` |
-| Active Data | At `.0.6.X` — mutable state (membership lists, current configs) |
-| Needed Research | Global `NR-X` numbering |
+| Type                   | Role                                                            |
+| ---------------------- | --------------------------------------------------------------- |
+| Scope                  | Top-level (A.1–A.6)                                             |
+| Article                | Second level                                                    |
+| Section                | Third level                                                     |
+| Core                   | Primary working doc, nestable                                   |
+| Type Specification     | Defines document type characteristics                           |
+| Active Data Controller | Manages mutable state docs                                      |
+| Annotation             | Supporting, at `.0.3.X` — expands definitions                   |
+| Action Tenet           | Supporting, at `.0.4.X` — conditional guidance                  |
+| Scenario               | At `.0.4.X.1.X` — hypothetical fact patterns                    |
+| Scenario Variation     | At `.X.varN`                                                    |
+| Active Data            | At `.0.6.X` — mutable state (membership lists, current configs) |
+| Needed Research        | Global `NR-X` numbering                                         |
 
 ### Node heading format
+
 ```
 ^(#{1,6}) ([\w.-]+) - (.+?) \[([^\]]+)\]\s+<!-- UUID: ([0-9a-f-]{36}) -->$
 ```
+
 Fields: depth, doc_no (e.g. `A.6.1.2.2.1`), title, type, UUID.
 
 ### The 6 Scopes
 
-| Doc No | Title | UUID |
-|---|---|---|
-| A.1 | The Governance Scope | 18ac7dd3-c646-4352-9b0d-d01a2932d7d1 |
-| A.2 | The Support Scope | 1ce14bd8-c7b3-4f74-a152-292a8d8ebed0 |
-| A.3 | The Stability Scope | d56538fc-2220-491a-a4d2-7ad6e461d707 |
-| A.4 | The Protocol Scope | 5c20d9af-0bb9-4ca1-a944-1e2cb6f8bb6b |
-| A.5 | The Accessibility Scope | 99b1b47d-3c7a-4859-ac00-8c0849f9070e |
-| A.6 | The Agent Scope | 4a08ca6c-e652-49e4-9b79-4831b20e600a |
+| Doc No | Title                   | UUID                                 |
+| ------ | ----------------------- | ------------------------------------ |
+| A.1    | The Governance Scope    | 18ac7dd3-c646-4352-9b0d-d01a2932d7d1 |
+| A.2    | The Support Scope       | 1ce14bd8-c7b3-4f74-a152-292a8d8ebed0 |
+| A.3    | The Stability Scope     | d56538fc-2220-491a-a4d2-7ad6e461d707 |
+| A.4    | The Protocol Scope      | 5c20d9af-0bb9-4ca1-a944-1e2cb6f8bb6b |
+| A.5    | The Accessibility Scope | 99b1b47d-3c7a-4859-ac00-8c0849f9070e |
+| A.6    | The Agent Scope         | 4a08ca6c-e652-49e4-9b79-4831b20e600a |
 
 ---
 
@@ -66,48 +72,49 @@ Fields: depth, doc_no (e.g. `A.6.1.2.2.1`), title, type, UUID.
 
 ### Type definitions (A.0.1.1.x — all type=Core)
 
-| Doc No | Title | UUID |
-|---|---|---|
-| A.0.1.1.17 | Alignment Conserver | 94a451ce-100c-4ff5-8d53-65953938ecde |
-| A.0.1.1.18 | Aligned Delegate | 8ea04ed4-7075-45e6-b6ed-a52b7506f4a8 |
-| A.0.1.1.19 | Facilitator | 912e0161-3448-470f-9cf6-d1a26d76acab |
-| A.0.1.1.39 | Agent | (definition node) |
-| A.0.1.1.40 | Agent Artifact | 8d081c1a-6393-4aaf-8914-8959cdf2fee3 |
-| A.0.1.1.41 | Agent Scope | 87dafa99-c36e-4e68-ac19-fccac4b3834d |
-| A.0.1.1.42 | Prime Agent | a8454271-c090-4084-b022-4430e3def93c |
-| A.0.1.1.43 | Executor Agent | ac514975-66ad-4b43-8f76-42cac5ca599d |
-| A.0.1.1.44 | Operational Executor Agent | 23253343-23e3-440f-90c0-43d3437c2098 |
-| A.0.1.1.45 | Core Council Executor Agent | 2a440474-20d1-4703-a57b-35e0cebb881c |
-| A.0.1.1.46 | Core Council | 5a03a0c4-a47a-409c-9b23-52ac93e63d45 |
-| A.0.1.1.47 | GovOps | 1e73ee4b-823d-406a-af54-223b43bc8e42 |
-| A.0.1.1.48 | Operational Executor GovOps | 80c7e2e1-a2af-47dd-80c7-aee6823cca91 |
-| A.0.1.1.49 | Core Council GovOps | e512e890-629f-450f-a14d-a3ea06a369c0 |
-| A.0.1.1.50 | Operational Executor Facilitator | 2d984fe4-c1d7-4ac3-835b-19f19a3a5505 |
+| Doc No     | Title                             | UUID                                 |
+| ---------- | --------------------------------- | ------------------------------------ |
+| A.0.1.1.17 | Alignment Conserver               | 94a451ce-100c-4ff5-8d53-65953938ecde |
+| A.0.1.1.18 | Aligned Delegate                  | 8ea04ed4-7075-45e6-b6ed-a52b7506f4a8 |
+| A.0.1.1.19 | Facilitator                       | 912e0161-3448-470f-9cf6-d1a26d76acab |
+| A.0.1.1.39 | Agent                             | (definition node)                    |
+| A.0.1.1.40 | Agent Artifact                    | 8d081c1a-6393-4aaf-8914-8959cdf2fee3 |
+| A.0.1.1.41 | Agent Scope                       | 87dafa99-c36e-4e68-ac19-fccac4b3834d |
+| A.0.1.1.42 | Prime Agent                       | a8454271-c090-4084-b022-4430e3def93c |
+| A.0.1.1.43 | Executor Agent                    | ac514975-66ad-4b43-8f76-42cac5ca599d |
+| A.0.1.1.44 | Operational Executor Agent        | 23253343-23e3-440f-90c0-43d3437c2098 |
+| A.0.1.1.45 | Core Council Executor Agent       | 2a440474-20d1-4703-a57b-35e0cebb881c |
+| A.0.1.1.46 | Core Council                      | 5a03a0c4-a47a-409c-9b23-52ac93e63d45 |
+| A.0.1.1.47 | GovOps                            | 1e73ee4b-823d-406a-af54-223b43bc8e42 |
+| A.0.1.1.48 | Operational Executor GovOps       | 80c7e2e1-a2af-47dd-80c7-aee6823cca91 |
+| A.0.1.1.49 | Core Council GovOps               | e512e890-629f-450f-a14d-a3ea06a369c0 |
+| A.0.1.1.50 | Operational Executor Facilitator  | 2d984fe4-c1d7-4ac3-835b-19f19a3a5505 |
 | A.0.1.1.51 | Core Council Executor Facilitator | 453e9bfb-2776-486d-b451-35742e49e0ab |
 
 ### Prime Agents (A.6.1.1.x)
 
-| Doc No | Name | UUID |
-|---|---|---|
-| A.6.1.1.1 | Spark | dee2f5a4-279a-488c-9a9d-9583e3216fbf |
-| A.6.1.1.2 | Grove | 727b0de6-095b-485e-bf9c-02108a364480 |
-| A.6.1.1.3 | Keel | bc6aed17-2969-4d04-9af6-c7bf3e4497e6 |
-| A.6.1.1.4 | Skybase | c88439b5-f456-4e51-8825-42e0ba83546f |
-| A.6.1.1.5 | Obex | f558e673-cbab-4696-8ca1-3af9b90fe5d4 |
-| A.6.1.1.6 | Pattern | dc083d10-74bc-43b6-ab2f-c91efce76e84 |
+| Doc No    | Name           | UUID                                 |
+| --------- | -------------- | ------------------------------------ |
+| A.6.1.1.1 | Spark          | dee2f5a4-279a-488c-9a9d-9583e3216fbf |
+| A.6.1.1.2 | Grove          | 727b0de6-095b-485e-bf9c-02108a364480 |
+| A.6.1.1.3 | Keel           | bc6aed17-2969-4d04-9af6-c7bf3e4497e6 |
+| A.6.1.1.4 | Skybase        | c88439b5-f456-4e51-8825-42e0ba83546f |
+| A.6.1.1.5 | Obex           | f558e673-cbab-4696-8ca1-3af9b90fe5d4 |
+| A.6.1.1.6 | Pattern        | dc083d10-74bc-43b6-ab2f-c91efce76e84 |
 | A.6.1.1.7 | Launch Agent 6 | eba0dcc7-e135-496f-b866-342deeb91dc4 |
 | A.6.1.1.8 | Launch Agent 7 | d0d77316-0b08-447c-b75a-ae7926b07019 |
 
 ### Executor Agents and their named Facilitators/GovOps (A.6.1.2.x)
 
-| Agent | Agent UUID | Agent Doc | Facilitator | Fac Doc | Fac UUID | GovOps | GO Doc | GO UUID |
-|---|---|---|---|---|---|---|---|---|
-| Amatsu | c57df14a-... | A.6.1.2.1 | **Endgame Edge** | A.6.1.2.1.1 | a874a419-... | **Soter Labs** | A.6.1.2.1.2 | 66845ee6-... |
-| Ozone | 565660dd-... | A.6.1.2.2 | **Redline Facilitation Group** | A.6.1.2.2.1 | d282ccb9-... | **Soter Labs** | A.6.1.2.2.2 | a491d7d0-... |
-| Core Council Executor Agent 1 | 12b14e05-... | A.6.1.2.3 | **JanSky** | A.6.1.2.3.1 | 8cfee319-... | **Atlas Axis** | A.6.1.2.3.2 | 3b9b8910-... |
+| Agent                         | Agent UUID   | Agent Doc | Facilitator                    | Fac Doc     | Fac UUID     | GovOps         | GO Doc      | GO UUID      |
+| ----------------------------- | ------------ | --------- | ------------------------------ | ----------- | ------------ | -------------- | ----------- | ------------ |
+| Amatsu                        | c57df14a-... | A.6.1.2.1 | **Endgame Edge**               | A.6.1.2.1.1 | a874a419-... | **Soter Labs** | A.6.1.2.1.2 | 66845ee6-... |
+| Ozone                         | 565660dd-... | A.6.1.2.2 | **Redline Facilitation Group** | A.6.1.2.2.1 | d282ccb9-... | **Soter Labs** | A.6.1.2.2.2 | a491d7d0-... |
+| Core Council Executor Agent 1 | 12b14e05-... | A.6.1.2.3 | **JanSky**                     | A.6.1.2.3.1 | 8cfee319-... | **Atlas Axis** | A.6.1.2.3.2 | 3b9b8910-... |
 
 Key observations:
-- **Soter Labs** is GovOps for *both* Amatsu and Ozone — one entity row, two `member_of` edges.
+
+- **Soter Labs** is GovOps for _both_ Amatsu and Ozone — one entity row, two `member_of` edges.
 - **Endgame Edge** is Facilitator for Amatsu AND an ERG member — same entity, multiple role edges.
 - **JanSky** is Core Facilitator AND an ERG member — same.
 - **Atlas Axis** is Core GovOps AND an ERG member — same.
@@ -124,9 +131,11 @@ Endgame Edge, JanSky, Ecosystem, Phoenix Labs, Jetstream, Atlas Axis, Steakhouse
 These 18 names appear only as list items in an Active Data node — **no own Atlas nodes, no UUIDs**. They must be **synthetic entity records** (see design decisions below).
 
 ### Pioneer Primes (Active Data A.2.2.8.3.1.2.1.0.6.1)
+
 Currently active: Keel, Grove.
 
 ### Aligned Delegates
+
 Represented in `addresses.json` as 29 EOAs with `roles: ["delegate"]`.  
 Names: Bonapublica, PBG, WBC, BLUE, Cloaky, and others.  
 Derecognized ADs tracked at `A.1.4.10.2.0.6.1` (Active Data).
@@ -136,7 +145,9 @@ Derecognized ADs tracked at `A.1.4.10.2.0.6.1` (Active Data).
 ## Data Artifacts
 
 ### `addresses.json` shape
+
 294 entries keyed by normalized lowercase address:
+
 ```json
 {
   "0x167c1a762b08d7e78dbf8f24e5c3f1ab415021d3": {
@@ -151,27 +162,34 @@ Derecognized ADs tracked at `A.1.4.10.2.0.6.1` (Active Data).
   }
 }
 ```
+
 Distribution: 186 contracts, 108 EOAs  
 Chains present: ethereum, base, avalanche, solana  
 Role tags: delegate (29), multisig (28), spark (10), buffer (9), subproxy (9), foundation (6), proxy (7), grove (5), executor (3), vesting (2), external (2), reserve (1), staking-rewards (1), incentive-pool (1), registry (1), sky (2), hot-wallet (1)
 
 ### `chain-state.json` shape (current — ETH mainnet only)
+
 ```json
 {
   "generatedAt": "2026-04-14T14:34:49.444Z",
   "block": "24878662",
   "values": {
     "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b": {
-      "Line": "...", "debt": "...", "live": "...", "vice": "..."
+      "Line": "...",
+      "debt": "...",
+      "live": "...",
+      "vice": "..."
     }
   }
 }
 ```
+
 28 contracts covered. Method names include: `Line/debt/live/vice` (MCD_VAT), `buffer/ilk/jug/roles` (AllocatorVaults), `maxDelay/prob/spellData/subProxy` (SubProxies), `dssVest/gem/lastDistributedAt` (vesting), standard token methods, etc.
 
 **Problem**: single global block, ETH-only. Needs per-chain redesign for multi-chain.
 
 **Proposed multi-chain `chain-state.json` shape**:
+
 ```json
 {
   "generatedAt": "...",
@@ -205,6 +223,7 @@ CREATE TABLE entities (
 ```
 
 **`entity_type` + `subtype` vocab**:
+
 ```
 entity_type              subtype
 ──────────────────────────────────────────────────
@@ -219,6 +238,7 @@ primitive                —
 ```
 
 **Synthetic entity `meta`** (for entities with no Atlas node):
+
 ```json
 {
   "source": "active_data_list",
@@ -306,21 +326,21 @@ CREATE INDEX idx_entities_type ON entities(entity_type, subtype);
 
 **`edge_type` vocab**:
 
-| edge_type | from_type → to_type | populated from |
-|---|---|---|
-| `parent_of` | atlas_node → atlas_node | `parentId` in docs.json |
-| `cites` | atlas_node → atlas_node | `[text](uuid)` markdown links in content |
-| `annotates` | atlas_node → atlas_node | doc_no `.0.3.X` pattern |
-| `active_data_for` | atlas_node → atlas_node | doc_no `.0.6.X` pattern |
-| `defines_entity` | atlas_node → entity | named entity extraction (Facilitator/GovOps nodes) |
-| `is_a` | entity → entity | type hierarchy (PrimeAgent IS_A Agent) |
-| `member_of` | entity → entity | Facilitator/GovOps assigned to an Agent |
-| `oversees` | entity → entity | CoreCouncil → OperationalExecutorAgent |
-| `responsible_for` | entity → atlas_node | Facilitator role → Scope node |
-| `member_of_erg` | entity → atlas_node | ERG Active Data node membership list |
-| `has_address` | entity → address | label/role matching at import |
-| `proxies_to` | address → address | chain-state or etherscan |
-| `mentions` | atlas_node → address | `addressRefs` in docs.json |
+| edge_type         | from_type → to_type     | populated from                                     |
+| ----------------- | ----------------------- | -------------------------------------------------- |
+| `parent_of`       | atlas_node → atlas_node | `parentId` in docs.json                            |
+| `cites`           | atlas_node → atlas_node | `[text](uuid)` markdown links in content           |
+| `annotates`       | atlas_node → atlas_node | doc_no `.0.3.X` pattern                            |
+| `active_data_for` | atlas_node → atlas_node | doc_no `.0.6.X` pattern                            |
+| `defines_entity`  | atlas_node → entity     | named entity extraction (Facilitator/GovOps nodes) |
+| `is_a`            | entity → entity         | type hierarchy (PrimeAgent IS_A Agent)             |
+| `member_of`       | entity → entity         | Facilitator/GovOps assigned to an Agent            |
+| `oversees`        | entity → entity         | CoreCouncil → OperationalExecutorAgent             |
+| `responsible_for` | entity → atlas_node     | Facilitator role → Scope node                      |
+| `member_of_erg`   | entity → atlas_node     | ERG Active Data node membership list               |
+| `has_address`     | entity → address        | label/role matching at import                      |
+| `proxies_to`      | address → address       | chain-state or etherscan                           |
+| `mentions`        | atlas_node → address    | `addressRefs` in docs.json                         |
 
 For `address` nodes in edges, encode the composite key as `"<address>:<chain>"` (e.g. `"0xabc123:ethereum"`).
 
@@ -331,6 +351,7 @@ For `address` nodes in edges, encode the composite key as `"<address>:<chain>"` 
 New script: `scripts/build-graph.mjs`
 
 Steps:
+
 1. Read `public/docs.json` → populate `atlas_nodes` (all 9,825 rows)
 2. Extract named entities by scanning Core nodes whose content matches known patterns:
    - "The Operational Facilitator for ... is `<Name>`" → `operational_facilitator`

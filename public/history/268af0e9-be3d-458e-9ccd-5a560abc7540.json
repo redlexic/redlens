@@ -1,1 +1,40 @@
-[{"date":"2025-11-21","commitHash":"22cc27b","changeType":"added","pr":117,"prTitle":"Migrate To Markdown File","prAuthor":"adamgfraser","prUrl":"https://github.com/sky-ecosystem/next-gen-atlas/pull/117","reviewCount":2,"approvalCount":1,"summary":"Migrate To Markdown File","description":"As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."}]
+[
+  {
+    "date": "2025-11-21",
+    "commitHash": "22cc27b",
+    "changeType": "added",
+    "pr": 117,
+    "prTitle": "Migrate To Markdown File",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/117",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Migrate To Markdown File",
+    "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          ["=", "If Instance Financial RRC, Instance Smart Contract"],
+          ["-", " Risk"],
+          ["=", " RRC, or Instance Administrative"],
+          ["-", " Risk"],
+          ["=", " RRC for an Instance cannot be calculated then the Instance Total RRC is 100%."]
+        ]
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Correct RRC And CRR Terminology In Risk Framework",
+    "description": "Corrects \"Instance Smart Contract Risk RRC\" to \"Instance Smart Contract RRC\" and \"Instance Financial RRC Ratio\" to \"Instance Financial CRR\"."
+  }
+]

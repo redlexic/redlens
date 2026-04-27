@@ -1,5 +1,6 @@
 import type { ActiveDataRow } from "../../lib/activeDataIndex";
 import { Link } from "wouter";
+import { ROUTES } from "../../lib/routes";
 
 interface Props {
   rows: ActiveDataRow[];
@@ -10,17 +11,25 @@ function Row({ r, onNavigate }: { r: ActiveDataRow; onNavigate: (id: string) => 
   return (
     <tr className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
       <td className="py-2 px-3 align-top">
-        <button onClick={() => onNavigate(r.activeDataId)} className="text-sm text-tan hover:underline text-left">
+        <button
+          onClick={() => onNavigate(r.activeDataId)}
+          className="text-sm text-tan hover:underline text-left"
+        >
           {r.activeDataTitle}
         </button>
         <div className="mono text-[10px] text-tan-3 mt-0.5">{r.activeDataDocNo}</div>
       </td>
       <td className="py-2 px-3 align-top mono text-xs">
-        {r.controllerId
-          ? <button onClick={() => onNavigate(r.controllerId!)} className="text-accent hover:underline">
-              {r.controllerDocNo}
-            </button>
-          : <span className="text-tan-3">—</span>}
+        {r.controllerId ? (
+          <button
+            onClick={() => onNavigate(r.controllerId!)}
+            className="text-accent hover:underline"
+          >
+            {r.controllerDocNo}
+          </button>
+        ) : (
+          <span className="text-tan-3">—</span>
+        )}
       </td>
       <td className="py-2 px-3 align-top text-xs text-tan-2">
         {r.responsibleParty?.name ?? <span className="text-tan-3 italic">none</span>}
@@ -50,12 +59,17 @@ export function ActorResponsibilities({ rows, onNavigate }: Props) {
             </tr>
           </thead>
           <tbody>
-            {rows.map(r => <Row key={r.activeDataId} r={r} onNavigate={onNavigate} />)}
+            {rows.map((r) => (
+              <Row key={r.activeDataId} r={r} onNavigate={onNavigate} />
+            ))}
           </tbody>
         </table>
       </div>
       <div className="mt-3">
-        <Link to="/reports/active-data" className="mono text-[11px] text-accent hover:underline">
+        <Link
+          to={ROUTES.REPORTS_ACTIVE_DATA}
+          className="mono text-[11px] text-accent hover:underline"
+        >
           View all in Active Data Report →
         </Link>
       </div>

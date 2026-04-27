@@ -43,7 +43,10 @@ for (const node of Object.values(docs)) {
   byDocNo.set(node.doc_no, node);
   const key = node.parentId;
   let bucket = byParent.get(key);
-  if (!bucket) { bucket = []; byParent.set(key, bucket); }
+  if (!bucket) {
+    bucket = [];
+    byParent.set(key, bucket);
+  }
   bucket.push(node);
 }
 for (const bucket of byParent.values()) bucket.sort((a, b) => a.order - b.order);
@@ -181,7 +184,11 @@ const TOOLS = [
       type: "object",
       properties: {
         query: { type: "string", description: "Natural-language query." },
-        k: { type: "integer", description: "Number of results to return (1-50, default 10).", default: 10 },
+        k: {
+          type: "integer",
+          description: "Number of results to return (1-50, default 10).",
+          default: 10,
+        },
         type: {
           type: "string",
           description:

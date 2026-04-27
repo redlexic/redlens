@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { realDepth, depthColor, type SearchHit } from "../types";
+import { realDepth, depthColor } from "../lib/depth";
+import type { SearchHit } from "../types";
 
 interface Props {
   hit: SearchHit;
@@ -12,9 +13,7 @@ export const SearchResult = memo(function SearchResult({ hit, onNavigate }: Prop
     ? `${hit.chainlogAddress.slice(0, 6)}…${hit.chainlogAddress.slice(-4)}`
     : "";
 
-  const reason = hit.chainlogId
-    ? hit.matchReason.replace(/^chainlog \+ /, "")
-    : hit.matchReason;
+  const reason = hit.chainlogId ? hit.matchReason.replace(/^chainlog \+ /, "") : hit.matchReason;
 
   return (
     <div className="relative">
@@ -35,7 +34,10 @@ export const SearchResult = memo(function SearchResult({ hit, onNavigate }: Prop
       </div>
       <a
         href={`/atlas?id=${hit.id}`}
-        onClick={(e) => { e.preventDefault(); onNavigate(hit.id); }}
+        onClick={(e) => {
+          e.preventDefault();
+          onNavigate(hit.id);
+        }}
         className="search-result-link px-4 py-3"
       >
         <h3

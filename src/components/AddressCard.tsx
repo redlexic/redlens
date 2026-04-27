@@ -33,13 +33,9 @@ export function AddressCard({
 
   return (
     <div className="py-3 border-b border-border">
-      {info.label && (
-        <p className="text-sm font-semibold mb-1 text-tan">{info.label}</p>
-      )}
+      {info.label && <p className="text-sm font-semibold mb-1 text-tan">{info.label}</p>}
       {info.aliases.length > 0 && (
-        <p className="text-xs mb-1 text-tan-3">
-          also known as {info.aliases.join(" · ")}
-        </p>
+        <p className="text-xs mb-1 text-tan-3">also known as {info.aliases.join(" · ")}</p>
       )}
       <a
         href={info.explorerUrl}

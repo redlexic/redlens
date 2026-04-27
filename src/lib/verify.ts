@@ -3,8 +3,8 @@
 // The expected hash map is baked into the bundle at build time by
 // vite.config.ts (via the __ARTIFACT_HASHES__ define, populated from
 // public/manifest.json). Every consumer fetches through fetchJsonVerified
-// and we throw on mismatch — so CDN tampering, truncated responses, and
-// stale worker caches surface loudly instead of rendering bad data.
+// and we warn on mismatch — CDN tampering, truncated responses, and stale
+// worker caches surface in the console without breaking the app.
 //
 // Verification is skipped in dev: Vite only reads manifest.json at
 // dev-server startup, so any subsequent build rewrites hashes on disk and
@@ -13,7 +13,9 @@
 
 const EXPECTED: Record<string, string> = import.meta.env.DEV
   ? {}
-  : (typeof __ARTIFACT_HASHES__ !== "undefined" ? __ARTIFACT_HASHES__ : {});
+  : typeof __ARTIFACT_HASHES__ !== "undefined"
+    ? __ARTIFACT_HASHES__
+    : {};
 
 async function sha256Hex(buf: ArrayBuffer): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", buf);

@@ -27,35 +27,41 @@ export const SUBTYPE_LABEL: Record<string, string> = {
  *  `forward` reads "**src** *verb* **tgt**"; `reverse` reads "**tgt** *verb* **src**". */
 export const EDGE_TYPE_LABELS: Record<string, { forward: string; reverse: string }> = {
   // entity ↔ entity
-  prime_agent_for:                 { forward: "prime agent for",               reverse: "has prime agent" },
-  operational_executor_agent_for:  { forward: "operational executor agent for", reverse: "has operational executor agent" },
-  operational_facilitator_for:     { forward: "operational facilitator for",   reverse: "has operational facilitator" },
-  core_facilitator_for:            { forward: "core facilitator for",          reverse: "has core facilitator" },
-  operational_govops_for:          { forward: "operational govops for",        reverse: "has operational govops" },
-  core_govops_for:                 { forward: "core govops for",               reverse: "has core govops" },
-  aligned_delegate_for:            { forward: "aligned delegate for",          reverse: "has aligned delegate" },
-  ranked_delegate_for:             { forward: "ranked delegate for",           reverse: "has ranked delegate" },
-  holds_role_for:                  { forward: "holds role for",                reverse: "has role-holder" },
-  comprises:                       { forward: "comprises",                     reverse: "part of" },
+  prime_agent_for: { forward: "prime agent for", reverse: "has prime agent" },
+  operational_executor_agent_for: {
+    forward: "operational executor agent for",
+    reverse: "has operational executor agent",
+  },
+  operational_facilitator_for: {
+    forward: "operational facilitator for",
+    reverse: "has operational facilitator",
+  },
+  core_facilitator_for: { forward: "core facilitator for", reverse: "has core facilitator" },
+  operational_govops_for: { forward: "operational govops for", reverse: "has operational govops" },
+  core_govops_for: { forward: "core govops for", reverse: "has core govops" },
+  aligned_delegate_for: { forward: "aligned delegate for", reverse: "has aligned delegate" },
+  ranked_delegate_for: { forward: "ranked delegate for", reverse: "has ranked delegate" },
+  holds_role_for: { forward: "holds role for", reverse: "has role-holder" },
+  comprises: { forward: "comprises", reverse: "part of" },
   // doc ↔ entity
-  ecosystem_accord:                { forward: "binds",                         reverse: "party to" },
-  defines_entity:                  { forward: "defines",                       reverse: "defined by" },
-  erg_member_for:                  { forward: "ERG member of",                 reverse: "has ERG member" },
-  responsible_party_for:           { forward: "responsible party for",         reverse: "has responsible party" },
+  ecosystem_accord: { forward: "binds", reverse: "party to" },
+  defines_entity: { forward: "defines", reverse: "defined by" },
+  erg_member_for: { forward: "ERG member of", reverse: "has ERG member" },
+  responsible_party_for: { forward: "responsible party for", reverse: "has responsible party" },
   // address edges
-  has_address:                     { forward: "has address",                   reverse: "owned by" },
-  mentions:                        { forward: "mentions",                      reverse: "mentioned in" },
-  proxies_to:                      { forward: "proxies to",                    reverse: "implementation of" },
+  has_address: { forward: "has address", reverse: "owned by" },
+  mentions: { forward: "mentions", reverse: "mentioned in" },
+  proxies_to: { forward: "proxies to", reverse: "implementation of" },
   // doc ↔ doc
-  parent_of:                       { forward: "parent of",                     reverse: "child of" },
-  annotates:                       { forward: "annotates",                     reverse: "annotated by" },
-  active_data_for:                 { forward: "active data for",               reverse: "has active data" },
-  cites:                           { forward: "cites",                         reverse: "cited by" },
-  implements:                      { forward: "implements",                    reverse: "implemented by" },
-  instance_of:                     { forward: "instance of",                   reverse: "has instance" },
-  invoked_by:                      { forward: "invoked by",                    reverse: "invoked" },
-  located_at:                      { forward: "located at",                    reverse: "location of" },
-  has_status:                      { forward: "has status",                    reverse: "status of" },
+  parent_of: { forward: "parent of", reverse: "child of" },
+  annotates: { forward: "annotates", reverse: "annotated by" },
+  active_data_for: { forward: "active data for", reverse: "has active data" },
+  cites: { forward: "cites", reverse: "cited by" },
+  implements: { forward: "implements", reverse: "implemented by" },
+  instance_of: { forward: "instance of", reverse: "has instance" },
+  invoked_by: { forward: "invoked by", reverse: "invoked" },
+  located_at: { forward: "located at", reverse: "location of" },
+  has_status: { forward: "has status", reverse: "status of" },
 };
 
 export function edgeLabel(edgeType: string, direction: "outbound" | "inbound"): string {
@@ -119,7 +125,7 @@ export function buildEntityNodes(data: GraphData): EntityNodeData[] {
       degree.set(e.t, (degree.get(e.t) ?? 0) + 1);
     }
   }
-  return [...data.participants, ...data.instances].map(ent => {
+  return [...data.participants, ...data.instances].map((ent) => {
     const d = degree.get(ent.id) ?? 0;
     return {
       id: ent.id,
@@ -134,9 +140,17 @@ export function buildEntityNodes(data: GraphData): EntityNodeData[] {
 
 /** Participant types that participate in direct entity↔entity edges. */
 export const CONNECTED_ENTITY_TYPES: ReadonlySet<string> = new Set([
-  "agent", "facilitator_org", "govops_org", "delegate_org",
-  "development_company", "foundation", "composite_party",
-  "governance_body", "operational_party", "ecosystem_actor", "instance",
+  "agent",
+  "facilitator_org",
+  "govops_org",
+  "delegate_org",
+  "development_company",
+  "foundation",
+  "composite_party",
+  "governance_body",
+  "operational_party",
+  "ecosystem_actor",
+  "instance",
 ]);
 
 /** Entity↔entity edges only, for the sigma canvas. */

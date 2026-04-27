@@ -2,8 +2,17 @@ import type { AtlasNode, RelationEdge, Participant } from "../types";
 import { agentsFromGraph, type AgentRef } from "./activeDataIndex";
 import type { GraphData } from "./graph";
 import type {
-  AgentPrimitive, EntityRef, InstanceMeta, InstanceStatus, OperationalChain, ParamTuple,
-  PrimitiveKind, RewardsAgent, RewardsEcosystemNode, RewardsIndex, RewardsInstance,
+  AgentPrimitive,
+  EntityRef,
+  InstanceMeta,
+  InstanceStatus,
+  OperationalChain,
+  ParamTuple,
+  PrimitiveKind,
+  RewardsAgent,
+  RewardsEcosystemNode,
+  RewardsIndex,
+  RewardsInstance,
 } from "./rewardsTypes";
 
 export * from "./rewardsTypes";
@@ -39,7 +48,7 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
     if (parts.length > 2) paymentControllerByInstance.set(parts.slice(0, -2).join("."), controller);
   }
   const allEntities = [...(graph?.participants ?? []), ...(graph?.instances ?? [])];
-  const entityById = new Map<string, Participant>(allEntities.map(e => [e.id, e]));
+  const entityById = new Map<string, Participant>(allEntities.map((e) => [e.id, e]));
   const rpByDocId = new Map<string, EntityRef>();
   for (const e of graph?.edges ?? []) {
     if (e.e !== "responsible_party_for") continue;
@@ -59,15 +68,28 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
         status: m.status ?? null,
         params: m.params ?? {},
       });
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
-  return { paymentControllerByInstance, rpByDocId, entityById, edges: graph?.edges ?? [], instanceEntities, instanceMetaById };
+  return {
+    paymentControllerByInstance,
+    rpByDocId,
+    entityById,
+    edges: graph?.edges ?? [],
+    instanceEntities,
+    instanceMetaById,
+  };
 }
 
 function resolveChain(ctx: GraphCtx, primeId: string): OperationalChain | null {
-  const execEdge = ctx.edges.find(e => e.e === "operational_executor_agent_for" && e.t === primeId);
+  const execEdge = ctx.edges.find(
+    (e) => e.e === "operational_executor_agent_for" && e.t === primeId,
+  );
   const exec = execEdge ? ctx.entityById.get(execEdge.f) : null;
-  const govEdge = exec ? ctx.edges.find(e => e.e === "operational_govops_for" && e.t === exec.id) : null;
+  const govEdge = exec
+    ? ctx.edges.find((e) => e.e === "operational_govops_for" && e.t === exec.id)
+    : null;
   const gov = govEdge ? ctx.entityById.get(govEdge.f) : null;
   if (!exec && !gov) return null;
   return {
@@ -77,14 +99,21 @@ function resolveChain(ctx: GraphCtx, primeId: string): OperationalChain | null {
 }
 
 function applyParamTuples(
-  inst: RewardsInstance, params: Record<string, ParamTuple>,
-  kind: PrimitiveKind, docs: Record<string, AtlasNode>,
+  inst: RewardsInstance,
+  params: Record<string, ParamTuple>,
+  kind: PrimitiveKind,
+  docs: Record<string, AtlasNode>,
 ): void {
   const take = (key: string): [string, string, string] | null => {
-    const t = params[key]; return t && t[0] ? t : null;
+    const t = params[key];
+    return t && t[0] ? t : null;
   };
   if (kind === "DR") {
-    const rc = take("Reward Code"); if (rc) { inst.rewardCode = rc[0]; inst.rewardCodeDocId = rc[1]; }
+    const rc = take("Reward Code");
+    if (rc) {
+      inst.rewardCode = rc[0];
+      inst.rewardCodeDocId = rc[1];
+    }
     const tr = take("Tracking Methodology");
     if (tr) {
       inst.tracking = tr[0];
@@ -95,16 +124,33 @@ function applyParamTuples(
       inst.trackingDocNo = target?.doc_no ?? tr[2];
     }
   } else {
-    const pn = take("Integration Partner Name"); if (pn) { inst.partnerName = pn[0]; inst.partnerNameDocId = pn[1]; }
-    const ra = take("Integration Partner Reward Address"); if (ra) inst.rewardAddress = ra[0];
-    const ch = take("Integration Partner Chain"); if (ch) { inst.rewardChain = ch[0]; inst.rewardChainDocId = ch[1]; }
-    const cd = take("Integration Boost Cadence"); if (cd) { inst.cadence = cd[0]; inst.cadenceDocId = cd[1]; }
+    const pn = take("Integration Partner Name");
+    if (pn) {
+      inst.partnerName = pn[0];
+      inst.partnerNameDocId = pn[1];
+    }
+    const ra = take("Integration Partner Reward Address");
+    if (ra) inst.rewardAddress = ra[0];
+    const ch = take("Integration Partner Chain");
+    if (ch) {
+      inst.rewardChain = ch[0];
+      inst.rewardChainDocId = ch[1];
+    }
+    const cd = take("Integration Boost Cadence");
+    if (cd) {
+      inst.cadence = cd[0];
+      inst.cadenceDocId = cd[1];
+    }
   }
 }
 
 function extractInstanceFromEntity(
-  ent: Participant, meta: InstanceMeta, status: InstanceStatus,
-  kind: PrimitiveKind, ctx: GraphCtx, docs: Record<string, AtlasNode>,
+  ent: Participant,
+  meta: InstanceMeta,
+  status: InstanceStatus,
+  kind: PrimitiveKind,
+  ctx: GraphCtx,
+  docs: Record<string, AtlasNode>,
 ): RewardsInstance {
   const icdDoc = ent.did ? docs[ent.did] : null;
   const inst: RewardsInstance = { id: ent.id, docNo: icdDoc?.doc_no ?? "", name: ent.name, status };
@@ -121,37 +167,66 @@ function extractInstanceFromEntity(
   return inst;
 }
 
-function extractPrimitive(byDocNo: Map<string, AtlasNode>, docs: Record<string, AtlasNode>, ctx: GraphCtx, agent: AgentRef, kind: PrimitiveKind): AgentPrimitive | null {
+function extractPrimitive(
+  byDocNo: Map<string, AtlasNode>,
+  docs: Record<string, AtlasNode>,
+  ctx: GraphCtx,
+  agent: AgentRef,
+  kind: PrimitiveKind,
+): AgentPrimitive | null {
   const primitiveDocNo = `${agent.docNo}.2.5.${kind === "DR" ? "1" : "2"}`;
   const head = byDocNo.get(primitiveDocNo);
   if (!head) return null;
   const globalActivation = unwrapBackticks(plain(byDocNo.get(`${primitiveDocNo}.1.1`))) || null;
   const primSlug = kind === "DR" ? "distribution-reward" : "integration-boost";
-  const relevant = ctx.instanceEntities.filter(e =>
-    e.st === primSlug && ctx.instanceMetaById.get(e.id)?.agent_doc_no === agent.docNo
+  const relevant = ctx.instanceEntities.filter(
+    (e) => e.st === primSlug && ctx.instanceMetaById.get(e.id)?.agent_doc_no === agent.docNo,
   );
-  const buckets: Record<InstanceStatus, RewardsInstance[]> = { Active: [], Completed: [], InProgress: [] };
+  const buckets: Record<InstanceStatus, RewardsInstance[]> = {
+    Active: [],
+    Completed: [],
+    InProgress: [],
+  };
   for (const ent of relevant) {
     const meta = ctx.instanceMetaById.get(ent.id)!;
-    const status: InstanceStatus = meta.status === "Pending" ? "InProgress" : meta.status === "Completed" ? "Completed" : "Active";
+    const status: InstanceStatus =
+      meta.status === "Pending"
+        ? "InProgress"
+        : meta.status === "Completed"
+          ? "Completed"
+          : "Active";
     buckets[status].push(extractInstanceFromEntity(ent, meta, status, kind, ctx, docs));
   }
   return {
-    kind, primitiveId: head.id, primitiveDocNo, globalActivation,
-    active: buckets.Active, completed: buckets.Completed, inProgress: buckets.InProgress,
+    kind,
+    primitiveId: head.id,
+    primitiveDocNo,
+    globalActivation,
+    active: buckets.Active,
+    completed: buckets.Completed,
+    inProgress: buckets.InProgress,
   };
 }
 
-export function buildRewardsIndex(docs: Record<string, AtlasNode>, graph?: GraphData): RewardsIndex {
+export function buildRewardsIndex(
+  docs: Record<string, AtlasNode>,
+  graph?: GraphData,
+): RewardsIndex {
   const byDocNo = new Map<string, AtlasNode>();
   for (const n of Object.values(docs)) byDocNo.set(n.doc_no, n);
   const ctx = buildGraphCtx(byDocNo, graph);
 
   const refs: AgentRef[] = graph ? agentsFromGraph(graph.participants, docs) : [];
-  const agents: RewardsAgent[] = refs.map(ref => {
-    const ae: EntityRef = { id: ref.id, name: ref.name, slug: (graph?.participants ?? []).find(e => e.id === ref.id)?.slug ?? "" };
+  const agents: RewardsAgent[] = refs.map((ref) => {
+    const ae: EntityRef = {
+      id: ref.id,
+      name: ref.name,
+      slug: (graph?.participants ?? []).find((e) => e.id === ref.id)?.slug ?? "",
+    };
     return {
-      name: ref.name, docNoPrefix: ref.docNoPrefix, agentEntity: ae,
+      name: ref.name,
+      docNoPrefix: ref.docNoPrefix,
+      agentEntity: ae,
       chain: resolveChain(ctx, ae.id),
       dr: extractPrimitive(byDocNo, docs, ctx, ref, "DR"),
       ib: extractPrimitive(byDocNo, docs, ctx, ref, "IB"),

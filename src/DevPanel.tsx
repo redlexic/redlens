@@ -21,11 +21,15 @@ const DEV_SHORTCUTS = [
     id: "5f584db8-f8d8-4118-988c-b2bc3f68ceb7",
   },
 ];
-export function DevPanel({ query, onNavigate }: { query: string; onNavigate: (id: string) => void; }) {
+export function DevPanel({
+  query,
+  onNavigate,
+}: {
+  query: string;
+  onNavigate: (id: string) => void;
+}) {
   const lower = query.slice("__dev".length).trim().toLowerCase();
-  const matches = lower
-    ? DEV_SHORTCUTS.filter(s => s.cmd.startsWith(lower))
-    : DEV_SHORTCUTS;
+  const matches = lower ? DEV_SHORTCUTS.filter((s) => s.cmd.startsWith(lower)) : DEV_SHORTCUTS;
 
   if (matches.length === 0) return null;
 
@@ -33,7 +37,7 @@ export function DevPanel({ query, onNavigate }: { query: string; onNavigate: (id
     <div className="px-4 py-6 max-w-2xl mx-auto">
       <p className="mono text-[10px] mb-4 text-tan-3">dev shortcuts</p>
       <div className="space-y-1">
-        {matches.map(s => (
+        {matches.map((s) => (
           <button
             key={s.cmd}
             onClick={() => onNavigate(s.id)}

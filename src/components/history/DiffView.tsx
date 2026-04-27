@@ -29,9 +29,23 @@ function IntralineDiff({ segments }: { segments: WordSegment[] }) {
     <span className="whitespace-pre-wrap break-all">
       {segments.map((seg, i) => {
         const [op, text] = seg;
-        if (op === "+") return <span key={i} style={WORD_ADDED_STYLE}>{text}</span>;
-        if (op === "-") return <span key={i} style={WORD_REMOVED_STYLE}>{text}</span>;
-        return <span key={i} style={{ color: "var(--tan-2)" }}>{text}</span>;
+        if (op === "+")
+          return (
+            <span key={i} style={WORD_ADDED_STYLE}>
+              {text}
+            </span>
+          );
+        if (op === "-")
+          return (
+            <span key={i} style={WORD_REMOVED_STYLE}>
+              {text}
+            </span>
+          );
+        return (
+          <span key={i} style={{ color: "var(--tan-2)" }}>
+            {text}
+          </span>
+        );
       })}
     </span>
   );
@@ -48,7 +62,9 @@ export function DiffView({ lines }: { lines: DiffLine[] }) {
 
         if (op === "…") {
           return (
-            <div key={i} className="px-2 py-0.5 select-none" style={{ color: "var(--tan-3)" }}>···</div>
+            <div key={i} className="px-2 py-0.5 select-none" style={{ color: "var(--tan-3)" }}>
+              ···
+            </div>
           );
         }
 
@@ -60,7 +76,12 @@ export function DiffView({ lines }: { lines: DiffLine[] }) {
               className="flex gap-1.5 px-2 py-0.5"
               style={{ background: "color-mix(in srgb, var(--accent) 6%, transparent)" }}
             >
-              <span className="shrink-0 select-none w-3 text-center" style={{ color: "var(--tan-3)" }}>~</span>
+              <span
+                className="shrink-0 select-none w-3 text-center"
+                style={{ color: "var(--tan-3)" }}
+              >
+                ~
+              </span>
               <IntralineDiff segments={segments} />
             </div>
           );
@@ -73,10 +94,15 @@ export function DiffView({ lines }: { lines: DiffLine[] }) {
             className="flex gap-1.5 px-2 py-0.5 whitespace-pre-wrap break-all"
             style={{ background: DIFF_LINE_BG[op] }}
           >
-            <span className="shrink-0 select-none w-3 text-center" style={{ color: DIFF_LINE_COLOR[op] }}>
+            <span
+              className="shrink-0 select-none w-3 text-center"
+              style={{ color: DIFF_LINE_COLOR[op] }}
+            >
               {DIFF_LINE_PREFIX[op]}
             </span>
-            <span style={{ color: op === "=" ? "var(--tan-2)" : DIFF_LINE_COLOR[op] }}>{text || "\u00a0"}</span>
+            <span style={{ color: op === "=" ? "var(--tan-2)" : DIFF_LINE_COLOR[op] }}>
+              {text || "\u00a0"}
+            </span>
           </div>
         );
       })}

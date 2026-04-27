@@ -2,7 +2,13 @@ import { memo } from "react";
 import { NodeContent } from "./NodeContent";
 import type { AtlasNode } from "../types";
 
-export const RelatedNode = memo(function RelatedNode({ node, onNavigate }: { node: AtlasNode; onNavigate: (id: string) => void }) {
+export const RelatedNode = memo(function RelatedNode({
+  node,
+  onNavigate,
+}: {
+  node: AtlasNode;
+  onNavigate: (id: string) => void;
+}) {
   const href = `/atlas?id=${node.id}`;
 
   return (
@@ -10,7 +16,7 @@ export const RelatedNode = memo(function RelatedNode({ node, onNavigate }: { nod
       <a
         href={href}
         className="block no-underline mb-2"
-        onClick={e => {
+        onClick={(e) => {
           e.preventDefault();
           onNavigate(node.id);
         }}

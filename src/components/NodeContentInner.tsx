@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import type { AnchorHTMLAttributes } from "react";
 import { ethAddressesPlugin, rehypeEthAddresses } from "../lib/rehypeEthAddresses";
+import { UUID_RE } from "../lib/patterns";
 
 interface Props {
   content: string;
@@ -11,17 +12,26 @@ interface Props {
 }
 
 const NavigateContext = createContext<((id: string) => void) | undefined>(undefined);
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+function useNavigateContext() {
+  return useContext(NavigateContext);
+}
 
 // UUID and eth-address links — styling via .atlas-md a in CSS
-function MarkdownLink({ href, children, node: _node, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode; node?: unknown }) {
-  const onNavigate = useContext(NavigateContext);
+function MarkdownLink({
+  href,
+  children,
+  node: _node,
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode; node?: unknown }) {
+  const onNavigate = useNavigateContext();
   if (href && UUID_RE.test(href) && onNavigate) {
     return (
       <a
         href={`/atlas?id=${href}`}
-        onClick={(e) => { e.preventDefault(); onNavigate(href); }}
+        onClick={(e) => {
+          e.preventDefault();
+          onNavigate(href);
+        }}
         {...props}
       >
         {children}
@@ -80,7 +90,7 @@ export default function NodeContentInner({ content, onNavigate }: Props) {
   const usesMath = hasMath && katexReady;
 
   return (
-    <NavigateContext.Provider value={onNavigate}>
+    <NavigateContext value={onNavigate}>
       <div className="atlas-md">
         <ReactMarkdown
           remarkPlugins={usesMath ? remarkPluginsMath! : [remarkGfm]}
@@ -90,6 +100,6 @@ export default function NodeContentInner({ content, onNavigate }: Props) {
           {content}
         </ReactMarkdown>
       </div>
-    </NavigateContext.Provider>
+    </NavigateContext>
   );
 }

@@ -10,8 +10,8 @@ export function Footer() {
 
   useEffect(() => {
     fetch(`${BASE}chain-state.json`)
-      .then(r => r.json())
-      .then(d => {
+      .then((r) => r.json())
+      .then((d) => {
         if (d.block) setBlock(d.block);
         if (d.generatedAt) setChainTime(d.generatedAt);
       })
@@ -21,38 +21,63 @@ export function Footer() {
   const buildDate = __BUILD_TIME__.slice(0, 19).replace("T", " ");
 
   return (
-    <footer className="shrink-0 border-t flex items-center justify-end gap-0 overflow-hidden"
-      style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px" }}>
+    <footer
+      className="shrink-0 border-t flex items-center justify-end gap-0 overflow-hidden"
+      style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px" }}
+    >
       {block && (
         <>
           <FooterItem title={chainTime ? `chain state generated ${chainTime}` : undefined}>
-            <a href={`https://etherscan.io/block/${block}`} target="_blank" rel="noopener noreferrer"
-              className="hover:underline" style={{ color: "var(--tan-3)" }}>
-              <span className="hidden sm:inline">chain state @ block&nbsp;</span>{Number(block).toLocaleString()}
+            <a
+              href={`https://etherscan.io/block/${block}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+              style={{ color: "var(--tan-3)" }}
+            >
+              <span className="hidden sm:inline">chain state @ block&nbsp;</span>
+              {Number(block).toLocaleString()}
             </a>
           </FooterItem>
           <Sep />
         </>
       )}
       <FooterItem>
-        <a href={`https://github.com/sky-ecosystem/next-gen-atlas/commit/${__ATLAS_COMMIT__}`}
-          target="_blank" rel="noopener noreferrer"
-          className="hover:underline" style={{ color: "var(--tan-3)" }}>
-          <span className="hidden sm:inline">atlas&nbsp;</span>{__ATLAS_COMMIT__}
+        <a
+          href={`https://github.com/sky-ecosystem/next-gen-atlas/commit/${__ATLAS_COMMIT__}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+          style={{ color: "var(--tan-3)" }}
+        >
+          <span className="hidden sm:inline">atlas&nbsp;</span>
+          {__ATLAS_COMMIT__}
         </a>
         {__NODE_COUNT__ > 0 && (
-          <span style={{ color: "var(--tan-3)" }}>&nbsp;·&nbsp;{__NODE_COUNT__.toLocaleString()}&nbsp;<span className="hidden sm:inline">nodes</span></span>
+          <span style={{ color: "var(--tan-3)" }}>
+            &nbsp;·&nbsp;{__NODE_COUNT__.toLocaleString()}&nbsp;
+            <span className="hidden sm:inline">nodes</span>
+          </span>
         )}
       </FooterItem>
       <Sep />
       <FooterItem>
-        <a href={`${REPO}/commit/${__COMMIT_HASH__}`} target="_blank" rel="noopener noreferrer"
-          className="hover:underline" style={{ color: "var(--tan-3)" }}>
-          <span className="hidden sm:inline">redlens&nbsp;</span>{__COMMIT_HASH__}
+        <a
+          href={`${REPO}/commit/${__COMMIT_HASH__}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+          style={{ color: "var(--tan-3)" }}
+        >
+          <span className="hidden sm:inline">redlens&nbsp;</span>
+          {__COMMIT_HASH__}
         </a>
       </FooterItem>
       <Sep />
-      <FooterItem><span className="hidden sm:inline">updated </span>{buildDate}</FooterItem>
+      <FooterItem>
+        <span className="hidden sm:inline">updated </span>
+        {buildDate}
+      </FooterItem>
       <Sep />
       <FooterItem title="data flow, scripts, outputs — how each claim is traced back to Sky Atlas.md">
         <a href={PROVENANCE_HREF} className="hover:underline" style={{ color: "var(--tan-3)" }}>
@@ -61,8 +86,13 @@ export function Footer() {
       </FooterItem>
       <Sep />
       <FooterItem>
-        <a href={REPO} target="_blank" rel="noopener noreferrer"
-          className="hover:underline" style={{ color: "var(--accent)" }}>
+        <a
+          href={REPO}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+          style={{ color: "var(--accent)" }}
+        >
           src
         </a>
       </FooterItem>
@@ -72,8 +102,11 @@ export function Footer() {
 
 function FooterItem({ children, title }: { children: React.ReactNode; title?: string }) {
   return (
-    <span className="mono px-3 whitespace-nowrap" title={title}
-      style={{ fontSize: "10px", color: "var(--tan-3)", lineHeight: "24px" }}>
+    <span
+      className="mono px-3 whitespace-nowrap"
+      title={title}
+      style={{ fontSize: "10px", color: "var(--tan-3)", lineHeight: "24px" }}
+    >
       {children}
     </span>
   );

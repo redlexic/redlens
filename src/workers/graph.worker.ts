@@ -2,8 +2,12 @@
 import { MultiDirectedGraph } from "graphology";
 import { bfsFromNode } from "graphology-traversal";
 import type {
-  RelationEdge, ResolvedEdge, Participant,
-  GraphWorkerInMessage, GraphWorkerOutMessage, SerializedSubgraph,
+  RelationEdge,
+  ResolvedEdge,
+  Participant,
+  GraphWorkerInMessage,
+  GraphWorkerOutMessage,
+  SerializedSubgraph,
 } from "../types";
 import { fetchJsonVerified } from "../lib/verify";
 
@@ -11,7 +15,7 @@ declare const self: DedicatedWorkerGlobalScope;
 
 let graph: MultiDirectedGraph | null = null;
 const entityBySlug = new Map<string, Participant>();
-const entityById   = new Map<string, Participant>();
+const entityById = new Map<string, Participant>();
 
 async function init() {
   const base = import.meta.env.BASE_URL;
@@ -37,13 +41,15 @@ async function init() {
   post({ type: "ready" });
 }
 
-function post(msg: GraphWorkerOutMessage) { self.postMessage(msg); }
+function post(msg: GraphWorkerOutMessage) {
+  self.postMessage(msg);
+}
 
 function resolveEdge(edge: RelationEdge): ResolvedEdge {
   return {
     ...edge,
     from_label: edge.ft === "entity" ? entityById.get(edge.f)?.name : undefined,
-    to_label:   edge.tt === "entity" ? entityById.get(edge.t)?.name : undefined,
+    to_label: edge.tt === "entity" ? entityById.get(edge.t)?.name : undefined,
   };
 }
 
@@ -51,9 +57,9 @@ function resolveEdge(edge: RelationEdge): ResolvedEdge {
 function edgesFor(id: string): { outbound: ResolvedEdge[]; inbound: ResolvedEdge[] } {
   if (!graph || !graph.hasNode(id)) return { outbound: [], inbound: [] };
   const outbound: ResolvedEdge[] = [];
-  const inbound:  ResolvedEdge[] = [];
+  const inbound: ResolvedEdge[] = [];
   graph.forEachOutEdge(id, (_, attrs) => outbound.push(resolveEdge(attrs as RelationEdge)));
-  graph.forEachInEdge(id,  (_, attrs) => inbound.push(resolveEdge(attrs as RelationEdge)));
+  graph.forEachInEdge(id, (_, attrs) => inbound.push(resolveEdge(attrs as RelationEdge)));
   return { outbound, inbound };
 }
 
@@ -67,7 +73,7 @@ function buildSubgraph(rootId: string, depth: number): SerializedSubgraph {
     if (d >= depth) return true; // stop branching
   });
 
-  const nodes = [...included].map(id => ({
+  const nodes = [...included].map((id) => ({
     id,
     attrs: graph!.getNodeAttributes(id) as Record<string, unknown>,
   }));
@@ -85,7 +91,10 @@ function buildSubgraph(rootId: string, depth: number): SerializedSubgraph {
 self.addEventListener("message", (e: MessageEvent<GraphWorkerInMessage>) => {
   const msg = e.data;
   try {
-    if (msg.type === "ping") { post({ type: "ready" }); return; }
+    if (msg.type === "ping") {
+      post({ type: "ready" });
+      return;
+    }
 
     if (msg.type === "edges") {
       const { outbound, inbound } = edgesFor(msg.id);
@@ -105,7 +114,10 @@ self.addEventListener("message", (e: MessageEvent<GraphWorkerInMessage>) => {
     }
 
     if (msg.type === "neighbors") {
-      if (!graph) { post({ type: "neighbors", id: msg.id, nodes: [], edges: [] }); return; }
+      if (!graph) {
+        post({ type: "neighbors", id: msg.id, nodes: [], edges: [] });
+        return;
+      }
       const sub = buildSubgraph(msg.id, msg.depth ?? 1);
       post({ type: "neighbors", id: msg.id, ...sub });
       return;
@@ -118,12 +130,13 @@ self.addEventListener("message", (e: MessageEvent<GraphWorkerInMessage>) => {
     }
   } catch (err) {
     // Always respond so the main thread doesn't hang waiting for a reply
-    if (msg.type === "edges")    post({ type: "edges",    id: msg.id,       outbound: [], inbound: [] });
-    if (msg.type === "entity")   post({ type: "entity",   slug: (msg as any).slug, entity: null, edges: [] });
-    if (msg.type === "neighbors") post({ type: "neighbors", id: msg.id,      nodes: [],    edges: [] });
-    if (msg.type === "subgraph") post({ type: "subgraph", rootId: (msg as any).rootId, nodes: [], edges: [] });
+    if (msg.type === "edges") post({ type: "edges", id: msg.id, outbound: [], inbound: [] });
+    if (msg.type === "entity") post({ type: "entity", slug: msg.slug, entity: null, edges: [] });
+    if (msg.type === "neighbors") post({ type: "neighbors", id: msg.id, nodes: [], edges: [] });
+    if (msg.type === "subgraph")
+      post({ type: "subgraph", rootId: msg.rootId, nodes: [], edges: [] });
     console.error("[graph worker]", err);
   }
 });
 
-init().catch(err => post({ type: "error", message: String(err) }));
+init().catch((err) => post({ type: "error", message: String(err) }));

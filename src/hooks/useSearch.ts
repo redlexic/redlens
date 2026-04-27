@@ -16,10 +16,9 @@ export function useSearch() {
   const lastQuery = useRef("");
 
   useEffect(() => {
-    const worker = new Worker(
-      new URL("../workers/search.worker.ts", import.meta.url),
-      { type: "module" }
-    );
+    const worker = new Worker(new URL("../workers/search.worker.ts", import.meta.url), {
+      type: "module",
+    });
 
     worker.addEventListener("message", (e: MessageEvent<WorkerOutMessage>) => {
       const msg = e.data;

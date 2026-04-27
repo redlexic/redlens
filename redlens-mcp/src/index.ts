@@ -24,7 +24,13 @@ function createMcpServer(db: D1Database): McpServer {
     "Semantic search over the Sky Atlas (9,825 nodes). Returns the top-k most relevant nodes ranked by FTS5 score.",
     {
       query: z.string().describe("Natural-language query."),
-      k: z.number().int().min(1).max(50).default(10).describe("Number of results to return (1-50)."),
+      k: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .default(10)
+        .describe("Number of results to return (1-50)."),
       type: z.string().optional().describe("Optional Atlas document type filter."),
     },
     async ({ query, k, type }) => {
@@ -40,11 +46,14 @@ function createMcpServer(db: D1Database): McpServer {
         LIMIT ?
       `;
       const params: unknown[] = [query, ...(type ? [type] : []), k];
-      const { results } = await db.prepare(sql).bind(...params).all();
+      const { results } = await db
+        .prepare(sql)
+        .bind(...params)
+        .all();
       return {
         content: [{ type: "text", text: JSON.stringify({ count: results.length, results }) }],
       };
-    }
+    },
   );
 
   // atlas_get — fetch a single node by UUID or doc_no
@@ -61,9 +70,10 @@ function createMcpServer(db: D1Database): McpServer {
                   WHERE ${col} = ? LIMIT 1`)
         .bind(id)
         .first();
-      if (!row) return { content: [{ type: "text", text: JSON.stringify({ error: "Not found" }) }] };
+      if (!row)
+        return { content: [{ type: "text", text: JSON.stringify({ error: "Not found" }) }] };
       return { content: [{ type: "text", text: JSON.stringify(row) }] };
-    }
+    },
   );
 
   // atlas_neighbors — bounded context around a node
@@ -72,31 +82,59 @@ function createMcpServer(db: D1Database): McpServer {
     "Return the hierarchical context around a node: parent, N siblings above/below, and direct children.",
     {
       id: z.string().describe("Node UUID or doc number."),
-      window: z.number().int().min(0).max(32).default(8).describe("Siblings and children to include."),
+      window: z
+        .number()
+        .int()
+        .min(0)
+        .max(32)
+        .default(8)
+        .describe("Siblings and children to include."),
     },
     async ({ id, window }) => {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
       const col = isUuid ? "id" : "doc_no";
-      const target = await db.prepare(`SELECT * FROM docs WHERE ${col} = ? LIMIT 1`).bind(id).first();
-      if (!target) return { content: [{ type: "text", text: JSON.stringify({ error: "Not found" }) }] };
+      const target = await db
+        .prepare(`SELECT * FROM docs WHERE ${col} = ? LIMIT 1`)
+        .bind(id)
+        .first();
+      if (!target)
+        return { content: [{ type: "text", text: JSON.stringify({ error: "Not found" }) }] };
 
       const [parent, siblings, children] = await Promise.all([
         target.parent_id
-          ? db.prepare("SELECT id,doc_no,title,type,depth FROM docs WHERE id = ?").bind(target.parent_id).first()
+          ? db
+              .prepare("SELECT id,doc_no,title,type,depth FROM docs WHERE id = ?")
+              .bind(target.parent_id)
+              .first()
           : Promise.resolve(null),
-        db.prepare(`SELECT id,doc_no,title,type,depth FROM docs WHERE parent_id = ? AND id != ? ORDER BY "order" LIMIT ?`)
-          .bind(target.parent_id ?? null, target.id, window * 2).all(),
-        db.prepare(`SELECT id,doc_no,title,type,depth FROM docs WHERE parent_id = ? ORDER BY "order" LIMIT ?`)
-          .bind(target.id, window).all(),
+        db
+          .prepare(
+            `SELECT id,doc_no,title,type,depth FROM docs WHERE parent_id = ? AND id != ? ORDER BY "order" LIMIT ?`,
+          )
+          .bind(target.parent_id ?? null, target.id, window * 2)
+          .all(),
+        db
+          .prepare(
+            `SELECT id,doc_no,title,type,depth FROM docs WHERE parent_id = ? ORDER BY "order" LIMIT ?`,
+          )
+          .bind(target.id, window)
+          .all(),
       ]);
 
       return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({ target, parent, siblings: siblings.results, children: children.results }),
-        }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              target,
+              parent,
+              siblings: siblings.results,
+              children: children.results,
+            }),
+          },
+        ],
       };
-    }
+    },
   );
 
   // atlas_traverse — multi-hop graph traversal
@@ -105,7 +143,10 @@ function createMcpServer(db: D1Database): McpServer {
     "Traverse the graph from a node, following typed edges up to N hops. Use to find all related nodes.",
     {
       id: z.string().describe("Starting node UUID or doc number."),
-      edge_type: z.string().optional().describe("Edge type filter (e.g. 'cites', 'responsible_for')."),
+      edge_type: z
+        .string()
+        .optional()
+        .describe("Edge type filter (e.g. 'cites', 'responsible_for')."),
       hops: z.number().int().min(1).max(4).default(2).describe("Maximum traversal depth."),
       direction: z.enum(["out", "in", "both"]).default("out"),
     },
@@ -113,18 +154,23 @@ function createMcpServer(db: D1Database): McpServer {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
       const startNode = await db
         .prepare(`SELECT id FROM docs WHERE ${isUuid ? "id" : "doc_no"} = ? LIMIT 1`)
-        .bind(id).first<{ id: string }>();
-      if (!startNode) return { content: [{ type: "text", text: JSON.stringify({ error: "Not found" }) }] };
+        .bind(id)
+        .first<{ id: string }>();
+      if (!startNode)
+        return { content: [{ type: "text", text: JSON.stringify({ error: "Not found" }) }] };
 
       const typeFilter = edge_type ? "AND e.edge_type = ?" : "";
       const directionClause =
-        direction === "out" ? `e.from_id = r.id ${typeFilter}`
-        : direction === "in" ? `e.to_id = r.id ${typeFilter}`
-        : `(e.from_id = r.id OR e.to_id = r.id) ${typeFilter}`;
+        direction === "out"
+          ? `e.from_id = r.id ${typeFilter}`
+          : direction === "in"
+            ? `e.to_id = r.id ${typeFilter}`
+            : `(e.from_id = r.id OR e.to_id = r.id) ${typeFilter}`;
 
       const bindParams = edge_type ? [startNode.id, hops, edge_type] : [startNode.id, hops];
 
-      const { results } = await db.prepare(`
+      const { results } = await db
+        .prepare(`
         WITH RECURSIVE reachable(id, depth) AS (
           SELECT ?, 0
           UNION
@@ -137,59 +183,84 @@ function createMcpServer(db: D1Database): McpServer {
         JOIN docs n ON r.id = n.id
         WHERE n.id != ?
         ORDER BY r.depth, n.doc_no
-      `).bind(...bindParams, startNode.id).all();
+      `)
+        .bind(...bindParams, startNode.id)
+        .all();
 
-      return { content: [{ type: "text", text: JSON.stringify({ count: results.length, results }) }] };
-    }
+      return {
+        content: [{ type: "text", text: JSON.stringify({ count: results.length, results }) }],
+      };
+    },
   );
 
   // atlas_entity — aggregate all info about a named entity
   server.tool(
     "atlas_entity",
     "Get all Atlas sections related to a named entity (agent, role, or actor). Returns nodes, inbound references, and Active Data sections they control.",
-    { name: z.string().describe("Entity name (e.g. 'spark', 'operational-facilitator', 'core-govops').") },
+    {
+      name: z
+        .string()
+        .describe("Entity name (e.g. 'spark', 'operational-facilitator', 'core-govops')."),
+    },
     async ({ name }) => {
-      const entity = await db.prepare(`SELECT id FROM entities WHERE slug = ? LIMIT 1`)
-        .bind(name).first<{ id: string }>();
+      const entity = await db
+        .prepare(`SELECT id FROM entities WHERE slug = ? LIMIT 1`)
+        .bind(name)
+        .first<{ id: string }>();
       const entityId = entity?.id ?? null;
       const prefix = agentDocPrefix(name);
 
       const [byEdge, byDocNo, responsibilities, activeData] = await Promise.all([
         entityId
-          ? db.prepare(`SELECT DISTINCT n.id,n.doc_no,n.title,n.type,n.depth
+          ? db
+              .prepare(`SELECT DISTINCT n.id,n.doc_no,n.title,n.type,n.depth
                         FROM edges e JOIN docs n ON e.to_id=n.id
-                        WHERE e.from_id=? LIMIT 100`).bind(entityId).all()
+                        WHERE e.from_id=? LIMIT 100`)
+              .bind(entityId)
+              .all()
           : Promise.resolve({ results: [] }),
         prefix
-          ? db.prepare(`SELECT id,doc_no,title,type,depth FROM docs
-                        WHERE doc_no LIKE ? ORDER BY doc_no LIMIT 200`).bind(prefix + "%").all()
+          ? db
+              .prepare(`SELECT id,doc_no,title,type,depth FROM docs
+                        WHERE doc_no LIKE ? ORDER BY doc_no LIMIT 200`)
+              .bind(prefix + "%")
+              .all()
           : Promise.resolve({ results: [] }),
         entityId
-          ? db.prepare(`SELECT n.id,n.doc_no,n.title,n.type FROM edges e
+          ? db
+              .prepare(`SELECT n.id,n.doc_no,n.title,n.type FROM edges e
                         JOIN docs n ON e.to_id=n.id
                         WHERE e.from_id=? AND e.edge_type='responsible_for'
-                        ORDER BY n.doc_no`).bind(entityId).all()
+                        ORDER BY n.doc_no`)
+              .bind(entityId)
+              .all()
           : Promise.resolve({ results: [] }),
         entityId
-          ? db.prepare(`SELECT n.id,n.doc_no,n.title,e.edge_type FROM edges e
+          ? db
+              .prepare(`SELECT n.id,n.doc_no,n.title,e.edge_type FROM edges e
                         JOIN docs n ON e.to_id=n.id
                         WHERE e.from_id=? AND n.type IN ('Active Data Controller','Active Data')
-                        ORDER BY n.doc_no`).bind(entityId).all()
+                        ORDER BY n.doc_no`)
+              .bind(entityId)
+              .all()
           : Promise.resolve({ results: [] }),
       ]);
 
       return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({
-            entity: name, entityId,
-            nodes: [...byEdge.results, ...byDocNo.results],
-            responsibilities: responsibilities.results,
-            activeData: activeData.results,
-          }),
-        }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              entity: name,
+              entityId,
+              nodes: [...byEdge.results, ...byDocNo.results],
+              responsibilities: responsibilities.results,
+              activeData: activeData.results,
+            }),
+          },
+        ],
       };
-    }
+    },
   );
 
   return server;
@@ -215,7 +286,6 @@ function agentDocPrefix(name: string): string {
 const app = new Hono<{ Bindings: Env }>();
 
 app.use("*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
-
 
 // Landing page
 app.get("/", (c) => {
@@ -320,7 +390,9 @@ app.get("/api/search", async (c) => {
              ${type ? "AND n.type=?" : ""}
              ORDER BY score LIMIT ?`;
   const params: unknown[] = [q, ...(type ? [type] : []), k];
-  const { results } = await c.env.DB.prepare(sql).bind(...params).all();
+  const { results } = await c.env.DB.prepare(sql)
+    .bind(...params)
+    .all();
   return c.json({ count: results.length, results });
 });
 
@@ -331,8 +403,10 @@ app.get("/api/node/:id", async (c) => {
   const row = await c.env.DB.prepare(
     `SELECT n.*,p.doc_no AS parent_doc_no,p.title AS parent_title
      FROM docs n LEFT JOIN docs p ON n.parent_id=p.id
-     WHERE ${isUuid ? "n.id" : "n.doc_no"}=? LIMIT 1`
-  ).bind(id).first();
+     WHERE ${isUuid ? "n.id" : "n.doc_no"}=? LIMIT 1`,
+  )
+    .bind(id)
+    .first();
   if (!row) return c.json({ error: "Not found" }, 404);
   return c.json(row);
 });
@@ -342,31 +416,40 @@ app.get("/api/entity/:name", async (c) => {
   const name = c.req.param("name").toLowerCase();
   const prefix = agentDocPrefix(name);
 
-  const entity = await c.env.DB.prepare(`SELECT id,slug,name,entity_type,subtype FROM entities WHERE slug=? LIMIT 1`)
-    .bind(name).first<{ id: string; slug: string; name: string; entity_type: string; subtype: string }>();
+  const entity = await c.env.DB.prepare(
+    `SELECT id,slug,name,entity_type,subtype FROM entities WHERE slug=? LIMIT 1`,
+  )
+    .bind(name)
+    .first<{ id: string; slug: string; name: string; entity_type: string; subtype: string }>();
   const entityId = entity?.id ?? null;
 
   const [byEdge, byDocNo, responsibilities, activeData] = await Promise.all([
     entityId
       ? c.env.DB.prepare(`SELECT DISTINCT n.id,n.doc_no,n.title,n.type,n.depth
                           FROM edges e JOIN docs n ON e.to_id=n.id WHERE e.from_id=? LIMIT 100`)
-          .bind(entityId).all()
+          .bind(entityId)
+          .all()
       : Promise.resolve({ results: [] }),
     prefix
-      ? c.env.DB.prepare(`SELECT id,doc_no,title,type,depth FROM docs WHERE doc_no LIKE ? ORDER BY doc_no LIMIT 200`)
-          .bind(prefix + "%").all()
+      ? c.env.DB.prepare(
+          `SELECT id,doc_no,title,type,depth FROM docs WHERE doc_no LIKE ? ORDER BY doc_no LIMIT 200`,
+        )
+          .bind(prefix + "%")
+          .all()
       : Promise.resolve({ results: [] }),
     entityId
       ? c.env.DB.prepare(`SELECT n.id,n.doc_no,n.title,n.type FROM edges e
                           JOIN docs n ON e.to_id=n.id
                           WHERE e.from_id=? AND e.edge_type='responsible_for' ORDER BY n.doc_no`)
-          .bind(entityId).all()
+          .bind(entityId)
+          .all()
       : Promise.resolve({ results: [] }),
     entityId
       ? c.env.DB.prepare(`SELECT n.id,n.doc_no,n.title,e.edge_type FROM edges e
                           JOIN docs n ON e.to_id=n.id
                           WHERE e.from_id=? AND n.type IN ('Active Data Controller','Active Data') ORDER BY n.doc_no`)
-          .bind(entityId).all()
+          .bind(entityId)
+          .all()
       : Promise.resolve({ results: [] }),
   ]);
 
@@ -386,8 +469,10 @@ app.get("/api/traverse/:id", async (c) => {
 
   const isUuid = /^[0-9a-f-]{36}$/i.test(id);
   const start = await c.env.DB.prepare(
-    `SELECT id FROM docs WHERE ${isUuid ? "id" : "doc_no"}=? LIMIT 1`
-  ).bind(id).first<{ id: string }>();
+    `SELECT id FROM docs WHERE ${isUuid ? "id" : "doc_no"}=? LIMIT 1`,
+  )
+    .bind(id)
+    .first<{ id: string }>();
   if (!start) return c.json({ error: "Not found" }, 404);
 
   const typeFilter = edgeType ? "AND e.edge_type=?" : "";
@@ -403,7 +488,9 @@ app.get("/api/traverse/:id", async (c) => {
     SELECT DISTINCT n.id,n.doc_no,n.title,n.type,r.depth
     FROM reachable r JOIN docs n ON r.id=n.id WHERE n.id!=?
     ORDER BY r.depth,n.doc_no
-  `).bind(...params, start.id).all();
+  `)
+    .bind(...params, start.id)
+    .all();
 
   return c.json({ count: results.length, results });
 });

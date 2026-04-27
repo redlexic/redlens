@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { type FlatEntry } from "./CollapsibleNode";
+import { type FlatEntry } from "../../lib/atlasHelpers";
 
 export function useDepth6Expand(flatNodes: FlatEntry[], id: string) {
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
@@ -23,7 +23,7 @@ export function useDepth6Expand(flatNodes: FlatEntry[], id: string) {
     if (!id) return;
     const target = entryById.get(id);
     if (!target || target.depth < 6) return;
-    setExpandedParents(prev => {
+    setExpandedParents((prev) => {
       const next = new Set(prev);
       let cur = target;
       while (cur.depth >= 6) {
@@ -39,7 +39,7 @@ export function useDepth6Expand(flatNodes: FlatEntry[], id: string) {
   }, [id, entryById]);
 
   const expandParent = useCallback((nodeId: string) => {
-    setExpandedParents(prev => new Set([...prev, nodeId]));
+    setExpandedParents((prev) => new Set([...prev, nodeId]));
   }, []);
 
   return { expandedParents, hasDeepChildren, expandParent };

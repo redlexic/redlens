@@ -1,9 +1,15 @@
-import type { ResolvedEdge, Participant, RelationEdge, GraphWorkerOutMessage, SerializedSubgraph } from "../types";
+import type {
+  ResolvedEdge,
+  Participant,
+  RelationEdge,
+  GraphWorkerOutMessage,
+  SerializedSubgraph,
+} from "../types";
 import { fetchJsonVerified } from "./verify";
 
 export interface GraphData {
-  participants: Participant[];  // agents, parties, facilitators, govops, delegates — et !== "instance"
-  instances: Participant[];    // primitive instances — et === "instance"
+  participants: Participant[]; // agents, parties, facilitators, govops, delegates — et !== "instance"
+  instances: Participant[]; // primitive instances — et === "instance"
   edges: RelationEdge[];
 }
 
@@ -15,10 +21,10 @@ export function loadGraph(): Promise<GraphData> {
   if (!graphCache) {
     graphCache = fetchJsonVerified<{ entities: Participant[]; edges: RelationEdge[] }>(
       `${import.meta.env.BASE_URL}relations.json`,
-      "relations.json"
-    ).then(data => ({
-      participants: data.entities.filter(e => e.et !== "instance"),
-      instances: data.entities.filter(e => e.et === "instance"),
+      "relations.json",
+    ).then((data) => ({
+      participants: data.entities.filter((e) => e.et !== "instance"),
+      instances: data.entities.filter((e) => e.et === "instance"),
       edges: data.edges,
     }));
   }
@@ -27,12 +33,12 @@ export function loadGraph(): Promise<GraphData> {
 
 export interface EdgeResult {
   outbound: ResolvedEdge[];
-  inbound:  ResolvedEdge[];
+  inbound: ResolvedEdge[];
 }
 
 export interface EntityResult {
   entity: Participant | null;
-  edges:  ResolvedEdge[];
+  edges: ResolvedEdge[];
 }
 
 // ---------------------------------------------------------------------------
@@ -44,17 +50,14 @@ let ready = false;
 const readyCallbacks: Array<() => void> = [];
 
 // Pending query callbacks keyed by request id
-const edgePending     = new Map<string, (r: EdgeResult) => void>();
-const entityPending   = new Map<string, (r: EntityResult) => void>();
+const edgePending = new Map<string, (r: EdgeResult) => void>();
+const entityPending = new Map<string, (r: EntityResult) => void>();
 const subgraphPending = new Map<string, (r: SerializedSubgraph) => void>();
 
 function getWorker(): Worker {
   if (worker) return worker;
 
-  worker = new Worker(
-    new URL("../workers/graph.worker.ts", import.meta.url),
-    { type: "module" }
-  );
+  worker = new Worker(new URL("../workers/graph.worker.ts", import.meta.url), { type: "module" });
 
   worker.addEventListener("message", (e: MessageEvent<GraphWorkerOutMessage>) => {
     const msg = e.data;
@@ -68,20 +71,29 @@ function getWorker(): Worker {
 
     if (msg.type === "edges") {
       const cb = edgePending.get(msg.id);
-      if (cb) { edgePending.delete(msg.id); cb({ outbound: msg.outbound, inbound: msg.inbound }); }
+      if (cb) {
+        edgePending.delete(msg.id);
+        cb({ outbound: msg.outbound, inbound: msg.inbound });
+      }
       return;
     }
 
     if (msg.type === "entity") {
       const cb = entityPending.get(msg.slug);
-      if (cb) { entityPending.delete(msg.slug); cb({ entity: msg.entity, edges: msg.edges }); }
+      if (cb) {
+        entityPending.delete(msg.slug);
+        cb({ entity: msg.entity, edges: msg.edges });
+      }
       return;
     }
 
     if (msg.type === "neighbors" || msg.type === "subgraph") {
       const key = msg.type === "neighbors" ? msg.id : msg.rootId;
       const cb = subgraphPending.get(key);
-      if (cb) { subgraphPending.delete(key); cb({ nodes: msg.nodes, edges: msg.edges }); }
+      if (cb) {
+        subgraphPending.delete(key);
+        cb({ nodes: msg.nodes, edges: msg.edges });
+      }
       return;
     }
   });
@@ -91,7 +103,7 @@ function getWorker(): Worker {
 
 function whenReady(): Promise<void> {
   if (ready) return Promise.resolve();
-  return new Promise(resolve => readyCallbacks.push(resolve));
+  return new Promise((resolve) => readyCallbacks.push(resolve));
 }
 
 // ---------------------------------------------------------------------------
@@ -102,7 +114,7 @@ function whenReady(): Promise<void> {
 export async function getEdges(id: string): Promise<EdgeResult> {
   const w = getWorker();
   await whenReady();
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     edgePending.set(id, resolve);
     w.postMessage({ type: "edges", id });
   });
@@ -112,7 +124,7 @@ export async function getEdges(id: string): Promise<EdgeResult> {
 export async function getEntity(slug: string): Promise<EntityResult> {
   const w = getWorker();
   await whenReady();
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     entityPending.set(slug, resolve);
     w.postMessage({ type: "entity", slug });
   });
@@ -122,7 +134,7 @@ export async function getEntity(slug: string): Promise<EntityResult> {
 export async function getNeighbors(id: string, depth = 1): Promise<SerializedSubgraph> {
   const w = getWorker();
   await whenReady();
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     subgraphPending.set(id, resolve);
     w.postMessage({ type: "neighbors", id, depth });
   });
@@ -132,7 +144,7 @@ export async function getNeighbors(id: string, depth = 1): Promise<SerializedSub
 export async function getSubgraph(rootId: string, depth: number): Promise<SerializedSubgraph> {
   const w = getWorker();
   await whenReady();
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     subgraphPending.set(rootId, resolve);
     w.postMessage({ type: "subgraph", rootId, depth });
   });

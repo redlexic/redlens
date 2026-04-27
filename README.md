@@ -7,6 +7,7 @@ An alternative to [sky-atlas.io](https://sky-atlas.io) with a focus on surfacing
 ## Features
 
 ### Search
+
 - **Full-content search** — every node of the Atlas is indexed (lunr.js, Web Worker), so queries hit the entire ~48k-line corpus instantly
 - **Chainlog ID search** — type `MCD_VAT`, `USDS`, `REWARDS_LSSKY_SKY`, etc. to find all nodes that reference that contract; results merge with prose matches
 - **Address prefix search** — type `0x` or any address prefix to find nodes containing matching addresses
@@ -16,12 +17,14 @@ An alternative to [sky-atlas.io](https://sky-atlas.io) with a focus on surfacing
 - **Wildcards** — `govern*` matches any suffix
 
 ### On-chain annotations
+
 Every Ethereum and Solana address mentioned in the Atlas is detected at build time and enriched from two sources:
 
 - **Sky chainlog** — ~400 mainnet contract names (`MCD_VAT`, `USDS`, `SPK`, …) mapped to their canonical label
 - **Etherscan** — verified contract name, proxy flag, and implementation address for each EVM address; cached in `.cache/etherscan/` and committed to the repo so contributors don't need an API key
 
 Address metadata shown in the annotations panel for each node:
+
 - Resolved label (chainlog ID wins, then atlas prose label, then Etherscan name)
 - Aliases (other names found for the same address across the Atlas)
 - Explorer link (Etherscan, Basescan, Arbiscan, etc. per chain)
@@ -30,9 +33,11 @@ Address metadata shown in the annotations panel for each node:
 - **Live on-chain view function results** for chainlog contracts (via viem + multicall3, fetched at build time)
 
 ### Node detail view
+
 Navigating to a node shows a bounded context window: the parent node, up to 8 siblings above, the target, up to 8 direct children, and up to 8 siblings below — never the entire subtree regardless of Atlas size.
 
 The annotations panel (right column on desktop) shows:
+
 - UUID-linked nodes from the Atlas cross-reference system
 - Address cards with on-chain metadata and live view function values
 
@@ -48,6 +53,7 @@ pnpm install
 ```
 
 If you cloned without `--recurse-submodules`:
+
 ```bash
 git submodule update --init --recursive
 ```
@@ -80,6 +86,7 @@ pnpm preview          # serve the production build locally
 This repo ships a local [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes the Sky Atlas as queryable tools for Claude Code (or any MCP client). It uses a local vector index over `docs.json` so you can ask natural-language questions about the Atlas without sending any data off your machine.
 
 Three tools are exposed:
+
 - `atlas_search(query, k?, type?)` — semantic search over all 9,825 nodes
 - `atlas_get(id)` — fetch a single node by UUID or doc number (e.g. `A.6.1.1.1`)
 - `atlas_neighbors(id, window?)` — parent + sibling + child context around a node
@@ -87,20 +94,25 @@ Three tools are exposed:
 ### Setup
 
 1. **Install [Ollama](https://ollama.com/)** and pull the embedding model (one-time, ~270 MB):
+
    ```bash
    ollama pull nomic-embed-text
    ```
+
    Ollama must be running at `http://localhost:11434` (the default). Override with `OLLAMA_URL` if you've moved it.
 
 2. **Build the docs index** if you haven't already:
+
    ```bash
    pnpm build:index
    ```
 
 3. **Build the vector index** (embeds all atlas nodes — takes a couple of minutes the first time):
+
    ```bash
    pnpm build:rag
    ```
+
    Output lives in `.cache/atlas-rag/` (gitignored). Re-run whenever `docs.json` changes.
 
 4. **Use it.** The repo ships a `.mcp.json` at the root, so any Claude Code session opened in this directory auto-discovers the server. The first time you run a tool, Claude will prompt you to approve it.
@@ -141,13 +153,13 @@ Add to your `.mcp.json` or MCP client config:
 
 ### Tools
 
-| Tool | Description |
-|---|---|
-| `atlas_search(query, k?, type?)` | FTS5 full-text search over all 9,825 nodes |
-| `atlas_get(id)` | Fetch a node by UUID or doc number |
-| `atlas_neighbors(id, window?)` | Parent + siblings + children context |
-| `atlas_traverse(id, hops?, edge_type?, direction?)` | Multi-hop graph traversal via typed edges |
-| `atlas_entity(name)` | All Atlas sections, responsibilities, and Active Data for a named entity (e.g. `spark`, `endgame-edge`, `operational-facilitator`) |
+| Tool                                                | Description                                                                                                                        |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `atlas_search(query, k?, type?)`                    | FTS5 full-text search over all 9,825 nodes                                                                                         |
+| `atlas_get(id)`                                     | Fetch a node by UUID or doc number                                                                                                 |
+| `atlas_neighbors(id, window?)`                      | Parent + siblings + children context                                                                                               |
+| `atlas_traverse(id, hops?, edge_type?, direction?)` | Multi-hop graph traversal via typed edges                                                                                          |
+| `atlas_entity(name)`                                | All Atlas sections, responsibilities, and Active Data for a named entity (e.g. `spark`, `endgame-edge`, `operational-facilitator`) |
 
 ### REST API
 
@@ -164,12 +176,12 @@ GET /api/traverse/:id?hops=2&type=<edge_type>  Graph traversal
 
 The D1 database holds:
 
-| Table | Contents |
-|---|---|
-| `atlas_nodes` | All 9,825 nodes with full content + FTS5 index |
-| `entities` | Named Sky participants: Prime Agents, Executor Agents, Facilitators, GovOps orgs, Aligned Delegates, Governance Parties, and Primitive Instances |
-| `addresses` | 294 on-chain addresses with chain-state snapshots |
-| `edges` | 12,438 typed edges: `parent_of`, `cites`, `annotates`, `active_data_for`, `member_of`, `member_of_erg`, `has_address`, `mentions`, `proxies_to` |
+| Table         | Contents                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `atlas_nodes` | All 9,825 nodes with full content + FTS5 index                                                                                                   |
+| `entities`    | Named Sky participants: Prime Agents, Executor Agents, Facilitators, GovOps orgs, Aligned Delegates, Governance Parties, and Primitive Instances |
+| `addresses`   | 294 on-chain addresses with chain-state snapshots                                                                                                |
+| `edges`       | 12,438 typed edges: `parent_of`, `cites`, `annotates`, `active_data_for`, `member_of`, `member_of_erg`, `has_address`, `mentions`, `proxies_to`  |
 
 ### Infrastructure source
 
@@ -184,6 +196,7 @@ pnpm --filter redlens-mcp deploy        # redeploy the Worker
 ## Deployment
 
 `main` is auto-deployed to GitHub Pages via `.github/workflows/deploy.yml`. The workflow:
+
 - Runs on every push to `main`, daily on a schedule, and on manual trigger
 - Pulls the latest upstream Atlas submodule content on each build
 - Requires two repository secrets: `ETHERSCAN_API_KEY` and `ETH_RPC_URL`

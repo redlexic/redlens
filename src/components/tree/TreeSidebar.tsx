@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, useTransition } from
 import { List, useListRef } from "react-window";
 import { useAtlasTree } from "../../hooks/useAtlasTree";
 import { useTreeKeyboard } from "../../hooks/useTreeKeyboard";
-import { realDepth } from "../../types";
+import { realDepth } from "../../lib/depth";
 import { TreeRow, ROW_HEIGHT, type VisibleNode, type TreeRowData } from "./TreeRow";
 
 interface Props {
@@ -29,8 +29,8 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
     for (const node of Object.values(bundle.docs)) {
       if (node.depth <= 1) initial.add(node.id);
     }
-    startTransition(() => setExpandedIds(initial)); // eslint-disable-line react-hooks/set-state-in-effect
-  }, [bundle]); // eslint-disable-line react-hooks/exhaustive-deps
+    startTransition(() => setExpandedIds(initial));
+  }, [bundle]);
 
   useEffect(() => {
     if (!bundle || !nodeId) return;
@@ -38,13 +38,15 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
     const target = docs[nodeId];
     if (!target) return;
     const parts = target.doc_no.split(".");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpandedIds((prev) => {
       const next = new Set(prev);
       let changed = false;
       for (let i = 2; i < parts.length; i++) {
         const aid = docNoToId.get(parts.slice(0, i).join("."));
-        if (aid && !next.has(aid)) { next.add(aid); changed = true; }
+        if (aid && !next.has(aid)) {
+          next.add(aid);
+          changed = true;
+        }
       }
       return changed ? next : prev;
     });
@@ -58,11 +60,14 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
       const newWidth = entry.contentRect.width;
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        setSidebarWidth(prev => Math.abs(prev - newWidth) > 10 ? newWidth : prev);
+        setSidebarWidth((prev) => (Math.abs(prev - newWidth) > 10 ? newWidth : prev));
       });
     });
     ro.observe(el);
-    return () => { ro.disconnect(); cancelAnimationFrame(rafId); };
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const visibleNodes = useMemo(() => {
@@ -81,12 +86,15 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   }, [bundle, expandedIds]);
 
   const selectedIndex = useMemo(
-    () => nodeId ? visibleNodes.findIndex((v) => v.node.id === nodeId) : -1,
-    [visibleNodes, nodeId]
+    () => (nodeId ? visibleNodes.findIndex((v) => v.node.id === nodeId) : -1),
+    [visibleNodes, nodeId],
   );
 
   useEffect(() => {
-    if (clickedRef.current) { clickedRef.current = false; return; }
+    if (clickedRef.current) {
+      clickedRef.current = false;
+      return;
+    }
     if (selectedIndex >= 0 && listRef.current) {
       listRef.current.scrollToRow({ index: selectedIndex, align: "smart" });
     }
@@ -103,25 +111,59 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   }, []);
 
   const handleKeyDown = useTreeKeyboard({
-    visibleNodes, focusedIndex, selectedIndex, expandedIds,
-    listRef, onNavigate, setFocusedIndex, setExpandedIds,
+    visibleNodes,
+    focusedIndex,
+    selectedIndex,
+    expandedIds,
+    listRef,
+    onNavigate,
+    setFocusedIndex,
+    setExpandedIds,
   });
 
-  const handleRowClick = useCallback((id: string) => {
-    clickedRef.current = true;
-    setFocusedIndex(-1);
-    onNavigate(id);
-  }, [onNavigate]);
+  const handleRowClick = useCallback(
+    (id: string) => {
+      clickedRef.current = true;
+      setFocusedIndex(-1);
+      onNavigate(id);
+    },
+    [onNavigate],
+  );
 
-  const rowProps: TreeRowData = useMemo(() => ({
-    visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth,
-    onNavigate: handleRowClick, onToggle: toggleExpand, onShiftNavigate,
-  }), [visibleNodes, selectedIndex, focusedIndex, expandedIds, sidebarWidth, handleRowClick, toggleExpand, onShiftNavigate]);
+  const rowProps: TreeRowData = useMemo(
+    () => ({
+      visibleNodes,
+      selectedIndex,
+      focusedIndex,
+      expandedIds,
+      sidebarWidth,
+      onNavigate: handleRowClick,
+      onToggle: toggleExpand,
+      onShiftNavigate,
+    }),
+    [
+      visibleNodes,
+      selectedIndex,
+      focusedIndex,
+      expandedIds,
+      sidebarWidth,
+      handleRowClick,
+      toggleExpand,
+      onShiftNavigate,
+    ],
+  );
 
   if (!bundle) return <div className="tree-sidebar" ref={containerRef} />;
 
   return (
-    <div className="tree-sidebar" ref={containerRef} tabIndex={0} onKeyDown={handleKeyDown} role="tree" aria-label="Atlas tree">
+    <div
+      className="tree-sidebar"
+      ref={containerRef}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      role="tree"
+      aria-label="Atlas tree"
+    >
       <List
         listRef={listRef}
         rowCount={visibleNodes.length}

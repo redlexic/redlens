@@ -6,6 +6,6 @@ export function useAtlasTree(): AtlasBundle | null {
   const [, startTransition] = useTransition();
   useEffect(() => {
     loadAtlas().then((b) => startTransition(() => setBundle(b)));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
   return bundle;
 }
