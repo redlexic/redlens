@@ -1,36 +1,11 @@
 import { memo } from "react";
-import { realDepth, depthColor, type AtlasNode } from "../../types";
+import { depthColor } from "../../lib/depth";
+import { type FlatEntry } from "../../lib/atlasHelpers";
 import { NodeContent } from "../NodeContent";
 
 export const ViewChildrenFill = ({ nodeId, docNo, onExpand }: { nodeId: string; docNo: string; onExpand: (id: string) => void }) =>
   <button type="button" onClick={() => onExpand(nodeId)} className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer">view all descendants of {docNo}</button>;
 
-export interface FlatEntry {
-  node: AtlasNode;
-  depth: number;
-  color: string;
-  indentPadding: number;
-  hasContent: boolean;
-}
-
-export function flattenTree(byParent: Map<string | null, AtlasNode[]>): FlatEntry[] {
-  const result: FlatEntry[] = [];
-  function walk(parentId: string | null, parentDocNo?: string) {
-    for (const node of byParent.get(parentId) ?? []) {
-      const depth = realDepth(node.doc_no, parentDocNo);
-      result.push({
-        node,
-        depth,
-        color: depthColor(depth),
-        indentPadding: (depth - 1) * 7,
-        hasContent: !!node.content,
-      });
-      walk(node.id, node.doc_no);
-    }
-  }
-  walk(null);
-  return result;
-}
 
 const DEPTH_HEADING: Record<number, string> = {
   1: "text-2xl font-bold",
@@ -141,9 +116,9 @@ export const CollapsibleNode = memo(function CollapsibleNode({
               href={`https://sky-atlas.io/#${node.id}`}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Open on Sky Atlas"
               className="atlas-external-link shrink-0"
               onClick={e => e.stopPropagation()}
-              title="Open on Sky Atlas"
             >
               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M4.5 1.5H2a.5.5 0 00-.5.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V7.5" />

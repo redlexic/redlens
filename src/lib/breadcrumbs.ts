@@ -1,6 +1,6 @@
 import { prepare, layout } from "@chenglou/pretext";
 
-const STOP_WORDS = /\b(the|a|of|an|and|or|for|in|on|to|at|by|with|from)\b/gi;
+const ARTICLES_AND_PREPOSITIONS_AND_CONJUNCTIONS = /\b(the|a|of|an|and|or|for|in|on|to|at|by|with|from)\b/gi;
 
 export const ABBREVIATIONS: Record<string, string> = {
   directory: "Dir.",
@@ -78,7 +78,7 @@ export const ABBREVIATIONS: Record<string, string> = {
 };
 
 export function shortenTitle(title: string, maxChars: number, abbrRatio = 0.5): string {
-  let t = title.replace(STOP_WORDS, "").replace(/\s{2,}/g, " ").trim();
+  let t = title.replace(ARTICLES_AND_PREPOSITIONS_AND_CONJUNCTIONS, "").replace(/\s{2,}/g, " ").trim();
   const words = t.split(" ");
   const maxAbbrev = Math.max(1, Math.floor(words.length * abbrRatio));
   let abbrCount = 0;

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { type RowComponentProps } from "react-window";
-import { segmentDepths, type AtlasNode } from "../../types";
+import { segmentDepths } from "../../lib/depth";
+import type { AtlasNode } from "../../types";
 import { truncateTitle } from "../../lib/treeUtils";
 
 export const ROW_HEIGHT = 20;

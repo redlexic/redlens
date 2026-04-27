@@ -4,7 +4,7 @@ import { SearchHints } from "./SearchHints";
 import type { SearchHit, Participant } from "../types";
 import type { SearchState } from "../hooks/useSearch";
 import { loadGraph } from "../lib/graph";
-import { searchParticipants } from "../lib/entitySearch";
+import { matchParticipants } from "../lib/search";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, SUBTYPE_LABEL } from "../lib/entityGraph";
 
 interface Props {
@@ -28,7 +28,7 @@ export const SearchResults = memo(function SearchResults({ state, query, onNavig
 
   const entityHits = useMemo(() => {
     if (!participants || !query.trim() || query.startsWith("/")) return [];
-    return searchParticipants(query, participants).slice(0, ENTITY_CAP);
+    return matchParticipants(query, participants).slice(0, ENTITY_CAP);
   }, [participants, query]);
 
   const displayed = hits.slice(0, visible);
@@ -40,7 +40,7 @@ export const SearchResults = memo(function SearchResults({ state, query, onNavig
         {entityHits.length > 0 && (
           <>
             <div className="px-4 py-2 text-xs border-b mono text-tan-3 border-border">
-              Agents · Alignment Conservers · Ecosystem Actors  {entityHits.length}
+              Agents · Alignment Conservers · Goverance Operators  {entityHits.length}
             </div>
             <ul>
               {entityHits.map(({ participant }) => (

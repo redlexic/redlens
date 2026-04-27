@@ -1,4 +1,5 @@
 import type { AtlasNode, Participant, RelationEdge } from "../types";
+import { parseMeta } from "./meta";
 import type { GraphData } from "./graph";
 import type { InstanceMeta, RewardsAgent } from "./rewardsTypes";
 import type { ActiveDataRow } from "./activeDataIndex";
@@ -129,7 +130,8 @@ export function buildActorProfile(
   if (definingDoc) {
     for (const inst of graph.instances) {
       if (!inst.m || !inst.st || EXCLUDED_INSTANCE_TYPES.has(inst.st)) continue;
-      let meta: InstanceMeta; try { meta = JSON.parse(inst.m); } catch { continue; }
+      const meta = parseMeta<InstanceMeta>(inst.m);
+      if (!meta) continue;
       if (meta.agent_doc_no !== definingDoc.doc_no) continue;
       const signalParams = Object.entries(meta.params)
         .filter(([k, t]) => isSignal(k, t[0]))

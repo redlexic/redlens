@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
 import { loadHistory } from "../../lib/history";
+import { useLoaded } from "../../hooks/useAtlasData";
 import {
   buildActiveDataRows, activeDataRowsToCSV,
   type ActiveDataRow, type EvidenceStep,
@@ -61,27 +62,29 @@ function EvidenceCell({ r, onNavigate }: { r: Row; onNavigate: (id: string) => v
 
 
 export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => void }) {
-  const [rows, setRows] = useState<Row[]>([]);
+  const docs = useLoaded(loadDocs);
+  const graph = useLoaded(loadGraph);
+  const rows = useMemo(
+    () => docs && graph ? buildActiveDataRows(docs, graph) : [],
+    [docs, graph],
+  );
   const [agentFilter, setAgentFilter] = useState<string | null>(null);
   const [entityFilter, setEntityFilter] = useState<string | null>(null);
   const [lastEditDates, setLastEditDates] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
-    Promise.all([loadDocs(), loadGraph()]).then(([docs, graph]) => {
-      setRows(buildActiveDataRows(docs, graph));
-    });
-  }, []);
-
-  useEffect(() => {
     if (!rows.length) return;
+    let cancelled = false;
     Promise.all(rows.map(r => loadHistory(r.activeDataId).then(h => [r.activeDataId, h] as const)))
       .then(pairs => {
+        if (cancelled) return;
         const m = new Map<string, string>();
         for (const [id, entries] of pairs) {
           if (entries?.length) m.set(id, entries[entries.length - 1].date);
         }
         setLastEditDates(m);
       });
+    return () => { cancelled = true; };
   }, [rows]);
 
   // Agents are derived from the rows themselves (graph-resolved in buildActiveDataRows).

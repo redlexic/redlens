@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, useTransition } from
 import { List, useListRef } from "react-window";
 import { useAtlasTree } from "../../hooks/useAtlasTree";
 import { useTreeKeyboard } from "../../hooks/useTreeKeyboard";
-import { realDepth } from "../../types";
+import { realDepth } from "../../lib/depth";
 import { TreeRow, ROW_HEIGHT, type VisibleNode, type TreeRowData } from "./TreeRow";
 
 interface Props {

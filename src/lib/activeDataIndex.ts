@@ -3,6 +3,7 @@
 // relations.json.
 
 import type { AtlasNode, Participant, RelationEdge } from "../types";
+import { parseMeta } from "./meta";
 
 export interface AgentRef { name: string; id: string; docNoPrefix: string; docNo: string; }
 
@@ -193,11 +194,7 @@ export function buildActiveDataRows(
 
     const respEdge = ctrl ? respByCtrl.get(ctrl.id) : undefined;
     const respEntity = respEdge ? entityById.get(respEdge.f) : null;
-    const respMeta = (() => {
-      if (!respEdge?.m) return null;
-      try { return JSON.parse(respEdge.m) as { role_declared?: string; resolution?: "direct" | "chain" | "role" }; }
-      catch { return null; }
-    })();
+    const respMeta = parseMeta<{ role_declared?: string; resolution?: "direct" | "chain" | "role" }>(respEdge?.m);
 
     const responsibleParty: ResponsibleParty | null = respEntity ? (() => {
       const resolution = respMeta?.resolution ?? "direct";

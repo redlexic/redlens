@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, type ReactElement } from "react";
 import { buildAncestors, type LoadedData } from "../../lib/atlasHelpers";
-import { CollapsibleNode, ViewChildrenFill, type FlatEntry } from "./CollapsibleNode";
-import { depthColor, realDepth } from "../../types";
+import { CollapsibleNode, ViewChildrenFill } from "./CollapsibleNode";
+import { type FlatEntry } from "../../lib/atlasHelpers";
+import { depthColor, realDepth } from "../../lib/depth";
 
 const DEPTH_LIMIT = 6;
 

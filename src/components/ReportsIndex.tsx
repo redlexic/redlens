@@ -1,4 +1,4 @@
-import type { ReportId } from "../App";
+import type { ReportId } from "../types";
 
 const REPORTS: { id: ReportId; title: string; description: string }[] = [
   { id: "of-responsibilities", title: "Operational Facilitator Responsibilities", description: "Every Atlas section mandating action from an Operational Facilitator, grouped by duty type with per-agent filtering." },

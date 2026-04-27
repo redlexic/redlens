@@ -1,0 +1,90 @@
+#!/usr/bin/env node
+/**
+ * Enriches the atlas-derived address map with Sky chainlog IDs and Etherscan
+ * verified contract metadata.
+ *
+ * Inputs:
+ *   public/addresses.merged.json   (intermediate; produced by build-index.mjs)
+ *   https://chainlog.skyeco.com/api/mainnet/active.json
+ *   Etherscan v2 getsourcecode      (one call per unique non-mainnet+mainnet addr)
+ *
+ * Outputs:
+ *   public/addresses.json           (frontend-visible: labels, roles, no ABIs)
+ *   .cache/etherscan/<chainid>/<addr>.json
+ *
+ * Cache is committed to git so contributors / CI don't need an API key.
+ *
+ * Run: ETHERSCAN_API_KEY=… node --env-file-if-exists=.env.local scripts/required/build-addresses.mjs
+ */
+
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import { enrichAddresses, fetchImplABIs, fetchChainlog } from "../lib/address-enrich.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "../..");
+const MERGED_PATH = path.join(ROOT, "public/addresses.merged.json");
+const OUT_PATH = path.join(ROOT, "public/addresses.json");
+
+const API_KEY = process.env.ETHERSCAN_API_KEY;
+if (!API_KEY) {
+  console.error(
+    "ETHERSCAN_API_KEY not set. Add it to .env.local (the build script runs with --env-file-if-exists=.env.local)."
+  );
+  process.exit(1);
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+let atlas;
+try {
+  atlas = JSON.parse(await fs.readFile(MERGED_PATH, "utf8"));
+} catch (err) {
+  if (err.code === "ENOENT") {
+    console.error("public/addresses.merged.json not found. Run `pnpm build:index` first.");
+    process.exit(1);
+  }
+  throw err;
+}
+
+console.log(`Loaded ${Object.keys(atlas).length} merged atlas addresses`);
+
+const chainlog = await fetchChainlog();
+console.log(`Loaded chainlog: ${Object.keys(chainlog).length} mainnet entries`);
+
+const out = await enrichAddresses(atlas, chainlog, API_KEY);
+const { misses = 0, errors = 0 } = out.__stats ?? {};
+
+await fetchImplABIs(out, API_KEY);
+
+await fs.writeFile(OUT_PATH, JSON.stringify(out));
+await fs.unlink(MERGED_PATH).catch(() => {});
+
+// ---------------------------------------------------------------------------
+// Stats
+// ---------------------------------------------------------------------------
+const all = Object.values(out);
+const withChainlog = all.filter((a) => a.chainlogId).length;
+const withEtherscan = all.filter((a) => a.etherscanName).length;
+const proxies = all.filter((a) => a.isProxy).length;
+const unverified = all.filter((a) => !a.isContract && a.chain !== "solana").length;
+const withLabel = all.filter((a) => a.label).length;
+const byChain = {};
+for (const a of all) byChain[a.chain] = (byChain[a.chain] ?? 0) + 1;
+
+console.log("\n=== Address build stats ===");
+console.log(`Total addresses:    ${all.length}`);
+console.log(`Cache misses:       ${misses}`);
+console.log(`Errors:             ${errors}`);
+console.log(`With label:         ${withLabel}`);
+console.log(`  via chainlog:     ${withChainlog}`);
+console.log(`  via etherscan:    ${withEtherscan}`);
+console.log(`Proxies:            ${proxies}`);
+console.log(`Unverified/EOA:     ${unverified}`);
+console.log("By chain:");
+for (const [c, n] of Object.entries(byChain).sort((a, b) => b[1] - a[1])) {
+  console.log(`  ${c.padEnd(12)} ${n}`);
+}
+console.log(`\nWrote ${OUT_PATH}`);

@@ -40,6 +40,15 @@ const artifactHashes: Record<string, string> = (() => {
 export default defineConfig({
   base: '/redlens/',
   plugins: [
+    {
+      name: 'redirect-root',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url === '/' || req.url === '/redlens') { req.url = '/redlens/'; }
+          next();
+        });
+      },
+    },
     tailwindcss(),
     react(),
     VitePWA({

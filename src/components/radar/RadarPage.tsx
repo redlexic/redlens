@@ -67,7 +67,7 @@ export function RadarPage({ onNavigate }: Props) {
           </div>
         ) : !actorSlug ? (
           <div className="flex-1 flex items-center justify-center">
-            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>Select an actor</span>
+            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>Select an Agent or Facilitator or GovOps</span>
           </div>
         ) : !profile ? (
           <div className="flex-1 flex items-center justify-center">

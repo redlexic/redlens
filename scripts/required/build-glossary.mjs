@@ -1,0 +1,137 @@
+#!/usr/bin/env node
+/**
+ * build-glossary.mjs
+ *
+ * Extracts glossary entries from the Atlas. Any node whose title is exactly
+ * "Definitions" is treated as a glossary section; its direct [Core] children
+ * become defined terms (title = term, body = definition).
+ *
+ * The atlas has several Definitions sections at different scopes, and some
+ * terms (e.g. "Universal Alignment") are redefined. We keep all of them — the
+ * frontend shows every variant with its source context.
+ *
+ * Reads:
+ *   public/docs.json
+ *
+ * Writes:
+ *   public/glossary.json  — { [lowercasedTerm]: GlossaryEntry[] }
+ *
+ * Run: node scripts/build-glossary.mjs
+ */
+
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "../..");
+const DOCS_PATH = path.join(ROOT, "public/docs.json");
+const OUT_PATH = path.join(ROOT, "public/glossary.json");
+
+function buildGlossary(docs) {
+  const nodes = Object.values(docs);
+  const nodeMap = docs;
+
+  const definitionsSections = nodes.filter((n) => n.title === "Definitions");
+
+  const childrenByParent = {};
+  for (const n of nodes) {
+    if (!n.parentId) continue;
+    (childrenByParent[n.parentId] ??= []).push(n);
+  }
+
+  const glossary = {};
+  for (const def of definitionsSections) {
+    const parent = def.parentId ? nodeMap[def.parentId] : null;
+    const sourceContext = parent ? `${parent.doc_no} ${parent.title}` : null;
+
+    const children = childrenByParent[def.id] ?? [];
+    for (const child of children) {
+      if (child.type !== "Core") continue;
+      const term = child.title.trim();
+      if (!term) continue;
+      const key = term.toLowerCase();
+      (glossary[key] ??= []).push({
+        term,
+        content: child.content,
+        nodeId: child.id,
+        docNo: child.doc_no,
+        sourceDocNo: def.doc_no,
+        sourceContext,
+      });
+    }
+  }
+
+  return { glossary, definitionsSections };
+}
+
+function printStats(glossary, definitionsSections) {
+  const keys = Object.keys(glossary);
+  const totalEntries = keys.reduce((s, k) => s + glossary[k].length, 0);
+  const dupes = keys
+    .filter((k) => glossary[k].length > 1)
+    .sort((a, b) => glossary[b].length - glossary[a].length);
+
+  console.log("\n=== Glossary Stats ===");
+  console.log(`Definitions sections: ${definitionsSections.length}`);
+  for (const d of definitionsSections) {
+    console.log(`  ${d.doc_no.padEnd(20)} (depth ${d.depth})`);
+  }
+  console.log(`Unique terms:  ${keys.length}`);
+  console.log(`Total entries: ${totalEntries}`);
+  console.log(`Multi-definition terms: ${dupes.length}`);
+
+  if (dupes.length) {
+    console.log("\nMulti-definition terms:");
+    for (const k of dupes) {
+      console.log(`  ${glossary[k][0].term}  (${glossary[k].length}×)`);
+      for (const e of glossary[k]) {
+        console.log(`    ${e.sourceDocNo.padEnd(16)} ${e.sourceContext ?? "?"}`);
+      }
+    }
+  }
+
+  // Sample: first, middle, last alphabetically
+  const sorted = [...keys].sort();
+  const samplePicks = [0, 1, 2,
+    Math.floor(sorted.length / 2),
+    Math.floor(sorted.length / 2) + 1,
+    sorted.length - 2, sorted.length - 1,
+  ].filter((i) => i >= 0 && i < sorted.length);
+  console.log("\nSample terms:");
+  for (const i of samplePicks) {
+    const e = glossary[sorted[i]][0];
+    const snippet = e.content.slice(0, 120).replace(/\s+/g, " ");
+    console.log(`  ${e.term}`);
+    console.log(`    ${snippet}${e.content.length > 120 ? "…" : ""}`);
+  }
+
+  // Length distribution
+  const lens = [];
+  for (const k of keys) for (const e of glossary[k]) lens.push(e.content.length);
+  lens.sort((a, b) => a - b);
+  const pct = (p) => lens[Math.floor(lens.length * p)] ?? 0;
+  console.log("\nDefinition length (chars):");
+  console.log(`  min ${lens[0]}  p50 ${pct(0.5)}  p90 ${pct(0.9)}  max ${lens[lens.length - 1]}`);
+
+  // Terms that will collide heavily with prose: single short common words
+  const shortCommon = keys.filter((k) => k.length <= 5 && !k.includes(" "));
+  if (shortCommon.length) {
+    console.log("\nShort single-word terms (may over-match in prose):");
+    for (const k of shortCommon) console.log(`  ${glossary[k][0].term}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+console.log(`Reading ${path.relative(ROOT, DOCS_PATH)}…`);
+const docs = JSON.parse(fs.readFileSync(DOCS_PATH, "utf8"));
+
+const { glossary, definitionsSections } = buildGlossary(docs);
+
+printStats(glossary, definitionsSections);
+
+fs.writeFileSync(OUT_PATH, JSON.stringify(glossary));
+const size = (fs.statSync(OUT_PATH).size / 1024).toFixed(1);
+console.log(`\nWrote ${path.relative(ROOT, OUT_PATH)} (${size} KB)`);

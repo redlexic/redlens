@@ -1,26 +1,26 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useLocation, useSearchParams } from "wouter";
-import { loadGraph, type GraphData } from "../lib/graph";
+import { loadGraph } from "../lib/graph";
 import { loadAtlas } from "../lib/docs";
+import { useLoaded } from "../hooks/useAtlasData";
 import {
   buildEntityNodes, buildEntityEdges, buildEntityIndex,
   ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, CONNECTED_ENTITY_TYPES,
 } from "../lib/entityGraph";
-import { searchParticipants, neighborhoodOfParticipants, agentClusterIds } from "../lib/entitySearch";
-import { EntityFlow } from "./entities/EntityFlow";
+import { matchParticipants, neighborhoodOfParticipants, agentClusterIds } from "../lib/search";
+import { EntityFlow } from "./constellations/EntityFlow";
 import { Loading } from "./Loading";
 import type { Participant } from "../types";
 
 export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: string) => void; query: string }) {
-  const [graphData, setGraphData] = useState<GraphData | null>(null);
-  const [docNoToId, setDocNoToId] = useState<Map<string, string> | null>(null);
+  const graphData = useLoaded(loadGraph);
+  const atlas = useLoaded(loadAtlas);
+  const docNoToId = atlas?.docNoToId ?? null;
   const [, navigate] = useLocation();
   const [searchParams] = useSearchParams();
   const urlId = searchParams.get("id");
-  const [selectedId, setSelectedId] = useState<string | null>(urlId);
 
   const selectEntity = useCallback((id: string) => {
-    setSelectedId(id);
     navigate(`/constellations?id=${id}`);
   }, [navigate]);
 
@@ -28,13 +28,6 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
     "govops_org", "facilitator_org", "delegate_org",
   ]));
   const [focusAgentId, setFocusAgentId] = useState<string | null>(null);
-
-  useEffect(() => {
-    Promise.all([loadGraph(), loadAtlas()]).then(([g, atlas]) => {
-      setGraphData(g);
-      setDocNoToId(atlas.docNoToId);
-    });
-  }, []);
 
   const allEntities = useMemo(
     () => graphData ? [...graphData.participants, ...graphData.instances] : [],
@@ -48,7 +41,7 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
 
   const queryScope = useMemo(() => {
     if (!graphData || !query.trim()) return null;
-    const matches = searchParticipants(query, allEntities);
+    const matches = matchParticipants(query, allEntities);
     if (matches.length === 0) return { ids: new Set<string>(), topId: null as string | null };
     const seedIds = matches.map(m => m.participant.id);
     const ids = neighborhoodOfParticipants(seedIds, graphData.edges, 2);
@@ -59,10 +52,6 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
     if (queryScope?.topId) selectEntity(queryScope.topId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryScope?.topId]);
-
-  useEffect(() => {
-    if (!query.trim() && urlId) setSelectedId(urlId);
-  }, [urlId, query]);
 
   const focusCluster = useMemo(() => {
     if (!graphData || !focusAgentId) return null;
@@ -198,7 +187,7 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
         <EntityFlow
           nodes={nodes}
           edges={edges}
-          selectedId={selectedId}
+          selectedId={urlId}
           onSelect={selectEntity}
           graphData={graphData}
           entityById={entityById}

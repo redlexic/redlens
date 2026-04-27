@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { realDepth, depthColor, type SearchHit } from "../types";
+import { realDepth, depthColor } from "../lib/depth";
+import type { SearchHit } from "../types";
 
 interface Props {
   hit: SearchHit;

@@ -119,9 +119,9 @@ self.addEventListener("message", (e: MessageEvent<GraphWorkerInMessage>) => {
   } catch (err) {
     // Always respond so the main thread doesn't hang waiting for a reply
     if (msg.type === "edges")    post({ type: "edges",    id: msg.id,       outbound: [], inbound: [] });
-    if (msg.type === "entity")   post({ type: "entity",   slug: (msg as any).slug, entity: null, edges: [] });
-    if (msg.type === "neighbors") post({ type: "neighbors", id: msg.id,      nodes: [],    edges: [] });
-    if (msg.type === "subgraph") post({ type: "subgraph", rootId: (msg as any).rootId, nodes: [], edges: [] });
+    if (msg.type === "entity")   post({ type: "entity",   slug: msg.slug,   entity: null, edges: [] });
+    if (msg.type === "neighbors") post({ type: "neighbors", id: msg.id,     nodes: [],    edges: [] });
+    if (msg.type === "subgraph") post({ type: "subgraph", rootId: msg.rootId, nodes: [], edges: [] });
     console.error("[graph worker]", err);
   }
 });

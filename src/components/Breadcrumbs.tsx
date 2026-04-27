@@ -1,5 +1,6 @@
 import { memo, useState, useEffect, useRef, useMemo } from "react";
-import { depthColor, realDepth, type AtlasNode } from "../types";
+import { depthColor, realDepth } from "../lib/depth";
+import type { AtlasNode } from "../types";
 import { fitBreadcrumbs } from "../lib/breadcrumbs";
 
 const NAV_STYLE_BASE: React.CSSProperties = {

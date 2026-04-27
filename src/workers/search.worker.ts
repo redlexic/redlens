@@ -91,7 +91,7 @@ function highlightTerms(text: string, terms: string[]): string {
   return result;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { UUID_RE } from "../lib/patterns";
 // Chainlog IDs are ALL_CAPS_WITH_UNDERSCORES, at least 3 chars, starting with a letter.
 const CHAINLOG_RE = /^[A-Z][A-Z0-9_]{2,}$/;
 

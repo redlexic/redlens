@@ -1,0 +1,352 @@
+/**
+ * Phase 1 of build-graph: entity extraction.
+ *
+ * Walks all atlas docs and extracts agents, facilitators, govops, delegates,
+ * accord parties, primitive instances, and bootstrap entities. Returns a
+ * context object consumed by graph-doc-edges and graph-entity-edges.
+ */
+
+import crypto from "crypto";
+import {
+  slugify, ERG_DOC_NO, ALIGNED_DELEGATES_DOC_NO, CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
+  isPrimeAgent, isExecutorAgent, isFacilitatorDoc, isGovOpsDoc, isGrantDoc, isPartyDetails,
+  isICD, COMPRISES_RE, ATOMIC_PARTY_RE,
+  extractAssignment, extractRP, rpRoleAndName, parseNameList, extractListItems,
+  primitiveRootFor,
+} from "./graph-patterns.mjs";
+import {
+  INSTANCE_SCOPED_PRIMITIVES, instanceStatusFor, buildChildrenIndex, extractInstanceParams,
+} from "./graph-instances.mjs";
+
+export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
+  const entityMap = new Map(); // slug → entity record
+
+  function addEntity(slug, name, entity_type, subtype, defining_doc_id, meta = null) {
+    if (entityMap.has(slug)) return entityMap.get(slug);
+    const ent = {
+      id: crypto.randomUUID(),
+      slug,
+      name,
+      entity_type,
+      subtype: subtype ?? null,
+      defining_doc_id: defining_doc_id ?? null,
+      is_active: 1,
+      meta: meta ? JSON.stringify(meta) : null,
+    };
+    entityMap.set(slug, ent);
+    return ent;
+  }
+
+  function entityByName(name) { return entityMap.get(slugify(name)); }
+
+  // --- 1a. Bootstrap entities (Pattern 13) ---
+  // Sky Core / Sky Governance — targets of role edges; no defining doc.
+  const skyCore      = addEntity("sky-core", "Sky Core", "operational_party", null, null, { source: "bootstrap" });
+  const skyGovernance = addEntity("sky-governance", "Sky Governance", "governance_body", null, "18ac7dd3-c646-4352-9b0d-d01a2932d7d1", { source: "bootstrap", defining_doc_no: "A.1" });
+  // Support Facilitators — role defined at A.2.10.1.1; no named current holder in Atlas.
+  const supportFacilitators = addEntity("support-facilitators", "Support Facilitators", "governance_body", null, "aeb75fe3-f52b-4cdf-a206-1e54ef648d88", { source: "bootstrap", defining_doc_no: "A.2.10.1.1" });
+
+  // --- 1b. Prime Agents (Pattern 1) ---
+  for (const d of allDocs.filter(isPrimeAgent)) {
+    const s = slugify(d.title);
+    const ent = addEntity(s, d.title, "agent", "prime", d.id);
+    ent.id = d.id; // use atlas doc uuid as entity id
+  }
+
+  // --- 1c. Executor Agents (Pattern 1) ---
+  // Strip "Operational Executor Agent " prefix so the semantic short name survives
+  // ("Ozone", "Amatsu"). Keep full title for Core Council entries because the number
+  // suffix IS their identity ("Core Council Executor Agent 1").
+  for (const d of allDocs.filter(isExecutorAgent)) {
+    const isCore = /^Core Council Executor Agent/i.test(d.title);
+    const name = isCore
+      ? d.title
+      : d.title.replace(/^Operational Executor Agent\s+/i, "").trim();
+    const subtype = isCore ? "core_executor" : "operational_executor";
+    const ent = addEntity(slugify(name), name, "agent", subtype, d.id);
+    ent.id = d.id;
+  }
+
+  // --- 1d. Facilitators (Pattern 5) — entity_type = facilitator_org ---
+  for (const d of allDocs.filter(isFacilitatorDoc)) {
+    const name = extractAssignment(
+      d.content,
+      "(?:The )?(?:(?:Operational|Core) (?:Executor )?)?Facilitator for [^.]+"
+    );
+    if (name) addEntity(slugify(name), name, "facilitator_org", null, d.id, {
+      source: "facilitator_doc",
+      source_doc_no: d.doc_no,
+    });
+  }
+
+  // --- 1e. GovOps (Pattern 5) — entity_type = govops_org ---
+  for (const d of allDocs.filter(isGovOpsDoc)) {
+    const name = extractAssignment(
+      d.content,
+      "(?:(?:Operational|Core) )?GovOps for [^.]+"
+    );
+    if (name) addEntity(slugify(name), name, "govops_org", null, d.id, {
+      source: "govops_doc",
+      source_doc_no: d.doc_no,
+    });
+  }
+
+  // --- 1f. Named Responsible Parties from Active Data Controllers (Pattern 6) ---
+  // Only creates ecosystem_actor entities when the RP declaration includes an
+  // explicit entity name. Role-only declarations carry no new entity — they are
+  // resolved to an existing role-edge target in Section 2s.
+  // Skip names that match a role-binding doc's title (e.g. "Core Council Risk
+  // Advisor" → A.1.7.1.1.2) so the holder (e.g. BA Labs) gets used in 2s.
+  const roleBindingTitles = new Set();
+  const ccraDocEarly = docByDocNo.get(CORE_COUNCIL_RISK_ADVISOR_DOC_NO);
+  if (ccraDocEarly?.title) roleBindingTitles.add(ccraDocEarly.title.toLowerCase());
+  for (const d of allDocs.filter(d => d.type === "Active Data Controller")) {
+    const raw = extractRP(d.content);
+    if (!raw) continue;
+    const { role, name } = rpRoleAndName(raw);
+    if (role && !name) continue;   // "Operational GovOps" — no name to create
+    if (!name) continue;
+    const needle = name.toLowerCase();
+    let hitRoleTitle = false;
+    for (const t of roleBindingTitles) if (t === needle || t.includes(needle)) { hitRoleTitle = true; break; }
+    if (hitRoleTitle) continue;
+    const s = slugify(name);
+    if (entityMap.has(s)) continue;
+    addEntity(s, name, "ecosystem_actor", null, d.id, {
+      source: "active_data_controller",
+      source_doc_no: d.doc_no,
+    });
+  }
+
+  // --- 1g. ERG members (Pattern 7) ---
+  const ergDoc = docByDocNo.get(ERG_DOC_NO);
+  const ergMemberNames = ergDoc ? extractListItems(ergDoc.content) : [];
+  for (const name of ergMemberNames) {
+    const s = slugify(name);
+    if (!entityMap.has(s)) {
+      addEntity(s, name, "ecosystem_actor", null, ergDoc?.id ?? null, {
+        source: "erg_list",
+        source_doc_no: ERG_DOC_NO,
+      });
+    }
+  }
+
+  // --- 1h. Delegates from addresses.json (labels; entity_type = delegate_org) ---
+  const labelToAddresses = new Map();
+  for (const [addr, info] of Object.entries(addressesRaw)) {
+    if (info.label) {
+      const s = slugify(info.label);
+      if (!labelToAddresses.has(s)) labelToAddresses.set(s, []);
+      labelToAddresses.get(s).push({ addr: addr.toLowerCase(), chain: info.chain ?? "ethereum" });
+      if (info.roles?.includes("delegate") && !entityMap.has(s)) {
+        addEntity(s, info.label, "delegate_org", null, null, {
+          source: "addresses_json_delegate",
+          address: addr,
+        });
+      }
+    }
+  }
+
+  // --- 1i. Aligned Delegates (Pattern 10) ---
+  const alignedDelegatesDoc = docByDocNo.get(ALIGNED_DELEGATES_DOC_NO);
+  const alignedDelegateNames = [];
+  if (alignedDelegatesDoc) {
+    // Prefer explicit list items, fall back to prose "Aligned Delegates are X, Y, Z."
+    const items = extractListItems(alignedDelegatesDoc.content);
+    if (items.length) {
+      alignedDelegateNames.push(...items);
+    } else {
+      const m = alignedDelegatesDoc.content?.match(/Aligned Delegates?\s+(?:are|is)\s+([^.]+)\./i);
+      if (m) alignedDelegateNames.push(...parseNameList(m[1]));
+    }
+    for (const name of alignedDelegateNames) {
+      const s = slugify(name);
+      if (!entityMap.has(s)) {
+        addEntity(s, name, "delegate_org", null, alignedDelegatesDoc.id, {
+          source: "aligned_delegates_list",
+          source_doc_no: ALIGNED_DELEGATES_DOC_NO,
+        });
+      }
+    }
+  }
+
+  // --- 1j. Ranked Delegates (Pattern 10) ---
+  // Levels 1 and 2 have current-members docs; level 3 does not (verified in atlas).
+  const rankedDelegatesByLevel = new Map(); // level → [{name, docNo}]
+  for (let level = 1; level <= 2; level++) {
+    const docNo = `A.1.5.4.1.${level}.3.1`;
+    const d = docByDocNo.get(docNo);
+    if (!d) continue;
+    const m = d.content?.match(/Ranked Delegates?\s+(?:are|is)\s+([^.]+)\./i);
+    if (!m) continue;
+    const names = parseNameList(m[1]);
+    rankedDelegatesByLevel.set(level, names.map(name => ({ name, docNo })));
+    for (const name of names) {
+      const s = slugify(name);
+      if (!entityMap.has(s)) {
+        addEntity(s, name, "delegate_org", null, d.id, {
+          source: "ranked_delegates_list",
+          source_doc_no: docNo,
+        });
+      }
+    }
+  }
+
+  // --- 1k. Core Council Risk Advisor role binding (Pattern 11) ---
+  const ccraDoc = docByDocNo.get(CORE_COUNCIL_RISK_ADVISOR_DOC_NO);
+  let ccraHolder = null;
+  if (ccraDoc) {
+    const m = ccraDoc.content?.match(/role is held by\s+([^.]+)\./i);
+    if (m) {
+      const name = m[1].trim();
+      const s = slugify(name);
+      let entity = entityMap.get(s);
+      if (!entity) {
+        entity = addEntity(s, name, "ecosystem_actor", null, ccraDoc.id, {
+          source: "role_binding",
+          source_doc_no: CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
+        });
+      }
+      ccraHolder = entity;
+    }
+  }
+
+  // --- 1l. Grant recipients (foundations surface here) ---
+  for (const d of allDocs.filter(isGrantDoc)) {
+    const m = d.content?.match(/\*\s*Recipient:\s*([^\n]+?)(?:\n|$)/i)
+          ?? d.content?.match(/-\s*Recipient:\s*([^\n]+?)(?:\n|$)/i)
+          ?? d.content?.match(/\bRecipient:\s*([^\n]+?)(?:\n|$)/i);
+    if (!m) continue;
+    const name = m[1].trim();
+    const s = slugify(name);
+    if (entityMap.has(s)) continue;
+    const entity_type = /\bFoundation\b/i.test(name) ? "foundation" : "ecosystem_actor";
+    addEntity(s, name, entity_type, null, d.id, {
+      source: "grant_recipient",
+      source_doc_no: d.doc_no,
+    });
+  }
+
+  // --- 1m. Composite accord parties and members (Pattern 12) ---
+  // Scan A.2.8.2.Y.1.1.N party-details docs. Create composite_party entity (suffix "-party"
+  // to avoid slug collision with member agent). Resolve or create each member.
+  function resolveAccordMember(rawName, sourceDocNo) {
+    const cleaned = rawName.replace(/^the\s+/i, "").trim();
+
+    // Sky Core special — party 'Sky' comprises Sky Core; always maps to bootstrap.
+    if (/^Sky Core$/i.test(cleaned)) return skyCore;
+
+    // Strip "Prime Agent" or "Executor Agent" suffix to match short agent slugs.
+    const stripped = cleaned.replace(/\s+(Prime Agent|Executor Agent)$/i, "").trim();
+    if (stripped !== cleaned) {
+      const hit = entityMap.get(slugify(stripped));
+      if (hit) return hit;
+    }
+
+    // Within an A.2.8.2.Y.1.1.N comprises list, any non-agent non-Foundation
+    // member is a development_company by the atlas's positional convention
+    // (e.g. "The party 'Spark' comprises the Spark Prime Agent, Spark Foundation,
+    // and Phoenix Labs." — Phoenix Labs is the dev company). Foundation suffix
+    // gives us the foundation vs dev-company split; no hardcoded name list needed.
+    const inferredType = /\bFoundation$/i.test(cleaned) ? "foundation" : "development_company";
+
+    const exact = entityMap.get(slugify(cleaned));
+    if (exact) {
+      // Upgrade a previously-created ecosystem_actor if the accord now classifies it
+      // more specifically (e.g. Phoenix Labs first seen in ERG list, then confirmed
+      // as dev-company via the Spark accord).
+      if (exact.entity_type === "ecosystem_actor") exact.entity_type = inferredType;
+      return exact;
+    }
+
+    return addEntity(slugify(cleaned), cleaned, inferredType, null, null, {
+      source: "accord_party_member",
+      source_doc_no: sourceDocNo,
+    });
+  }
+
+  const compositeBySlug = new Map(); // partySlug (with "-party" suffix) → entity
+  const accordPartyDocsByAccordDocNo = new Map(); // accord doc_no → [{ partyEntity, sourceDocNo }]
+
+  for (const d of allDocs.filter(isPartyDetails)) {
+    const comprisesMatch = d.content?.match(COMPRISES_RE);
+    const atomicMatch = !comprisesMatch ? d.content?.match(ATOMIC_PARTY_RE) : null;
+    if (!comprisesMatch && !atomicMatch) continue;
+    const partyName = (comprisesMatch?.[1] ?? atomicMatch[1]).trim();
+    const memberStr = comprisesMatch?.[2] ?? "";
+
+    // Accord doc_no = first 5 parts of party-details doc_no (e.g. A.2.8.2.2 ← A.2.8.2.2.1.1.2)
+    const accordDocNo = d.doc_no.split(".").slice(0, 5).join(".");
+
+    // The "Sky" party maps directly to Sky Core (bootstrap) — no separate composite.
+    let partyEntity;
+    if (/^Sky$/i.test(partyName)) {
+      partyEntity = skyCore;
+    } else {
+      const partySlug = `${slugify(partyName)}-party`;
+      partyEntity = compositeBySlug.get(partySlug);
+      if (!partyEntity) {
+        partyEntity = addEntity(partySlug, partyName, "composite_party", null, null, {
+          source: "accord_party_composite",
+          source_doc_no: d.doc_no,
+        });
+        compositeBySlug.set(partySlug, partyEntity);
+      }
+    }
+
+    if (!accordPartyDocsByAccordDocNo.has(accordDocNo)) accordPartyDocsByAccordDocNo.set(accordDocNo, []);
+    accordPartyDocsByAccordDocNo.get(accordDocNo).push({ partyEntity, sourceDocNo: d.doc_no, memberStr, isSky: /^Sky$/i.test(partyName) });
+
+    // Resolve members now so they exist before edges are emitted in Phase 2.
+    for (const memberName of parseNameList(memberStr)) {
+      resolveAccordMember(memberName, d.doc_no);
+    }
+  }
+
+  // --- 1i. Primitive Instance entities (Pattern: per-agent ICD → entity) ---
+  const childrenByDocNo = buildChildrenIndex(allDocs);
+
+  for (const icd of allDocs.filter(d => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
+    const primRoot = primitiveRootFor(icd, docByDocNo);
+    if (!primRoot) continue;
+    const primitiveSlug = INSTANCE_SCOPED_PRIMITIVES[primRoot.title];
+    if (!primitiveSlug) continue;
+
+    const agentMatch = icd.doc_no.match(/^(A\.6\.1\.1\.\d+)(?:\.|$)/);
+    const agentDoc = agentMatch ? docByDocNo.get(agentMatch[1]) : null;
+    const agentSlug = agentDoc ? slugify(agentDoc.title) : "unknown";
+
+    const name = icd.title.replace(/\s+Instance Configuration Document\s*$/i, "").trim();
+    const slug = `${agentSlug}-${primitiveSlug}-${slugify(name)}`;
+    const status = instanceStatusFor(icd, primRoot, docByDocNo);
+    const params = extractInstanceParams(icd, childrenByDocNo);
+    const ent = addEntity(slug, name, "instance", primitiveSlug, icd.id, {
+      primitive_doc_no: primRoot.doc_no,
+      agent_doc_no: agentDoc?.doc_no ?? null,
+      status,
+      params,
+    });
+    ent.id = icd.id;
+  }
+
+  const entityByDocId = new Map();
+  for (const e of entityMap.values()) {
+    if (e.defining_doc_id) entityByDocId.set(e.defining_doc_id, e);
+  }
+  return {
+    entityMap,
+    entityByDocId,
+    entityByName,
+    labelToAddresses,
+    alignedDelegateNames,
+    rankedDelegatesByLevel,
+    ccraHolder,
+    ccraDoc,
+    ergDoc,
+    ergMemberNames,
+    accordPartyDocsByAccordDocNo,
+    resolveAccordMember,
+    childrenByDocNo,
+    roleBindingTitles,
+  };
+}

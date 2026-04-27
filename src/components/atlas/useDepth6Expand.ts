@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { type FlatEntry } from "./CollapsibleNode";
+import { type FlatEntry } from "../../lib/atlasHelpers";
 
 export function useDepth6Expand(flatNodes: FlatEntry[], id: string) {
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
