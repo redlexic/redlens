@@ -26,9 +26,7 @@ jobs:
      
       - name: Build index
         run: pnpm build:index
-
-      - name: Build Addresses
-        run: pnpm build:addresses  
+ 
 
       - name: Build glossary
         run: pnpm build:glossary
