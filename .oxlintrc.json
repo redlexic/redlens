@@ -5,5 +5,5 @@
     "browser": true,
     "es2020": true
   },
-  "ignorePatterns": ["dist", ".claude/worktrees/**"]
+  "ignorePatterns": ["dist", ".claude/worktrees/**", "vendor/**"]
 }
