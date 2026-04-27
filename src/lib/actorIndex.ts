@@ -1,4 +1,5 @@
 import type { AtlasNode, Participant, RelationEdge } from "../types";
+import { ROUTES } from "./routes";
 import { parseMeta } from "./meta";
 import type { GraphData } from "./graph";
 import type { InstanceMeta, RewardsAgent } from "./rewardsTypes";
@@ -144,8 +145,8 @@ export function buildActorProfile(
 
   const recommendations: Recommendation[] = [];
   const missingRP = adRows.filter(r => !r.responsibleParty).length;
-  if (missingRP>0) recommendations.push({ kind:"missing-rp", label:`${missingRP} AD doc${missingRP>1?"s":""} without a responsible party`, detail:"These active data docs have no declared responsible party.", reportLink:"/reports/active-data" });
-  if (et==="agent" && st==="prime" && !rewardsAgent) recommendations.push({ kind:"no-rewards", label:"No DR or IB primitives found", detail:"This prime agent has no distribution reward or integration boost instances.", reportLink:"/reports/rewards" });
+  if (missingRP>0) recommendations.push({ kind:"missing-rp", label:`${missingRP} AD doc${missingRP>1?"s":""} without a responsible party`, detail:"These active data docs have no declared responsible party.", reportLink: ROUTES.REPORTS_ACTIVE_DATA });
+  if (et==="agent" && st==="prime" && !rewardsAgent) recommendations.push({ kind:"no-rewards", label:"No DR or IB primitives found", detail:"This prime agent has no distribution reward or integration boost instances.", reportLink: ROUTES.REPORTS_REWARDS });
   for (const r of relations) {
     if (r.otherEt && ["governance_body","composite_party"].includes(r.otherEt))
       recommendations.push({ kind:"governance-edge", label:`Governance relationship: ${r.otherLabel}`, detail:`Edge type: ${r.edge.e}`, entityLink:r.otherSlug??undefined });

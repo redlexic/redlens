@@ -1,15 +1,15 @@
 
+import type { NavPage } from "../lib/routes";
 
-
-export interface  NavBarProps {
-   onNavPage: (page: 'reports' | 'constellations' | 'radar' | '') => void;
-  activePage: 'reports' | 'constellations' | 'radar' |  '' | null;
+export interface NavBarProps {
+  onNavPage: (page: NavPage) => void;
+  activePage: NavPage | null;
 }
 
 export function NavBar({activePage, onNavPage}: NavBarProps) {
    /* Nav links — row 1 right on mobile, row 1 right on desktop */
   return <div className="order-2 sm:order-3 flex-1 flex items-center justify-end gap-2">
-          <NavLink active={activePage === ''} onClick={() => onNavPage('')}>Reader</NavLink>
+          <NavLink active={activePage === 'atlas'} onClick={() => onNavPage('atlas')}>Reader</NavLink>
           <NavLink active={activePage === 'constellations'} onClick={() => onNavPage('constellations')}>Constellations</NavLink>
           <NavLink active={activePage === 'radar'} onClick={() => onNavPage('radar')}>Radar</NavLink>
           <NavLink active={activePage === 'reports'} onClick={() => onNavPage('reports')}>Reports</NavLink>

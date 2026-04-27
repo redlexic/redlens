@@ -1,5 +1,6 @@
 import type { ActiveDataRow } from "../../lib/activeDataIndex";
 import { Link } from "wouter";
+import { ROUTES } from "../../lib/routes";
 
 interface Props {
   rows: ActiveDataRow[];
@@ -55,7 +56,7 @@ export function ActorResponsibilities({ rows, onNavigate }: Props) {
         </table>
       </div>
       <div className="mt-3">
-        <Link to="/reports/active-data" className="mono text-[11px] text-accent hover:underline">
+        <Link to={ROUTES.REPORTS_ACTIVE_DATA} className="mono text-[11px] text-accent hover:underline">
           View all in Active Data Report →
         </Link>
       </div>

@@ -155,7 +155,7 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
   return (
     <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
       {id && <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />}
-      <div className="flex-1 lg:grid lg:grid-cols-[3fr_2fr]" style={ATLAS_GRID_STYLE}>
+      <div className="flex-1 min-[750px]:grid min-[750px]:grid-cols-[3fr_2fr]" style={ATLAS_GRID_STYLE}>
         <div className="relative flex flex-col overflow-hidden" style={{ ...ATLAS_LEFT_PANE_STYLE, minHeight: 0 }}>
           {id && !splitId && (
             <button type="button" title="Open comparison pane (or shift-click any node)"
@@ -180,7 +180,7 @@ export function AtlasView({ id, onNavigate, view, onViewChange, splitId, onSplit
           )}
         </div>
         {id && (
-          <div className="flex flex-col hidden lg:flex" style={{ minHeight: 0 }}>
+          <div className="flex flex-col hidden min-[750px]:flex" style={{ minHeight: 0 }}>
             <RightPanel
               id={id}
               node={target}

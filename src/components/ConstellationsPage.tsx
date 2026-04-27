@@ -24,6 +24,7 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
     navigate(`/constellations?id=${id}`);
   }, [navigate]);
 
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set([
     "govops_org", "facilitator_org", "delegate_org",
   ]));
@@ -103,15 +104,24 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
 
   return (
     <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
-      <div className="shrink-0 px-4 py-3 border-b flex items-center gap-4 flex-wrap" style={{ borderColor: "var(--border)" }}>
-        <p className="mono text-[10px] uppercase tracking-wide" style={{ color: "var(--tan-3)" }}>
-          {queryScope
-            ? (nodes.length === 0
-                ? `no results for "${query}"`
-                : `"${query}" · ${nodes.length} shown · ${edges.length} relationships`)
-            : `${totalShown} total · ${nodes.length} shown · ${edges.length} relationships`}
-        </p>
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="shrink-0 px-1 py-1 border-b" style={{ borderColor: "var(--border)" }}>
+        <div className="flex items-center gap-2">
+          <p className="mono text-[10px] uppercase tracking-wide" style={{ color: "var(--tan-3)" }}>
+            {queryScope
+              ? (nodes.length === 0
+                  ? `no results for "${query}"`
+                  : `"${query}" · ${nodes.length} shown · ${edges.length} relationships`)
+              : `${totalShown} total · ${nodes.length} shown · ${edges.length} relationships`}
+          </p>
+          <button
+            aria-label="Toggle the filters"
+            onClick={() => setFiltersOpen(v => !v)}
+            className="mono text-[25px] leading-none transition-transform duration-150"
+            style={{ color: "var(--tan-3)", transform: filtersOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
+            title={filtersOpen ? "Hide filters" : "Show filters"}
+          >▾</button>
+        </div>
+        {filtersOpen && <div className="flex items-center gap-2 flex-wrap mt-2">
           <button
             className="mono text-[10px] px-2 py-1 rounded transition-opacity"
             style={{ background: "var(--surface)", color: "var(--tan-3)" }}
@@ -151,9 +161,9 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
               </button>
             );
           })}
-        </div>
+        </div>}
       </div>
-      <div className="shrink-0 px-4 py-2 border-b flex items-center gap-2 flex-wrap" style={{ borderColor: "var(--border)" }}>
+      {filtersOpen && <div className="shrink-0 px-4 py-2 border-b flex items-center gap-2 flex-wrap" style={{ borderColor: "var(--border)" }}>
         <span className="mono text-[10px] uppercase tracking-wide" style={{ color: "var(--tan-3)" }}>Focus:</span>
         <button
           onClick={() => setFocusAgentId(null)}
@@ -182,7 +192,7 @@ export function ConstellationsPage({ onNavigate, query }: { onNavigate: (id: str
             >{a.name}</button>
           );
         })}
-      </div>
+      </div>}
       <div className="flex-1 relative" style={{ minHeight: 0 }}>
         <EntityFlow
           nodes={nodes}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useDeferredValue } from "react";
 import { useSearch } from "./useSearch";
+import { ROUTES } from "../lib/routes";
 
 export function useSearchInput(location: string, navigate: (to: string) => void) {
   const { state, search, ready } = useSearch();
@@ -8,11 +9,11 @@ export function useSearchInput(location: string, navigate: (to: string) => void)
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (location === "/") inputRef.current?.focus();
+    if (location === ROUTES.HOME) inputRef.current?.focus();
   }, [location]);
 
   useEffect(() => {
-    if (location !== "/") { search(""); return; }
+    if (location !== ROUTES.HOME) { search(""); return; }
     if (deferredQuery.startsWith("/")) { search(""); return; }
     search(deferredQuery);
   }, [deferredQuery, location, search]);
@@ -21,12 +22,12 @@ export function useSearchInput(location: string, navigate: (to: string) => void)
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;
-    if (q === "/reports") { navigate("/reports"); setQuery(""); return; }
-    if (q === "/radar")   { navigate("/radar");   setQuery(""); return; }
-    if (q === "/hints")   { navigate("/search-hints"); setQuery(""); return; }
+    if (q === "/reports") { navigate(ROUTES.REPORTS);     setQuery(""); return; }
+    if (q === "/radar")   { navigate(ROUTES.RADAR);       setQuery(""); return; }
+    if (q === "/hints")   { navigate(ROUTES.SEARCH_HINTS); setQuery(""); return; }
     setQuery(q);
-    if (location === "/constellations" || location.startsWith("/radar")) return;
-    if (location !== "/") navigate("/");
+    if (location === ROUTES.CONSTELLATIONS || location.startsWith(ROUTES.RADAR)) return;
+    if (location !== ROUTES.HOME) navigate(ROUTES.HOME);
   }, [location, navigate]);
 
   const handleHintClick = useCallback((q: string) => setQuery(q), []);

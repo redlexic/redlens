@@ -84,17 +84,15 @@ input[type="search"]::-webkit-search-cancel-button {
   --depth-17: #a9cce4;  /* blue white */
 }
 
-/* Tree sidebar — visible at ≥1500px */
+/* Tree sidebar — Drawer controls visibility/width */
 .tree-sidebar {
-  display: none;
-  width: 20%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border-right: 1px solid var(--border);
   background: #0e0907;
-  flex-shrink: 0;
-}
-@media (min-width: 1500px) {
-  .tree-sidebar { display: flex; flex-direction: column; }
 }
 .tree-row {
   cursor: pointer;
