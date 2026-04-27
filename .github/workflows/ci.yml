@@ -23,8 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
-   
+     
       - name: Build index
         run: pnpm build:index
 
@@ -43,7 +42,7 @@ jobs:
       - name: Type check
         run: pnpm build:ts
 
-        - name: Lint
+      - name: Lint
         run: pnpm lint
 
       - name: Bundle
