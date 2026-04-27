@@ -23,12 +23,13 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: pnpm lint
-
+      
+   
       - name: Build index
         run: pnpm build:index
+
+      - name: Build Addresses
+        run: pnpm build:addresses  
 
       - name: Build glossary
         run: pnpm build:glossary
@@ -41,6 +42,9 @@ jobs:
 
       - name: Type check
         run: pnpm build:ts
+
+        - name: Lint
+        run: pnpm lint
 
       - name: Bundle
         run: pnpm exec vite build
