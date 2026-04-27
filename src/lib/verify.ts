@@ -37,7 +37,7 @@ export async function fetchVerified(url: string, name: string): Promise<ArrayBuf
     const actual = await sha256Hex(buf);
     if (actual !== expected) {
       console.warn(
-        `${name} integrity check failed (expected ${expected.slice(0, 12)}…, got ${actual.slice(0, 12)}…)`,
+        `${name} integrity check failed (expected ${expected.slice(0, 12)}…, got ${actual.slice(0, 12)}…)`
       );
     }
   }
