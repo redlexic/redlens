@@ -84,7 +84,12 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
     recommendations,
   } = profile;
   const color = ENTITY_TYPE_COLOR[entity.et] ?? "#888";
-  const typeLabel = ENTITY_TYPE_LABEL[entity.et] ?? entity.et;
+  const typeLabel =
+    entity.et === "agent"
+      ? entity.st === "prime"
+        ? "Prime Agent"
+        : "Executor Agent"
+      : (ENTITY_TYPE_LABEL[entity.et] ?? entity.et);
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6">

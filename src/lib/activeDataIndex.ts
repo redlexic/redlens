@@ -345,13 +345,20 @@ export function buildActiveDataRows(
     );
 }
 
-export function activeDataRowsToCSV(rows: ActiveDataRow[]): string {
+function evidenceChain(steps: EvidenceStep[]): string {
+  return steps.map((s) => s.docNo).join(" → ");
+}
+
+export function activeDataRowsToCSV(
+  rows: ActiveDataRow[],
+  lastEditDates: Map<string, string> = new Map(),
+): string {
   const header =
-    "Active Data Doc,Active Data Title,Controller Doc,Controller Title,Agent,Responsible Party,Facilitator,Facilitator Role,Process\n";
+    "Active Data Doc,Active Data Title,Controller Doc,Controller Title,Agent,Responsible Party,RP Evidence,Facilitator,Facilitator Role,Facilitator Evidence,Process,Last Edited\n";
   const body = rows
     .map(
       (r) =>
-        `"${r.activeDataDocNo}","${r.activeDataTitle}","${r.controllerDocNo ?? ""}","${r.controllerTitle ?? ""}","${r.agent ?? ""}","${r.responsibleParty?.name ?? ""}","${r.facilitator?.name ?? ""}","${r.facilitator?.role ?? ""}","${r.process}"`,
+        `"${r.activeDataDocNo}","${r.activeDataTitle}","${r.controllerDocNo ?? ""}","${r.controllerTitle ?? ""}","${r.agent ?? ""}","${r.responsibleParty?.name ?? ""}","${evidenceChain(r.responsibleParty?.evidence ?? [])}","${r.facilitator?.name ?? ""}","${r.facilitator?.role ?? ""}","${evidenceChain(r.facilitator?.evidence ?? [])}","${r.process}","${lastEditDates.get(r.activeDataId) ?? ""}"`,
     )
     .join("\n");
   return header + body;

@@ -148,7 +148,7 @@ export function RewardsReport({
       <div className="max-w-6xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
         <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>
-          Distribution Reward Relationships
+          Integrator Reward Relationships
         </h1>
         <p className="text-sm text-tan-3 mb-6">
           Every Distribution Reward and Integration Boost instance each Prime Agent has invoked,

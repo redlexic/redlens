@@ -15,7 +15,7 @@ const REPORTS: { id: ReportId; title: string; description: string }[] = [
   },
   {
     id: "rewards",
-    title: "Distribution Reward Relationships",
+    title: "Integrator Reward Relationships",
     description:
       "Every Distribution Reward and Integration Boost instance each Prime Agent has invoked — reward codes, partner names, and on-chain reward addresses.",
   },

@@ -9,54 +9,49 @@ An alternative to [sky-atlas.io](https://sky-atlas.io) with a focus on surfacing
 ### Search
 
 - **Full-content search** — every node of the Atlas is indexed (lunr.js, Web Worker), so queries hit the entire ~48k-line corpus instantly
-- **Chainlog ID search** — type `MCD_VAT`, `USDS`, `REWARDS_LSSKY_SKY`, etc. to find all nodes that reference that contract; results merge with prose matches
+- **Chainlog ID search** — type `MCD_VAT`, `USDS`, `REWARDS_LSSKY_SKY`, etc. to find all nodes that reference that contract
 - **Address prefix search** — type `0x` or any address prefix to find nodes containing matching addresses
 - **Phrase search** — wrap terms in quotes for exact substring matching: `"surplus buffer"`
 - **Field filters** — `title:quorum`, `type:Annotation`, `type:Core`
 - **Fuzzy match** — `misaligment~1` tolerates typos
 - **Wildcards** — `govern*` matches any suffix
 
+### Atlas reader
+
+Navigate any atlas document to see its full content alongside a contextual annotations panel: linked documents, on-chain addresses, glossary terms, and a change history tab.
+
 ### On-chain annotations
 
 Every Ethereum and Solana address mentioned in the Atlas is detected at build time and enriched from two sources:
 
-- **Sky chainlog** — ~400 mainnet contract names (`MCD_VAT`, `USDS`, `SPK`, …) mapped to their canonical label
-- **Etherscan** — verified contract name, proxy flag, and implementation address for each EVM address; cached in `.cache/etherscan/` and committed to the repo so contributors don't need an API key
+- **Sky chainlog** — ~400 mainnet contract names mapped to their canonical label
+- **Etherscan** — verified contract name, proxy flag, and implementation address; cached and committed so contributors don't need an API key
 
-Address metadata shown in the annotations panel for each node:
+Address cards show the resolved label, aliases, explorer link, role tags, proxy → implementation, and cached on-chain view-function values.
 
-- Resolved label (chainlog ID wins, then atlas prose label, then Etherscan name)
-- Aliases (other names found for the same address across the Atlas)
-- Explorer link (Etherscan, Basescan, Arbiscan, etc. per chain)
-- Role tags (`multisig`, `proxy`, `oracle`, `treasury`, `staking-rewards`, …)
-- Proxy → implementation address
-- **Live on-chain view function results** for chainlog contracts (via viem + multicall3, fetched at build time)
+### Radar
 
-### Node detail view
+`/radar` — actor profiles for Prime Agents, Facilitators, and other named Sky participants. Shows responsibilities, instances, rewards, and linked atlas sections.
 
-Navigating to a node shows a bounded context window: the parent node, up to 8 siblings above, the target, up to 8 direct children, and up to 8 siblings below — never the entire subtree regardless of Atlas size.
+### Constellations
 
-The annotations panel (right column on desktop) shows:
+`/constellations` — a visual graph of agents, governance parties, facilitators, and the typed relationships between them, drawn from the build-time graph extraction.
 
-- UUID-linked nodes from the Atlas cross-reference system
-- Address cards with on-chain metadata and live view function values
+### Reports
 
-## Build & run locally
+`/reports` — cross-cutting views that join across the graph: rewards by primitive, active data by scope, and org facilitator breakdowns.
+
+## Getting started
 
 Requires [pnpm](https://pnpm.io/) and Node 22+.
 
 ```bash
-# clone with the Atlas submodule
 git clone --recurse-submodules https://github.com/Anscharo/redlens.git
 cd redlens
 pnpm install
 ```
 
-If you cloned without `--recurse-submodules`:
-
-```bash
-git submodule update --init --recursive
-```
+If you cloned without `--recurse-submodules`, run `git submodule update --init --recursive` to pull the Atlas source.
 
 ### Environment variables
 
@@ -67,148 +62,86 @@ ETHERSCAN_API_KEY=   # https://etherscan.io/apidashboard — needed for build:ad
 ETH_RPC_URL=         # optional; defaults to ethereum.publicnode.com
 ```
 
-The Etherscan cache (`.cache/etherscan/`) is committed to the repo. If you're not adding new addresses, `build:addresses` will complete in under a second with zero API calls.
+The Etherscan cache is committed to the repo — if you're not adding new addresses, `build:addresses` completes in under a second with zero API calls.
 
-### Build scripts
+### Build and run
 
 ```bash
-pnpm build:index      # parse Atlas markdown → public/docs.json + public/search-index.json
-pnpm build:addresses  # enrich addresses with chainlog + Etherscan → public/addresses.json
-pnpm build:snapshot   # fetch on-chain view function values → public/chain-state.json
-pnpm build            # all of the above, then tsc + vite build
-
-pnpm dev              # Vite dev server (requires build:index + build:addresses + build:snapshot first)
-pnpm preview          # serve the production build locally
+pnpm build   # full pipeline (see below) + tsc + vite build
+pnpm dev     # Vite dev server (run pnpm build first to generate the data files)
+pnpm preview # serve the production build locally
 ```
 
-## Build at any historical atlas commit
+## Build pipeline
 
-The atlas is a moving target. To audit RedLens against a specific atlas revision, check out the repo and run:
+`pnpm build` runs six data-extraction stages in order before the TypeScript and Vite steps:
+
+| Stage | What it does |
+|---|---|
+| `build:index` | Parses Sky Atlas.md → node index + full-text search index |
+| `build:glossary` | Extracts Definitions sections → glossary lookup |
+| `build:addresses` | Enriches on-chain addresses from chainlog + Etherscan → address metadata |
+| `build:snapshot` | Reads view-function values via RPC → chain state pinned to a block |
+| `build:graph` | Extracts typed relationships from the atlas text → graph artifacts |
+| `build:manifest` | sha256 digest of all artifacts → integrity manifest |
+
+Each stage can also be run individually. See the [provenance page](https://anscharo.github.io/redlens/redlens/provenance) for a description of what each stage powers in the UI.
+
+### Build at any historical atlas commit
+
+The atlas is a moving target. To audit RedLens against a specific atlas revision:
 
 ```bash
 pnpm build:at <atlas-commit-sha>   # e.g. ede66d5f2cf3…
 ```
 
-This runs only the deterministic, offline pipeline steps and pins the output manifest to the given atlas commit. No API keys needed. Two people running the same command at the same SHA get byte-identical `docs.json`, `search-index.json`, and `manifest.json`. CI enforces this on every push via `REPRO=1 pnpm test`.
+This runs only the deterministic, offline pipeline steps and pins the output manifest to the given commit. No API keys needed. Two people running the same command at the same SHA get byte-identical outputs. CI enforces this on every push via `REPRO=1 pnpm test`.
 
-## Atlas MCP server (local)
-
-This repo ships a local [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes the Sky Atlas as queryable tools for Claude Code (or any MCP client). It uses a local vector index over `docs.json` so you can ask natural-language questions about the Atlas without sending any data off your machine.
-
-Three tools are exposed:
-
-- `atlas_search(query, k?, type?)` — semantic search over all 9,825 nodes
-- `atlas_get(id)` — fetch a single node by UUID or doc number (e.g. `A.6.1.1.1`)
-- `atlas_neighbors(id, window?)` — parent + sibling + child context around a node
-
-### Setup
-
-1. **Install [Ollama](https://ollama.com/)** and pull the embedding model (one-time, ~270 MB):
-
-   ```bash
-   ollama pull nomic-embed-text
-   ```
-
-   Ollama must be running at `http://localhost:11434` (the default). Override with `OLLAMA_URL` if you've moved it.
-
-2. **Build the docs index** if you haven't already:
-
-   ```bash
-   pnpm build:index
-   ```
-
-3. **Build the vector index** (embeds all atlas nodes — takes a couple of minutes the first time):
-
-   ```bash
-   pnpm build:rag
-   ```
-
-   Output lives in `.cache/atlas-rag/` (gitignored). Re-run whenever `docs.json` changes.
-
-4. **Use it.** The repo ships a `.mcp.json` at the root, so any Claude Code session opened in this directory auto-discovers the server. The first time you run a tool, Claude will prompt you to approve it.
-
-### Smoke tests
+### Per-node history
 
 ```bash
-pnpm query "what is spark"   # direct RAG query, no MCP layer
-node scripts/test-mcp.mjs                     # exercise the JSON-RPC stdio protocol
+pnpm build:history   # walks the atlas git history → public/history/<uuid>.json per node
 ```
 
-### Notes
-
-- Zero npm dependencies — the server uses only Node built-ins (`fs`, `readline`, `fetch`).
-- The vector store is brute-force cosine over an L2-normalized `Float32Array` (~30 MB scan per query, fine for 9,825 nodes).
-- Server logs go to stderr; stdout is reserved for JSON-RPC messages.
-- Index is **not** auto-rebuilt by `pnpm build` because the web build shouldn't depend on Ollama being online. Run `pnpm build:rag` manually after `build:index` when you want to refresh it.
-
-## Atlas MCP server (hosted)
-
-A hosted MCP server is deployed on Cloudflare Workers, backed by a D1 (SQLite) graph database containing all 9,825 Atlas nodes, a typed edge graph, named entity catalog, and on-chain address data. No local setup required — connect any MCP client directly.
-
-**Endpoint:** `https://redlens-mcp.anscharo.workers.dev/mcp`
-
-### Connecting
-
-Add to your `.mcp.json` or MCP client config:
-
-```json
-{
-  "mcpServers": {
-    "redlens-atlas": {
-      "url": "https://redlens-mcp.anscharo.workers.dev/mcp"
-    }
-  }
-}
-```
-
-### Tools
-
-| Tool                                                | Description                                                                                                                        |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `atlas_search(query, k?, type?)`                    | FTS5 full-text search over all 9,825 nodes                                                                                         |
-| `atlas_get(id)`                                     | Fetch a node by UUID or doc number                                                                                                 |
-| `atlas_neighbors(id, window?)`                      | Parent + siblings + children context                                                                                               |
-| `atlas_traverse(id, hops?, edge_type?, direction?)` | Multi-hop graph traversal via typed edges                                                                                          |
-| `atlas_entity(name)`                                | All Atlas sections, responsibilities, and Active Data for a named entity (e.g. `spark`, `endgame-edge`, `operational-facilitator`) |
-
-### REST API
-
-The same Worker also exposes a REST API for the RedLens frontend:
-
-```
-GET /api/search?q=<query>&k=<n>&type=<type>   Full-text search
-GET /api/node/:id                              Node by UUID or doc number
-GET /api/entity/:name                          Entity view (nodes + responsibilities + active data)
-GET /api/traverse/:id?hops=2&type=<edge_type>  Graph traversal
-```
-
-### Graph database
-
-The D1 database holds:
-
-| Table         | Contents                                                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `atlas_nodes` | All 9,825 nodes with full content + FTS5 index                                                                                                   |
-| `entities`    | Named Sky participants: Prime Agents, Executor Agents, Facilitators, GovOps orgs, Aligned Delegates, Governance Parties, and Primitive Instances |
-| `addresses`   | 294 on-chain addresses with chain-state snapshots                                                                                                |
-| `edges`       | 12,438 typed edges: `parent_of`, `cites`, `annotates`, `active_data_for`, `member_of`, `member_of_erg`, `has_address`, `mentions`, `proxies_to`  |
-
-### Infrastructure source
-
-The extraction logic is governed by a Claude Code skill — `.claude/skills/graph-atlas/` — which acts as the living spec for how Atlas markdown conventions map to typed edges. When the Atlas introduces a new structural pattern (a new role vocabulary, a new doc-number convention, a new entity type), the skill is updated first and the extraction code follows. This keeps the "markdown → structured data" translation explicit and reviewable outside the code itself.
-
-The graph build script (`scripts/build-graph.mjs`) lives at the repo root — both the frontend and the MCP Worker consume its outputs. The Worker source lives in `redlens-mcp/`. To rebuild the graph database after an Atlas update:
-
-```bash
-pnpm build:index                      # regenerate docs.json + addresses.json from source
-pnpm --filter redlens-mcp graph:remote  # re-import all tables into D1
-pnpm --filter redlens-mcp deploy        # redeploy the Worker
-```
+This is not part of `pnpm build` — it's slow and requires GitHub API access for PR metadata. Run it manually when you want the history tab populated.
 
 ## Deployment
 
-`main` is auto-deployed to GitHub Pages via `.github/workflows/deploy.yml`. The workflow:
+`main` is auto-deployed to GitHub Pages via `.github/workflows/deploy.yml`. The workflow runs on every push to `main`, daily on a schedule, and on manual trigger. It requires two repository secrets: `ETHERSCAN_API_KEY` and `ETH_RPC_URL`.
 
-- Runs on every push to `main`, daily on a schedule, and on manual trigger
-- Pulls the latest upstream Atlas submodule content on each build
-- Requires two repository secrets: `ETHERSCAN_API_KEY` and `ETH_RPC_URL`
+## Other tools
+
+These are not part of the web app build and are not required for local development.
+
+### Local Atlas MCP server
+
+`mcp-atlas/` contains a local [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes the Sky Atlas as queryable tools for Claude Code. It uses a local vector index over the node index so you can ask natural-language questions about the Atlas without sending data off your machine.
+
+```bash
+pnpm build:rag   # build the vector index (requires Ollama + nomic-embed-text, ~2 min)
+pnpm query "what is spark"   # direct RAG query without the MCP layer
+```
+
+The repo ships a `.mcp.json` so any Claude Code session in this directory auto-discovers the server. Requires [Ollama](https://ollama.com/) running locally with `ollama pull nomic-embed-text`.
+
+### Hosted MCP server + Worker
+
+`redlens-mcp/` is a Cloudflare Worker that hosts a public MCP endpoint and REST API, backed by a D1 graph database containing all atlas nodes, the typed edge graph, named entities, and on-chain address data.
+
+**Endpoint:** `https://redlens-mcp.anscharo.workers.dev/mcp`
+
+See [`redlens-mcp/AGENTS.md`](redlens-mcp/AGENTS.md) for the full tool reference, REST API, database schema, and deployment instructions.
+
+### Auxiliary scripts
+
+`scripts/aux/` holds scripts that are useful for development and research but are not part of the core build:
+
+| Script | Purpose |
+|---|---|
+| `fetch-snapshots.mjs` | The implementation behind `build:snapshot` — multicall3 via viem |
+| `build-rag.mjs` | Builds the local vector index for the MCP server |
+| `query-rag.mjs` | CLI query against the local RAG index |
+| `walk-timeline.mjs` | Walk the full atlas history and build at each commit |
+| `tva.sh` | Full-history build + test sweep |
+| `test-addresses.mjs` | Ad-hoc dumps from address metadata |
+| `test-mcp.mjs` | Exercises the local MCP server JSON-RPC protocol |

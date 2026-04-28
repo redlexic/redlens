@@ -11,6 +11,7 @@ import { Drawer } from "./components/Drawer";
 import { prefetchNodeContent } from "./components/NodeContent";
 import { Loading } from "./components/Loading";
 import { SearchHintsPage } from "./components/SearchHints";
+import { HomePage } from "./components/HomePage";
 import { DevPanel } from "./DevPanel";
 import { Footer } from "./components/Footer";
 
@@ -116,7 +117,7 @@ export default function App() {
             <Route path={ROUTES.HOME}>
               {query.startsWith("__dev") ? (
                 <DevPanel query={query} onNavigate={navigateToNode} />
-              ) : (
+              ) : query ? (
                 <SearchResults
                   state={state}
                   query={query}
@@ -124,6 +125,8 @@ export default function App() {
                   onNavigateEntity={navigateToEntity}
                   onHintClick={handleHintClick}
                 />
+              ) : (
+                <HomePage onNavPage={handleNavPage} />
               )}
             </Route>
             <Route path={ROUTES.ATLAS}>

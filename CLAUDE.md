@@ -11,7 +11,7 @@ A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github
 - **Search**: lunr.js (full-content index, runs in a Web Worker)
 - **Markdown**: react-markdown + remark-gfm + remark-math + rehype-katex (KaTeX)
 - **Custom rehype plugin**: linkifies on-chain addresses to block explorers
-- **Graph**: graphology (in a Web Worker) for node relations and backlinks
+- **Graph**: graphology (in a Web Worker) for node relations
 
 ## Commands
 
@@ -101,7 +101,7 @@ Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanc
 
 - **`AtlasView.tsx`** — main atlas page. Loads atlas + addresses + chain-state + glossary in parallel. Renders a flat virtualized list via `CollapsibleNode`. Computes `linkedNodes`, `targetAddresses`, `glossaryTerms` in a single `useMemo` keyed on `[data, id]`. Passes everything to `RightPanel`.
 - **`CollapsibleNode.tsx`** — single row in the atlas tree. Expand/collapse, depth-based indent, renders node content via `NodeContent`. Nodes at depth ≥ 6 are hidden behind a "view all descendants" button until expanded.
-- **`RightPanel.tsx`** — right annotations panel. Tabs: `annotations` (linked docs, backlinks, graph relations, addresses, glossary terms, integrity) and `history`. All data arrives as props from `AtlasView`.
+- **`RightPanel.tsx`** — right annotations panel. Tabs: `annotations` (linked docs, graph relations, addresses, glossary terms, integrity) and `history`. All data arrives as props from `AtlasView`.
 - **`Integrity.tsx`** — shows `doc_no`, `uuid`, `sha256` content hash and provenance link for the selected node.
 
 **Shared components (`src/components/`):**
@@ -164,7 +164,6 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 
 - **Reduce `unknown` role share** — many addresses sit in markdown tables; `findTableContext` / `annotationText` in `scripts/lib/address-chains.mjs` / `scripts/lib/address-annotate.mjs` is partially done, could be tuned.
 - **Research [pretext](https://github.com/chenglou/pretext)** — possible way to inline structured data into Atlas content.
-- **Thematic views** — `/radar` serves as the agent profile view (Spark, etc.). `/constellations` is the participant graph view. Reports are a third thematic layer.
 
 ## File map
 
@@ -226,9 +225,12 @@ src/components/SearchResults.tsx    result list + status line
 src/components/SearchResult.tsx     single result card
 src/components/SearchHints.tsx      idle-state syntax hints
 src/components/ConstellationsPage.tsx  /constellations route — participant graph (agents, parties, instances)
-src/components/entities/EntityFlow.tsx ReactFlow canvas + card + relation chips
+src/components/constellations/EntityFlow.tsx ReactFlow canvas + card + relation chips
+src/components/radar/RadarPage.tsx  /radar route — actor profiles (Prime Agents, Facilitators, etc.)
+src/components/ReportsIndex.tsx     /reports route index
+src/components/reports/             rewards, active data, org facilitator reports
 src/lib/entityGraph.ts              ENTITY_TYPE_LABEL/COLOR, buildEntityNodes/Edges/Index, getEntityRelations
-src/lib/entitySearch.ts             searchParticipants, neighborhoodOfParticipants, agentClusterIds
+src/lib/search.ts                   matchParticipants, neighborhoodOfParticipants, agentClusterIds
 src/types.ts                        AtlasNode, Participant, SearchHit, AddressInfo, worker messages
 src/index.css                       Tailwind import + CSS variables + KaTeX overrides
 index.html                          title, fonts, favicon, preload links

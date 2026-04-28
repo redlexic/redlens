@@ -156,13 +156,21 @@ export function RightPanel({
                 <div className="space-y-4">
                   {glossaryTerms.map((entries) => (
                     <div key={entries[0].nodeId} className="border-b border-border pb-4">
-                      <p className="text-xs font-semibold mono mb-1 text-accent">
+                      <button
+                        onClick={() => onNavigate(entries[0].nodeId)}
+                        className="text-xs font-semibold mono mb-1 text-accent hover:underline cursor-pointer text-left"
+                      >
                         {entries[0].term}
-                      </p>
+                      </button>
                       {entries.map((e, i) => (
                         <div key={i} className={i > 0 ? "mt-2 pt-2 border-t border-border" : ""}>
                           {entries.length > 1 && e.sourceContext && (
-                            <p className="text-[10px] mono mb-0.5 text-tan-3">{e.sourceContext}</p>
+                            <button
+                              onClick={() => onNavigate(e.nodeId)}
+                              className="text-[10px] mono mb-0.5 text-tan-3 hover:text-accent cursor-pointer text-left block"
+                            >
+                              {e.sourceContext}
+                            </button>
                           )}
                           <p className="text-xs leading-relaxed text-tan-2">{e.content}</p>
                         </div>

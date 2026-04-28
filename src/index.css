@@ -389,6 +389,23 @@ input[type="search"]::-webkit-search-cancel-button {
   background: var(--hover);
 }
 
+/* ─── Home page feature cards ─── */
+.home-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.home-card:hover,
+.home-card:focus-visible {
+  background: var(--hover);
+  border-color: var(--accent);
+}
+
 /* ─── Load more button ─── */
 .load-more-btn {
   color: var(--accent);
