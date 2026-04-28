@@ -13,9 +13,10 @@ import { Drawer, DrawerToggle } from "../Drawer";
 
 interface Props {
   onNavigate: (id: string) => void;
+  query: string;
 }
 
-export function RadarPage({ onNavigate }: Props) {
+export function RadarPage({ onNavigate, query }: Props) {
   const [, navigate] = useLocation();
   const [searchParams] = useSearchParams();
   const actorSlug = searchParams.get("actor");
@@ -35,6 +36,14 @@ export function RadarPage({ onNavigate }: Props) {
     if (!graph || !docs) return [];
     return buildSidebarActors(graph, docs);
   }, [graph, docs]);
+
+  const filteredGroups = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return sidebarGroups;
+    return sidebarGroups
+      .map((g) => ({ ...g, actors: g.actors.filter((a) => a.name.toLowerCase().includes(q)) }))
+      .filter((g) => g.actors.length > 0);
+  }, [sidebarGroups, query]);
 
   const rewardsIndex = useMemo(() => {
     if (!docs || !graph) return null;
@@ -62,7 +71,7 @@ export function RadarPage({ onNavigate }: Props) {
     <div className="flex-1 flex overflow-hidden">
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} breakpoint={850}>
         {ready ? (
-          <ActorList groups={sidebarGroups} selectedSlug={actorSlug} onSelect={selectActor} />
+          <ActorList groups={filteredGroups} selectedSlug={actorSlug} onSelect={selectActor} />
         ) : (
           <div className="p-4 mono text-xs" style={{ color: "var(--tan-3)" }}>
             Loading…

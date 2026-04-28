@@ -21,7 +21,20 @@ const REPORTS: { id: ReportId; title: string; description: string }[] = [
   },
 ];
 
-export function ReportsIndex({ onNavigate }: { onNavigate: (id: ReportId) => void }) {
+export function ReportsIndex({
+  onNavigate,
+  query,
+}: {
+  onNavigate: (id: ReportId) => void;
+  query: string;
+}) {
+  const q = query.trim().toLowerCase();
+  const visible = q
+    ? REPORTS.filter(
+        (r) => r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q),
+      )
+    : REPORTS;
+
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8">
       <div className="max-w-2xl mx-auto">
@@ -30,7 +43,7 @@ export function ReportsIndex({ onNavigate }: { onNavigate: (id: ReportId) => voi
           Reports
         </h1>
         <div className="space-y-3">
-          {REPORTS.map((r) => (
+          {visible.map((r) => (
             <button
               key={r.id}
               onClick={() => onNavigate(r.id)}
@@ -45,6 +58,11 @@ export function ReportsIndex({ onNavigate }: { onNavigate: (id: ReportId) => voi
               </p>
             </button>
           ))}
+          {visible.length === 0 && (
+            <p className="mono text-xs" style={{ color: "var(--tan-3)" }}>
+              No reports match "{query}".
+            </p>
+          )}
         </div>
       </div>
     </div>

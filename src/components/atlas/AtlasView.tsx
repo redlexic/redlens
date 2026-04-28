@@ -121,9 +121,8 @@ export function AtlasView({
     return buildAncestors(data.atlas.docs, data.atlas.docNoToId, id);
   }, [data, id]);
 
-  const { target, linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {
+  const { linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {
     const empty = {
-      target: null as AtlasNode | null,
       linkedNodes: [] as AtlasNode[],
       targetAddresses: {} as Record<string, AddressInfo>,
       chainValues: {} as Record<string, Record<string, ChainValue>>,
@@ -155,7 +154,7 @@ export function AtlasView({
       }
     }
     glossaryTerms.sort((a, b) => a[0].term.localeCompare(b[0].term));
-    return { target, linkedNodes, targetAddresses, chainValues: cv, glossaryTerms };
+    return { linkedNodes, targetAddresses, chainValues: cv, glossaryTerms };
   }, [data, id]);
 
   const handleToggle = useCallback((nodeId: string) => {
@@ -332,7 +331,6 @@ export function AtlasView({
           <div className="flex flex-col hidden min-[750px]:flex" style={{ minHeight: 0 }}>
             <RightPanel
               id={id}
-              node={target}
               linkedNodes={linkedNodes}
               targetAddresses={targetAddresses}
               chainValues={chainValues}
