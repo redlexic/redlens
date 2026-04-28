@@ -1,6 +1,6 @@
 import type { Participant } from "../types";
 
-export interface EntityMatch {
+interface EntityMatch {
   participant: Participant;
   score: number; // 3 exact, 2 prefix, 1 substring
 }

@@ -66,9 +66,6 @@ importers:
       '@types/hast':
         specifier: ^3.0.4
         version: 3.0.4
-      '@types/katex':
-        specifier: ^0.16.8
-        version: 0.16.8
       '@types/lunr':
         specifier: ^2.3.7
         version: 2.3.7

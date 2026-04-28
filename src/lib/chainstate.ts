@@ -1,6 +1,6 @@
 import { fetchJsonVerified } from "./verify";
 
-export interface ChainState {
+interface ChainState {
   generatedAt: string;
   block: string;
   values: Record<string, Record<string, ChainValue>>;

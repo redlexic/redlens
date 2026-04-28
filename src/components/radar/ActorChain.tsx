@@ -8,96 +8,58 @@ interface Props {
   onNavigate: (id: string) => void;
 }
 
-function ChainBox({
-  node,
-  isCurrent,
-  onActor,
-  onNavigate,
-}: {
-  node: ChainNode;
-  isCurrent: boolean;
-  onActor: (slug: string) => void;
-  onNavigate: (id: string) => void;
-}) {
-  const color = ENTITY_TYPE_COLOR[node.et] ?? "#888";
-  return (
-    <button
-      onClick={() => (isCurrent ? node.docId && onNavigate(node.docId) : onActor(node.slug))}
-      title={isCurrent ? "Open in Atlas" : `View ${node.name}`}
-      className="chain-box px-2 py-1 rounded text-xs mono text-left"
-      style={{
-        border: `1px solid ${isCurrent ? color : "var(--border)"}`,
-        color: isCurrent ? color : "var(--tan-2)",
-        background: isCurrent ? `color-mix(in srgb, ${color} 10%, transparent)` : "transparent",
-      }}
-    >
-      {node.name}
-    </button>
-  );
+interface ChainGroup {
+  role: string;
+  nodes: ChainNode[];
 }
 
-export function ActorChain({ chain, currentSlug, onActor, onNavigate }: Props) {
-  const { prime, executors, facilitators, govops } = chain;
-  const isCurrent = (n: ChainNode) => n.slug === currentSlug;
+export function ActorChain({ chain, currentSlug, onActor }: Props) {
+  const { primes, executors, facilitators, govops } = chain;
+  const others = (nodes: ChainNode[]) => nodes.filter((n) => n.slug !== currentSlug);
+
+  const groups: ChainGroup[] = [
+    { role: "Prime Agent", nodes: others(primes) },
+    { role: "Executor Agent", nodes: others(executors) },
+    { role: "Facilitator", nodes: others(facilitators) },
+    { role: "GovOps", nodes: others(govops) },
+  ].filter((g) => g.nodes.length > 0);
+
+  if (groups.length === 0) return null;
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-x-1 gap-y-2 text-xs mono py-3 border-b border-[var(--border)]"
-      style={{ color: "var(--tan-3)" }}
-    >
-      {prime ? (
-        <ChainBox
-          node={prime}
-          isCurrent={isCurrent(prime)}
-          onActor={onActor}
-          onNavigate={onNavigate}
-        />
-      ) : (
-        <span className="text-tan-3">—</span>
-      )}
-
-      <span>/</span>
-
-      {executors.length > 0 ? (
-        executors.map((ex) => (
-          <ChainBox
-            key={ex.id}
-            node={ex}
-            isCurrent={isCurrent(ex)}
-            onActor={onActor}
-            onNavigate={onNavigate}
-          />
-        ))
-      ) : (
-        <span className="text-tan-3">—</span>
-      )}
-
-      <span>/</span>
-
-      <div className="flex flex-wrap gap-1">
-        {facilitators.length > 0 ? (
-          facilitators.map((f) => (
-            <ChainBox
-              key={f.id}
-              node={f}
-              isCurrent={isCurrent(f)}
-              onActor={onActor}
-              onNavigate={onNavigate}
-            />
-          ))
-        ) : (
-          <span className="text-tan-3">—</span>
-        )}
-        {govops.map((g) => (
-          <ChainBox
-            key={g.id}
-            node={g}
-            isCurrent={isCurrent(g)}
-            onActor={onActor}
-            onNavigate={onNavigate}
-          />
-        ))}
-      </div>
-    </div>
+    <section className="mb-6">
+      <h2
+        className="mono text-[10px] uppercase tracking-wider mb-3"
+        style={{ color: "var(--tan-3)" }}
+      >
+        Related Parties
+      </h2>
+      <table className="w-full text-sm border-collapse">
+        <tbody>
+          {groups.map(({ role, nodes }) => (
+            <tr key={role} className="border-t border-[var(--border)]">
+              <td
+                className="py-1.5 pr-4 mono text-[10px] w-36 align-top pt-2"
+                style={{ color: "var(--tan-3)" }}
+              >
+                {role}
+              </td>
+              <td className="py-1.5 flex flex-wrap gap-x-3 gap-y-1">
+                {nodes.map((node) => (
+                  <button
+                    key={node.id}
+                    onClick={() => onActor(node.slug)}
+                    className="hover:underline"
+                    style={{ color: ENTITY_TYPE_COLOR[node.et] ?? "#888" }}
+                  >
+                    {node.name}
+                  </button>
+                ))}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }

@@ -11,10 +11,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const CACHE_DIR = path.join(ROOT, ".cache/etherscan");
 
-export const CHAINLOG_URL = "https://chainlog.skyeco.com/api/mainnet/active.json";
-export const ETHERSCAN_BASE = "https://api.etherscan.io/v2/api";
+const CHAINLOG_URL = "https://chainlog.skyeco.com/api/mainnet/active.json";
+const ETHERSCAN_BASE = "https://api.etherscan.io/v2/api";
 
-export const CHAIN_ID = {
+const CHAIN_ID = {
   ethereum: 1,
   base: 8453,
   arbitrum: 42161,
@@ -24,16 +24,16 @@ export const CHAIN_ID = {
   gnosis: 100,
 };
 
-export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------------------------------------------------------------------------
 // Cache I/O
 // ---------------------------------------------------------------------------
-export function cachePath(chainid, addr) {
+function cachePath(chainid, addr) {
   return path.join(CACHE_DIR, String(chainid), `${addr}.json`);
 }
 
-export async function readCache(chainid, addr) {
+async function readCache(chainid, addr) {
   try {
     const raw = await fs.readFile(cachePath(chainid, addr), "utf8");
     return JSON.parse(raw);
@@ -43,7 +43,7 @@ export async function readCache(chainid, addr) {
   }
 }
 
-export async function writeCache(chainid, addr, entry) {
+async function writeCache(chainid, addr, entry) {
   const p = cachePath(chainid, addr);
   await fs.mkdir(path.dirname(p), { recursive: true });
   await fs.writeFile(p, JSON.stringify(entry, null, 2));
@@ -74,7 +74,7 @@ export async function fetchChainlog() {
 // ---------------------------------------------------------------------------
 // Etherscan getsourcecode
 // ---------------------------------------------------------------------------
-export async function fetchEtherscan(chainid, addr, apiKey) {
+async function fetchEtherscan(chainid, addr, apiKey) {
   const url = `${ETHERSCAN_BASE}?chainid=${chainid}&module=contract&action=getsourcecode&address=${addr}&apikey=${apiKey}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${chainid}/${addr}`);
@@ -103,7 +103,7 @@ export async function fetchEtherscan(chainid, addr, apiKey) {
   return makeEntry(chainid, addr, result);
 }
 
-export function makeEntry(chainid, addr, r) {
+function makeEntry(chainid, addr, r) {
   return {
     fetchedAt: new Date().toISOString(),
     chainid,
@@ -120,13 +120,6 @@ export function makeEntry(chainid, addr, r) {
 }
 
 // ---------------------------------------------------------------------------
-// Label resolution
-// ---------------------------------------------------------------------------
-export function resolveLabel(chainlogId, atlasLabel, etherscanName) {
-  return chainlogId || atlasLabel || etherscanName || null;
-}
-
-// ---------------------------------------------------------------------------
 // Main per-address enrichment loop
 // ---------------------------------------------------------------------------
 export async function enrichAddresses(atlas, chainlog, apiKey) {
@@ -139,19 +132,11 @@ export async function enrichAddresses(atlas, chainlog, apiKey) {
   for (const [addr, info] of Object.entries(atlas)) {
     processed++;
 
-    // Solana — pass through unchanged. Etherscan doesn't cover it; chainlog is
-    // mainnet only. The atlas-derived label is the best we have.
+    // Solana — no on-chain enrichment available (Etherscan is EVM-only;
+    // chainlog is mainnet ETH only). Emit minimal on-chain entry; atlas file
+    // carries all meaningful annotation for Solana addresses.
     if (info.chain === "solana") {
-      out[addr] = {
-        chain: info.chain,
-        explorerUrl: info.explorerUrl,
-        label: info.entityLabel,
-        isContract: false,
-        isProxy: false,
-        roles: info.roles,
-        aliases: info.aliases,
-        expectedTokens: info.expectedTokens,
-      };
+      out[addr] = { chain: "solana", isContract: false, isProxy: false };
       continue;
     }
 
@@ -186,29 +171,18 @@ export async function enrichAddresses(atlas, chainlog, apiKey) {
 
     const chainlogId = chainid === 1 ? chainlog[addr] : undefined;
     const etherscanName = entry.contractName || undefined;
-    const label = resolveLabel(chainlogId, info.entityLabel, etherscanName);
 
-    // Aliases: every distinct non-winning candidate label, plus the atlas's own
-    // alias list, de-duped, sorted, excluding the resolved winner.
-    const candidates = [chainlogId, info.entityLabel, etherscanName].filter(
-      (l) => l && l !== label,
-    );
-    const aliases = [
-      ...new Set([...(info.aliases || []), ...candidates].filter((l) => l && l !== label)),
-    ].sort();
-
+    // On-chain fields only. Atlas fields (roles, entityLabel, explorerUrl,
+    // expectedTokens) stay in addresses.atlas.json and are never written here.
+    // label and aliases are derived at read time by loadAddresses() in the
+    // frontend (chainlogId ?? entityLabel ?? etherscanName).
     out[addr] = {
       chain: info.chain,
-      explorerUrl: info.explorerUrl,
-      label,
       ...(chainlogId ? { chainlogId } : {}),
       ...(etherscanName ? { etherscanName } : {}),
       isContract: Boolean(etherscanName),
       isProxy: entry.proxy,
       ...(entry.implementation ? { implementation: entry.implementation } : {}),
-      roles: info.roles,
-      aliases,
-      expectedTokens: info.expectedTokens,
     };
   }
 

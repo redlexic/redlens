@@ -16,15 +16,17 @@ export interface AtlasNode {
 export interface AddressInfo {
   chain: string;
   explorerUrl: string;
-  label: string | null; // resolved by chainlogId > atlas entityLabel > etherscan ContractName
+  // label is resolved at load time: chainlogId ?? entityLabel ?? etherscanName
+  label: string | null;
+  entityLabel?: string; // atlas-derived label (from graph annotation passes)
   chainlogId?: string; // mainnet only
   etherscanName?: string; // verified contract name
   isContract: boolean; // false for unverified contracts and EOAs
   isProxy: boolean;
   implementation?: string; // lowercase address, only when isProxy
-  roles: string[]; // multi-label tags from build-index.mjs ROLE_VOCAB
-  aliases: string[]; // other labels found for this address (atlas + losing candidates)
-  expectedTokens: string[]; // text-derived guess at which ERC20s to query
+  roles: string[]; // from addresses.atlas.json (ROLE_VOCAB + ICD-structural)
+  aliases: string[]; // non-winning label candidates from both sources
+  expectedTokens: string[]; // token symbols from atlas annotation
 }
 
 export interface SearchHit {

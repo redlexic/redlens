@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useDeferredValue } from "react";
 import { useSearch } from "./useSearch";
-import { ROUTES } from "../lib/routes";
+import { ROUTES, type SearchScope } from "../lib/routes";
 
-export function useSearchInput(location: string, navigate: (to: string) => void) {
+export function useSearchInput(location: string, navigate: (to: string) => void, scope: SearchScope) {
   const { state, search, ready } = useSearch();
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
@@ -48,10 +48,10 @@ export function useSearchInput(location: string, navigate: (to: string) => void)
         return;
       }
       setQuery(q);
-      if (location === ROUTES.CONSTELLATIONS || location.startsWith(ROUTES.RADAR)) return;
+      if (scope !== "atlas") return;
       if (location !== ROUTES.HOME) navigate(ROUTES.HOME);
     },
-    [location, navigate],
+    [location, navigate, scope],
   );
 
   const handleHintClick = useCallback((q: string) => setQuery(q), []);

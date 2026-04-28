@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, startTransition, lazy, Suspense } fro
 import { useLocation, useSearchParams, Switch, Route } from "wouter";
 import { useSearchInput } from "./hooks/useSearchInput";
 import { useNavigation } from "./hooks/useNavigation";
-import { ROUTES, NAV_PAGE_ROUTES, type NavPage } from "./lib/routes";
+import { ROUTES, NAV_PAGE_ROUTES, type NavPage, type SearchScope } from "./lib/routes";
 import { SearchBar } from "./components/SearchBar";
 import { SearchResults } from "./components/SearchResults";
 import { AtlasView } from "./components/atlas/AtlasView";
@@ -11,6 +11,7 @@ import { Drawer } from "./components/Drawer";
 import { prefetchNodeContent } from "./components/NodeContent";
 import { Loading } from "./components/Loading";
 import { SearchHintsPage } from "./components/SearchHints";
+import { HomePage } from "./components/HomePage";
 import { DevPanel } from "./DevPanel";
 import { Footer } from "./components/Footer";
 
@@ -57,8 +58,10 @@ export default function App() {
           ? "atlas"
           : null;
 
+  const scope: SearchScope = activeNavPage ?? "atlas";
+
   const { query, setQuery, inputRef, handleChange, state, ready, clearSearch, handleHintClick } =
-    useSearchInput(location, navigate);
+    useSearchInput(location, navigate, scope);
   const { navigateToNode, navigateToEntity, navigateToReport, handleViewChange } = useNavigation({
     navigate,
     clearSearch,
@@ -100,6 +103,7 @@ export default function App() {
         isSearching={state.status === "searching"}
         onNavPage={handleNavPage}
         activePage={activeNavPage}
+        scope={scope}
       />
       <div className="flex-1 flex overflow-hidden">
         {showTree && (
@@ -116,7 +120,7 @@ export default function App() {
             <Route path={ROUTES.HOME}>
               {query.startsWith("__dev") ? (
                 <DevPanel query={query} onNavigate={navigateToNode} />
-              ) : (
+              ) : query ? (
                 <SearchResults
                   state={state}
                   query={query}
@@ -124,6 +128,8 @@ export default function App() {
                   onNavigateEntity={navigateToEntity}
                   onHintClick={handleHintClick}
                 />
+              ) : (
+                <HomePage onNavPage={handleNavPage} />
               )}
             </Route>
             <Route path={ROUTES.ATLAS}>
@@ -139,7 +145,7 @@ export default function App() {
             </Route>
             <Route path={ROUTES.REPORTS}>
               <Suspense fallback={<Loading />}>
-                <ReportsIndex onNavigate={navigateToReport} />
+                <ReportsIndex onNavigate={navigateToReport} query={query} />
               </Suspense>
             </Route>
             <Route path={ROUTES.REPORTS_OF_RESPONSIBILITIES}>
@@ -164,7 +170,7 @@ export default function App() {
             </Route>
             <Route path={ROUTES.RADAR}>
               <Suspense fallback={<Loading />}>
-                <RadarPage onNavigate={navigateToNode} />
+                <RadarPage onNavigate={navigateToNode} query={query} />
               </Suspense>
             </Route>
             <Route path={ROUTES.SEARCH_HINTS}>

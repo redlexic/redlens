@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Parses Sky Atlas.md and emits:
- *   public/docs.json        — id → node (uuid, doc_no, title, type, depth, parentId, content)
- *   public/search-index.json — serialized lunr index
+ *   public/docs.json          — id → node (uuid, doc_no, title, type, depth, parentId, content, addressRefs)
+ *   public/search-index.json  — serialized lunr index
+ *   public/addresses.atlas.json — address → { chain }  (minimal; build-graph Phase 2.6 adds annotation)
  *
  * Run: node scripts/required/build-index.mjs
  */
@@ -13,20 +14,7 @@ import { fileURLToPath } from "url";
 import lunr from "lunr";
 
 import { sha256, HEADING_RE, parse, cleanContent } from "../lib/atlas-parser.mjs";
-import {
-  ETH_ADDR_RE,
-  SOL_ADDR_RE,
-  normalizeAddress,
-  detectChain,
-  findTableContext,
-  EXPLORER,
-} from "../lib/address-chains.mjs";
-import {
-  extractRoles,
-  extractEntityLabel,
-  extractExpectedTokens,
-} from "../lib/address-annotate.mjs";
-import { mergeAddressAnnotations } from "../lib/address-merge.mjs";
+import { ETH_ADDR_RE, SOL_ADDR_RE, normalizeAddress, detectChain } from "../lib/address-chains.mjs";
 
 // Avoid unused-import noise — keep these here so the file documents the full
 // surface of atlas-parser even though parse() is the only caller.
@@ -40,46 +28,26 @@ const ATLAS_PATH = path.join(ROOT, "vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md
 const OUT_DIR = path.join(ROOT, "public");
 
 // ---------------------------------------------------------------------------
-// Per-node address extraction
-// Returns { normalizedAddress → { chain, explorerUrl, roles, entityLabel, expectedTokens } }
-// Keys are lowercase for EVM, original case for Solana. See normalizeAddress.
+// Per-node address extraction — chain detection only.
+// Annotation (roles, entityLabel, expectedTokens) runs in build-graph Phase 2.6
+// so it has access to the full entity graph and ICD param data.
 // ---------------------------------------------------------------------------
 function extractAddresses(content) {
   const result = {};
 
-  // EVM addresses (0x-prefixed)
   ETH_ADDR_RE.lastIndex = 0;
   let m;
   while ((m = ETH_ADDR_RE.exec(content)) !== null) {
-    const addr = m[0];
-    const key = normalizeAddress(addr);
-    if (result[key]) continue;
-    const chain = detectChain(content, m.index);
-    const table = findTableContext(content, m.index);
-    result[key] = {
-      chain,
-      explorerUrl: EXPLORER[chain] + key,
-      roles: extractRoles(content, m.index, addr.length, table),
-      entityLabel: extractEntityLabel(content, m.index, table),
-      expectedTokens: extractExpectedTokens(content, m.index, addr.length, table),
-    };
+    const key = normalizeAddress(m[0]);
+    if (!result[key]) result[key] = { chain: detectChain(content, m.index) };
   }
 
-  // Solana addresses (base58, 43-44 chars) — assumed Solana by pattern alone
   SOL_ADDR_RE.lastIndex = 0;
   while ((m = SOL_ADDR_RE.exec(content)) !== null) {
-    const addr = m[0];
-    const key = normalizeAddress(addr);
-    if (result[key]) continue;
-    const table = findTableContext(content, m.index);
-    result[key] = {
-      chain: "solana",
-      explorerUrl: EXPLORER.solana + key,
-      roles: extractRoles(content, m.index, addr.length, table),
-      entityLabel: extractEntityLabel(content, m.index, table),
-      expectedTokens: extractExpectedTokens(content, m.index, addr.length, table),
-    };
+    const key = normalizeAddress(m[0]);
+    if (!result[key]) result[key] = { chain: "solana" };
   }
+
   return result;
 }
 
@@ -93,15 +61,8 @@ function buildIndex(nodes) {
     this.field("doc_no", { boost: 5 });
     this.field("type", { boost: 2 });
     this.field("content");
-
     for (const node of nodes) {
-      this.add({
-        id: node.id,
-        title: node.title,
-        doc_no: node.doc_no,
-        type: node.type,
-        content: node.content,
-      });
+      this.add({ id: node.id, title: node.title, doc_no: node.doc_no, type: node.type, content: node.content });
     }
   });
 }
@@ -113,13 +74,11 @@ function printStats(nodes) {
   const byType = {};
   const byDepth = {};
   let emptyContent = 0;
-
   for (const node of nodes) {
     byType[node.type] = (byType[node.type] ?? 0) + 1;
     byDepth[node.depth] = (byDepth[node.depth] ?? 0) + 1;
     if (!node.content) emptyContent++;
   }
-
   console.log("\n=== Atlas Parse Stats ===");
   console.log(`Total nodes:   ${nodes.length}`);
   console.log(`Empty content: ${emptyContent}`);
@@ -145,11 +104,16 @@ const idx = buildIndex(nodes);
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-// docs.json — strip content for the initial load; full content is only needed
-// for the detail view and snippet generation (kept in same file for simplicity
-// at this scale — we can split later if needed)
+// Build docs and extract address refs + chain map in one pass.
 const docs = {};
+const chainMap = {}; // addr → { chain }  (most specific chain wins over ethereum)
+
 for (const node of nodes) {
+  const addrs = extractAddresses(node.content);
+  for (const [addr, info] of Object.entries(addrs)) {
+    const existing = chainMap[addr];
+    if (!existing || existing.chain === "ethereum") chainMap[addr] = info;
+  }
   docs[node.id] = {
     id: node.id,
     doc_no: node.doc_no,
@@ -160,52 +124,21 @@ for (const node of nodes) {
     order: node.order,
     content: node.content,
     contentHash: node.contentHash,
-    addresses: extractAddresses(node.content),
+    addressRefs: Object.keys(addrs).sort(),
   };
 }
 
-// Merge per-node annotations into a single global view per address. After
-// this, every node that references a given address sees the same label, roles,
-// and expectedTokens — picked from the richest per-node extraction.
-console.log("\nMerging address annotations across nodes…");
-const mergedAddrs = mergeAddressAnnotations(Object.values(docs));
-console.log(`  ${Object.keys(mergedAddrs).length} unique addresses merged`);
+const total = Object.keys(chainMap).length;
+const byChain = {};
+for (const { chain } of Object.values(chainMap)) byChain[chain] = (byChain[chain] ?? 0) + 1;
+console.log(`\n${total} unique addresses extracted`);
+for (const [c, n] of Object.entries(byChain).sort((a, b) => b[1] - a[1]))
+  console.log(`  ${c.padEnd(12)} ${n}`);
 
-// Strip the per-node addresses map: every node now carries only the list of
-// normalized address keys it references. The frontend joins these against the
-// shared public/addresses.json (built later by scripts/build-addresses.mjs).
-for (const node of Object.values(docs)) {
-  node.addressRefs = Object.keys(node.addresses || {}).sort();
-  delete node.addresses;
-}
-
-// Address stats — show before any UI consumes the merged map.
-{
-  const total = Object.keys(mergedAddrs).length;
-  let withLabel = 0;
-  const byChain = {};
-  for (const info of Object.values(mergedAddrs)) {
-    if (info.entityLabel) withLabel++;
-    byChain[info.chain] = (byChain[info.chain] ?? 0) + 1;
-  }
-  console.log(`  with atlas-prose label: ${withLabel} / ${total}`);
-  console.log("  by chain:");
-  for (const [c, n] of Object.entries(byChain).sort((a, b) => b[1] - a[1])) {
-    console.log(`    ${c.padEnd(12)} ${n}`);
-  }
-}
-
-// Hand the merged map to scripts/build-addresses.mjs as an intermediate file.
-// Not a shipping artifact — build-addresses overwrites public/addresses.json
-// and deletes this baton afterwards.
-fs.writeFileSync(path.join(OUT_DIR, "addresses.merged.json"), JSON.stringify(mergedAddrs));
-
+fs.writeFileSync(path.join(OUT_DIR, "addresses.atlas.json"), JSON.stringify(chainMap));
 fs.writeFileSync(path.join(OUT_DIR, "docs.json"), JSON.stringify(docs));
 fs.writeFileSync(path.join(OUT_DIR, "search-index.json"), JSON.stringify(idx));
 
 const docsSize = (fs.statSync(path.join(OUT_DIR, "docs.json")).size / 1024).toFixed(1);
-const idxSize = (fs.statSync(path.join(OUT_DIR, "search-index.json")).size / 1024).toFixed(1);
-
-console.log(
-  `\nWrote public/docs.json (${docsSize} KB) and public/search-index.json (${idxSize} KB)`,
-);
+const idxSize  = (fs.statSync(path.join(OUT_DIR, "search-index.json")).size / 1024).toFixed(1);
+console.log(`\nWrote docs.json (${docsSize} KB), search-index.json (${idxSize} KB), addresses.atlas.json`);

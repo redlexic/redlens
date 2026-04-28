@@ -230,17 +230,89 @@ describe("activeDataRowsToCSV", () => {
   const csv = activeDataRowsToCSV(rows);
   const lines = csv.split("\n");
 
+  // Parse a single line of the form "a","b","c" into cell values.
+  // Matches the generator's format (no internal-quote escaping).
+  function parseLine(line: string): string[] {
+    const cells: string[] = [];
+    const re = /"([^"]*)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(line)) !== null) cells.push(m[1]);
+    return cells;
+  }
+
   it("has a header and one data line per row", () => {
     expect(lines.length).toBe(rows.length + 1);
     expect(lines[0]).toMatch(/^Active Data Doc,/);
   });
 
   it("quotes every cell — no bare commas in row content leak the column count", () => {
-    // Active Data Doc, Title, Controller Doc, Controller Title,
-    // Agent, Responsible Party, Facilitator, Facilitator Role, Process = 9 cells.
-    const expectedQuotes = 9 * 2;
+    // Active Data Doc, Title, Controller Doc, Controller Title, Agent,
+    // Responsible Party, RP Evidence, Facilitator, Facilitator Role,
+    // Facilitator Evidence, Process, Last Edited = 12 cells.
+    const expectedQuotes = 12 * 2;
     for (const line of lines.slice(1)) {
       expect((line.match(/"/g) ?? []).length).toBe(expectedQuotes);
     }
+  });
+
+  it("each CSV row contains the exact field values shown in the table", () => {
+    // Verifies that activeDataRowsToCSV and the ActiveDataReport table render
+    // the same underlying data for every row. Null values appear as "" in the CSV
+    // and as "—" / "Governance" in the UI — both represent "no data".
+    const dataLines = lines.slice(1);
+    expect(dataLines.length).toBe(rows.length);
+
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const cells = parseLine(dataLines[i]);
+      expect(cells, `row ${i}: wrong cell count`).toHaveLength(12);
+      const [
+        adDoc, adTitle, ctrlDoc, ctrlTitle, agent,
+        rp, rpEvidence, fac, facRole, facEvidence,
+        process, lastEdited,
+      ] = cells;
+
+      expect(adDoc, `row ${i} activeDataDocNo`).toBe(r.activeDataDocNo);
+      expect(adTitle, `row ${i} activeDataTitle`).toBe(r.activeDataTitle);
+      expect(ctrlDoc, `row ${i} controllerDocNo`).toBe(r.controllerDocNo ?? "");
+      expect(ctrlTitle, `row ${i} controllerTitle`).toBe(r.controllerTitle ?? "");
+      expect(agent, `row ${i} agent`).toBe(r.agent ?? "");
+      expect(rp, `row ${i} responsibleParty.name`).toBe(r.responsibleParty?.name ?? "");
+      expect(rpEvidence, `row ${i} rpEvidence`).toBe(
+        (r.responsibleParty?.evidence ?? []).map((s) => s.docNo).join(" → "),
+      );
+      expect(fac, `row ${i} facilitator.name`).toBe(r.facilitator?.name ?? "");
+      expect(facRole, `row ${i} facilitator.role`).toBe(r.facilitator?.role ?? "");
+      expect(facEvidence, `row ${i} facEvidence`).toBe(
+        (r.facilitator?.evidence ?? []).map((s) => s.docNo).join(" → "),
+      );
+      expect(process, `row ${i} process`).toBe(r.process);
+      expect(lastEdited, `row ${i} lastEdited`).toBe("");
+    }
+  });
+
+  it("evidence columns match the → chain shown in the table", () => {
+    // Find a row that actually has evidence steps to assert a non-trivial value.
+    const rowWithEvidence = rows.find((r) => (r.responsibleParty?.evidence.length ?? 0) > 1);
+    if (!rowWithEvidence) return; // skip if atlas has no multi-step chains
+    const csv = activeDataRowsToCSV([rowWithEvidence]);
+    const cells = parseLine(csv.split("\n")[1]);
+    const expectedRP = rowWithEvidence.responsibleParty!.evidence.map((s) => s.docNo).join(" → ");
+    expect(cells[6]).toBe(expectedRP);
+  });
+
+  it("Last Edited column reflects the dates map passed in", () => {
+    const sampleRow = rows[0];
+    const dates = new Map([[sampleRow.activeDataId, "2025-03-15"]]);
+    const csvWithDates = activeDataRowsToCSV([sampleRow], dates);
+    const cells = parseLine(csvWithDates.split("\n")[1]);
+    expect(cells).toHaveLength(12);
+    expect(cells[11]).toBe("2025-03-15");
+  });
+
+  it("Last Edited is empty string when no date is available for a row", () => {
+    const sampleRow = rows[0];
+    const csv = activeDataRowsToCSV([sampleRow], new Map());
+    expect(parseLine(csv.split("\n")[1])[11]).toBe("");
   });
 });

@@ -62,9 +62,7 @@ mark {
   border-radius: 3px;
 }
 
-input[type="search"]::-webkit-search-cancel-button {
-  filter: invert(0.5);
-}
+/* webkit search chrome stripped per-input — see .search-input below */
 
 /* Depth palette — 17 levels: white → saturated rainbow → pastel rainbow */
 :root {
@@ -290,12 +288,53 @@ input[type="search"]::-webkit-search-cancel-button {
   border-color: var(--border);
 }
 
+/* ─── Search input wrapper ─── */
+.search-input-wrap {
+  background: var(--surface);
+  border-color: var(--border);
+}
+.search-input-wrap:focus-within {
+  border-color: var(--accent);
+}
+.search-input-wrap[data-scope]:not([data-scope="atlas"]):not(:focus-within) {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
 /* ─── Search input ─── */
 .search-input {
-  background: var(--surface);
+  background: transparent;
   color: var(--tan);
-  border-color: var(--border);
+  border: none;
+  outline: none;
   font-family: inherit;
+}
+.search-input:focus-visible {
+  outline: none;
+}
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* ─── Scope chip (passive page-context label inside search) ─── */
+.scope-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: "Source Code Pro", "Courier New", monospace;
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tan);
+  background: var(--hover);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 5px 10px;
+  white-space: nowrap;
+  user-select: none;
 }
 
 /* ─── Scope filter pill ─── */
@@ -387,6 +426,23 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 .search-result-link:hover {
   background: var(--hover);
+}
+
+/* ─── Home page feature cards ─── */
+.home-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.home-card:hover,
+.home-card:focus-visible {
+  background: var(--hover);
+  border-color: var(--accent);
 }
 
 /* ─── Load more button ─── */
@@ -520,24 +576,26 @@ input[type="search"]::-webkit-search-cancel-button {
 
 /* ─── Right panel tab button ─── */
 .right-tab {
-  font-family: "Source Code Pro", monospace;
-  font-size: 11px;
-  padding: 6px 14px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
+  font: 400 11px/1 "Source Code Pro", "Courier New", monospace;
   color: var(--tan-3);
-  transition:
-    color 0.1s,
-    border-color 0.1s;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  padding: 6px 10px;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: color 100ms, background 100ms, border-color 100ms;
+  margin-bottom: -1px;
+}
+.right-tab:hover {
+  color: var(--tan);
+  background: var(--hover);
 }
 .right-tab[aria-selected="true"] {
   color: var(--tan);
-  border-bottom-color: var(--accent);
-}
-.right-tab:hover:not([aria-selected="true"]) {
-  color: var(--tan-2);
+  background: var(--surface);
+  border-color: var(--border);
 }
 
 /* KaTeX dark mode */

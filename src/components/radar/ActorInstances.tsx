@@ -11,25 +11,33 @@ function explorerUrl(val: string): string {
 
 function ParamPill({ p }: { p: InstanceParam }) {
   const isAddr = EVM_RE.test(p.value) || SOL_RE.test(p.value);
+  const keyLabel = <span style={{ color: "var(--tan-3)" }}>{p.key}:</span>;
   if (isAddr) {
     const short = `${p.value.slice(0, 6)}…${p.value.slice(-4)}`;
     return (
-      <a
-        href={explorerUrl(p.value)}
-        target="_blank"
-        rel="noopener"
-        className="mono text-[11px] text-accent hover:underline"
-        title={p.value}
+      <span
+        className="mono text-[11px] px-1.5 py-0.5 rounded inline-flex items-center gap-1"
+        style={{ background: "var(--hover)", color: "var(--tan-2)" }}
       >
-        {short}
-      </a>
+        {keyLabel}
+        <a
+          href={explorerUrl(p.value)}
+          target="_blank"
+          rel="noopener"
+          className="text-accent hover:underline"
+          title={p.value}
+        >
+          {short}
+        </a>
+      </span>
     );
   }
   return (
     <span
-      className="mono text-[11px] px-1.5 py-0.5 rounded"
+      className="mono text-[11px] px-1.5 py-0.5 rounded inline-flex items-center gap-1"
       style={{ background: "var(--hover)", color: "var(--tan-2)" }}
     >
+      {keyLabel}
       {p.value}
     </span>
   );

@@ -5,15 +5,13 @@ import type { GlossaryEntry } from "../../lib/glossary";
 import { RelatedNode } from "../RelatedNode";
 import { AddressCard } from "../AddressCard";
 import { NodeHistory } from "../history/NodeHistory";
-import { Integrity } from "./Integrity";
 
-export type RightTab = "annotations" | "history";
+type RightTab = "annotations" | "history";
 
 const HIDE = new Set(["parent_of", "mentions", "proxies_to", "cites"]);
 
 export function RightPanel({
   id,
-  node,
   linkedNodes,
   targetAddresses,
   chainValues,
@@ -25,7 +23,6 @@ export function RightPanel({
   onTabChange,
 }: {
   id: string;
-  node: AtlasNode | null;
   linkedNodes: AtlasNode[];
   targetAddresses: Record<string, AddressInfo>;
   chainValues: Record<string, Record<string, ChainValue>>;
@@ -43,14 +40,18 @@ export function RightPanel({
 
   return (
     <>
-      <div className="shrink-0 flex border-b border-border" role="tablist">
+      <div
+        className="flex gap-1 border-b shrink-0"
+        style={{ borderColor: "var(--border)", padding: "8px 16px 0" }}
+        role="tablist"
+      >
         <button
           role="tab"
           aria-selected={tab === "annotations"}
           onClick={() => onTabChange("annotations")}
           className="right-tab"
         >
-          annotations{annotationCount > 0 ? ` · ${annotationCount}` : ""}
+          annotations{annotationCount > 0 && <span style={{ marginLeft: 4 }}>· {annotationCount}</span>}
         </button>
         <button
           role="tab"
@@ -156,13 +157,21 @@ export function RightPanel({
                 <div className="space-y-4">
                   {glossaryTerms.map((entries) => (
                     <div key={entries[0].nodeId} className="border-b border-border pb-4">
-                      <p className="text-xs font-semibold mono mb-1 text-accent">
+                      <button
+                        onClick={() => onNavigate(entries[0].nodeId)}
+                        className="text-xs font-semibold mono mb-1 text-accent hover:underline cursor-pointer text-left"
+                      >
                         {entries[0].term}
-                      </p>
+                      </button>
                       {entries.map((e, i) => (
                         <div key={i} className={i > 0 ? "mt-2 pt-2 border-t border-border" : ""}>
                           {entries.length > 1 && e.sourceContext && (
-                            <p className="text-[10px] mono mb-0.5 text-tan-3">{e.sourceContext}</p>
+                            <button
+                              onClick={() => onNavigate(e.nodeId)}
+                              className="text-[10px] mono mb-0.5 text-tan-3 hover:text-accent cursor-pointer text-left block"
+                            >
+                              {e.sourceContext}
+                            </button>
                           )}
                           <p className="text-xs leading-relaxed text-tan-2">{e.content}</p>
                         </div>
@@ -173,7 +182,6 @@ export function RightPanel({
               </div>
             )}
 
-            <Integrity node={node ?? undefined} />
           </div>
         ) : (
           <div className="px-4 py-5">

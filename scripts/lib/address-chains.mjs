@@ -16,10 +16,10 @@ export const SOL_ADDR_RE = /\b[1-9A-HJ-NP-Za-km-z]{43,44}\b/g;
 export function normalizeAddress(addr) {
   return addr.startsWith("0x") ? addr.toLowerCase() : addr;
 }
-export const WINDOW = 300; // chars before the address to scan for chain hints
+const WINDOW = 300; // chars before the address to scan for chain hints
 
 // Ordered by specificity — more specific patterns first within each entry
-export const CHAIN_HINTS = [
+const CHAIN_HINTS = [
   { chain: "ethereum", patterns: [/\bethereum\b/i, /\bmainnet\b/i] },
   { chain: "base", patterns: [/\bbase\b/i] },
   { chain: "arbitrum", patterns: [/\barbitrum\b/i, /\barb\b/i] },
@@ -29,7 +29,7 @@ export const CHAIN_HINTS = [
   { chain: "gnosis", patterns: [/\bgnosis\b/i, /\bxdai\b/i] },
 ];
 
-export const EXPLORER = {
+const EXPLORER = {
   ethereum: "https://etherscan.io/address/",
   base: "https://basescan.org/address/",
   arbitrum: "https://arbiscan.io/address/",
@@ -41,7 +41,7 @@ export const EXPLORER = {
 };
 
 // "address on [the] CHAIN is 0x..." — most reliable signal
-export const EXPLICIT_RE = /\baddress\s+on\s+(?:the\s+)?(.{3,30}?)\s+is\s*$/i;
+const EXPLICIT_RE = /\baddress\s+on\s+(?:the\s+)?(.{3,30}?)\s+is\s*$/i;
 
 export function annotationWindow(content, matchIndex, addrLength) {
   // Uses ANNOT_WINDOW from address-annotate (300). Kept separate from WINDOW
@@ -61,13 +61,13 @@ export function annotationWindow(content, matchIndex, addrLength) {
 // in a pipe-delimited row and, if so, returns the row cells, the header cells,
 // and the index of the column containing the address.
 // ---------------------------------------------------------------------------
-export function isTableRow(line) {
+function isTableRow(line) {
   return line.startsWith("|") && line.endsWith("|") && line.length > 2;
 }
-export function isSeparatorRow(line) {
+function isSeparatorRow(line) {
   return /^\|[\s\-:|]+\|$/.test(line);
 }
-export function splitRow(line) {
+function splitRow(line) {
   // Strip leading/trailing pipes, split, trim cells
   return line
     .slice(1, -1)

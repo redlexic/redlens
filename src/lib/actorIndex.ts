@@ -14,7 +14,7 @@ export interface ChainNode {
   docId: string | null;
 }
 export interface ActorChain {
-  prime: ChainNode | null;
+  primes: ChainNode[];
   executors: ChainNode[];
   facilitators: ChainNode[];
   govops: ChainNode[];
@@ -172,47 +172,50 @@ export function buildActorProfile(
   const facsTo = (id: string) => (edgesTo.get(id) ?? []).filter((e) => FAC_EDGES.has(e.e));
   const govsTo = (id: string) => (edgesTo.get(id) ?? []).filter((e) => GOV_EDGES.has(e.e));
 
+  const dedup = (nodes: ChainNode[]) => {
+    const seen = new Set<string>();
+    return nodes.filter((n) => (seen.has(n.id) ? false : (seen.add(n.id), true)));
+  };
+  const primesOf = (execs: Participant[]) =>
+    dedup(
+      resolve(execs.flatMap((ex) => execsFrom(ex.id).map((e) => e.t))).map(cn),
+    );
+
   let chain: ActorChain;
   const { et, st } = entity;
   if (et === "agent" && st === "prime") {
-    const execEdge = execsTo(entity.id)[0];
-    const exec = execEdge ? entityById.get(execEdge.f) : null;
+    const execs = resolve(execsTo(entity.id).map((e) => e.f));
     chain = {
-      prime: cn(entity),
-      executors: exec ? [cn(exec)] : [],
-      facilitators: exec ? resolve(facsTo(exec.id).map((e) => e.f)).map(cn) : [],
-      govops: exec ? resolve(govsTo(exec.id).map((e) => e.f)).map(cn) : [],
+      primes: [cn(entity)],
+      executors: execs.map(cn),
+      facilitators: execs.length > 0 ? dedup(execs.flatMap((ex) => resolve(facsTo(ex.id).map((e) => e.f)).map(cn))) : [],
+      govops: execs.length > 0 ? dedup(execs.flatMap((ex) => resolve(govsTo(ex.id).map((e) => e.f)).map(cn))) : [],
     };
   } else if (et === "agent") {
-    const primeEdge = execsFrom(entity.id)[0];
-    const prime = primeEdge ? entityById.get(primeEdge.t) : null;
+    const primes = resolve(execsFrom(entity.id).map((e) => e.t));
     chain = {
-      prime: prime ? cn(prime) : null,
+      primes: primes.map(cn),
       executors: [cn(entity)],
-      facilitators: resolve(facsTo(entity.id).map((e) => e.f)).map(cn),
-      govops: resolve(govsTo(entity.id).map((e) => e.f)).map(cn),
+      facilitators: dedup(resolve(facsTo(entity.id).map((e) => e.f)).map(cn)),
+      govops: dedup(resolve(govsTo(entity.id).map((e) => e.f)).map(cn)),
     };
   } else if (et === "facilitator_org") {
-    const facEdge = (edgesFrom.get(entity.id) ?? []).find((e) => FAC_EDGES.has(e.e));
-    const exec = facEdge ? entityById.get(facEdge.t) : null;
-    const primeEdge = exec ? execsFrom(exec.id)[0] : null;
-    const prime = primeEdge ? entityById.get(primeEdge.t) : null;
+    const facEdges = (edgesFrom.get(entity.id) ?? []).filter((e) => FAC_EDGES.has(e.e));
+    const execs = resolve(facEdges.map((e) => e.t));
     chain = {
-      prime: prime ? cn(prime) : null,
-      executors: exec ? [cn(exec)] : [],
-      facilitators: exec ? resolve(facsTo(exec.id).map((e) => e.f)).map(cn) : [cn(entity)],
-      govops: exec ? resolve(govsTo(exec.id).map((e) => e.f)).map(cn) : [],
+      primes: primesOf(execs),
+      executors: execs.map(cn),
+      facilitators: execs.length > 0 ? dedup(execs.flatMap((ex) => resolve(facsTo(ex.id).map((e) => e.f)).map(cn))) : [cn(entity)],
+      govops: execs.length > 0 ? dedup(execs.flatMap((ex) => resolve(govsTo(ex.id).map((e) => e.f)).map(cn))) : [],
     };
   } else {
     const govEdges = (edgesFrom.get(entity.id) ?? []).filter((e) => GOV_EDGES.has(e.e));
     const execs = resolve(govEdges.map((e) => e.t));
-    const primeEdge = execs[0] ? execsFrom(execs[0].id)[0] : null;
-    const prime = primeEdge ? entityById.get(primeEdge.t) : null;
     chain = {
-      prime: prime ? cn(prime) : null,
+      primes: primesOf(execs),
       executors: execs.map(cn),
-      facilitators: execs.flatMap((ex) => resolve(facsTo(ex.id).map((e) => e.f)).map(cn)),
-      govops: execs[0] ? resolve(govsTo(execs[0].id).map((e) => e.f)).map(cn) : [cn(entity)],
+      facilitators: dedup(execs.flatMap((ex) => resolve(facsTo(ex.id).map((e) => e.f)).map(cn))),
+      govops: execs.length > 0 ? dedup(execs.flatMap((ex) => resolve(govsTo(ex.id).map((e) => e.f)).map(cn))) : [cn(entity)],
     };
   }
 

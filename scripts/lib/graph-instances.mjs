@@ -48,26 +48,26 @@ export function buildChildrenIndex(allDocs) {
 // Atlas "directory" placeholder content is a convention — a doc whose content
 // is just "The documents herein (define|contain|organize|govern)…" and whose
 // real data lives in children. Those are NOT leaves.
-export const DIRECTORY_RE =
+const DIRECTORY_RE =
   /^The documents? herein (define|contain|organize|govern|specify|describe|set|compose|hold)\b/i;
 
 // Value formatters — normalize raw content into a displayable value. Keyed by
 // leaf title. Each takes the raw trimmed content and returns a cleaned string.
 // Fallback is backtick-unwrap + trim.
-export const unwrapBt = (s) => s.match(/^`([^`\n]+)`\.?$/)?.[1] ?? s;
-export const firstBtOrAddr = (s) => {
+const unwrapBt = (s) => s.match(/^`([^`\n]+)`\.?$/)?.[1] ?? s;
+const firstBtOrAddr = (s) => {
   const bt = s.match(/`([^`\n]+)`/)?.[1];
   if (bt && (/^0x[0-9a-fA-F]{40}$/.test(bt) || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(bt))) return bt;
   return s.match(/0x[0-9a-fA-F]{40}/)?.[0] ?? s;
 };
-export const stripSentence =
+const stripSentence =
   (prefixRe, suffixRe = null) =>
   (s) => {
     let v = s.replace(prefixRe, "");
     if (suffixRe) v = v.replace(suffixRe, "");
     return v.replace(/\.$/, "").trim();
   };
-export const PARAM_FORMATTERS = {
+const PARAM_FORMATTERS = {
   "Reward Code": unwrapBt,
   "Integration Partner Name": stripSentence(/^The partner for the [^.]*? is /i),
   "Integration Partner Reward Address": firstBtOrAddr,
@@ -86,7 +86,7 @@ export const PARAM_FORMATTERS = {
   Token: (s) => s.replace(/\.$/, "").trim(),
   "Asset Supplied By Spark Liquidity Layer": (s) => s.replace(/\.$/, "").trim(),
 };
-export function formatParam(title, raw) {
+function formatParam(title, raw) {
   const fn = PARAM_FORMATTERS[title];
   return fn ? fn(raw.trim()) : unwrapBt(raw.trim());
 }
@@ -95,7 +95,7 @@ export function formatParam(title, raw) {
 // same source doc. Used when a single leaf embeds per-chain or per-variant
 // values (e.g. Agent Token's "Token Address" stuffs every deployed chain
 // address into one blob). Returns Array<[key, value]> or null to fall through.
-export const PARAM_EXPANDERS = {
+const PARAM_EXPANDERS = {
   "Token Address": (content) => {
     // "The address of X on (the) CHAIN is `ADDR`." — repeats per chain.
     const re = /The address of \S+ on (?:the )?([^.]+?) is `([^`\n]+)`/gi;
@@ -113,8 +113,8 @@ export const PARAM_EXPANDERS = {
 //   "The {variant} are:\n\n- `key`: value\n- `key`: value"
 // Keys are prefixed with the leaf title so sibling groups stay distinct
 // ("Inflow Rate Limits / maxAmount" vs "Outflow Rate Limits / maxAmount").
-export const BULLET_KV_RE = /^\s*[-*]\s+`([^`\n]+)`\s*:\s*(.+?)\s*$/gm;
-export function expandBulletList(content, outerTitle) {
+const BULLET_KV_RE = /^\s*[-*]\s+`([^`\n]+)`\s*:\s*(.+?)\s*$/gm;
+function expandBulletList(content, outerTitle) {
   const out = [];
   for (const m of content.matchAll(BULLET_KV_RE)) {
     out.push([`${outerTitle} / ${m[1].trim()}`, m[2].trim()]);

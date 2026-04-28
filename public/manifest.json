@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-04-27T13:28:18.198Z",
-  "redlensCommit": "ebb2fedb7621515fbfbc05698682c54e4e380af6",
+  "generatedAt": "2026-04-28T19:34:19.921Z",
+  "redlensCommit": "9ad2f928a4af36cdcab2da90e8e45e03529602f6",
   "atlasCommit": "ede66d5f2cf3179d33b644417f464b6642d0bcdb",
-  "blockNumber": "24971678",
+  "blockNumber": "24980683",
   "artifacts": {
     "docs.json": {
       "sha256": "9aad288b970a495a14bd75d09f6d7e45a1e2ceaf6f1eae68d9719c717befb8b7",
@@ -13,16 +13,16 @@
       "bytes": 14472864
     },
     "addresses.json": {
-      "sha256": "635340f7b4ea437709d3b5b9070e59b19f0dd15f389af461457d4766c991599e",
-      "bytes": 93955
+      "sha256": "6b3745d2c2af867bfb6653d26a5a6094a397f20e5ae3fa2912471d14c2a0227e",
+      "bytes": 42276
     },
     "chain-state.json": {
-      "sha256": "0b0bc7f5908f56b7d638e1fa35cf3b1486ae76d7db9c10369f8932095094f0b6",
+      "sha256": "dc80127eea5e03dbcd49dd5c9c0e40bc95087ee7a32233f1aca8c8eea78ac780",
       "bytes": 34731
     },
     "relations.json": {
-      "sha256": "9088506a3f4b3cb49eb08edc202cb3f1399455f5cdfd988326cefb952bee6f23",
-      "bytes": 872067
+      "sha256": "b6b8bb86219934439ef4397834feec5acb6ebe4033947f5c7cf06cbb650a5abb",
+      "bytes": 917583
     }
   }
 }

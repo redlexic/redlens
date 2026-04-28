@@ -12,8 +12,8 @@ import {
 
 type Row = ActiveDataRow;
 
-function exportCSV(rows: Row[]) {
-  const blob = new Blob([activeDataRowsToCSV(rows)], { type: "text/csv" });
+function exportCSV(rows: Row[], lastEditDates: Map<string, string>) {
+  const blob = new Blob([activeDataRowsToCSV(rows, lastEditDates)], { type: "text/csv" });
   const a = Object.assign(document.createElement("a"), {
     href: URL.createObjectURL(blob),
     download: "active-data-index.csv",
@@ -188,7 +188,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-tan-3">{filtered.length} sections</p>
           <button
-            onClick={() => exportCSV(filtered)}
+            onClick={() => exportCSV(filtered, lastEditDates)}
             className="mono text-xs px-3 py-1 rounded border border-[var(--border)] text-tan-3 hover:text-tan hover:border-[var(--accent)] transition-colors"
           >
             Download CSV
