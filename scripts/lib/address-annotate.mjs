@@ -36,8 +36,8 @@ const ROLE_VOCAB = {
   vesting: [/\bvesting\b/i],
   vault: [/\bvault\b/i],
   foundation: [/\bfoundation\b/i],
-  "incentive-pool": [/\bincentive\s+pool\b/i],
-  "staking-rewards": [/\bstaking\s+rewards?\b/i],
+  "incentive-pool": [/\bincentive[\s-]+pool\b/i],
+  "staking-rewards": [/\bstaking[\s-]+rewards?\b/i],
 
   // --- Signer / governance ---
   signer: [/\bsigner\b/i],
@@ -62,17 +62,17 @@ const TOKEN_RE = new RegExp(
 // Each captures group 1 = the entity name.
 const ENTITY_PATTERNS = [
   // "address of the X is" / "address of X is"
-  /\baddress\s+of\s+(?:the\s+)?([A-Z][A-Za-z0-9 .&''-]{2,60}?)\s+(?:is|on|at)\b/,
+  /\baddress\s+of\s+(?:the\s+)?([A-Z][A-Za-z0-9 .&''’-]{2,60}?)\s+(?:is|on|at)\b/,
   // "the X address is" / "X's address is"
-  /\b(?:the\s+)?([A-Z][A-Za-z0-9 .&''-]{2,60}?)['']?s?\s+address\s+(?:is|on)\b/,
+  /\b(?:the\s+)?([A-Z][A-Za-z0-9 .&''’-]{2,60}?)[''']?s?\s+address\s+(?:is|on)\b/,
   // "reward address for (the) X is" (Integration Boost / partner phrasing)
-  /\breward\s+address\s+for\s+(?:the\s+)?([A-Z][A-Za-z0-9 .&''-]{2,60}?)\s+is\b/,
+  /\breward\s+address\s+for\s+(?:the\s+)?([A-Z][A-Za-z0-9 .&''’-]{2,60}?)\s+is\b/,
   // "X at address"
-  /\b([A-Z][A-Za-z0-9 .&''-]{2,60}?)\s+at\s+address\b/,
-  // "Recipient: X" / "Multisig: X"
-  /\b(?:Recipient|Multisig|Operator|Owner|Controller|Executor)\s*[:-]\s*([A-Z][A-Za-z0-9 .&''-]{2,60})/,
+  /\b([A-Z][A-Za-z0-9 .&''’-]{2,60}?)\s+at\s+address\b/,
+  // "Recipient: X" / "Multisig: X" — keyword match is case-insensitive
+  /\b(?:Recipient|Multisig|Operator|Owner|Controller|Executor)\s*[:-]\s*([A-Z][A-Za-z0-9 .&''’-]{2,60})/i,
   // Markdown bold/italic name immediately followed by colon: **X:** or *X:*
-  /\*\*([A-Z][A-Za-z0-9 .&''-]{2,60}?)\*\*\s*[:-]/,
+  /\*\*([A-Z][A-Za-z0-9 .&''’-]{2,60}?)\*\*\s*[:-]/,
 ];
 
 // Combined text for pattern scanning: the sliding window plus any table cells
