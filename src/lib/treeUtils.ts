@@ -8,7 +8,7 @@ const FONT = "10px Lora";
 
 const preparedCache = new Map<string, PreparedTextWithSegments>();
 
-export function getPrepared(text: string): PreparedTextWithSegments {
+function getPrepared(text: string): PreparedTextWithSegments {
   let p = preparedCache.get(text);
   if (!p) {
     p = prepareWithSegments(text, FONT);

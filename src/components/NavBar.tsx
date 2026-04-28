@@ -25,7 +25,7 @@ export function NavBar({ activePage, onNavPage }: NavBarProps) {
   );
 }
 
-export function NavLink({
+function NavLink({
   children,
   active,
   onClick,

@@ -60,9 +60,9 @@ export function extractAssignment(content, prefix) {
 // The value may be a role alone ("Operational GovOps"), a named entity alone
 // ("Soter Labs"), or role+name ("Operational GovOps Soter Labs"). Role-only
 // declarations are resolved via the entity chain at edge-emission time.
-export const RP_RE_IS = /(?:The\s+)?Responsible Party\s+is\s+(?:the\s+)?([^.[\n]+?)\s*\./i;
-export const RP_RE_COLON = /Responsible Party:\s*([^\n]+?)\s*(?:\.\s*$|\.(?=\s|\n)|$)/im;
-export const RP_ROLES = [
+const RP_RE_IS = /(?:The\s+)?Responsible Party\s+is\s+(?:the\s+)?([^.[\n]+?)\s*\./i;
+const RP_RE_COLON = /Responsible Party:\s*([^\n]+?)\s*(?:\.\s*$|\.(?=\s|\n)|$)/im;
+const RP_ROLES = [
   { re: /^Operational GovOps\b\s*/i, key: "operational_govops" },
   { re: /^Core GovOps\b\s*/i, key: "core_govops" },
   { re: /^Operational Facilitator\b\s*/i, key: "operational_facilitator" },
@@ -112,19 +112,6 @@ export function extractListItems(content) {
       .map((l) => l.replace(/^Recipient:\s*/i, "").trim())
       .filter(Boolean)
   );
-}
-
-// ---------------------------------------------------------------------------
-// Doc_no-based parent derivation (Atlas depth cap workaround)
-// ---------------------------------------------------------------------------
-
-export function semanticParent(doc, docById, docByDocNo) {
-  if (doc.doc_no.split(".").length <= 7) {
-    return doc.parentId ? docById.get(doc.parentId) : null;
-  }
-  const parts = doc.doc_no.split(".");
-  const parentDocNo = parts.slice(0, -1).join(".");
-  return docByDocNo.get(parentDocNo) ?? null;
 }
 
 export function ancestorByStripping(doc, n, docByDocNo) {

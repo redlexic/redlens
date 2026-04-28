@@ -47,7 +47,6 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "@types/hast": "^3.0.4",
-    "@types/katex": "^0.16.8",
     "@types/lunr": "^2.3.7",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",

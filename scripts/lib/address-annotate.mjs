@@ -11,12 +11,10 @@
 
 import { annotationWindow } from "./address-chains.mjs";
 
-export const ANNOT_WINDOW = 300; // chars before+after address to inspect
-
 // Closed-vocabulary role tags. Each address collects every tag whose pattern
-// fires within ANNOT_WINDOW. Categories below are organizational only — the
+// fires within the annotation window. Categories below are organizational only — the
 // emitted tags are flat strings.
-export const ROLE_VOCAB = {
+const ROLE_VOCAB = {
   // --- Affiliation (only emitted on a positive signal; no default) ---
   // "sky" only fires for proper-noun Sky entities, NOT bare mentions of "Sky"
   // (which appear in nearly every Atlas node and would be useless).
@@ -70,7 +68,7 @@ export const ROLE_VOCAB = {
 
 // Tokens we can plausibly query via viem. Case-sensitive — sUSDS / stUSDS are
 // distinct from USDS, and we want to preserve the canonical casing.
-export const TOKEN_SYMBOLS = [
+const TOKEN_SYMBOLS = [
   "USDS",
   "DAI",
   "SKY",
@@ -84,14 +82,14 @@ export const TOKEN_SYMBOLS = [
   "GROVE",
 ];
 
-export const TOKEN_RE = new RegExp(
+const TOKEN_RE = new RegExp(
   `\\b(${TOKEN_SYMBOLS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\b`,
   "g",
 );
 
 // Entity label patterns — try to pull a proper-noun phrase near the address
 // Each captures group 1 = the entity name
-export const ENTITY_PATTERNS = [
+const ENTITY_PATTERNS = [
   // "address of the X is" / "address of X is"
   /\baddress\s+of\s+(?:the\s+)?([A-Z][A-Za-z0-9 .&'’-]{2,60}?)\s+(?:is|on|at)\b/,
   // "the X address is" / "X's address is"
@@ -109,7 +107,7 @@ export const ENTITY_PATTERNS = [
 // Combined text for pattern scanning: the sliding window plus any table cells
 // and headers (if the address lives in a table). Lets role/token regex see
 // header words that would otherwise be far outside ANNOT_WINDOW.
-export function annotationText(content, matchIndex, addrLength, table) {
+function annotationText(content, matchIndex, addrLength, table) {
   let text = annotationWindow(content, matchIndex, addrLength);
   if (table) {
     if (table.headers.length) text += "\n" + table.headers.join(" | ");
@@ -119,7 +117,7 @@ export function annotationText(content, matchIndex, addrLength, table) {
 }
 
 // Tags that mean "this address belongs to a Sky-ecosystem org"
-export const SKY_ALIGNED_TAGS = new Set(["sky", "spark", "grove", "maker"]);
+const SKY_ALIGNED_TAGS = new Set(["sky", "spark", "grove", "maker"]);
 
 export function extractRoles(content, matchIndex, addrLength, table) {
   const text = annotationText(content, matchIndex, addrLength, table);
@@ -137,7 +135,7 @@ export function extractRoles(content, matchIndex, addrLength, table) {
 
 // Column-header keywords that suggest the cell contains a human-readable name
 // for the row's subject.
-export const LABEL_HEADER_KEYWORDS = [
+const LABEL_HEADER_KEYWORDS = [
   "name",
   "label",
   "entity",
@@ -152,7 +150,7 @@ export const LABEL_HEADER_KEYWORDS = [
   "purpose",
 ];
 
-export function cleanCellLabel(cell) {
+function cleanCellLabel(cell) {
   // Strip common markdown wrapping and escape-chars from a cell value
   return cell
     .replace(/^\*\*(.*?)\*\*$/, "$1")
@@ -163,10 +161,10 @@ export function cleanCellLabel(cell) {
     .trim();
 }
 
-export function looksLikeAddress(val) {
+function looksLikeAddress(val) {
   return /^0x[0-9a-fA-F]{40}$/.test(val) || /^[1-9A-HJ-NP-Za-km-z]{43,44}$/.test(val);
 }
-export function looksLikeNumber(val) {
+function looksLikeNumber(val) {
   return /^[0-9.,%$]+$/.test(val);
 }
 

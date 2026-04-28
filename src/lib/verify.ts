@@ -24,11 +24,7 @@ async function sha256Hex(buf: ArrayBuffer): Promise<string> {
     .join("");
 }
 
-export function expectedHash(name: string): string | undefined {
-  return EXPECTED[name];
-}
-
-export async function fetchVerified(url: string, name: string): Promise<ArrayBuffer> {
+async function fetchVerified(url: string, name: string): Promise<ArrayBuffer> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${name}: ${res.status}`);
   const buf = await res.arrayBuffer();

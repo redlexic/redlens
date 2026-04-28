@@ -25,7 +25,7 @@ export const SUBTYPE_LABEL: Record<string, string> = {
 
 /** Labels vary by the edge's direction relative to the viewer.
  *  `forward` reads "**src** *verb* **tgt**"; `reverse` reads "**tgt** *verb* **src**". */
-export const EDGE_TYPE_LABELS: Record<string, { forward: string; reverse: string }> = {
+const EDGE_TYPE_LABELS: Record<string, { forward: string; reverse: string }> = {
   // entity ↔ entity
   prime_agent_for: { forward: "prime agent for", reverse: "has prime agent" },
   operational_executor_agent_for: {

@@ -4,7 +4,7 @@ import type { RefObject } from "react";
 
 const BASE = import.meta.env.BASE_URL;
 
-export interface Props extends NavBarProps {
+interface Props extends NavBarProps {
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

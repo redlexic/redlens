@@ -3,7 +3,7 @@ import { prepare, layout } from "@chenglou/pretext";
 const ARTICLES_AND_PREPOSITIONS_AND_CONJUNCTIONS =
   /\b(the|a|of|an|and|or|for|in|on|to|at|by|with|from)\b/gi;
 
-export const ABBREVIATIONS: Record<string, string> = {
+const ABBREVIATIONS: Record<string, string> = {
   directory: "Dir.",
   directories: "Dirs.",
   document: "Doc.",
@@ -78,7 +78,7 @@ export const ABBREVIATIONS: Record<string, string> = {
   notifications: "Notifs.",
 };
 
-export function shortenTitle(title: string, maxChars: number, abbrRatio = 0.5): string {
+function shortenTitle(title: string, maxChars: number, abbrRatio = 0.5): string {
   let t = title
     .replace(ARTICLES_AND_PREPOSITIONS_AND_CONJUNCTIONS, "")
     .replace(/\s{2,}/g, " ")

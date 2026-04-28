@@ -7,7 +7,7 @@ import { AddressCard } from "../AddressCard";
 import { NodeHistory } from "../history/NodeHistory";
 import { Integrity } from "./Integrity";
 
-export type RightTab = "annotations" | "history";
+type RightTab = "annotations" | "history";
 
 const HIDE = new Set(["parent_of", "mentions", "proxies_to", "cites"]);
 

@@ -148,7 +148,7 @@ export function buildChainMap(
   return map;
 }
 
-export interface GraphInput {
+interface GraphInput {
   participants: Participant[];
   edges: RelationEdge[];
 }
