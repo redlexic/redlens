@@ -1,6 +1,6 @@
 # RedLens' Sky Atlas
 
-A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github.com/sky-ecosystem/next-gen-atlas). The atlas is included as a git submodule at `vendor/next-gen-atlas/`; the source document is `vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md` (~48k lines, 9,825 nodes).
+A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github.com/sky-ecosystem/next-gen-atlas). The atlas is included as a git submodule at `vendor/next-gen-atlas/`; the source document is `vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md` (~48k lines, 9,825 nodes). When the atlas gets a new commit, trigger the **Atlas Update** GitHub Actions workflow (`.github/workflows/atlas-update.yml`) — it pulls the submodule, rebuilds all artifacts, and opens a PR.
 
 **Atlas Markdown syntax reference**: `vendor/next-gen-atlas/ATLAS_MARKDOWN_SYNTAX.md` — canonical spec for heading format, document numbering, document types, extra fields, and nesting rules. Read this before touching the parser.
 
@@ -37,7 +37,7 @@ The Vite+ binary lives at `~/.vite-plus/0.1.16/bin/vp` (it cannot be run via `pn
 
 Each build pass is its own script. They run in order in `pnpm build`:
 
-Scripts are split: `scripts/required/` holds the build pipeline entry-points wired into `pnpm build:*`; `scripts/lib/` holds shared modules (parsing, regexes, extraction phases) imported by those entry-points; `scripts/aux/` holds offline / one-off / experimental scripts (`fetch-snapshots`, `build-rag`, `query-rag`, `tva.sh`, etc.) that are not part of the core build chain.
+Scripts are split: `scripts/required/` holds the build pipeline entry-points wired into `pnpm build:*`; `scripts/lib/` holds shared modules (parsing, regexes, extraction phases) imported by those entry-points; `scripts/aux/` holds offline / one-off / experimental scripts (`build-rag`, `query-rag`, `tva.sh`, etc.) that are not part of the core build chain.
 
 - **`scripts/required/build-index.mjs`** — parses `Sky Atlas.md`, emits `public/docs.json` (`Record<uuid, AtlasNode>`), `public/search-index.json` (serialized lunr index), and a minimal `public/addresses.atlas.json` (`{ addr: { chain } }`). Annotation (roles, labels, tokens) is deferred to `build-graph` Phase 2.6. Imports `lib/atlas-parser.mjs`, `lib/address-chains.mjs`.
 - **`scripts/required/build-glossary.mjs`** — finds all `Definitions` sections, collects direct `[Core]` children as terms, emits `public/glossary.json` keyed by lowercased term.
@@ -50,7 +50,7 @@ Scripts are split: `scripts/required/` holds the build pipeline entry-points wir
 
 - **`scripts/required/build-graph.mjs`** — pattern-driven relation extraction. **Phase 2.6** (before entity extraction) scans all doc content for addresses and applies structural role/label/token annotation — this replaces what was previously in `build-index`. **Phase 2.5** scans Instance entities for address-valued ICD params and emits `has_address` edges. **Phase 4.5** (five passes) enriches `public/addresses.atlas.json` with ICD-derived roles and labels, entity-linked labels, doc-title labels, and chainlog fallback. Emits `public/graph.json` and `public/relations.json`. No loopback to build-index. See `.claude/skills/graph-atlas/SKILL.md`. Imports `lib/graph-patterns.mjs`, `lib/graph-instances.mjs`, `lib/graph-entities.mjs` (Phase 1), `lib/graph-doc-edges.mjs` (Phase 2 doc edges 2a–2h), `lib/graph-entity-edges.mjs` (Phase 2 entity/address edges 2i–2w), `lib/address-chains.mjs`, `lib/address-annotate.mjs`.
 - **`scripts/required/build-history.mjs`** — walks git log of the atlas submodule, emits `public/history/<uuid>.json` per node. Imports `lib/atlas-parser.mjs` for `HEADING_RE`.
-- **`scripts/required/build-manifest.mjs`** — sha256 digest of every shipping artifact; `vite.config.ts` reads it at build time for integrity verification.
+- **`scripts/required/build-manifest.mjs`** — sha256 digest of every shipping artifact.
 - **`scripts/required/build-at.mjs`** — reproducible build at a pinned atlas commit; orchestrates the other `build:*` scripts.
 
 Heading regex (each node):
@@ -107,8 +107,7 @@ Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanc
 
 - **`AtlasView.tsx`** — main atlas page. Loads atlas + addresses + chain-state + glossary in parallel. Renders a flat virtualized list via `CollapsibleNode`. Computes `linkedNodes`, `targetAddresses`, `glossaryTerms` in a single `useMemo` keyed on `[data, id]`. Passes everything to `RightPanel`.
 - **`CollapsibleNode.tsx`** — single row in the atlas tree. Expand/collapse, depth-based indent, renders node content via `NodeContent`. Nodes at depth ≥ 6 are hidden behind a "view all descendants" button until expanded.
-- **`RightPanel.tsx`** — right annotations panel. Tabs: `annotations` (linked docs, graph relations, addresses, glossary terms, integrity) and `history`. All data arrives as props from `AtlasView`.
-- **`Integrity.tsx`** — shows `doc_no`, `uuid`, `sha256` content hash and provenance link for the selected node.
+- **`RightPanel.tsx`** — right annotations panel. Tabs: `annotations` (linked docs, graph relations, addresses, glossary terms) and `history`. All data arrives as props from `AtlasView`.
 
 **Shared components (`src/components/`):**
 
@@ -160,7 +159,7 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 
 ### Deferred: snapshot pass (view values + balances)
 
-`public/chain-state.json` exists but is populated by `scripts/aux/fetch-snapshots.mjs`. The frontend reads it via `loadChainState()` and `AddressCard` displays values. What's deferred:
+`public/chain-state.json` exists but is populated by `scripts/required/fetch-snapshots.mjs`. The frontend reads it via `loadChainState()` and `AddressCard` displays values. What's deferred:
 
 - Full multicall3 batching via viem for hundreds of view-function reads.
 - GitHub Actions cron refresh (daily for balances, weekly for state).
@@ -168,8 +167,7 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 
 ### Other / background
 
-- **Reduce `unknown` role share** — many addresses sit in markdown tables; `findTableContext` / `annotationText` in `scripts/lib/address-chains.mjs` / `scripts/lib/address-annotate.mjs` is partially done, could be tuned.
-- **Research [pretext](https://github.com/chenglou/pretext)** — possible way to inline structured data into Atlas content.
+
 
 ## File map
 
@@ -191,7 +189,7 @@ scripts/lib/graph-instances.mjs     ICD parameter extraction + instance status
 scripts/lib/graph-entities.mjs      Phase 1 — entity extraction (extractEntities())
 scripts/lib/graph-doc-edges.mjs     Phase 2a–2h — doc-structure edges
 scripts/lib/graph-entity-edges.mjs  Phase 2i–2w — entity + address edges
-scripts/aux/fetch-snapshots.mjs     viem multicall snapshots → chain-state.json
+scripts/required/fetch-snapshots.mjs viem multicall snapshots → chain-state.json
 scripts/aux/build-rag.mjs           offline embeddings → .cache/atlas-rag/
 scripts/aux/query-rag.mjs           query the RAG cache from CLI
 scripts/aux/test-mcp.mjs            sanity check the local MCP server
@@ -219,7 +217,6 @@ src/hooks/useSearch.ts              debounced search hook
 src/components/atlas/AtlasView.tsx  main atlas page; data loading + layout
 src/components/atlas/CollapsibleNode.tsx  tree row; expand/collapse
 src/components/atlas/RightPanel.tsx annotations + history panel
-src/components/atlas/Integrity.tsx  doc_no / uuid / sha256 display
 src/components/NodeContent.tsx      lazy markdown renderer wrapper
 src/components/NodeContentInner.tsx markdown + KaTeX + rehypeEthAddresses
 src/components/RelatedNode.tsx      linked-node card

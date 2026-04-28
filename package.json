@@ -8,7 +8,7 @@
     "build:index": "node --env-file-if-exists=.env.local scripts/required/build-index.mjs",
     "build:glossary": "node scripts/required/build-glossary.mjs",
     "build:addresses": "node --env-file-if-exists=.env.local scripts/required/build-addresses.mjs",
-    "build:snapshot": "node --env-file-if-exists=.env.local scripts/aux/fetch-snapshots.mjs",
+    "build:snapshot": "node --env-file-if-exists=.env.local scripts/required/fetch-snapshots.mjs",
     "build:graph": "node scripts/required/build-graph.mjs",
     "build:rag": "node --env-file-if-exists=.env.local scripts/aux/build-rag.mjs",
     "build:history": "node scripts/required/build-history.mjs",
