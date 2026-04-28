@@ -81,6 +81,16 @@ pnpm dev              # Vite dev server (requires build:index + build:addresses 
 pnpm preview          # serve the production build locally
 ```
 
+## Build at any historical atlas commit
+
+The atlas is a moving target. To audit RedLens against a specific atlas revision, check out the repo and run:
+
+```bash
+pnpm build:at <atlas-commit-sha>   # e.g. ede66d5f2cf3…
+```
+
+This runs only the deterministic, offline pipeline steps and pins the output manifest to the given atlas commit. No API keys needed. Two people running the same command at the same SHA get byte-identical `docs.json`, `search-index.json`, and `manifest.json`. CI enforces this on every push via `REPRO=1 pnpm test`.
+
 ## Atlas MCP server (local)
 
 This repo ships a local [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes the Sky Atlas as queryable tools for Claude Code (or any MCP client). It uses a local vector index over `docs.json` so you can ask natural-language questions about the Atlas without sending any data off your machine.
@@ -184,6 +194,8 @@ The D1 database holds:
 | `edges`       | 12,438 typed edges: `parent_of`, `cites`, `annotates`, `active_data_for`, `member_of`, `member_of_erg`, `has_address`, `mentions`, `proxies_to`  |
 
 ### Infrastructure source
+
+The extraction logic is governed by a Claude Code skill — `.claude/skills/graph-atlas/` — which acts as the living spec for how Atlas markdown conventions map to typed edges. When the Atlas introduces a new structural pattern (a new role vocabulary, a new doc-number convention, a new entity type), the skill is updated first and the extraction code follows. This keeps the "markdown → structured data" translation explicit and reviewable outside the code itself.
 
 The graph build script (`scripts/build-graph.mjs`) lives at the repo root — both the frontend and the MCP Worker consume its outputs. The Worker source lives in `redlens-mcp/`. To rebuild the graph database after an Atlas update:
 
