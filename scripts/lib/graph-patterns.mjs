@@ -129,3 +129,4 @@ export function primitiveRootFor(doc, docByDocNo) {
   const root = docByDocNo.get(m[1]);
   return root && /Primitive$/i.test(root.title) ? root : null;
 }
+

@@ -16,11 +16,11 @@ A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github
 ## Commands
 
 ```bash
-pnpm build:index     # parses Sky Atlas.md → public/docs.json + public/search-index.json
+pnpm build:index     # parses Sky Atlas.md → public/docs.json + public/search-index.json + public/addresses.atlas.json (chain only; annotation added by build-graph)
 pnpm build:glossary  # extracts Definitions sections → public/glossary.json
-pnpm build:addresses # chainlog + Etherscan enrichment → public/addresses.json
+pnpm build:addresses # chainlog + Etherscan enrichment → public/addresses.json (on-chain fields only)
 pnpm build:snapshot  # viem multicall snapshots → public/chain-state.json
-pnpm build:graph     # relation extraction → public/graph.json + public/relations.json
+pnpm build:graph     # Phase 2.6 annotates addresses; relation extraction → public/graph.json + public/relations.json; Phase 4.5 enriches public/addresses.atlas.json
 pnpm build:history   # git log of atlas submodule → public/history/<uuid>.json
 pnpm build:manifest  # sha256 digest of all artifacts → public/manifest.json
 pnpm build:at        # reproducible build at a specific atlas commit
@@ -39,10 +39,16 @@ Each build pass is its own script. They run in order in `pnpm build`:
 
 Scripts are split: `scripts/required/` holds the build pipeline entry-points wired into `pnpm build:*`; `scripts/lib/` holds shared modules (parsing, regexes, extraction phases) imported by those entry-points; `scripts/aux/` holds offline / one-off / experimental scripts (`fetch-snapshots`, `build-rag`, `query-rag`, `tva.sh`, etc.) that are not part of the core build chain.
 
-- **`scripts/required/build-index.mjs`** — parses `Sky Atlas.md`, emits `public/docs.json` (`Record<uuid, AtlasNode>`) and `public/search-index.json` (serialized lunr index). Full-content indexing is intentional — search quality over bundle size. Imports `lib/atlas-parser.mjs`, `lib/address-chains.mjs`, `lib/address-annotate.mjs`, `lib/address-merge.mjs`.
+- **`scripts/required/build-index.mjs`** — parses `Sky Atlas.md`, emits `public/docs.json` (`Record<uuid, AtlasNode>`), `public/search-index.json` (serialized lunr index), and a minimal `public/addresses.atlas.json` (`{ addr: { chain } }`). Annotation (roles, labels, tokens) is deferred to `build-graph` Phase 2.6. Imports `lib/atlas-parser.mjs`, `lib/address-chains.mjs`.
 - **`scripts/required/build-glossary.mjs`** — finds all `Definitions` sections, collects direct `[Core]` children as terms, emits `public/glossary.json` keyed by lowercased term.
-- **`scripts/required/build-addresses.mjs`** — fetches Sky chainlog, calls Etherscan `getsourcecode` per unique address (read-through disk cache at `.cache/etherscan/<chainid>/<addr>.json`), emits `public/addresses.json`. Imports `lib/address-enrich.mjs`.
-- **`scripts/required/build-graph.mjs`** — pattern-driven relation extraction, emits `public/graph.json` (node graph) and `public/relations.json` (typed edges). See `.claude/skills/graph-atlas/SKILL.md` for the full relationship reference. Imports `lib/graph-patterns.mjs`, `lib/graph-instances.mjs`, `lib/graph-entities.mjs` (Phase 1), `lib/graph-doc-edges.mjs` (Phase 2 doc edges 2a–2h), `lib/graph-entity-edges.mjs` (Phase 2 entity/address edges 2i–2w).
+- **`scripts/required/build-addresses.mjs`** — fetches Sky chainlog, calls Etherscan `getsourcecode` per unique address (read-through disk cache at `.cache/etherscan/<chainid>/<addr>.json`), emits `public/addresses.json` (on-chain fields only: `chain`, `chainlogId`, `etherscanName`, `isContract`, `isProxy`, `implementation`). Does **not** delete `public/addresses.atlas.json`. Imports `lib/address-enrich.mjs`.
+
+**Address artifact split:**
+- `public/addresses.atlas.json` — atlas-derived: `chain`, `explorerUrl`, `roles`, `entityLabel`, `aliases`, `expectedTokens`. Written by `build-index`, enriched by `build-graph` Phase 4.5. Permanent artifact.
+- `public/addresses.json` — on-chain: `chain`, `chainlogId?`, `etherscanName?`, `isContract`, `isProxy`, `implementation?`. Written by `build-addresses`. Never contains atlas annotation fields.
+- Frontend `loadAddresses()` loads both in parallel, merges per-address, resolves `label = chainlogId ?? entityLabel ?? etherscanName`.
+
+- **`scripts/required/build-graph.mjs`** — pattern-driven relation extraction. **Phase 2.6** (before entity extraction) scans all doc content for addresses and applies structural role/label/token annotation — this replaces what was previously in `build-index`. **Phase 2.5** scans Instance entities for address-valued ICD params and emits `has_address` edges. **Phase 4.5** (five passes) enriches `public/addresses.atlas.json` with ICD-derived roles and labels, entity-linked labels, doc-title labels, and chainlog fallback. Emits `public/graph.json` and `public/relations.json`. No loopback to build-index. See `.claude/skills/graph-atlas/SKILL.md`. Imports `lib/graph-patterns.mjs`, `lib/graph-instances.mjs`, `lib/graph-entities.mjs` (Phase 1), `lib/graph-doc-edges.mjs` (Phase 2 doc edges 2a–2h), `lib/graph-entity-edges.mjs` (Phase 2 entity/address edges 2i–2w), `lib/address-chains.mjs`, `lib/address-annotate.mjs`.
 - **`scripts/required/build-history.mjs`** — walks git log of the atlas submodule, emits `public/history/<uuid>.json` per node. Imports `lib/atlas-parser.mjs` for `HEADING_RE`.
 - **`scripts/required/build-manifest.mjs`** — sha256 digest of every shipping artifact; `vite.config.ts` reads it at build time for integrity verification.
 - **`scripts/required/build-at.mjs`** — reproducible build at a pinned atlas commit; orchestrates the other `build:*` scripts.
@@ -171,14 +177,14 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 scripts/required/build-index.mjs    parse Sky Atlas.md → docs.json + search-index.json
 scripts/required/build-glossary.mjs extract Definitions → glossary.json
 scripts/required/build-addresses.mjs chainlog + Etherscan → addresses.json (cache at .cache/etherscan/)
-scripts/required/build-graph.mjs    relation extraction → graph.json + relations.json
+scripts/required/build-graph.mjs    relation extraction → graph.json + relations.json; Phase 4.5 enriches addresses.json
 scripts/required/build-history.mjs  git log of atlas submodule → history/<uuid>.json
 scripts/required/build-manifest.mjs sha256 of artifacts → manifest.json
 scripts/required/build-at.mjs       reproducible build at a pinned atlas commit
 scripts/lib/atlas-parser.mjs        HEADING_RE + parse() + cleanContent() + sha256
 scripts/lib/address-chains.mjs      EVM/Solana regexes, chain detection, table-context detection
 scripts/lib/address-annotate.mjs    role/label/expectedTokens extraction (per-node)
-scripts/lib/address-merge.mjs       per-address global merge across nodes
+scripts/lib/address-annotate.mjs    structural role/label/token annotation — called from build-graph Phase 2.6
 scripts/lib/address-enrich.mjs      chainlog fetch + Etherscan getsourcecode + cache I/O
 scripts/lib/graph-patterns.mjs      doc_no/title predicates + content extraction helpers
 scripts/lib/graph-instances.mjs     ICD parameter extraction + instance status

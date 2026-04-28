@@ -120,13 +120,6 @@ function makeEntry(chainid, addr, r) {
 }
 
 // ---------------------------------------------------------------------------
-// Label resolution
-// ---------------------------------------------------------------------------
-function resolveLabel(chainlogId, atlasLabel, etherscanName) {
-  return chainlogId || atlasLabel || etherscanName || null;
-}
-
-// ---------------------------------------------------------------------------
 // Main per-address enrichment loop
 // ---------------------------------------------------------------------------
 export async function enrichAddresses(atlas, chainlog, apiKey) {
@@ -139,19 +132,11 @@ export async function enrichAddresses(atlas, chainlog, apiKey) {
   for (const [addr, info] of Object.entries(atlas)) {
     processed++;
 
-    // Solana — pass through unchanged. Etherscan doesn't cover it; chainlog is
-    // mainnet only. The atlas-derived label is the best we have.
+    // Solana — no on-chain enrichment available (Etherscan is EVM-only;
+    // chainlog is mainnet ETH only). Emit minimal on-chain entry; atlas file
+    // carries all meaningful annotation for Solana addresses.
     if (info.chain === "solana") {
-      out[addr] = {
-        chain: info.chain,
-        explorerUrl: info.explorerUrl,
-        label: info.entityLabel,
-        isContract: false,
-        isProxy: false,
-        roles: info.roles,
-        aliases: info.aliases,
-        expectedTokens: info.expectedTokens,
-      };
+      out[addr] = { chain: "solana", isContract: false, isProxy: false };
       continue;
     }
 
@@ -186,29 +171,18 @@ export async function enrichAddresses(atlas, chainlog, apiKey) {
 
     const chainlogId = chainid === 1 ? chainlog[addr] : undefined;
     const etherscanName = entry.contractName || undefined;
-    const label = resolveLabel(chainlogId, info.entityLabel, etherscanName);
 
-    // Aliases: every distinct non-winning candidate label, plus the atlas's own
-    // alias list, de-duped, sorted, excluding the resolved winner.
-    const candidates = [chainlogId, info.entityLabel, etherscanName].filter(
-      (l) => l && l !== label,
-    );
-    const aliases = [
-      ...new Set([...(info.aliases || []), ...candidates].filter((l) => l && l !== label)),
-    ].sort();
-
+    // On-chain fields only. Atlas fields (roles, entityLabel, explorerUrl,
+    // expectedTokens) stay in addresses.atlas.json and are never written here.
+    // label and aliases are derived at read time by loadAddresses() in the
+    // frontend (chainlogId ?? entityLabel ?? etherscanName).
     out[addr] = {
       chain: info.chain,
-      explorerUrl: info.explorerUrl,
-      label,
       ...(chainlogId ? { chainlogId } : {}),
       ...(etherscanName ? { etherscanName } : {}),
       isContract: Boolean(etherscanName),
       isProxy: entry.proxy,
       ...(entry.implementation ? { implementation: entry.implementation } : {}),
-      roles: info.roles,
-      aliases,
-      expectedTokens: info.expectedTokens,
     };
   }
 

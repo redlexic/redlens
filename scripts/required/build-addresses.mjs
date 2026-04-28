@@ -24,7 +24,7 @@ import { enrichAddresses, fetchImplABIs, fetchChainlog } from "../lib/address-en
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
-const MERGED_PATH = path.join(ROOT, "public/addresses.merged.json");
+const ATLAS_PATH = path.join(ROOT, "public/addresses.atlas.json");
 const OUT_PATH = path.join(ROOT, "public/addresses.json");
 
 const API_KEY = process.env.ETHERSCAN_API_KEY;
@@ -40,10 +40,10 @@ if (!API_KEY) {
 // ---------------------------------------------------------------------------
 let atlas;
 try {
-  atlas = JSON.parse(await fs.readFile(MERGED_PATH, "utf8"));
+  atlas = JSON.parse(await fs.readFile(ATLAS_PATH, "utf8"));
 } catch (err) {
   if (err.code === "ENOENT") {
-    console.error("public/addresses.merged.json not found. Run `pnpm build:index` first.");
+    console.error("public/addresses.atlas.json not found. Run `pnpm build:index` first.");
     process.exit(1);
   }
   throw err;
@@ -60,7 +60,7 @@ const { misses = 0, errors = 0 } = out.__stats ?? {};
 await fetchImplABIs(out, API_KEY);
 
 await fs.writeFile(OUT_PATH, JSON.stringify(out));
-await fs.unlink(MERGED_PATH).catch(() => {});
+// addresses.atlas.json is kept as a permanent artifact — not deleted.
 
 // ---------------------------------------------------------------------------
 // Stats

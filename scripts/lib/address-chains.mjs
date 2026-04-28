@@ -29,7 +29,7 @@ const CHAIN_HINTS = [
   { chain: "gnosis", patterns: [/\bgnosis\b/i, /\bxdai\b/i] },
 ];
 
-export const EXPLORER = {
+const EXPLORER = {
   ethereum: "https://etherscan.io/address/",
   base: "https://basescan.org/address/",
   arbitrum: "https://arbiscan.io/address/",
