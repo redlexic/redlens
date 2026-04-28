@@ -37,7 +37,7 @@ The Vite+ binary lives at `~/.vite-plus/0.1.16/bin/vp` (it cannot be run via `pn
 
 Each build pass is its own script. They run in order in `pnpm build`:
 
-Scripts are split: `scripts/required/` holds the build pipeline entry-points wired into `pnpm build:*`; `scripts/lib/` holds shared modules (parsing, regexes, extraction phases) imported by those entry-points; `scripts/aux/` holds offline / one-off / experimental scripts (`fetch-snapshots`, `build-rag`, `query-rag`, `walk-timeline`, `tva.sh`, etc.) that are not part of the core build chain.
+Scripts are split: `scripts/required/` holds the build pipeline entry-points wired into `pnpm build:*`; `scripts/lib/` holds shared modules (parsing, regexes, extraction phases) imported by those entry-points; `scripts/aux/` holds offline / one-off / experimental scripts (`fetch-snapshots`, `build-rag`, `query-rag`, `tva.sh`, etc.) that are not part of the core build chain.
 
 - **`scripts/required/build-index.mjs`** — parses `Sky Atlas.md`, emits `public/docs.json` (`Record<uuid, AtlasNode>`) and `public/search-index.json` (serialized lunr index). Full-content indexing is intentional — search quality over bundle size. Imports `lib/atlas-parser.mjs`, `lib/address-chains.mjs`, `lib/address-annotate.mjs`, `lib/address-merge.mjs`.
 - **`scripts/required/build-glossary.mjs`** — finds all `Definitions` sections, collects direct `[Core]` children as terms, emits `public/glossary.json` keyed by lowercased term.
@@ -190,8 +190,6 @@ scripts/aux/build-rag.mjs           offline embeddings → .cache/atlas-rag/
 scripts/aux/query-rag.mjs           query the RAG cache from CLI
 scripts/aux/test-mcp.mjs            sanity check the local MCP server
 scripts/aux/test-addresses.mjs      ad-hoc dumps from public/addresses.json
-scripts/aux/walk-timeline.mjs       walk atlas history, build at each commit
-scripts/aux/walk-timeline.sh        bash variant of walk-timeline
 scripts/aux/tva.sh                  TVA — full-history build + test sweep
 public/docs.json                    generated; per-node content + addressRefs[]
 public/glossary.json                generated; glossary terms keyed by lowercased term

@@ -141,7 +141,6 @@ See [`redlens-mcp/AGENTS.md`](redlens-mcp/AGENTS.md) for the full tool reference
 | `fetch-snapshots.mjs` | The implementation behind `build:snapshot` — multicall3 via viem |
 | `build-rag.mjs` | Builds the local vector index for the MCP server |
 | `query-rag.mjs` | CLI query against the local RAG index |
-| `walk-timeline.mjs` | Walk the full atlas history and build at each commit |
 | `tva.sh` | Full-history build + test sweep |
 | `test-addresses.mjs` | Ad-hoc dumps from address metadata |
 | `test-mcp.mjs` | Exercises the local MCP server JSON-RPC protocol |
