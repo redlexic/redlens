@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Multisigs must not utilize any modules or guards, except those explicitly permitted for the applicable use case in [A.2.11.1.3.2.1.1.3.2 - Use-Case Specific Configuration Requirements And Considerations](f8d0e4df-acca-4f20-a030-584efb4a8695)."]]}]

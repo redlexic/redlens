@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Multisig signers must verify EVM-based Multisig transactions prior to signing to ensure that the transaction being signed matches the intended operation."]]}]

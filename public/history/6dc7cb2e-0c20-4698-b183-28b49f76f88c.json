@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Signer rotations must not reduce the total number of signers or decrease the signing threshold unless the Multisig Administrator provides a clear operational or security justification that is submitted to and approved by Core GovOps."]]}]

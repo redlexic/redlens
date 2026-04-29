@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","The Multisig Administrator should maintain access to multiple RPC providers for each supported network to help preserve operational continuity if a primary provider becomes unavailable. Where possible, RPC providers should be selected to minimize shared infrastructure dependencies."]]}]

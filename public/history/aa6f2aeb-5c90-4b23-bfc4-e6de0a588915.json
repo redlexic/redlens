@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Multisig signers must verify all transaction data prior to signing in order to reduce the risk of malicious or unintended transactions being executed. The procedures defined in the documents herein establish the relevant transaction verification processes for supported execution environments."]]}]

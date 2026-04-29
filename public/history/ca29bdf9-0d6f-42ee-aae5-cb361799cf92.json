@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Multisigs managing assets with a value equal to or greater than one million USD ($1,000,000) equivalent must have no fewer than seven (7) signers. This requirement applies to custodial control of assets, not emergency freeze functions."]]}]

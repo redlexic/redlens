@@ -1,0 +1,1 @@
+[{"date":"2026-04-27","commitHash":"569ba9f","changeType":"added","diff":[["+","All admin or privileged controls managed by curator roles must be subject to a minimum timelock delay of three (3) days between scheduling and execution."]]}]

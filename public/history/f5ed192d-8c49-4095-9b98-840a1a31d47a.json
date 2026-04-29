@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Treasury Multisigs must use an allowance module that grants the Sky Pause Proxy allowance equal to the maximum amount of each token held by the Multisig."]]}]

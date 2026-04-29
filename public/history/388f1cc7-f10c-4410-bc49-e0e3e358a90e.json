@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Verification tooling for SVM Multisig transactions is currently more limited than for EVM environments. Signers should exercise additional caution and may cross-verify transactions with other signers prior to execution."]]}]

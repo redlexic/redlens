@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Each Multisig entry in the Multisig Registry must contain the following information:"],["+",""],["+","- Multisig Name"],["+","- Administrator Entity"],["+","- Multisig Address"]]}]

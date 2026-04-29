@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Signers are encouraged to verify transaction hashes and decoded calldata using independent verification tools where available and should avoid relying on a single verification interface."]]}]

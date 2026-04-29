@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Any change to Multisig signer composition must be promptly communicated to Core GovOps by the Multisig Administrator. Core GovOps must update the Multisig Registry to ensure it includes all updated signer addresses."]]}]

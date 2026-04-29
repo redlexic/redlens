@@ -1,0 +1,1 @@
+[{"date":"2026-04-27","commitHash":"569ba9f","changeType":"added","diff":[["+","Pending changes within the timelock must be able to be cancelled by any of the following: the Spark subdao proxy, or a designated guardian role."]]}]

@@ -1,0 +1,1 @@
+[{"date":"2026-04-23","commitHash":"7ec751d","changeType":"added","diff":[["+","Multisig signers must verify Solana Virtual Machine (SVM) Multisig transactions prior to signing to ensure that the proposal contains the intended instructions and parameters."]]}]
