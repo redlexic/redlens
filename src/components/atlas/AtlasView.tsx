@@ -338,6 +338,10 @@ export function AtlasView({
               graphEdges={graphEdges}
               glossaryTerms={glossaryTerms}
               onNavigate={handleNavigate}
+              onNavigateByDocNo={(docNo) => {
+                const uuid = data?.atlas.docNoToId.get(docNo);
+                if (uuid) handleNavigate(uuid);
+              }}
               tab={view}
               onTabChange={onViewChange}
             />

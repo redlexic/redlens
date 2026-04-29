@@ -41,8 +41,9 @@ export interface RadarInstance {
   status: string | null;
   docId: string | null;
   docNo: string | null;
+  primitiveTitle: string | null;
+  primitiveDocId: string | null;
   signalParams: InstanceParam[];
-  paramCount: number;
 }
 export interface Recommendation {
   kind: "missing-rp" | "governance-edge" | "no-rewards";
@@ -60,6 +61,8 @@ export interface ActorProfile {
   relations: ActorRelation[];
   instances: RadarInstance[];
   recommendations: Recommendation[];
+  comprisesMembers: { name: string; slug: string | null }[];
+  partOfComposite: { name: string; slug: string | null } | null;
 }
 export interface SidebarActor {
   id: string;
@@ -98,22 +101,8 @@ const INSTANCE_TYPE_LABEL: Record<string, string> = {
   "core-governance-reward": "Core Governance Reward",
 };
 
-const EVM_RE = /^0x[0-9a-fA-F]{40}$/;
-const SOL_RE = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
-const ADDR_KEY_RE = /address|addr|contract|wallet/i;
-const TOKEN_KEY_RE = /token|symbol|ticker/i;
-const PARTNER_KEY_RE = /partner|party|recipient/i;
-const RATE_KEY_RE = /rate|cadence|limit|max|amount|cap|budget|reward|allocation/i;
-function isSignal(key: string, val: string) {
-  return (
-    EVM_RE.test(val) ||
-    SOL_RE.test(val) ||
-    ADDR_KEY_RE.test(key) ||
-    TOKEN_KEY_RE.test(key) ||
-    PARTNER_KEY_RE.test(key) ||
-    RATE_KEY_RE.test(key)
-  );
-}
+// Params whose values are purely forward references to other docs — no displayable content.
+const PARAM_BLACKLIST = new Set(["Tracking Methodology", "Operational Executor Agent"]);
 
 export function buildSidebarActors(
   graph: GraphData,
@@ -232,21 +221,46 @@ export function buildActorProfile(
 
   const rewardsAgent = rewardsIndex.agents.find((a) => a.agentEntity?.id === entity.id) ?? null;
 
+  // Collect comprises members for composite parties before filtering
+  const comprisesMembers: { name: string; slug: string | null }[] = graph.edges
+    .filter((e) => e.e === "comprises" && e.f === entity.id && e.tt === "entity")
+    .map((e) => {
+      const m = entityById.get(e.t);
+      return { name: m?.name ?? e.t.slice(0, 8), slug: m?.slug ?? null };
+    });
+
+  // If this entity is a member of a composite party, surface that for navigation
+  const compositeEdge = graph.edges.find(
+    (e) => e.e === "comprises" && e.t === entity.id && e.ft === "entity",
+  );
+  const compositeParty = compositeEdge ? entityById.get(compositeEdge.f) : null;
+  const partOfComposite = compositeParty
+    ? { name: compositeParty.name, slug: compositeParty.slug ?? null }
+    : null;
+
   const relations: ActorRelation[] = [];
   for (const e of graph.edges) {
     if (e.ft !== "entity" || e.tt !== "entity" || CHAIN_EDGES.has(e.e)) continue;
+    if (e.e === "comprises" || e.e === "member_of" || e.e === "cites" || e.e === "cited_by") continue;
     if (e.f !== entity.id && e.t !== entity.id) continue;
     const dir = e.f === entity.id ? ("outbound" as const) : ("inbound" as const);
     const otherId = dir === "outbound" ? e.t : e.f;
     const other = entityById.get(otherId);
+    if (!other) continue; // instance or unresolvable entity — skip
     relations.push({
       edge: e,
       direction: dir,
-      otherLabel: other?.name ?? otherId.slice(0, 8),
+      otherLabel: other.name,
       otherId,
-      otherSlug: other?.slug ?? null,
-      otherEt: other?.et ?? null,
+      otherSlug: other.slug ?? null,
+      otherEt: other.et ?? null,
     });
+  }
+
+  // instance config doc ID → primitive doc ID (from instance_of edges)
+  const instanceOfMap = new Map<string, string>();
+  for (const e of graph.edges) {
+    if (e.e === "instance_of" && e.ft === "doc" && e.tt === "doc") instanceOfMap.set(e.f, e.t);
   }
 
   const instances: RadarInstance[] = [];
@@ -257,11 +271,13 @@ export function buildActorProfile(
       if (!meta) continue;
       if (meta.agent_doc_no !== definingDoc.doc_no) continue;
       const signalParams = Object.entries(meta.params)
-        .filter(([k, t]) => isSignal(k, t[0]))
+        .filter(([k]) => !PARAM_BLACKLIST.has(k))
         .map(([key, t]) => ({ key, value: t[0], srcDocId: t[1] || null }));
       const displayName =
         inst.name === "Single" ? (INSTANCE_TYPE_LABEL[inst.st] ?? inst.st) : inst.name;
       const instDoc = inst.did ? docs[inst.did] : null;
+      const primitiveDocId = inst.did ? (instanceOfMap.get(inst.did) ?? null) : null;
+      const primitiveDoc = primitiveDocId ? docs[primitiveDocId] : null;
       instances.push({
         id: inst.id,
         slug: inst.slug,
@@ -271,8 +287,9 @@ export function buildActorProfile(
         status: meta.status,
         docId: inst.did,
         docNo: instDoc?.doc_no ?? meta.primitive_doc_no,
+        primitiveTitle: primitiveDoc?.title ?? null,
+        primitiveDocId,
         signalParams,
-        paramCount: Object.keys(meta.params).length,
       });
     }
   }
@@ -312,5 +329,7 @@ export function buildActorProfile(
     relations,
     instances,
     recommendations,
+    comprisesMembers,
+    partOfComposite,
   };
 }

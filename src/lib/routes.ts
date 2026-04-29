@@ -2,6 +2,7 @@ export const ROUTES = {
   HOME: "/",
   ATLAS: "/atlas",
   RADAR: "/radar",
+  RADAR_ACTOR: "/radar/:slug",
   CONSTELLATIONS: "/constellations",
   SEARCH_HINTS: "/search-hints",
   PROVENANCE: "/provenance",

@@ -82,6 +82,8 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
     relations,
     instances,
     recommendations,
+    comprisesMembers,
+    partOfComposite,
   } = profile;
   const color = ENTITY_TYPE_COLOR[entity.et] ?? "#888";
   const typeLabel =
@@ -118,6 +120,14 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
                   {definingDoc.doc_no} →
                 </button>
               )}
+              {partOfComposite?.slug && (
+                <button
+                  onClick={() => onActor(partOfComposite.slug!)}
+                  className="mono text-[10px] text-tan-3 hover:text-accent hover:underline"
+                >
+                  part of {partOfComposite.name} →
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -132,6 +142,33 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
           />
         </div>
 
+        {entity.et === "composite_party" && (
+          <Section title="Composite Party">
+            <p className="text-sm mb-3" style={{ color: "var(--tan-2)" }}>
+              A composite party is the named legal counterparty in a Sky{" "}
+              <button onClick={() => onNavigate("104c3543-ce94-4a2f-9968-57f1ee858085")} className="text-accent hover:underline">
+                Ecosystem Accord
+              </button>
+              {" "}— an agreement between Sky Ecosystem actors that is enforceable by Sky Governance. It may comprise the Prime Agent and associated legal entities (foundation, development company) acting together as a single party to the accord.
+            </p>
+            {comprisesMembers.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {comprisesMembers.map((m) =>
+                  m.slug ? (
+                    <button key={m.slug} onClick={() => onActor(m.slug!)}
+                      className="text-xs px-2 py-0.5 rounded border border-[var(--border)] text-accent hover:border-[var(--accent)] transition-colors">
+                      {m.name}
+                    </button>
+                  ) : (
+                    <span key={m.name} className="text-xs px-2 py-0.5 rounded border border-[var(--border)] text-tan-2">
+                      {m.name}
+                    </span>
+                  )
+                )}
+              </div>
+            )}
+          </Section>
+        )}
         {adRows.length > 0 && (
           <Section title="Responsibilities">
             <ActorResponsibilities rows={adRows} onNavigate={onNavigate} />

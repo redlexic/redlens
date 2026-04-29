@@ -81,8 +81,10 @@ export interface RelationEdge {
 
 // RelationEdge with worker-resolved labels for entity endpoints
 export interface ResolvedEdge extends RelationEdge {
-  from_label?: string; // entity name when from_type === 'entity'
-  to_label?: string; // entity name when to_type   === 'entity'
+  from_label?: string; // entity name when ft === 'entity'
+  from_did?: string;   // entity defining doc UUID when ft === 'entity'
+  to_label?: string;   // entity name when tt === 'entity'
+  to_did?: string;     // entity defining doc UUID when tt === 'entity'
 }
 
 // Serialized subgraph — passed over postMessage to the main thread (and eventually sigma.js)

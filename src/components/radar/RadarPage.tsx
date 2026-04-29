@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useLocation, useSearchParams } from "wouter";
+import { useLocation } from "wouter";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
 import type { GraphData } from "../../lib/graph";
@@ -14,12 +14,11 @@ import { Drawer, DrawerToggle } from "../Drawer";
 interface Props {
   onNavigate: (id: string) => void;
   query: string;
+  actorSlug?: string;
 }
 
-export function RadarPage({ onNavigate, query }: Props) {
+export function RadarPage({ onNavigate, query, actorSlug }: Props) {
   const [, navigate] = useLocation();
-  const [searchParams] = useSearchParams();
-  const actorSlug = searchParams.get("actor");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [docs, setDocs] = useState<Record<string, AtlasNode> | null>(null);
@@ -61,7 +60,7 @@ export function RadarPage({ onNavigate, query }: Props) {
   }, [actorSlug, graph, docs, rewardsIndex, allActiveDataRows]);
 
   const selectActor = (slug: string) => {
-    navigate(`/radar?actor=${slug}`);
+    navigate(`/radar/${slug}`);
     setDrawerOpen(false);
   };
 

@@ -47,7 +47,11 @@ export default function App() {
 
   const nodeId = location === ROUTES.ATLAS ? searchParams.get("id") : null;
   const atlasView =
-    searchParams.get("view") === "history" ? ("history" as const) : ("annotations" as const);
+    searchParams.get("view") === "history"
+      ? ("history" as const)
+      : searchParams.get("view") === "glossary"
+        ? ("glossary" as const)
+        : ("annotations" as const);
   const activeNavPage: NavPage | null = location.startsWith(ROUTES.CONSTELLATIONS)
     ? "constellations"
     : location.startsWith(ROUTES.REPORTS)
@@ -167,6 +171,13 @@ export default function App() {
               <Suspense fallback={<Loading />}>
                 <ConstellationsPage onNavigate={navigateToNode} query={query} />
               </Suspense>
+            </Route>
+            <Route path={ROUTES.RADAR_ACTOR}>
+              {(params: { slug: string }) => (
+                <Suspense fallback={<Loading />}>
+                  <RadarPage actorSlug={params.slug} onNavigate={navigateToNode} query={query} />
+                </Suspense>
+              )}
             </Route>
             <Route path={ROUTES.RADAR}>
               <Suspense fallback={<Loading />}>

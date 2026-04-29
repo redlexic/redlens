@@ -20,6 +20,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:pr": "bash scripts/aux/check-atlas-pr.sh",
     "tva": "bash scripts/aux/tva.sh",
     "query": "node scripts/aux/query-rag.mjs",
     "mcp:atlas": "node mcp-atlas/server.mjs",
