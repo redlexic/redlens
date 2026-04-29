@@ -18,8 +18,8 @@ import { Footer } from "./components/Footer";
 const ConstellationsPage = lazy(() =>
   import("./components/ConstellationsPage").then((m) => ({ default: m.ConstellationsPage })),
 );
-const OrgFacilitatorsReport = lazy(() =>
-  import("./components/reports/OrgFacilitatorsReport").then((m) => ({ default: m.OFReport })),
+const OpFacilitatorsReport = lazy(() =>
+  import("./components/reports/OpFacilitatorsReport").then((m) => ({ default: m.OFReport })),
 );
 const ActiveDataReport = lazy(() =>
   import("./components/reports/ActiveDataReport").then((m) => ({ default: m.ActiveDataReport })),
@@ -150,7 +150,7 @@ export default function App() {
             </Route>
             <Route path={ROUTES.REPORTS_OF_RESPONSIBILITIES}>
               <Suspense fallback={<Loading />}>
-                <OrgFacilitatorsReport onNavigate={navigateToNode} />
+                <OpFacilitatorsReport onNavigate={navigateToNode} />
               </Suspense>
             </Route>
             <Route path={ROUTES.REPORTS_ACTIVE_DATA}>

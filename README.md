@@ -4,6 +4,14 @@ A search-first reader for the [Sky Atlas](https://github.com/sky-ecosystem/next-
 
 An alternative to [sky-atlas.io](https://sky-atlas.io) with a focus on surfacing the on-chain reality behind the governance text.
 
+## Stack
+
+- **Build/dev**: Vite+ + pnpm + TypeScript
+- **UI**: React 19 + Tailwind v4
+- **Search**: lunr.js (full-content index, runs in a Web Worker)
+- **Markdown**: react-markdown + remark-gfm + KaTeX; custom rehype plugin linkifies on-chain addresses
+- **Graph**: graphology (Web Worker) for typed entity/document relationships
+
 ## Features
 
 ### Search
@@ -51,7 +59,7 @@ cd redlens
 pnpm install
 ```
 
-If you cloned without `--recurse-submodules`, run `git submodule update --init --recursive` to pull the Atlas source.
+If you cloned without `--recurse-submodules`, run  `git submodule update --init --recursive` (aliased as `pnpm pull-atlas`) to pull the Atlas source.
 
 ### Environment variables
 
@@ -109,6 +117,10 @@ This is not part of `pnpm build` — it's slow and requires GitHub API access fo
 
 `main` is auto-deployed to GitHub Pages via `.github/workflows/deploy.yml`. The workflow runs on every push to `main`, daily on a schedule, and on manual trigger. It requires two repository secrets: `ETHERSCAN_API_KEY` and `ETH_RPC_URL`.
 
+## Keeping the atlas up to date
+
+The Sky Atlas is a git submodule at `vendor/next-gen-atlas/`. When the upstream atlas gets a new commit, trigger the **Atlas Update** GitHub Actions workflow (`.github/workflows/atlas-update.yml`) — it pulls the submodule, rebuilds all artifacts, and opens a PR.
+
 ## Other tools
 
 These are not part of the web app build and are not required for local development.
@@ -138,7 +150,6 @@ See [`redlens-mcp/AGENTS.md`](redlens-mcp/AGENTS.md) for the full tool reference
 
 | Script | Purpose |
 |---|---|
-| `fetch-snapshots.mjs` | The implementation behind `build:snapshot` — multicall3 via viem |
 | `build-rag.mjs` | Builds the local vector index for the MCP server |
 | `query-rag.mjs` | CLI query against the local RAG index |
 | `tva.sh` | Full-history build + test sweep |
