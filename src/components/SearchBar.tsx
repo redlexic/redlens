@@ -43,7 +43,7 @@ export function SearchBar({
         <NavBar activePage={activePage} onNavPage={onNavPage} />
 
         <div
-          className={`search-input-wrap order-3 sm:order-2 w-full sm:w-auto sm:flex-1 sm:max-w-[440px] flex items-center rounded border min-w-0${disabled ? " opacity-40 cursor-wait" : ""}`}
+          className={`search-input-wrap order-3 sm:order-2 w-full sm:w-auto sm:flex-1 sm:max-w-[616px] flex items-center rounded border min-w-0${disabled ? " opacity-40 cursor-wait" : ""}`}
           data-scope={scope}
         >
           <svg

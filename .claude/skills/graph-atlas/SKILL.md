@@ -13,7 +13,7 @@ description: >
 license: MIT
 metadata:
   author: anscharo
-  version: "1.6"
+  version: "1.7"
 ---
 
 # graph-atlas
@@ -333,17 +333,36 @@ Ranked delegate status is layered on top of Aligned Delegate status — if the e
 
 ### Pattern 11: Role bindings (`holds_role_for`)
 
-Ad-hoc role assignments where a named entity holds a specific atlas-defined role. Currently one instance:
+Ad-hoc role assignments where a named entity holds a specific atlas-defined role. Each role has a "Designated [Role Name]" doc whose content contains `"role is held by [Name]"`.
 
-| doc_no        | Role slug                   | Holder (content)                                         |
-| ------------- | --------------------------- | -------------------------------------------------------- |
-| `A.1.7.1.1.2` | `core_council_risk_advisor` | "The Core Council Risk Advisor role is held by BA Labs." |
+**Structure** (under `A.1.7.1.*`):
 
-Extraction: match `/role is held by\s+([^.]+)\./i`. Ensure the holder exists in `entityMap` (create as `ecosystem_actor` if new). Emit:
+```
+A.1.7.1.X       {Role Name}                   ← role definition
+A.1.7.1.X.1     {Role Name} Requirements
+A.1.7.1.X.2     Designated {Role Name}        ← binding doc; contains "role is held by [Name]."
+```
+
+**Detection** (UUID-anchored — no title scanning): start from `ACTIVE_ECOSYSTEM_ACTORS_UUID` (`1ef5767b-60bc-446a-af45-4eccdb20c023`). Each direct child of that section is a role definition doc (`A.1.7.1.X`); its `.2` child is the binding doc. Check binding doc content for `/role is held by\s+([^.]+)\./i`. For each match:
+
+- Holder name = capture group, trimmed
+- Role slug = role definition doc title `.toLowerCase().replace(/\s+/g, "_")` (e.g. `"Core Council Risk Advisor"` → `core_council_risk_advisor`)
+- Structural check: `CCRA_BINDING_UUID` (`51b1fe46-2251-4078-a805-e2b40aaaf729`) must be found in the walk — warns if the section has restructured
+
+Currently known bindings (discovered by the walk, not hardcoded):
+
+| binding doc UUID | binding doc_no | Role slug                           | Holder |
+| ---------------- | -------------- | ----------------------------------- | ------ |
+| `51b1fe46` (pinned) | `A.1.7.1.1.2` | `core_council_risk_advisor`      | BA Labs |
+| `57fa2bd5` (PR #227) | `A.1.7.1.2.2` | `protocol_security_workstream_lead` | Vamsi |
+
+New roles added under `A.1.7.1` are picked up automatically — no code changes needed.
+
+Emit for each binding doc found:
 
 - `holds_role_for`: `entity(holder) → doc(binding_doc)`, `meta.role = "<role_slug>"`, source: `[binding_doc_no]`
 
-Destination is the binding doc because the atlas does not always give the role a distinct entity target. Add future role bindings as new rows in the table above; the extraction pattern is generic.
+Destination is the binding doc because the atlas does not give the role a distinct entity target. The `roleBindingTitles` set (used to suppress duplicate ecosystem_actor creation in Pattern 6) is populated from the same UUID-anchored walk — role definition titles (e.g. `"core council risk advisor"`) are added directly.
 
 ### Pattern 12: Composite accord parties
 

@@ -17,9 +17,9 @@
  * Run: ETHERSCAN_API_KEY=… node --env-file-if-exists=.env.local scripts/required/build-addresses.mjs
  */
 
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { enrichAddresses, fetchImplABIs, fetchChainlog } from "../lib/address-enrich.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -29,10 +29,11 @@ const OUT_PATH = path.join(ROOT, "public/addresses.json");
 
 const API_KEY = process.env.ETHERSCAN_API_KEY;
 if (!API_KEY) {
-  console.error(
-    "ETHERSCAN_API_KEY not set. Add it to .env.local (the build script runs with --env-file-if-exists=.env.local).",
+  console.warn(
+    "ETHERSCAN_API_KEY not set — skipping address enrichment. Committed public/addresses.json will be used as-is.\n" +
+    "Add it to .env.local to rebuild (build script runs with --env-file-if-exists=.env.local).",
   );
-  process.exit(1);
+  process.exit(0);
 }
 
 // ---------------------------------------------------------------------------

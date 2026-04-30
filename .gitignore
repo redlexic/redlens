@@ -40,3 +40,4 @@ note.md
 .lighthouse-report*
 
 .cache/pr-check/*
+.cache/pr-check/pr227-ffe21c9.md
