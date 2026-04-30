@@ -56,13 +56,27 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   idPrefix?: string;
 }) {
   const { node, depth, color, indentPadding, hasContent } = entry;
+  const HeadingTag = `h${Math.min(depth, 6)}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
   return (
     <div
       id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
       className="atlas-node relative"
+      tabIndex={0}
       onClick={(e: React.MouseEvent) => {
-        if (!(e.target as Element).closest('a, button, [role="button"]')) onNavigate(node.id);
+        if ((e.target as Element).closest('a, button, [role="button"]')) return;
+        if (e.shiftKey && onShiftNavigate) {
+          e.preventDefault();
+          onShiftNavigate(node.id);
+        } else {
+          onNavigate(node.id);
+        }
+      }}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onNavigate(node.id);
+        }
       }}
       style={{
         padding: 4,
@@ -122,29 +136,13 @@ export const CollapsibleNode = memo(function CollapsibleNode({
         >
           {hasContent ? (isExpanded ? "\u25BE" : "\u25B8") : "\u00B7"}
         </span>
-        <div
-          role="button"
-          tabIndex={0}
-          className="atlas-node-title flex items-center gap-2 py-1.5 cursor-pointer"
-          onClick={(e: React.MouseEvent) => {
-            if (e.shiftKey && onShiftNavigate) {
-              e.preventDefault();
-              onShiftNavigate(node.id);
-            } else onNavigate(node.id);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onNavigate(node.id);
-            }
-          }}
-        >
-          <span
+        <div className="atlas-node-title flex items-center gap-2 py-1.5">
+          <HeadingTag
             className={DEPTH_HEADING[depth] ?? "text-sm font-medium"}
             style={{ color: isSelected ? "var(--tan)" : "var(--tan-2)" }}
           >
             {node.title}
-          </span>
+          </HeadingTag>
           <span className="text-[10px] mono text-tan-3">{node.id}</span>
         </div>
       </div>

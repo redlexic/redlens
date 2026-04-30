@@ -11,5 +11,68 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2025-11-21",
+    "commitHash": "22cc27b",
+    "changeType": "added",
+    "pr": 117,
+    "prTitle": "Migrate To Markdown File",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/117",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Migrate To Markdown File",
+    "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "Every Monday, the Operational Weekly Cycle begins. It implements standard recurring operational decisions, proposed in the form of polls."
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "Operational Weekly Cycle proposals (\"proposals\") can be proposed by Facilitators and recognized Ecosystem Actors. The proposals should be posted to the Sky Forum by Friday at 8:00 am UTC to ensure the Core Facilitator "
+          ],
+          [
+            "-",
+            "have"
+          ],
+          [
+            "+",
+            "has"
+          ],
+          [
+            "=",
+            " sufficient time to prepare the needed polls for the following Monday."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "After confirming that the proposer has the authority to request a poll, the Facilitator must post an explicit approval of the poll request as a reply to the proposer’s Forum thread. The Core Facilitator must then prepare and publish the Governance Poll."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

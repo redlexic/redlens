@@ -17,7 +17,6 @@ import {
   extractRP,
   rpRoleAndName,
   ALIGNED_DELEGATES_DOC_NO,
-  CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
   ERG_DOC_NO,
 } from "./graph-patterns.mjs";
 
@@ -28,8 +27,7 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
     labelToAddresses,
     alignedDelegateNames,
     rankedDelegatesByLevel,
-    ccraHolder,
-    ccraDoc,
+    roleBindings,
     ergDoc,
     ergMemberNames,
     accordPartyDocsByAccordDocNo,
@@ -167,15 +165,15 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
   }
 
   // --- 2o. holds_role_for (Pattern 11) ---
-  if (ccraHolder && ccraDoc) {
+  for (const { holder, bindingDoc, roleSlug } of roleBindings) {
     addEdge(
-      ccraHolder.id,
+      holder.id,
       "entity",
-      ccraDoc.id,
+      bindingDoc.id,
       "doc",
       "holds_role_for",
-      [CORE_COUNCIL_RISK_ADVISOR_DOC_NO],
-      JSON.stringify({ role: "core_council_risk_advisor" }),
+      [bindingDoc.doc_no],
+      JSON.stringify({ role: roleSlug }),
     );
   }
 

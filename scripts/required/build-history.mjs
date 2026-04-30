@@ -586,7 +586,7 @@ async function main() {
   for (const [nodeId, newEntries] of newHistory) {
     const filePath = path.join(OUT_DIR, `${nodeId}.json`);
     const existing = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, "utf8")) : [];
-    fs.writeFileSync(filePath, JSON.stringify([...existing, ...newEntries]));
+    fs.writeFileSync(filePath, JSON.stringify([...existing, ...newEntries], null, 2) + "\n");
     fileCount++;
   }
 
@@ -599,7 +599,7 @@ async function main() {
   for (const [nodeId, newEntries] of newHistory) {
     manifest[nodeId] = (manifest[nodeId] ?? 0) + newEntries.length;
   }
-  fs.writeFileSync(manifestFile, JSON.stringify(manifest));
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2) + '\n');
   console.error(`manifest: ${Object.keys(manifest).length} nodes with history`);
 
   // Checkpoint: record the last processed commit for next incremental run

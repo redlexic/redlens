@@ -18,8 +18,8 @@ import { Footer } from "./components/Footer";
 const ConstellationsPage = lazy(() =>
   import("./components/ConstellationsPage").then((m) => ({ default: m.ConstellationsPage })),
 );
-const OrgFacilitatorsReport = lazy(() =>
-  import("./components/reports/OrgFacilitatorsReport").then((m) => ({ default: m.OFReport })),
+const OpFacilitatorsReport = lazy(() =>
+  import("./components/reports/OpFacilitatorsReport").then((m) => ({ default: m.OFReport })),
 );
 const ActiveDataReport = lazy(() =>
   import("./components/reports/ActiveDataReport").then((m) => ({ default: m.ActiveDataReport })),
@@ -47,7 +47,11 @@ export default function App() {
 
   const nodeId = location === ROUTES.ATLAS ? searchParams.get("id") : null;
   const atlasView =
-    searchParams.get("view") === "history" ? ("history" as const) : ("annotations" as const);
+    searchParams.get("view") === "history"
+      ? ("history" as const)
+      : searchParams.get("view") === "glossary"
+        ? ("glossary" as const)
+        : ("annotations" as const);
   const activeNavPage: NavPage | null = location.startsWith(ROUTES.CONSTELLATIONS)
     ? "constellations"
     : location.startsWith(ROUTES.REPORTS)
@@ -150,7 +154,7 @@ export default function App() {
             </Route>
             <Route path={ROUTES.REPORTS_OF_RESPONSIBILITIES}>
               <Suspense fallback={<Loading />}>
-                <OrgFacilitatorsReport onNavigate={navigateToNode} />
+                <OpFacilitatorsReport onNavigate={navigateToNode} />
               </Suspense>
             </Route>
             <Route path={ROUTES.REPORTS_ACTIVE_DATA}>
@@ -167,6 +171,13 @@ export default function App() {
               <Suspense fallback={<Loading />}>
                 <ConstellationsPage onNavigate={navigateToNode} query={query} />
               </Suspense>
+            </Route>
+            <Route path={ROUTES.RADAR_ACTOR}>
+              {(params: { slug: string }) => (
+                <Suspense fallback={<Loading />}>
+                  <RadarPage actorSlug={params.slug} onNavigate={navigateToNode} query={query} />
+                </Suspense>
+              )}
             </Route>
             <Route path={ROUTES.RADAR}>
               <Suspense fallback={<Loading />}>

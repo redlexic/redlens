@@ -1,0 +1,100 @@
+[
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Operational Assessment defines the assessment process in which the operational response requirements of a Multisig are evaluated. The result of this evaluation is the assignment of an Operational Classification type as defined below. The Multisig Administrator is responsible for determining this classification and must provide it to Core GovOps as part of the Multisig registration process in accordance with [A.2.11.1.3.2.1.1.8 - Multisig Registration](110614e9-6375-464a-90b3-3b350d3cf79c)."
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "| **Operational Classification Type** | **Response Time** | **Decision Context** | **Verification Process** |"
+      ],
+      [
+        "+",
+        "|---|---|---|---|"
+      ],
+      [
+        "+",
+        "| Routine | 24 - 48 hours | Standard procedures, predictable operations | Full verification protocols |"
+      ],
+      [
+        "+",
+        "| Time-Sensitive | 2 - 12 hours | Market conditions, protocol needs | Streamlined but thorough |"
+      ],
+      [
+        "+",
+        "| Emergency | <2 hours | Crisis response, preventing immediate damage | Minimal delays, risk-appropriate |"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "When a Multisig falls between two classification levels, the higher security classification must be selected."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Operational Assessment defines the assessment process in which the operational response requirements of a Multisig are evaluated. The result of this evaluation is the assignment of an Operational Classification type as defined below. The Multisig Administrator is responsible for determining this classification and must provide it to Core GovOps as part of the Multisig registration process in accordance with [A.2.11.1.3.2.1.1.8 - Multisig Registration](110614e9-6375-464a-90b3-3b350d3cf79c)."
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "| **Operational Classification Type** | **Response Time** | **Decision Context** | **Verification Process** |"
+      ],
+      [
+        "+",
+        "|---|---|---|---|"
+      ],
+      [
+        "+",
+        "| Routine | 24 - 48 hours | Standard procedures, predictable operations | Full verification protocols |"
+      ],
+      [
+        "+",
+        "| Time-Sensitive | 2 - 12 hours | Market conditions, protocol needs | Streamlined but thorough |"
+      ],
+      [
+        "+",
+        "| Emergency | <2 hours | Crisis response, preventing immediate damage | Minimal delays, risk-appropriate |"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "When a Multisig falls between two classification levels, the higher security classification must be selected."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

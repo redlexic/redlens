@@ -1,6 +1,6 @@
 # RedLens' Sky Atlas
 
-A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github.com/sky-ecosystem/next-gen-atlas). The atlas is included as a git submodule at `vendor/next-gen-atlas/`; the source document is `vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md` (~48k lines, 9,825 nodes). When the atlas gets a new commit, trigger the **Atlas Update** GitHub Actions workflow (`.github/workflows/atlas-update.yml`) — it pulls the submodule, rebuilds all artifacts, and opens a PR.
+A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github.com/sky-ecosystem/next-gen-atlas). The atlas is included as a git submodule at `vendor/next-gen-atlas/`; the source document is `vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md` (~50k lines, ~10,200 nodes). When the atlas gets a new commit, trigger the **Atlas Update** GitHub Actions workflow (`.github/workflows/atlas-update.yml`) — it pulls the submodule, rebuilds all artifacts, and opens a PR.
 
 **Atlas Markdown syntax reference**: `vendor/next-gen-atlas/ATLAS_MARKDOWN_SYNTAX.md` — canonical spec for heading format, document numbering, document types, extra fields, and nesting rules. Read this before touching the parser.
 
@@ -24,9 +24,14 @@ pnpm build:graph     # Phase 2.6 annotates addresses; relation extraction → pu
 pnpm build:history   # git log of atlas submodule → public/history/<uuid>.json
 pnpm build:manifest  # sha256 digest of all artifacts → public/manifest.json
 pnpm build:at        # reproducible build at a specific atlas commit
+pnpm pull-atlas      # git submodule update --init --recursive (populate submodule after a shallow clone)
 pnpm build:rag       # embedding vectors → .cache/atlas-rag/ (offline, not in main build)
 pnpm dev             # vite dev server
+pnpm preview         # serve the production build locally
 pnpm build           # full pipeline: index → glossary → addresses → snapshot → graph → manifest → tsc → vite
+REPRO=1 pnpm test    # reproducibility check — two builds at the same atlas SHA must be byte-identical
+pnpm test:snap       # graph snapshot tests — fail if relations.json structure changed (graph-snapshots/)
+pnpm test:snap:update  # update graph snapshots after a deliberate atlas PR or build-graph change
 ```
 
 The Vite+ binary lives at `~/.vite-plus/0.1.16/bin/vp` (it cannot be run via `pnpm dlx`).
@@ -67,31 +72,7 @@ Each node has: `id` (uuid), `doc_no` (e.g. `A.0.1.1`), `title`, `type`, `depth` 
 
 ### On-chain address extraction
 
-Detected at build time in `scripts/required/build-index.mjs` (regex + chain detection live in `scripts/lib/address-chains.mjs`; role/label/token annotation in `scripts/lib/address-annotate.mjs`). Each node stores `addressRefs: string[]` pointing into the shared `addresses.json`.
-
-**Patterns:**
-
-- EVM: `/(?<![0-9a-fA-F])0x[0-9a-fA-F]{40}(?![0-9a-fA-F])/g`
-- Solana: `/\b[1-9A-HJ-NP-Za-km-z]{43,44}\b/g` (base58, 43–44 chars — assumed Solana by pattern alone)
-
-The hex-boundary lookarounds on the EVM pattern are **load-bearing**: without them, the regex matches the leading 40 hex chars of any longer hex blob — transaction hashes (64 hex), bytes32 values, raw calldata — and ships those phantom addresses into `addresses.json`. Both `scripts/lib/address-chains.mjs` (consumed by `build-index`) and `src/components/NodeContent.tsx` use the same boundary form and must stay in sync. If you change one, change both.
-
-**0x + 64 hex values** (tx hashes, bytes32 constants, role IDs, domain separators, etc.) are **not linked** — they are visually identical and cannot be reliably distinguished from context.
-
-**Chain detection (`detectChain`)** — three-pass priority:
-
-1. Explicit phrase: `address on [the] CHAIN is` in the 120 chars before the address (most reliable signal — user explicitly asked for this).
-2. Tight-window keyword scan (120 chars before).
-3. Wide-window keyword scan (300 chars before).
-4. Fallback: `ethereum`.
-
-Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanche, gnosis, solana.
-
-**Address classification:** each address gets:
-
-- `roles`: `string[]` — flat multi-tag array from a closed vocabulary (`ROLE_VOCAB` in `scripts/lib/address-annotate.mjs`).
-- `entityLabel`: best-effort proper-noun phrase pulled from the 200 chars before the address.
-- `expectedTokens`: `string[]` of token symbols mentioned within ±300 chars.
+See `.claude/skills/address-extraction/SKILL.md` for the full reference: EVM/Solana regex patterns, the load-bearing hex-boundary lookarounds, chain detection algorithm, `ROLE_VOCAB` classification, and the sync constraint between `address-chains.mjs` and `NodeContent.tsx`.
 
 ### Frontend
 
@@ -107,7 +88,7 @@ Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanc
 
 - **`AtlasView.tsx`** — main atlas page. Loads atlas + addresses + chain-state + glossary in parallel. Renders a flat virtualized list via `CollapsibleNode`. Computes `linkedNodes`, `targetAddresses`, `glossaryTerms` in a single `useMemo` keyed on `[data, id]`. Passes everything to `RightPanel`.
 - **`CollapsibleNode.tsx`** — single row in the atlas tree. Expand/collapse, depth-based indent, renders node content via `NodeContent`. Nodes at depth ≥ 6 are hidden behind a "view all descendants" button until expanded.
-- **`RightPanel.tsx`** — right annotations panel. Tabs: `annotations` (linked docs, graph relations, addresses, glossary terms) and `history`. All data arrives as props from `AtlasView`.
+- **`RightPanel.tsx`** — right annotations panel. Three tabs: `annotations` (linked docs, graph relations, addresses), `glossary` (terms found in this section), `history`. All data arrives as props from `AtlasView`. Tab state is URL-synced via `?view=glossary` / `?view=history`.
 
 **Shared components (`src/components/`):**
 
@@ -124,8 +105,20 @@ Supported chains/explorers: ethereum, base, arbitrum, optimism, polygon, avalanc
 - **`src/lib/docs.ts`** — `loadAtlas()` module-level Promise cache for `docs.json`.
 - **`src/lib/addresses.ts`** — `loadAddresses()` module-level cache for `addresses.json`.
 - **`src/lib/glossary.ts`** — `loadGlossary()` + `buildLookup()`. Lookup flattens parenthetical aliases (`"Accessibility Scope (ACC)"` → keys for both `"accessibility scope"` and `"acc"`).
-- **`src/lib/graph.ts`** — `getEdges()`, `getNeighbors()`, `getSubgraph()` — async wrappers that message the graph worker.
+- **`src/lib/graph.ts`** — `loadGraph()` (cached graph data for reports/radar), `getEdges(id)` — async wrapper that messages the graph worker for a node's edges.
 - **`src/lib/atlasHelpers.ts`** — shared helpers (`extractLinkedIds`, `buildAncestors`) and the `LoadedData` interface.
+
+**Radar (`src/components/radar/`):**
+
+Entity-focused view at `/radar` (index) and `/radar/:slug` (actor page). Builds actor profiles from the graph — chain (prime → executor → facilitator/govops), active data responsibilities, reward instances, primitive instances with params, and governance relationships. Key files: `RadarPage.tsx` (routing + data loading), `ActorDashboard.tsx` (layout), `ActorInstances.tsx`, `ActorChain.tsx`, `ActorResponsibilities.tsx`. Data logic lives in `src/lib/actorIndex.ts` (`buildActorProfile`, `buildSidebarActors`).
+
+**Reports (`src/components/reports/`):**
+
+Three reports at `/reports/*`: Op Facilitator Responsibilities, Active Data Index, Integrator Reward Relationships. Data logic is separated into pure modules (`src/lib/facilitatorResponsibilities.ts`, `src/lib/activeDataIndex.ts`, `src/lib/rewardsIndex.ts`) so they're testable without React.
+
+**Graph snapshots (`graph-snapshots/`):**
+
+Vitest snapshot tests that record the current state of `relations.json`. Run `pnpm test:snap` to verify no drift; run `pnpm test:snap:update` to accept deliberate changes. Uses `vitest.snap.config.ts` (separate from the main `vitest.config.ts` which excludes this folder).
 
 ### Base path
 
@@ -145,6 +138,7 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 
 ## Conventions / preferences
 
+- **Use semantic HTML elements**: `h1`–`h6` for headings, `<button>` for actions, `<a>` for navigation, `<article>`/`<section>`/`<header>` for sectioned content. Prefer native elements over `<div>`/`<span>` with ARIA roles when a semantic element fits.
 - **Don't add hover/click logic in JS when CSS will do it.**
 - **The home button is a plain HTML link** (`<a href="/">`), not an `onClick` handler.
 - **Search quality > bundle size** for the lunr index. Full-content indexing is intentional.
@@ -154,6 +148,13 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 - **Show stats before touching the UI** when changing the build pipeline. The user wants to see counts/samples before any visual change consumes new data.
 - **Each build pass gets its own script** (`scripts/required/build-<thing>.mjs`) and its own `pnpm build:<thing>`. Don't add new passes to `build-index.mjs`. Shared logic belongs in `scripts/lib/`.
 - **Max 3 components per file** (only if 2 are <8 lines); max ~150 lines per file.
+- **Node stdlib imports use `node:` prefix**: `import fs from "node:fs"`, `import path from "node:path"`, etc. Never bare `"fs"` or `"path"`.
+- **Prefer MCP atlas tools over grep** for atlas content exploration: `atlas_get`, `atlas_search`, `atlas_neighbors`. Use grep only for exact known strings (UUIDs, addresses, regex patterns).
+- **Never hardcode doc_nos as identifiers.** Doc numbers (e.g. `A.2.2.8.1`) are editorial labels that change whenever the atlas is renumbered — PR #235 proved this. UUIDs are the stable identity. Rules:
+  - To look up a specific document: use its UUID as the key into `docs[uuid]` or `byParent.get(uuid)`.
+  - To record a doc_no in source for human reference: put it in a comment next to the UUID (`// A.1.6`), never as the lookup key.
+  - Doc_no **prefix matching** (`.startsWith("A.6.1.1.")`) for scope membership is also fragile: if the scope's own doc_no changes, every descendant prefix breaks. Prefer UUID-based ancestor checking via `parent_of` edges when refactoring those paths. Existing prefix matches are annotated with `// fragile: doc_no prefix` until migrated.
+  - **Exception — spec-defined structural suffix patterns**: `ATLAS_MARKDOWN_SYNTAX.md` explicitly defines these suffixes as invariant parts of the format: `.0.3.X` (Annotation), `.0.4.X` (Action Tenet), `.1.X` (Scenario), `.varX` (Scenario Variation), `.0.6.X` (Active Data), `NR-X` (Needed Research). Regex and `startsWith`/`endsWith` checks against these structural suffixes are stable and correct — the spec guarantees them, they are not editorial doc_nos.
 
 ## Pending work
 
@@ -166,76 +167,3 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 - Atlas/chain drift detection: diff atlas-stated values against snapshot values at build time, surface warnings in the UI.
 
 ### Other / background
-
-
-
-## File map
-
-```
-scripts/required/build-index.mjs    parse Sky Atlas.md → docs.json + search-index.json
-scripts/required/build-glossary.mjs extract Definitions → glossary.json
-scripts/required/build-addresses.mjs chainlog + Etherscan → addresses.json (cache at .cache/etherscan/)
-scripts/required/build-graph.mjs    relation extraction → graph.json + relations.json; Phase 4.5 enriches addresses.json
-scripts/required/build-history.mjs  git log of atlas submodule → history/<uuid>.json
-scripts/required/build-manifest.mjs sha256 of artifacts → manifest.json
-scripts/required/build-at.mjs       reproducible build at a pinned atlas commit
-scripts/lib/atlas-parser.mjs        HEADING_RE + parse() + cleanContent() + sha256
-scripts/lib/address-chains.mjs      EVM/Solana regexes, chain detection, table-context detection
-scripts/lib/address-annotate.mjs    role/label/expectedTokens extraction (per-node)
-scripts/lib/address-annotate.mjs    structural role/label/token annotation — called from build-graph Phase 2.6
-scripts/lib/address-enrich.mjs      chainlog fetch + Etherscan getsourcecode + cache I/O
-scripts/lib/graph-patterns.mjs      doc_no/title predicates + content extraction helpers
-scripts/lib/graph-instances.mjs     ICD parameter extraction + instance status
-scripts/lib/graph-entities.mjs      Phase 1 — entity extraction (extractEntities())
-scripts/lib/graph-doc-edges.mjs     Phase 2a–2h — doc-structure edges
-scripts/lib/graph-entity-edges.mjs  Phase 2i–2w — entity + address edges
-scripts/required/fetch-snapshots.mjs viem multicall snapshots → chain-state.json
-scripts/aux/build-rag.mjs           offline embeddings → .cache/atlas-rag/
-scripts/aux/query-rag.mjs           query the RAG cache from CLI
-scripts/aux/test-mcp.mjs            sanity check the local MCP server
-scripts/aux/test-addresses.mjs      ad-hoc dumps from public/addresses.json
-scripts/aux/tva.sh                  TVA — full-history build + test sweep
-public/docs.json                    generated; per-node content + addressRefs[]
-public/glossary.json                generated; glossary terms keyed by lowercased term
-public/addresses.json               generated; address metadata (no ABIs)
-public/graph.json                   generated; node graph
-public/relations.json               generated; typed edges for the graph worker
-public/chain-state.json             generated; on-chain value snapshots
-public/history/<uuid>.json          generated; per-node git history
-.cache/etherscan/<chainid>/<addr>   committed; Etherscan getsourcecode cache
-src/App.tsx                         shell; routing, URL sync, layout
-src/lib/docs.ts                     loadAtlas() module cache
-src/lib/addresses.ts                loadAddresses() module cache
-src/lib/glossary.ts                 loadGlossary() + buildLookup()
-src/lib/graph.ts                    getEdges/getNeighbors/getSubgraph → graph worker
-src/lib/atlasHelpers.ts             extractLinkedIds, buildAncestors, LoadedData
-src/lib/addressMap.ts               module-level shared map for rehype plugin
-src/workers/search.worker.ts        lunr query + phrase post-filter
-src/workers/atlas.worker.ts         docs.json loader/parser
-src/workers/graph.worker.ts         graphology BFS + edge queries
-src/hooks/useSearch.ts              debounced search hook
-src/components/atlas/AtlasView.tsx  main atlas page; data loading + layout
-src/components/atlas/CollapsibleNode.tsx  tree row; expand/collapse
-src/components/atlas/RightPanel.tsx annotations + history panel
-src/components/NodeContent.tsx      lazy markdown renderer wrapper
-src/components/NodeContentInner.tsx markdown + KaTeX + rehypeEthAddresses
-src/components/RelatedNode.tsx      linked-node card
-src/components/AddressCard.tsx      address card with roles + aliases
-src/components/SearchBar.tsx        header: home link, input, scope pills
-src/components/SearchResults.tsx    result list + status line
-src/components/SearchResult.tsx     single result card
-src/components/SearchHints.tsx      idle-state syntax hints
-src/components/ConstellationsPage.tsx  /constellations route — participant graph (agents, parties, instances)
-src/components/constellations/EntityFlow.tsx ReactFlow canvas + card + relation chips
-src/components/radar/RadarPage.tsx  /radar route — actor profiles (Prime Agents, Facilitators, etc.)
-src/components/ReportsIndex.tsx     /reports route index
-src/components/reports/             rewards, active data, org facilitator reports
-src/lib/entityGraph.ts              ENTITY_TYPE_LABEL/COLOR, buildEntityNodes/Edges/Index, getEntityRelations
-src/lib/search.ts                   matchParticipants, neighborhoodOfParticipants, agentClusterIds
-src/types.ts                        AtlasNode, Participant, SearchHit, AddressInfo, worker messages
-src/index.css                       Tailwind import + CSS variables + KaTeX overrides
-index.html                          title, fonts, favicon, preload links
-vite.config.ts                      base: '/redlens/', integrity hashing
-vendor/next-gen-atlas/              git submodule — Atlas source
-.github/workflows/                  CI/CD
-```

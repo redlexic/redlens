@@ -40,10 +40,10 @@ export function useNavigation({
   );
 
   const handleViewChange = useCallback(
-    (v: "annotations" | "history") => {
+    (v: "annotations" | "glossary" | "history") => {
       const params = new URLSearchParams();
       if (nodeId) params.set("id", nodeId);
-      if (v === "history") params.set("view", "history");
+      if (v !== "annotations") params.set("view", v);
       navigate(`/atlas?${params}`);
     },
     [navigate, nodeId],

@@ -17,5 +17,24 @@
     "approvalCount": 1,
     "summary": "Add Avalanche Asset Recovery Address To Safe Harbor",
     "description": "Adds Avalanche's chain ID and Asset Recovery Address to the Safe Harbor list."
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The address of the Freezer Multisig on the Ethereum Mainnet is `0xe728D67bca6cb18dE249325792b6379Eef4618bB`."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Avalanche Asset Recovery Address To Safe Harbor",
+    "description": "Adds Avalanche's chain ID and Asset Recovery Address to the Safe Harbor list."
   }
 ]

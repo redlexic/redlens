@@ -8,14 +8,67 @@
         "+",
         "Anyone can query the full rate limit data for a specific key. Calling this function will carry out the following actions:"
       ],
-      ["+", ""],
+      [
+        "+",
+        ""
+      ],
       [
         "+",
         "- The contract will return the stored RateLimitData struct from the _data mapping for the key."
       ],
-      ["+", ""],
-      ["+", "The function call is as follows:"],
-      ["+", ""],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "The function call is as follows:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "`function getRateLimitData(bytes32 key) external override view returns (RateLimitData memory)`"
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Anyone can query the full rate limit data for a specific key. Calling this function will carry out the following actions:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- The contract will return the stored RateLimitData struct from the _data mapping for the key."
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "The function call is as follows:"
+      ],
+      [
+        "+",
+        ""
+      ],
       [
         "+",
         "`function getRateLimitData(bytes32 key) external override view returns (RateLimitData memory)`"

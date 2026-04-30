@@ -222,6 +222,13 @@ mark {
   content-visibility: auto;
   contain-intrinsic-size: auto 40px;
   border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+.atlas-node:hover,
+.atlas-node:focus-visible {
+  background-color: var(--hover);
+  outline: none;
 }
 .atlas-node-title {
   border-radius: 2px;
@@ -229,13 +236,8 @@ mark {
   padding-left: 2px;
   padding-right: 2px;
 }
-.atlas-node-title,
 .atlas-toggle {
   transition: background-color 0.1s;
-}
-.atlas-node-title:hover,
-.atlas-node-title:focus-visible {
-  background-color: var(--hover);
 }
 .atlas-toggle {
   border-radius: 2px;

@@ -13,7 +13,7 @@ description: >
 license: MIT
 metadata:
   author: anscharo
-  version: "1.6"
+  version: "1.7"
 ---
 
 # graph-atlas
@@ -205,7 +205,7 @@ function primitiveRootFor(doc) {
 }
 ```
 
-`scripts/build-graph.mjs:226`. Must be used everywhere that previously called `ancestorByStripping(d, 2)` to reach a primitive root.
+`scripts/lib/graph-patterns.mjs:126`. Must be used everywhere that previously called `ancestorByStripping(d, 2)` to reach a primitive root.
 
 **Extraction rules:**
 
@@ -219,7 +219,7 @@ function primitiveRootFor(doc) {
       d.content ?? "",
     );
   ```
-  `scripts/build-graph.mjs:128`. Without the content fallback, misnamed Location docs get emitted as duplicate ICD entities that overwrite the real ones.
+  `scripts/lib/graph-patterns.mjs:26`. Without the content fallback, misnamed Location docs get emitted as duplicate ICD entities that overwrite the real ones.
 - `has_status`: Global Activation Status is at `{primRoot}.1.1`. Only for `A.6.1.1.*` docs.
 
 ### Pattern 3: Executor Agent role assignment (Prime → Executor)
@@ -333,17 +333,36 @@ Ranked delegate status is layered on top of Aligned Delegate status — if the e
 
 ### Pattern 11: Role bindings (`holds_role_for`)
 
-Ad-hoc role assignments where a named entity holds a specific atlas-defined role. Currently one instance:
+Ad-hoc role assignments where a named entity holds a specific atlas-defined role. Each role has a "Designated [Role Name]" doc whose content contains `"role is held by [Name]"`.
 
-| doc_no        | Role slug                   | Holder (content)                                         |
-| ------------- | --------------------------- | -------------------------------------------------------- |
-| `A.1.7.1.1.2` | `core_council_risk_advisor` | "The Core Council Risk Advisor role is held by BA Labs." |
+**Structure** (under `A.1.7.1.*`):
 
-Extraction: match `/role is held by\s+([^.]+)\./i`. Ensure the holder exists in `entityMap` (create as `ecosystem_actor` if new). Emit:
+```
+A.1.7.1.X       {Role Name}                   ← role definition
+A.1.7.1.X.1     {Role Name} Requirements
+A.1.7.1.X.2     Designated {Role Name}        ← binding doc; contains "role is held by [Name]."
+```
+
+**Detection** (UUID-anchored — no title scanning): start from `ACTIVE_ECOSYSTEM_ACTORS_UUID` (`1ef5767b-60bc-446a-af45-4eccdb20c023`). Each direct child of that section is a role definition doc (`A.1.7.1.X`); its `.2` child is the binding doc. Check binding doc content for `/role is held by\s+([^.]+)\./i`. For each match:
+
+- Holder name = capture group, trimmed
+- Role slug = role definition doc title `.toLowerCase().replace(/\s+/g, "_")` (e.g. `"Core Council Risk Advisor"` → `core_council_risk_advisor`)
+- Structural check: `CCRA_BINDING_UUID` (`51b1fe46-2251-4078-a805-e2b40aaaf729`) must be found in the walk — warns if the section has restructured
+
+Currently known bindings (discovered by the walk, not hardcoded):
+
+| binding doc UUID | binding doc_no | Role slug                           | Holder |
+| ---------------- | -------------- | ----------------------------------- | ------ |
+| `51b1fe46` (pinned) | `A.1.7.1.1.2` | `core_council_risk_advisor`      | BA Labs |
+| `57fa2bd5` (PR #227) | `A.1.7.1.2.2` | `protocol_security_workstream_lead` | Vamsi |
+
+New roles added under `A.1.7.1` are picked up automatically — no code changes needed.
+
+Emit for each binding doc found:
 
 - `holds_role_for`: `entity(holder) → doc(binding_doc)`, `meta.role = "<role_slug>"`, source: `[binding_doc_no]`
 
-Destination is the binding doc because the atlas does not always give the role a distinct entity target. Add future role bindings as new rows in the table above; the extraction pattern is generic.
+Destination is the binding doc because the atlas does not give the role a distinct entity target. The `roleBindingTitles` set (used to suppress duplicate ecosystem_actor creation in Pattern 6) is populated from the same UUID-anchored walk — role definition titles (e.g. `"core council risk advisor"`) are added directly.
 
 ### Pattern 12: Composite accord parties
 
@@ -414,7 +433,7 @@ These are the only hardcoded entities. Everything else is pattern-derived from a
 
 Every ICD under an allowlisted primitive becomes an `et="instance"` entity. Entity id == ICD doc UUID, `st` = primitive slug, `did` = ICD UUID, meta carries `{primitive_doc_no, agent_doc_no, status, params}`.
 
-**Scope allowlist** (`scripts/build-graph.mjs:526`). Add here when a new primitive should get instance entities:
+**Scope allowlist** (`scripts/lib/graph-instances.mjs:8`). Add here when a new primitive should get instance entities:
 
 ```javascript
 const INSTANCE_SCOPED_PRIMITIVES = {
@@ -449,7 +468,7 @@ function instanceStatusFor(icd, primRoot) {
 }
 ```
 
-`scripts/build-graph.mjs:539`.
+`scripts/lib/graph-instances.mjs:21`.
 
 **Walk by title, not by doc_no position.** The ICD sub-structure is inconsistent across primitives:
 
@@ -461,7 +480,7 @@ function instanceStatusFor(icd, primRoot) {
 
 Walk children of the ICD until you find `title === "Parameters"`, then walk that subtree. Never assume `ICD.1 = Parameters`.
 
-**Params extraction** (`scripts/build-graph.mjs:611`, `extractInstanceParams`). BFS from the Parameters doc; each leaf becomes a key/value pair in `meta.params`. Leaf = doc with no children, content not matching `DIRECTORY_RE = /^The documents? herein (define|contain|organize|govern|specify|describe|set|compose|hold)\b/i`. On title collision (e.g. Pioneer Chain has two `Network` leaves), disambiguate with `"{parentTitle} / {leafTitle}"`. The `Custom Instance Parameters` subtree is skipped at every level — it's a reserved extension slot that's empty in practice.
+**Params extraction** (`scripts/lib/graph-instances.mjs:130`, `extractInstanceParams`). BFS from the Parameters doc; each leaf becomes a key/value pair in `meta.params`. Leaf = doc with no children, content not matching `DIRECTORY_RE = /^The documents? herein (define|contain|organize|govern|specify|describe|set|compose|hold)\b/i`. On title collision (e.g. Pioneer Chain has two `Network` leaves), disambiguate with `"{parentTitle} / {leafTitle}"`. The `Custom Instance Parameters` subtree is skipped at every level — it's a reserved extension slot that's empty in practice.
 
 **Params shape: tuple `[value, srcUuid, srcDocNo]`.** Each param key maps to a 3-tuple, not a bare string:
 
@@ -474,7 +493,7 @@ Walk children of the ICD until you find `title === "Parameters"`, then walk that
 
 The source UUID is the leaf doc's id; `docs[uuid].content` is always the raw pre-formatted content. Consumers get display strings + navigation targets without re-walking the tree at render time.
 
-**Per-key formatters** (`scripts/build-graph.mjs:582`, `PARAM_FORMATTERS`). Each well-known leaf title has a registered formatter that turns raw prose into the value slot. Unknown keys fall through to `unwrapBackticks + trim`. Current registry keys:
+**Per-key formatters** (`scripts/lib/graph-instances.mjs:70`, `PARAM_FORMATTERS`). Each well-known leaf title has a registered formatter that turns raw prose into the value slot. Unknown keys fall through to `unwrapBackticks + trim`. Current registry keys:
 
 ```
 Reward Code / Integration Partner Name / Integration Partner Reward Address /
@@ -484,13 +503,13 @@ Allocator Role Address / Pool Address / Address / Network / Target Protocol /
 Token / Asset Supplied By Spark Liquidity Layer
 ```
 
-**Per-key expanders** (`scripts/build-graph.mjs`, `PARAM_EXPANDERS`). When a single leaf packs multiple values into prose, a registered expander returns `Array<[key, value]>` and each tuple becomes its own param entry (sharing the source doc). The expander runs before the formatter; returning `null` falls through to the regular formatter path. Currently one entry:
+**Per-key expanders** (`scripts/lib/graph-instances.mjs:98`, `PARAM_EXPANDERS`). When a single leaf packs multiple values into prose, a registered expander returns `Array<[key, value]>` and each tuple becomes its own param entry (sharing the source doc). The expander runs before the formatter; returning `null` falls through to the regular formatter path. Currently one entry:
 
 - `Token Address` (Agent Token only). Pattern:
   _"The address of SPK on the Ethereum Mainnet is `0x…`. The address of SPK on Base is `0x…`."_
   Expands to `Token Address (Ethereum Mainnet)` + `Token Address (Base)` tuples — one per chain clause. When the content doesn't match (e.g. Allocation System's single backtick-wrapped address, or unset Agent Token prose like _"The address of KEEL will be specified in a future iteration"_), the expander returns `null` and the regular formatter runs — preserving the single-`Token Address`-key behaviour for those consumers.
 
-**Generic bullet-list expansion** (`scripts/build-graph.mjs`, `expandBulletList`). Runs AFTER per-title expanders as a fallback. Matches the atlas convention used for rate limits and similar parameter groupings:
+**Generic bullet-list expansion** (`scripts/lib/graph-instances.mjs:117`, `expandBulletList`). Runs AFTER per-title expanders as a fallback. Matches the atlas convention used for rate limits and similar parameter groupings:
 
 ```
 The {variant} rate limits are:
@@ -515,7 +534,7 @@ Every in-scope Instance entity emits an entity→entity `invoked_by` edge to its
 
 - `invoked_by`: `entity(instance) → entity(agent/prime)`, source: `[ICD doc_no]`, meta mirrors the `instance_of` status payload
 - Resolver: match the ICD doc_no against `/^(A\.6\.1\.1\.\d+)/` to locate the prime agent doc, then its entity via `entityByDocId`
-- `scripts/build-graph.mjs:747`
+- `scripts/lib/graph-doc-edges.mjs:98`
 
 ---
 
@@ -593,7 +612,7 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 
 **Why:** the browser's entity-flow canvas becomes unreadable above ~150 nodes. The MCP needs the full set for graph queries.
 
-**What we lose:** two contracts to maintain. Tests (`tests/graph.test.ts`) assert invariants on both shapes.
+**What we lose:** two contracts to maintain.
 
 ### 8. Edge `weight = 1.0` is a placeholder
 
@@ -751,7 +770,7 @@ For `et="instance"`, the parsed meta is:
 - **Sky Ecosystem → Sky Core merge:** `prime_agent_for` now targets `sky-core`; `sky-ecosystem` entity and `ecosystem` entity_type removed from the schema.
 - **Pattern 12 — Atomic parties:** documents the `ATOMIC_PARTY_RE` fallback for party-details docs that use "The party 'X' is ..." phrasing (e.g., Moonbow at `A.2.8.2.2.1.1.4`). Atomic parties are `composite_party` entities with zero `comprises` edges.
 - **Pattern 13 — Bootstrap table:** `sky-ecosystem` row removed; only `sky-core` and `sky-governance` remain.
-- **Output shape note:** dual `graph.json` / `relations.json` contract formalized in Editorial Decision §7. Test invariants in `tests/graph.test.ts`.
+- **Output shape note:** dual `graph.json` / `relations.json` contract formalized in Editorial Decision §7.
 
 **v1.6 diff from v1.5:**
 
@@ -767,7 +786,7 @@ For `et="instance"`, the parsed meta is:
   - §10 Instance params are `[value, srcUuid, srcDocNo]` tuples with per-key formatters
   - §11 Walk by title, not by doc_no position within an ICD
 - **Edge total:** 25 → 26 (`invoked_by`).
-- **Vocabulary tests:** `KNOWN_ENTITY_TYPES` gained `instance`; `KNOWN_EDGE_TYPES` gained `invoked_by` (`tests/graph.test.ts`).
+- **Vocabulary tests:** `KNOWN_ENTITY_TYPES` gained `instance`; `KNOWN_EDGE_TYPES` gained `invoked_by`.
 - **`PARAM_EXPANDERS` added:** Agent Token's `Token Address` compound prose is now split into per-chain keys (`Token Address (Ethereum Mainnet)`, `Token Address (Base)`, …). Unset agents keep the single `Token Address` key with placeholder prose. Backward-incompatible for any consumer that expected a plain `Token Address` on Spark or Grove.
 - **Generic bullet-list expansion:** any leaf whose content contains ``- `key`: value`` bullets splits into `{leafTitle} / {bulletKey}` sub-keys. Primary use: Allocation System rate limits — 343 new sub-keys across 95 instances, replacing opaque "Inflow Rate Limits" prose values with direct `{Inflow,Outflow,Deposit,Withdrawal,Swap} Rate Limits / {maxAmount,slope,maxSlippage}` lookups. Fires after per-title `PARAM_EXPANDERS`.
 

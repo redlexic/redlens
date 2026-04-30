@@ -8,7 +8,10 @@
         "+",
         "The founding team of Spark has proposed a cash grant of 1,100,000 USDS per month to the Spark Foundation from the SubDAO Proxy for a three (3) month period to cover Q2 2026 Spark Foundation expenses. Additionally, a grant of 100,000 USDS per month to the Spark Asset Foundation from the SubDAO Proxy for a three (3) month period to cover Q2 2026 Spark Asset Foundation expenses (see [Forum Post](https://forum.skyeco.com/t/march-26-2026-proposed-changes-to-spark-for-upcoming-spell/27770))."
       ],
-      ["+", ""],
+      [
+        "+",
+        ""
+      ],
       [
         "+",
         "Sky Governance hereby consents to these grants and authorizes the execution of the associated funding payloads as specified in the referenced proposal."
@@ -23,5 +26,149 @@
     "commentCount": 2,
     "summary": "Add Spark Foundation Grant Authorization For Q2 2026",
     "description": "Authorizes a cash grant of 1,100,000 USDS per month to the Spark Foundation and 100,000 USDS per month to the Spark Asset Foundation from the SubDAO Proxy for Q2 2026."
+  },
+  {
+    "date": "2026-03-27",
+    "commitHash": "6e88095",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The founding team of Spark has proposed a cash grant of 1,100,000 USDS per month to the Spark Foundation from the SubDAO Proxy for a three (3) month period to cover Q2 2026 Spark Foundation expenses. Additionally, a grant of 100,000 USDS per month to the Spark Asset Foundation from the SubDAO Proxy for a three (3) month period to cover Q2 2026 Spark Asset Foundation expenses (see [Forum Post](https://forum.skyeco.com/t/march-26-2026-proposed-changes-to-spark-for-upcoming-spell/27770))."
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "Sky Governance hereby consents to these grants and authorizes the execution of the associated funding payloads as specified in the referenced proposal."
+      ]
+    ],
+    "pr": 208,
+    "prTitle": "Atlas Edit Proposal — 2026-03-23",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/208",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "commentCount": 2,
+    "summary": "Add Spark Foundation Grant Authorization For Q2 2026",
+    "description": "Authorizes a cash grant of 1,100,000 USDS per month to the Spark Foundation and 100,000 USDS per month to the Spark Asset Foundation from the SubDAO Proxy for Q2 2026."
+  },
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The founding team of Spark has proposed a cash grant of 1,100,000 USDS per month to the Spark Foundation from "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "Spark's"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "SubDAO"
+          ],
+          [
+            "+",
+            "Prime"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Proxy"
+          ],
+          [
+            "+",
+            "Treasury"
+          ],
+          [
+            "=",
+            " for a three (3) month period to cover Q2 2026 Spark Foundation expenses. Additionally, a grant of 100,000 USDS per month to the Spark Asset Foundation from "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "Spark's"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "SubDAO"
+          ],
+          [
+            "+",
+            "Prime"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Proxy"
+          ],
+          [
+            "+",
+            "Treasury"
+          ],
+          [
+            "=",
+            " for a three (3) month period to cover Q2 2026 Spark Asset Foundation expenses (see ["
+          ],
+          [
+            "-",
+            "Forum Post"
+          ],
+          [
+            "+",
+            "https://forum.skyeco.com/t/march-26-2026-proposed-changes-to-spark-for-upcoming-spell/27770"
+          ],
+          [
+            "=",
+            "](https://forum.skyeco.com/t/march-26-2026-proposed-changes-to-spark-for-upcoming-spell/27770))."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "Sky Governance hereby consents to these grants and authorizes the execution of the associated funding payloads as specified in the referenced proposal."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Update SubDAO Proxy Terminology In Spark Foundation Grant",
+    "description": "Updates legacy SubDAO Proxy references to Spark's Prime Treasury and corrects Forum link formatting in two Spark Foundation Grant Authorization documents."
   }
 ]

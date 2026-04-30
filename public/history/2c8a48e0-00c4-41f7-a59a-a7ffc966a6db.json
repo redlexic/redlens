@@ -15,5 +15,22 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "This Instance’s associated Instance Configuration Document is located at [A.6.1.1.2.2.6.1.3.2.2.2 - Avalanche - Curve USDS/USDC LP Instance Configuration Document](72325c96-455c-4c19-aefc-541206494bd3)."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

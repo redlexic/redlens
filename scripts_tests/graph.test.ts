@@ -174,8 +174,9 @@ describe("Pattern 13 — bootstrap entities", () => {
   it("sky-governance is anchored to A.1 (The Governance Scope)", () => {
     const e = graph.entities.find((x) => x.slug === "sky-governance");
     expect(e, "sky-governance missing").toBeDefined();
-    expect(e!.defining_doc_id).toBeTruthy();
-    expect(docs[e!.defining_doc_id!]?.doc_no).toBe("A.1");
+    // Check against UUID — doc_nos are not stable across atlas edits.
+    // UUID 18ac7dd3 = A.1 (The Governance Scope)
+    expect(e!.defining_doc_id).toBe("18ac7dd3-c646-4352-9b0d-d01a2932d7d1");
   });
 });
 
@@ -381,11 +382,11 @@ describe("Pattern 6 — Active Data", () => {
 });
 
 describe("Pattern 7 — ERG membership", () => {
-  const ERG_DOC_NO = "A.1.8.1.2.2.0.6.1";
+  // UUID e9807449 = A.1.8.1.2.2.0.6.1 (ERG Active Data doc)
+  const ERG_UUID = "e9807449-fdc3-4860-8d53-c56181311618";
   it("every erg_member_for edge points at the single ERG Active Data doc", () => {
-    const ergDoc = docByDocNo.get(ERG_DOC_NO);
-    expect(ergDoc, `ERG doc ${ERG_DOC_NO} absent from atlas`).toBeDefined();
-    const bad = edgesOfType("erg_member_for").filter((e) => e.to_id !== ergDoc!.id);
+    expect(docs[ERG_UUID], `ERG doc ${ERG_UUID} absent from atlas`).toBeDefined();
+    const bad = edgesOfType("erg_member_for").filter((e) => e.to_id !== ERG_UUID);
     expect(bad).toEqual([]);
   });
 });
@@ -502,6 +503,56 @@ describe("auditability", () => {
     }
     expect(bad).toEqual([]);
   });
+});
+
+describe("Pattern 11 — role bindings (holds_role_for)", () => {
+  // Walk A.1.7.1 (Active Ecosystem Actors) the same way the extractor does:
+  // each direct child is a role definition; its .2 child is the binding doc.
+  const ACTIVE_ECOSYSTEM_ACTORS_UUID = "1ef5767b-60bc-446a-af45-4eccdb20c023";
+  const CCRA_BINDING_UUID = "51b1fe46-2251-4078-a805-e2b40aaaf729";
+
+  const aeaDoc = docs[ACTIVE_ECOSYSTEM_ACTORS_UUID];
+  const pfx = aeaDoc?.doc_no ? aeaDoc.doc_no + "." : null;
+
+  const bindings: { roleDef: typeof aeaDoc; bindingDoc: typeof aeaDoc }[] = [];
+  if (pfx) {
+    const roleDefDocs = Object.values(docs).filter(
+      (d) => d.doc_no.startsWith(pfx) && !d.doc_no.slice(pfx.length).includes("."),
+    );
+    for (const roleDef of roleDefDocs) {
+      const bindingDoc = Object.values(docs).find((d) => d.doc_no === roleDef.doc_no + ".2");
+      if (bindingDoc && /role is held by\s+([^.]+)\./i.test(bindingDoc.content ?? ""))
+        bindings.push({ roleDef, bindingDoc });
+    }
+  }
+
+  it("A.1.7.1 section exists and contains the known CCRA binding", () => {
+    expect(aeaDoc, "Active Ecosystem Actors section missing").toBeTruthy();
+    expect(
+      bindings.some((b) => b.bindingDoc.id === CCRA_BINDING_UUID),
+      "CCRA binding UUID not found — A.1.7.1 may have restructured",
+    ).toBe(true);
+  });
+
+  for (const { roleDef, bindingDoc } of bindings) {
+    it(`${roleDef.title} → holds_role_for edge with correct holder and slug`, () => {
+      const holderName = (bindingDoc.content ?? "")
+        .match(/role is held by\s+([^.]+)\./i)![1]
+        .trim();
+      const expectedSlug = roleDef.title.toLowerCase().replace(/\s+/g, "_");
+
+      const edge = graph.edges.find(
+        (e) => e.edge_type === "holds_role_for" && e.to_id === bindingDoc.id,
+      );
+      expect(edge, `no holds_role_for edge for ${roleDef.title}`).toBeTruthy();
+
+      const holder = entityById.get(edge!.from_id);
+      expect(holder?.name, `holder name mismatch for ${roleDef.title}`).toBe(holderName);
+
+      const meta = edge!.meta ? JSON.parse(edge!.meta) : {};
+      expect(meta.role, `role slug mismatch for ${roleDef.title}`).toBe(expectedSlug);
+    });
+  }
 });
 
 describe("relations.json — lean browser payload", () => {

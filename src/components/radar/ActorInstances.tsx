@@ -43,6 +43,8 @@ function ParamPill({ p }: { p: InstanceParam }) {
   );
 }
 
+const SEP = <span className="text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.4 }}>|</span>;
+
 function InstanceRow({
   inst,
   onNavigate,
@@ -51,26 +53,31 @@ function InstanceRow({
   onNavigate: (id: string) => void;
 }) {
   return (
-    <div className="flex items-start gap-3 py-1.5 border-t border-[var(--border)]">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm" style={{ color: "var(--tan)" }}>
-            {inst.displayName}
-          </span>
+    <div className="py-1.5 border-t border-[var(--border)]">
+      <div className="flex items-center gap-2 flex-wrap mb-1">
+        <span className="text-sm" style={{ color: "var(--tan)" }}>
+          {inst.displayName}
+        </span>
+        {inst.primitiveDocId && inst.primitiveTitle && (
+          <>
+            {SEP}
+            <button
+              onClick={() => onNavigate(inst.primitiveDocId!)}
+              className="mono text-[10px] hover:underline"
+              style={{ color: "var(--tan-3)" }}
+            >
+              {inst.primitiveTitle}
+            </button>
+          </>
+        )}
+        {inst.status && <>{SEP}<StatusPill s={inst.status} /></>}
+      </div>
+      {inst.signalParams.length > 0 && (
+        <div className="flex flex-wrap gap-1">
           {inst.signalParams.map((p) => (
             <ParamPill key={p.key} p={p} />
           ))}
-          {inst.status && <StatusPill s={inst.status} />}
         </div>
-      </div>
-      {inst.docId && (
-        <button
-          onClick={() => onNavigate(inst.docId!)}
-          className="mono text-[10px] shrink-0 hover:underline"
-          style={{ color: "var(--tan-3)" }}
-        >
-          {inst.docNo ?? "open"}
-        </button>
       )}
     </div>
   );

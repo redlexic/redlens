@@ -45,8 +45,8 @@ export function AtlasView({
 }: {
   id: string;
   onNavigate: (id: string) => void;
-  view: "annotations" | "history";
-  onViewChange: (v: "annotations" | "history") => void;
+  view: "annotations" | "glossary" | "history";
+  onViewChange: (v: "annotations" | "glossary" | "history") => void;
   splitId: string | null;
   onSplitChange: (id: string | null) => void;
   onOpenTree?: () => void;
@@ -338,6 +338,10 @@ export function AtlasView({
               graphEdges={graphEdges}
               glossaryTerms={glossaryTerms}
               onNavigate={handleNavigate}
+              onNavigateByDocNo={(docNo) => {
+                const uuid = data?.atlas.docNoToId.get(docNo);
+                if (uuid) handleNavigate(uuid);
+              }}
               tab={view}
               onTabChange={onViewChange}
             />

@@ -1,0 +1,36 @@
+[
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Where monitoring or review activities identify inconsistencies, outdated documentation, or potential noncompliance, Core GovOps must proceed in accordance with [A.2.11.1.3.5 - Determination And Enforcement Of Multisig Security Noncompliance](2a36aafa-cfe3-4ba5-b549-f341fbb4c666)."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Where monitoring or review activities identify inconsistencies, outdated documentation, or potential noncompliance, Core GovOps must proceed in accordance with [A.2.11.1.3.5 - Determination And Enforcement Of Multisig Security Noncompliance](2a36aafa-cfe3-4ba5-b549-f341fbb4c666)."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

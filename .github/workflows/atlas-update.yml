@@ -77,6 +77,9 @@ jobs:
       - run: pnpm build:graph
         if: steps.atlas.outputs.proceed == 'true'
 
+      - run: pnpm test:snap:update
+        if: steps.atlas.outputs.proceed == 'true'
+      
       - name: Open PR
         if: steps.atlas.outputs.proceed == 'true'
         env:

@@ -20,10 +20,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:snap": "vitest run --config vitest.snap.config.ts",
+    "test:snap:update": "vitest run --config vitest.snap.config.ts -u",
+    "check:pr": "bash scripts/aux/check-atlas-pr.sh",
     "tva": "bash scripts/aux/tva.sh",
     "query": "node scripts/aux/query-rag.mjs",
     "mcp:atlas": "node mcp-atlas/server.mjs",
-    "knip": "knip"
+    "knip": "knip",
+    "pull-atlas": "git submodule update --init --recursive"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.5",

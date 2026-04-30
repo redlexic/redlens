@@ -11,5 +11,470 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "If"
+          ],
+          [
+            "+",
+            " losses exceed"
+          ],
+          [
+            "=",
+            " a "
+          ],
+          [
+            "-",
+            "\"SKY"
+          ],
+          [
+            "+",
+            "Prime"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Backstop"
+          ],
+          [
+            "+",
+            "Agent’s"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Event\""
+          ],
+          [
+            "+",
+            "capital"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "is"
+          ],
+          [
+            "+",
+            "and"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "in"
+          ],
+          [
+            "+",
+            "cannot"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "progress"
+          ],
+          [
+            "+",
+            "be"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "and"
+          ],
+          [
+            "+",
+            "absorbed"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "by"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "SKY"
+          ],
+          [
+            "+",
+            "the"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "price"
+          ],
+          [
+            "+",
+            "Sky"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "equals"
+          ],
+          [
+            "+",
+            "Surplus"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "zero"
+          ],
+          [
+            "+",
+            "Buffer"
+          ],
+          [
+            "=",
+            ", the Sky Protocol must apply a pro‑rata haircut across each Genesis Agent’s Genesis Capital, implemented as a transfer of eligible assets from each Agent to the Sky Surplus Buffer. The haircut must be sized"
+          ],
+          [
+            "-",
+            " exactly"
+          ],
+          [
+            "=",
+            " to "
+          ],
+          [
+            "-",
+            "restore"
+          ],
+          [
+            "+",
+            "cover the portion of the loss that exceeds what the Prime Agent’s capital and"
+          ],
+          [
+            "=",
+            " the"
+          ],
+          [
+            "+",
+            " Sky"
+          ],
+          [
+            "=",
+            " Surplus Buffer "
+          ],
+          [
+            "-",
+            "to"
+          ],
+          [
+            "+",
+            "can"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "zero"
+          ],
+          [
+            "+",
+            "absorb"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2025-11-21",
+    "commitHash": "22cc27b",
+    "changeType": "added",
+    "pr": 117,
+    "prTitle": "Migrate To Markdown File",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/117",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Migrate To Markdown File",
+    "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "If"
+          ],
+          [
+            "+",
+            " losses exceed"
+          ],
+          [
+            "=",
+            " a "
+          ],
+          [
+            "-",
+            "\"SKY"
+          ],
+          [
+            "+",
+            "Prime"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Backstop"
+          ],
+          [
+            "+",
+            "Agent’s"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Event\""
+          ],
+          [
+            "+",
+            "capital"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "is"
+          ],
+          [
+            "+",
+            "and"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "in"
+          ],
+          [
+            "+",
+            "cannot"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "progress"
+          ],
+          [
+            "+",
+            "be"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "and"
+          ],
+          [
+            "+",
+            "absorbed"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "by"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "SKY"
+          ],
+          [
+            "+",
+            "the"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "price"
+          ],
+          [
+            "+",
+            "Sky"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "equals"
+          ],
+          [
+            "+",
+            "Surplus"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "zero"
+          ],
+          [
+            "+",
+            "Buffer"
+          ],
+          [
+            "=",
+            ", the Sky Protocol must apply a pro‑rata haircut across each Genesis Agent’s Genesis Capital, implemented as a transfer of eligible assets from each Agent to the Sky Surplus Buffer. The haircut must be sized"
+          ],
+          [
+            "-",
+            " exactly"
+          ],
+          [
+            "=",
+            " to "
+          ],
+          [
+            "-",
+            "restore"
+          ],
+          [
+            "+",
+            "cover the portion of the loss that exceeds what the Prime Agent’s capital and"
+          ],
+          [
+            "=",
+            " the"
+          ],
+          [
+            "+",
+            " Sky"
+          ],
+          [
+            "=",
+            " Surplus Buffer "
+          ],
+          [
+            "-",
+            "to"
+          ],
+          [
+            "+",
+            "can"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "zero"
+          ],
+          [
+            "+",
+            "absorb"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

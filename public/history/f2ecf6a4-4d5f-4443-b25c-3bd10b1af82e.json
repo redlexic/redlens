@@ -17,14 +17,29 @@
     "commitHash": "7ef5e43",
     "changeType": "modified",
     "diff": [
-      ["=", "The current Active Pioneer Primes are:"],
-      ["=", ""],
+      [
+        "=",
+        "The current Active Pioneer Primes are:"
+      ],
+      [
+        "=",
+        ""
+      ],
       [
         "~",
         [
-          ["-", "◦"],
-          ["+", "-"],
-          ["=", " Keel"]
+          [
+            "-",
+            "◦"
+          ],
+          [
+            "+",
+            "-"
+          ],
+          [
+            "=",
+            " Keel"
+          ]
         ]
       ]
     ],
@@ -37,5 +52,140 @@
     "commentCount": 2,
     "summary": "Lint Lists",
     "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "- Keel"
+      ],
+      [
+        "=",
+        "- Grove"
+      ],
+      [
+        "+",
+        "- Launch Agent 6"
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Remove 80/20 Pioneer Incentive Pool Split",
+    "description": "Removes the requirement that 80% of Pioneer Incentive Pool funds be used for third-party USDS adoption incentives, allowing the Pioneer Prime to retain 100% of the funds."
+  },
+  {
+    "date": "2025-11-21",
+    "commitHash": "22cc27b",
+    "changeType": "added",
+    "pr": 117,
+    "prTitle": "Migrate To Markdown File",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/117",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Migrate To Markdown File",
+    "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-03-26",
+    "commitHash": "7ef5e43",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "The current Active Pioneer Primes are:"
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "-",
+            "◦"
+          ],
+          [
+            "+",
+            "-"
+          ],
+          [
+            "=",
+            " Keel"
+          ]
+        ]
+      ]
+    ],
+    "pr": 206,
+    "prTitle": "Lint Lists",
+    "prAuthor": "0xldr",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/206",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "commentCount": 2,
+    "summary": "Lint Lists",
+    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+  },
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "- Keel"
+      ],
+      [
+        "+",
+        "- Grove"
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Solana Pioneer Chain Instance To Keel",
+    "description": "Adds the Solana Instance Configuration Document to Keel's Pioneer Chain Primitive and specifies its associated parameters."
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "- Keel"
+      ],
+      [
+        "=",
+        "- Grove"
+      ],
+      [
+        "+",
+        "- Launch Agent 6"
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Remove 80/20 Pioneer Incentive Pool Split",
+    "description": "Removes the requirement that 80% of Pioneer Incentive Pool funds be used for third-party USDS adoption incentives, allowing the Pioneer Prime to retain 100% of the funds."
   }
 ]

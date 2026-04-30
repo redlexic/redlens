@@ -33,7 +33,15 @@ export const isGlobalActivationStatus = (d) => /global activation status/i.test(
 
 export const ERG_DOC_NO = "A.1.8.1.2.2.0.6.1";
 export const ALIGNED_DELEGATES_DOC_NO = "A.1.5.1.5.0.6.1";
-export const CORE_COUNCIL_RISK_ADVISOR_DOC_NO = "A.1.7.1.1.2";
+
+// A.1.7.1 — "Active Ecosystem Actors" section. Each direct child is a role
+// definition doc; its .2 child is the "Designated X" binding doc that names
+// the holder. Walk from here to discover all role bindings automatically.
+export const ACTIVE_ECOSYSTEM_ACTORS_UUID = "1ef5767b-60bc-446a-af45-4eccdb20c023";
+
+// Structural anchor: the first known binding doc. Used as a sanity check
+// that the A.1.7.1 walk is still finding the right section.
+export const CCRA_BINDING_UUID = "51b1fe46-2251-4078-a805-e2b40aaaf729";
 
 export const UUID_LINK_RE =
   /\[([^\]]*)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;

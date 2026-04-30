@@ -46,10 +46,14 @@ function post(msg: GraphWorkerOutMessage) {
 }
 
 function resolveEdge(edge: RelationEdge): ResolvedEdge {
+  const fromEntity = edge.ft === "entity" ? entityById.get(edge.f) : undefined;
+  const toEntity = edge.tt === "entity" ? entityById.get(edge.t) : undefined;
   return {
     ...edge,
-    from_label: edge.ft === "entity" ? entityById.get(edge.f)?.name : undefined,
-    to_label: edge.tt === "entity" ? entityById.get(edge.t)?.name : undefined,
+    from_label: fromEntity?.name,
+    from_did: fromEntity?.did ?? undefined,
+    to_label: toEntity?.name,
+    to_did: toEntity?.did ?? undefined,
   };
 }
 

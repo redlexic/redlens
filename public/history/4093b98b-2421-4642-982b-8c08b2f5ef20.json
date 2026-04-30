@@ -4,8 +4,14 @@
     "commitHash": "340ef03",
     "changeType": "added",
     "diff": [
-      ["+", "- `maxAmount`: 5,000,000 USAT"],
-      ["+", "- `slope`: 250,000,000 USAT per day"]
+      [
+        "+",
+        "- `maxAmount`: 5,000,000 USAT"
+      ],
+      [
+        "+",
+        "- `slope`: 250,000,000 USAT per day"
+      ]
     ],
     "pr": 204,
     "prTitle": "Spark proposal - Add USAT and USDT transferAsset Rate Limits to Ancho…",
@@ -15,5 +21,108 @@
     "approvalCount": 1,
     "summary": "Spark proposal - Add USAT and USDT transferAsset Rate Limits to Ancho…",
     "description": "Originating forum post: https://forum.skyeco.com/t/march-26-2026-proposed-changes-to-spark-for-upcoming-spell/27770\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-04-27",
+    "commitHash": "dd82b06",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "- `maxAmount`: "
+          ],
+          [
+            "-",
+            "5"
+          ],
+          [
+            "+",
+            "50"
+          ],
+          [
+            "=",
+            ",000,000 USAT"
+          ]
+        ]
+      ],
+      [
+        "=",
+        "- `slope`: 250,000,000 USAT per day"
+      ]
+    ],
+    "pr": 215,
+    "prTitle": "Spark Proposal - Spark Liquidity Layer - Update Rate Limits",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/215",
+    "reviewCount": 4,
+    "approvalCount": 1,
+    "summary": "Spark Proposal - Spark Liquidity Layer - Update Rate Limits",
+    "description": "Originating forum post: https://forum.skyeco.com/t/april-9-2026-proposed-changes-to-spark-for-upcoming-spell/27804\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-03-20",
+    "commitHash": "340ef03",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "- `maxAmount`: 5,000,000 USAT"
+      ],
+      [
+        "+",
+        "- `slope`: 250,000,000 USAT per day"
+      ]
+    ],
+    "pr": 204,
+    "prTitle": "Spark proposal - Add USAT and USDT transferAsset Rate Limits to Ancho…",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/204",
+    "reviewCount": 3,
+    "approvalCount": 1,
+    "summary": "Spark proposal - Add USAT and USDT transferAsset Rate Limits to Ancho…",
+    "description": "Originating forum post: https://forum.skyeco.com/t/march-26-2026-proposed-changes-to-spark-for-upcoming-spell/27770\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-04-27",
+    "commitHash": "dd82b06",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "- `maxAmount`: "
+          ],
+          [
+            "-",
+            "5"
+          ],
+          [
+            "+",
+            "50"
+          ],
+          [
+            "=",
+            ",000,000 USAT"
+          ]
+        ]
+      ],
+      [
+        "=",
+        "- `slope`: 250,000,000 USAT per day"
+      ]
+    ],
+    "pr": 215,
+    "prTitle": "Spark Proposal - Spark Liquidity Layer - Update Rate Limits",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/215",
+    "reviewCount": 4,
+    "approvalCount": 1,
+    "summary": "Spark Proposal - Spark Liquidity Layer - Update Rate Limits",
+    "description": "Originating forum post: https://forum.skyeco.com/t/april-9-2026-proposed-changes-to-spark-for-upcoming-spell/27804\r\n\r\n**Do not merge unless associated poll passes**"
   }
 ]

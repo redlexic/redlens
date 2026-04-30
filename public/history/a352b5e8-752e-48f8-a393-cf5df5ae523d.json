@@ -11,5 +11,96 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2025-11-21",
+    "commitHash": "22cc27b",
+    "changeType": "added",
+    "pr": 117,
+    "prTitle": "Migrate To Markdown File",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/117",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Migrate To Markdown File",
+    "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-13",
+    "commitHash": "3365665",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "Executive Document"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "(also referred to as the \"Executive Copy,\" \"executive,\" \"Executive Proposal,\" or \"exec doc\") is a formal, plain-English Markdown document that serves as the primary communication tool for presenting the contents of an Executive Vote to the community. Created after the"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "Executive Sheet"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "is finalized, it provides a detailed breakdown of the actions proposed in the Executive Vote. Unlike the Executive Sheet, which organizes actions in a cell-based format, the Executive Document expresses these actions in sentence format for improved readability."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "Each Executive Document corresponds to a specific spell and describes the actions that the spell will perform if executed. It is a critical tool for ensuring transparency, clarity, and alignment among stakeholders. The document serves as a proposal that can be voted on and either approved or rejected by Sky Governance. The Core Facilitators are responsible for producing and finalizing the Executive Document; and any changes must be made by them."
+      ]
+    ],
+    "pr": 223,
+    "prTitle": "remove non breaking space characters",
+    "prAuthor": "0xldr",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/223",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

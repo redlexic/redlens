@@ -11,7 +11,8 @@ import {
   slugify,
   ERG_DOC_NO,
   ALIGNED_DELEGATES_DOC_NO,
-  CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
+  ACTIVE_ECOSYSTEM_ACTORS_UUID,
+  CCRA_BINDING_UUID,
   isPrimeAgent,
   isExecutorAgent,
   isFacilitatorDoc,
@@ -129,9 +130,16 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
   // resolved to an existing role-edge target in Section 2s.
   // Skip names that match a role-binding doc's title (e.g. "Core Council Risk
   // Advisor" → A.1.7.1.1.2) so the holder (e.g. BA Labs) gets used in 2s.
+  // roleBindingTitles: role definition titles (e.g. "core council risk advisor")
+  // derived from direct children of A.1.7.1 so ADC entity creation skips them.
   const roleBindingTitles = new Set();
-  const ccraDocEarly = docByDocNo.get(CORE_COUNCIL_RISK_ADVISOR_DOC_NO);
-  if (ccraDocEarly?.title) roleBindingTitles.add(ccraDocEarly.title.toLowerCase());
+  const aeaDoc = docById.get(ACTIVE_ECOSYSTEM_ACTORS_UUID);
+  if (aeaDoc) {
+    const pfx = aeaDoc.doc_no + ".";
+    for (const d of allDocs)
+      if (d.doc_no.startsWith(pfx) && !d.doc_no.slice(pfx.length).includes(".") && d.title)
+        roleBindingTitles.add(d.title.toLowerCase());
+  }
   for (const d of allDocs.filter((d) => d.type === "Active Data Controller")) {
     const raw = extractRP(d.content);
     if (!raw) continue;
@@ -231,23 +239,35 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
     }
   }
 
-  // --- 1k. Core Council Risk Advisor role binding (Pattern 11) ---
-  const ccraDoc = docByDocNo.get(CORE_COUNCIL_RISK_ADVISOR_DOC_NO);
-  let ccraHolder = null;
-  if (ccraDoc) {
-    const m = ccraDoc.content?.match(/role is held by\s+([^.]+)\./i);
-    if (m) {
+  // --- 1k. Role bindings: walk A.1.7.1 children for .X.2 binding docs (Pattern 11) ---
+  // Each direct child of A.1.7.1 is a role definition; its .2 child is the
+  // "Designated X" binding doc that names the holder via "role is held by [Name]."
+  const roleBindings = [];
+  if (aeaDoc) {
+    const pfx = aeaDoc.doc_no + ".";
+    const roleDefDocs = allDocs.filter(
+      (d) => d.doc_no.startsWith(pfx) && !d.doc_no.slice(pfx.length).includes("."),
+    );
+    let foundCcra = false;
+    for (const roleDef of roleDefDocs) {
+      const bindingDoc = docByDocNo.get(roleDef.doc_no + ".2");
+      if (!bindingDoc) continue;
+      const m = bindingDoc.content?.match(/role is held by\s+([^.]+)\./i);
+      if (!m) continue;
+      if (bindingDoc.id === CCRA_BINDING_UUID) foundCcra = true;
       const name = m[1].trim();
       const s = slugify(name);
       let entity = entityMap.get(s);
-      if (!entity) {
-        entity = addEntity(s, name, "ecosystem_actor", null, ccraDoc.id, {
+      if (!entity)
+        entity = addEntity(s, name, "ecosystem_actor", null, bindingDoc.id, {
           source: "role_binding",
-          source_doc_no: CORE_COUNCIL_RISK_ADVISOR_DOC_NO,
+          source_doc_no: bindingDoc.doc_no,
         });
-      }
-      ccraHolder = entity;
+      const roleSlug = roleDef.title.toLowerCase().replace(/\s+/g, "_");
+      roleBindings.push({ holder: entity, bindingDoc, roleSlug });
     }
+    if (!foundCcra)
+      console.warn(`[graph] Expected CCRA binding (${CCRA_BINDING_UUID}) not found — A.1.7.1 may have restructured`);
   }
 
   // --- 1l. Grant recipients (foundations surface here) ---
@@ -383,8 +403,7 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
     labelToAddresses,
     alignedDelegateNames,
     rankedDelegatesByLevel,
-    ccraHolder,
-    ccraDoc,
+    roleBindings,
     ergDoc,
     ergMemberNames,
     accordPartyDocsByAccordDocNo,

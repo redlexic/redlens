@@ -6,7 +6,7 @@ import { RelatedNode } from "../RelatedNode";
 import { AddressCard } from "../AddressCard";
 import { NodeHistory } from "../history/NodeHistory";
 
-type RightTab = "annotations" | "history";
+type RightTab = "annotations" | "glossary" | "history";
 
 const HIDE = new Set(["parent_of", "mentions", "proxies_to", "cites"]);
 
@@ -19,6 +19,7 @@ export function RightPanel({
   graphEdges,
   glossaryTerms,
   onNavigate,
+  onNavigateByDocNo,
   tab,
   onTabChange,
 }: {
@@ -30,12 +31,17 @@ export function RightPanel({
   graphEdges: EdgeResult;
   glossaryTerms: GlossaryEntry[][];
   onNavigate: (id: string) => void;
+  onNavigateByDocNo: (docNo: string) => void;
   tab: RightTab;
   onTabChange: (t: RightTab) => void;
 }) {
   const citedBy = graphEdges.inbound.filter((e) => e.e === "cites");
   const outRels = graphEdges.outbound.filter((e) => !HIDE.has(e.e));
   const inRels = graphEdges.inbound.filter((e) => !HIDE.has(e.e));
+  const isSelfNav = (e: (typeof outRels)[0], isOut: boolean) => {
+    const did = isOut ? e.to_did : e.from_did;
+    return did === id || (isOut ? e.t : e.f) === id;
+  };
   const graphRels = [...outRels, ...inRels];
 
   return (
@@ -52,6 +58,14 @@ export function RightPanel({
           className="right-tab"
         >
           annotations{annotationCount > 0 && <span style={{ marginLeft: 4 }}>· {annotationCount}</span>}
+        </button>
+        <button
+          role="tab"
+          aria-selected={tab === "glossary"}
+          onClick={() => onTabChange("glossary")}
+          className="right-tab"
+        >
+          glossary{glossaryTerms.length > 0 && <span style={{ marginLeft: 4 }}>· {glossaryTerms.length}</span>}
         </button>
         <button
           role="tab"
@@ -98,13 +112,16 @@ export function RightPanel({
               <div className="mt-8">
                 <p className="text-xs mono mb-3 text-tan-3">relations · {graphRels.length}</p>
                 <div className="space-y-2">
-                  {graphRels.map((e, i) => {
+                  {graphRels.filter((e) => !isSelfNav(e, outRels.includes(e))).map((e, i) => {
                     const isOut = outRels.includes(e);
                     const otherId = (isOut ? e.t : e.f) ?? "";
                     const otherType = isOut ? e.tt : e.ft;
                     const otherLabel = isOut
                       ? (e.to_label ?? otherId.slice(0, 8))
                       : (e.from_label ?? otherId.slice(0, 8));
+                    const otherNavId = otherType === "doc"
+                      ? otherId
+                      : (isOut ? e.to_did : e.from_did) ?? null;
                     return (
                       <div key={i} className="text-xs pb-2 border-b border-border">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -112,10 +129,10 @@ export function RightPanel({
                             {e.e}
                           </span>
                           {!isOut && <span className="text-[10px] mono text-gray">←</span>}
-                          {otherType === "doc" ? (
+                          {otherNavId ? (
                             <button
                               className="mono hover:underline text-left text-tan-2"
-                              onClick={() => onNavigate(otherId)}
+                              onClick={() => onNavigate(otherNavId)}
                             >
                               {otherLabel}
                             </button>
@@ -124,7 +141,20 @@ export function RightPanel({
                           )}
                         </div>
                         {e.s && e.s.length > 0 && (
-                          <p className="mono text-[10px] text-tan-3">source: {e.s.join(", ")}</p>
+                          <p className="mono text-[10px] text-tan-3">
+                            defined in:{" "}
+                            {e.s.map((docNo, j) => (
+                              <span key={docNo}>
+                                {j > 0 && ", "}
+                                <button
+                                  onClick={() => onNavigateByDocNo(docNo)}
+                                  className="hover:underline text-accent"
+                                >
+                                  {docNo}
+                                </button>
+                              </span>
+                            ))}
+                          </p>
                         )}
                       </div>
                     );
@@ -149,39 +179,38 @@ export function RightPanel({
               </div>
             )}
 
-            {glossaryTerms.length > 0 && (
-              <div className="mt-8">
-                <p className="text-xs mono mb-4 text-tan-3">
-                  glossary · {glossaryTerms.length} term{glossaryTerms.length !== 1 ? "s" : ""}
-                </p>
-                <div className="space-y-4">
-                  {glossaryTerms.map((entries) => (
-                    <div key={entries[0].nodeId} className="border-b border-border pb-4">
-                      <button
-                        onClick={() => onNavigate(entries[0].nodeId)}
-                        className="text-xs font-semibold mono mb-1 text-accent hover:underline cursor-pointer text-left"
-                      >
-                        {entries[0].term}
-                      </button>
-                      {entries.map((e, i) => (
-                        <div key={i} className={i > 0 ? "mt-2 pt-2 border-t border-border" : ""}>
-                          {entries.length > 1 && e.sourceContext && (
-                            <button
-                              onClick={() => onNavigate(e.nodeId)}
-                              className="text-[10px] mono mb-0.5 text-tan-3 hover:text-accent cursor-pointer text-left block"
-                            >
-                              {e.sourceContext}
-                            </button>
-                          )}
-                          <p className="text-xs leading-relaxed text-tan-2">{e.content}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
+          </div>
+        ) : tab === "glossary" ? (
+          <div className="px-4 py-5">
+            {glossaryTerms.length === 0 ? (
+              <p className="text-xs mono text-tan-3">No glossary terms in this section.</p>
+            ) : (
+              <div className="space-y-4">
+                {glossaryTerms.map((entries) => (
+                  <div key={entries[0].nodeId} className="border-b border-border pb-4">
+                    <button
+                      onClick={() => onNavigate(entries[0].nodeId)}
+                      className="text-xs font-semibold mono mb-1 text-accent hover:underline cursor-pointer text-left"
+                    >
+                      {entries[0].term}
+                    </button>
+                    {entries.map((e, i) => (
+                      <div key={i} className={i > 0 ? "mt-2 pt-2 border-t border-border" : ""}>
+                        {entries.length > 1 && e.sourceContext && (
+                          <button
+                            onClick={() => onNavigate(e.nodeId)}
+                            className="text-[10px] mono mb-0.5 text-tan-3 hover:text-accent cursor-pointer text-left block"
+                          >
+                            {e.sourceContext}
+                          </button>
+                        )}
+                        <p className="text-xs leading-relaxed text-tan-2">{e.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
-
           </div>
         ) : (
           <div className="px-4 py-5">

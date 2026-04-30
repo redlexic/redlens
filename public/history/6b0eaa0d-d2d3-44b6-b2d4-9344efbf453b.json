@@ -1,0 +1,21 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Sky uses a SkyLink bridge to securely move assets between Ethereum Mainnet and Avalanche C-Chain (\"Avalanche\"), as well as to provide governance controls for Sky-issued tokens on Avalanche."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Avalanche SkyLink Bridge",
+    "description": "Adds documentation for the Avalanche SkyLink Bridge, specifying Freezer Multisig configuration, Rate Limits, and Validator parameters."
+  }
+]

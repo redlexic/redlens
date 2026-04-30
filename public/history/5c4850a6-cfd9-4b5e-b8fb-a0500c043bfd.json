@@ -1,0 +1,36 @@
+[
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Multisig Administrator must coordinate with the remaining signers to execute a signer removal transaction in accordance with the Multisig's standard signer rotation procedures. After execution, the Multisig Administrator must verify that the departing signer's address has been removed from the Multisig and that the change is appropriately communicated and documented as outlined in [A.2.11.1.3.2.2.1.1.2 - Signer Composition Documentation Requirement](2d434d95-a892-404f-9e59-216dce97ce89)."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Multisig Administrator must coordinate with the remaining signers to execute a signer removal transaction in accordance with the Multisig's standard signer rotation procedures. After execution, the Multisig Administrator must verify that the departing signer's address has been removed from the Multisig and that the change is appropriately communicated and documented as outlined in [A.2.11.1.3.2.2.1.1.2 - Signer Composition Documentation Requirement](2d434d95-a892-404f-9e59-216dce97ce89)."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

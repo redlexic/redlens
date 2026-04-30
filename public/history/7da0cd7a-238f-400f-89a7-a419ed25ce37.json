@@ -11,5 +11,472 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2025-11-21",
+    "commitHash": "22cc27b",
+    "changeType": "added",
+    "pr": 117,
+    "prTitle": "Migrate To Markdown File",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/117",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Migrate To Markdown File",
+    "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The"
+          ],
+          [
+            "-",
+            " parameters"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "of"
+          ],
+          [
+            "+",
+            "Core"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "Facilitator,"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "vesting"
+          ],
+          [
+            "+",
+            "in"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "stream"
+          ],
+          [
+            "+",
+            "consultation"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "that"
+          ],
+          [
+            "+",
+            "with"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "vests"
+          ],
+          [
+            "+",
+            "the"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "SKY"
+          ],
+          [
+            "+",
+            "Core"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Tokens"
+          ],
+          [
+            "+",
+            "Council"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "to"
+          ],
+          [
+            "+",
+            "Risk"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "be"
+          ],
+          [
+            "+",
+            "Advisor,"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "transferred"
+          ],
+          [
+            "+",
+            "may"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "to"
+          ],
+          [
+            "+",
+            "modify"
+          ],
+          [
+            "=",
+            " the "
+          ],
+          [
+            "-",
+            "Staking"
+          ],
+          [
+            "+",
+            "parameters"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Rewards"
+          ],
+          [
+            "+",
+            "of"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "contract"
+          ],
+          [
+            "+",
+            "the"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "may"
+          ],
+          [
+            "+",
+            "vesting"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "be"
+          ],
+          [
+            "+",
+            "stream"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "modified"
+          ],
+          [
+            "+",
+            "to"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "by"
+          ],
+          [
+            "+",
+            "achieve"
+          ],
+          [
+            "=",
+            " the"
+          ],
+          [
+            "-",
+            " Core Facilitator"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "on"
+          ],
+          [
+            "+",
+            "target"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "reward"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "recommendation"
+          ],
+          [
+            "+",
+            "rate"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "of"
+          ],
+          [
+            "+",
+            "as"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "specified"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Core"
+          ],
+          [
+            "+",
+            "in"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Council"
+          ],
+          [
+            "+",
+            "[A.2.3.1.4.2"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Risk"
+          ],
+          [
+            "+",
+            "-"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Advisor"
+          ],
+          [
+            "+",
+            "Allocation"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "through"
+          ],
+          [
+            "+",
+            "Of"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "Step"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Operational"
+          ],
+          [
+            "+",
+            "4"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Weekly"
+          ],
+          [
+            "+",
+            "Capital](04bd9df4-275e-4520-83a6-d634aa605fe3)."
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Cycle,"
+          ],
+          [
+            "+",
+            "Such"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "and"
+          ],
+          [
+            "+",
+            "modifications"
+          ],
+          [
+            "=",
+            " can be effected directly via an Executive Vote, without a prior Governance Poll"
+          ],
+          [
+            "-",
+            ". It is expected that the parameters will be reviewed and updated approximately every 90 days"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]
