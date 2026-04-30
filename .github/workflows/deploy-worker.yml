@@ -22,10 +22,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: redlens-mcp
 
       - name: Deploy worker
-        run: pnpm deploy
-        working-directory: redlens-mcp
+        run: pnpm --filter redlens-mcp run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
