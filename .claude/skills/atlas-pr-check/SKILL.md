@@ -33,7 +33,7 @@ The script:
 2. Pre-fetches `refs/pull/<N>/head` into the atlas submodule (handles fork PRs)
 3. Runs `pnpm build:at <sha>` (index → graph → manifest)
 4. Runs `pnpm test`
-5. On **success** — writes a relationship-delta report; atlas stays at PR SHA
+5. On **success** — writes a relationship-delta report with a full `diff -ru` of graph snapshots (untruncated); atlas stays at PR SHA
 6. On **failure** — writes a diagnosis report and exits 1
 
 Report location: `.cache/pr-check/pr<N>-<sha7>.md`
@@ -56,6 +56,12 @@ Tell the user:
 - Whether any **new** entity or edge types appeared (listed under "New entity types" / "New edge types")
 - If nothing changed → say so explicitly: the PR adds content that the parsers
   already handle fully; no code changes are needed
+
+The report also includes a **"Graph snapshot diff"** section — a standard `diff -ru`
+output (not vitest output) comparing baseline snapshots against the PR's snapshots.
+This is untruncated. Read it to understand exactly which named entities, instances,
+params, and role pairs changed. If the section says "(no snapshot changes)", the PR
+adds no graph-visible content.
 
 If new edge or entity types appear, consider whether `.claude/skills/graph-atlas/SKILL.md`
 needs a new entry documenting the pattern (see "When to update" below).

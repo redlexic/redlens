@@ -56,6 +56,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   idPrefix?: string;
 }) {
   const { node, depth, color, indentPadding, hasContent } = entry;
+  const HeadingTag = `h${Math.min(depth, 6)}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
   return (
     <div
@@ -136,12 +137,12 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           {hasContent ? (isExpanded ? "\u25BE" : "\u25B8") : "\u00B7"}
         </span>
         <div className="atlas-node-title flex items-center gap-2 py-1.5">
-          <span
+          <HeadingTag
             className={DEPTH_HEADING[depth] ?? "text-sm font-medium"}
             style={{ color: isSelected ? "var(--tan)" : "var(--tan-2)" }}
           >
             {node.title}
-          </span>
+          </HeadingTag>
           <span className="text-[10px] mono text-tan-3">{node.id}</span>
         </div>
       </div>

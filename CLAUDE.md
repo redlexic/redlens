@@ -138,6 +138,7 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 
 ## Conventions / preferences
 
+- **Use semantic HTML elements**: `h1`–`h6` for headings, `<button>` for actions, `<a>` for navigation, `<article>`/`<section>`/`<header>` for sectioned content. Prefer native elements over `<div>`/`<span>` with ARIA roles when a semantic element fits.
 - **Don't add hover/click logic in JS when CSS will do it.**
 - **The home button is a plain HTML link** (`<a href="/">`), not an `onClick` handler.
 - **Search quality > bundle size** for the lunr index. Full-content indexing is intentional.
