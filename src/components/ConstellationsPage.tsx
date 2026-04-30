@@ -226,11 +226,12 @@ export function ConstellationsPage({
       <div className="flex-1 relative" style={{ minHeight: 0 }}>
         <ErrorBoundary fallback={<PanelError />}>
           <EntityFlow
-            allNodes={allNodes}
-            allEdges={allEdges}
-            visibleIds={visibleIds}
+            nodes={nodes}
+            edges={edges}
             selectedId={urlId}
             onSelect={selectEntity}
+            graphData={graphData}
+            entityById={entityById}
             onNavigateDoc={onNavigate}
           />
         </ErrorBoundary>
