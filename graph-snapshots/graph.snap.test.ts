@@ -242,32 +242,24 @@ describe("instances", () => {
 // Allocation-system sub-doc content
 //
 // ICD params (above) capture structured `**Label**: value` fields extracted by
-// build-graph. But Atlas docs can also carry configuration as child docs with
-// plain content — e.g. vault "Market Exposure" sections listing pool IDs and
-// caps. This snapshot traverses the full sub-doc tree under each instance's
-// defining Atlas doc so those changes show up in PR diffs.
+// build-graph. But Atlas docs also carry configuration in child docs with plain
+// content — e.g. vault "Market Exposure" sections listing pool IDs and caps.
+//
+// parentId traversal is unreliable at depth 6 (the cap flattens the hierarchy).
+// Instead: find all docs whose doc_no starts with the instance doc's own doc_no.
+// The prefix is derived dynamically from the node, so it stays correct if the
+// instance is renumbered — this is safe dynamic prefix use, not a hardcoded one.
 // ---------------------------------------------------------------------------
 
 describe("allocation-system sub-doc content", () => {
-  // Build parentId → sorted children map
-  const byParent = new Map<string, AtlasNode[]>();
-  for (const n of Object.values(docs)) {
-    if (n.parentId) {
-      if (!byParent.has(n.parentId)) byParent.set(n.parentId, []);
-      byParent.get(n.parentId)!.push(n);
-    }
-  }
-  for (const ch of byParent.values())
-    ch.sort((a, b) => a.doc_no.localeCompare(b.doc_no, undefined, { numeric: true }));
+  const allDocs = Object.values(docs);
 
-  function subdocs(id: string): { title: string; content: string }[] {
-    const result: { title: string; content: string }[] = [];
-    for (const child of byParent.get(id) ?? []) {
-      const content = child.content.trim();
-      result.push({ title: child.title, content });
-      result.push(...subdocs(child.id));
-    }
-    return result;
+  function subdocsByPrefix(instanceDocNo: string): { title: string; content: string }[] {
+    const prefix = instanceDocNo + ".";
+    return allDocs
+      .filter((n) => n.doc_no.startsWith(prefix))
+      .sort((a, b) => a.doc_no.localeCompare(b.doc_no, undefined, { numeric: true }))
+      .map((n) => ({ title: n.title, content: n.content.trim() }));
   }
 
   it("sub-doc tree for each allocation-system instance", () => {
@@ -275,10 +267,11 @@ describe("allocation-system sub-doc content", () => {
       .filter((e) => e.et === "instance" && e.st === "allocation-system" && e.did)
       .map((e) => {
         const meta = JSON.parse(e.m ?? "{}");
+        const instanceDoc = docs[e.did!];
         return {
           name: e.name,
           agent: meta.agent_doc_no ?? null,
-          subDocs: subdocs(e.did!),
+          subDocs: instanceDoc ? subdocsByPrefix(instanceDoc.doc_no) : [],
         };
       })
       .sort((a, b) => (a.agent ?? "").localeCompare(b.agent ?? "") || a.name.localeCompare(b.name));
