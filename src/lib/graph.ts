@@ -7,15 +7,19 @@ import type {
 import { fetchJsonVerified } from "./verify";
 
 export interface GraphData {
-  participants: Participant[]; // agents, parties, facilitators, govops, delegates — et !== "instance"
-  instances: Participant[]; // primitive instances — et === "instance"
+  participants: Participant[];
+  instances: Participant[];
   edges: RelationEdge[];
 }
 
-// Module-level cache for the raw graph data (used by reports)
+export interface ConstellationInit {
+  entities: Participant[];
+  entityEdges: RelationEdge[];
+}
+
+// Module-level cache for the raw graph data (used by reports/radar).
 let graphCache: Promise<GraphData> | null = null;
 
-/** Load the full relations.json once and cache it. Used by reports that need bulk data. */
 export function loadGraph(): Promise<GraphData> {
   if (!graphCache) {
     graphCache = fetchJsonVerified<{ entities: Participant[]; edges: RelationEdge[] }>(
@@ -36,15 +40,21 @@ export interface EdgeResult {
 }
 
 // ---------------------------------------------------------------------------
-// Worker lifecycle — started lazily on first call, kept alive for the session
+// Worker lifecycle
 // ---------------------------------------------------------------------------
 
 let worker: Worker | null = null;
 let ready = false;
 const readyCallbacks: Array<() => void> = [];
 
-// Pending query callbacks keyed by request id
+// Constellation init — resolved once from the worker's ready payload.
+let constellationInit: ConstellationInit | null = null;
+const constellationInitWaiters: Array<(d: ConstellationInit) => void> = [];
+
+// Pending callbacks keyed by request id / agent id.
 const edgePending = new Map<string, (r: EdgeResult) => void>();
+const queryPending = new Map<number, (r: { neighborIds: string[]; topId: string | null }) => void>();
+const clusterPending = new Map<string, (ids: string[]) => void>();
 
 function getWorker(): Worker {
   if (worker) return worker;
@@ -55,6 +65,9 @@ function getWorker(): Worker {
     const msg = e.data;
 
     if (msg.type === "ready") {
+      constellationInit = { entities: msg.entities, entityEdges: msg.entityEdges };
+      for (const cb of constellationInitWaiters) cb(constellationInit);
+      constellationInitWaiters.length = 0;
       ready = true;
       for (const cb of readyCallbacks) cb();
       readyCallbacks.length = 0;
@@ -63,13 +76,21 @@ function getWorker(): Worker {
 
     if (msg.type === "edges") {
       const cb = edgePending.get(msg.id);
-      if (cb) {
-        edgePending.delete(msg.id);
-        cb({ outbound: msg.outbound, inbound: msg.inbound });
-      }
+      if (cb) { edgePending.delete(msg.id); cb({ outbound: msg.outbound, inbound: msg.inbound }); }
       return;
     }
 
+    if (msg.type === "constellation-query") {
+      const cb = queryPending.get(msg.id);
+      if (cb) { queryPending.delete(msg.id); cb({ neighborIds: msg.neighborIds, topId: msg.topId }); }
+      return;
+    }
+
+    if (msg.type === "constellation-cluster") {
+      const cb = clusterPending.get(msg.agentId);
+      if (cb) { clusterPending.delete(msg.agentId); cb(msg.clusterIds); }
+      return;
+    }
   });
 
   return worker;
@@ -84,12 +105,38 @@ function whenReady(): Promise<void> {
 // Public API
 // ---------------------------------------------------------------------------
 
-/** Get all inbound + outbound edges for a doc or entity id. */
+export function getConstellationInit(): Promise<ConstellationInit> {
+  getWorker();
+  if (constellationInit) return Promise.resolve(constellationInit);
+  return new Promise((resolve) => constellationInitWaiters.push(resolve));
+}
+
 export async function getEdges(id: string): Promise<EdgeResult> {
   const w = getWorker();
   await whenReady();
   return new Promise((resolve) => {
     edgePending.set(id, resolve);
     w.postMessage({ type: "edges", id });
+  });
+}
+
+export async function constellationQuery(
+  id: number,
+  q: string,
+): Promise<{ neighborIds: string[]; topId: string | null }> {
+  const w = getWorker();
+  await whenReady();
+  return new Promise((resolve) => {
+    queryPending.set(id, resolve);
+    w.postMessage({ type: "constellation-query", id, q });
+  });
+}
+
+export async function constellationCluster(agentId: string): Promise<string[]> {
+  const w = getWorker();
+  await whenReady();
+  return new Promise((resolve) => {
+    clusterPending.set(agentId, resolve);
+    w.postMessage({ type: "constellation-cluster", agentId });
   });
 }

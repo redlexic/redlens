@@ -1,17 +1,15 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useLocation, useSearchParams } from "wouter";
-import { loadGraph } from "../lib/graph";
 import { loadAtlas } from "../lib/docs";
 import { useLoaded } from "../hooks/useAtlasData";
+import { useConstellationsWorker } from "../hooks/useConstellationsWorker";
 import {
   buildEntityNodes,
   buildEntityEdges,
-  buildEntityIndex,
   ENTITY_TYPE_LABEL,
   ENTITY_TYPE_COLOR,
   CONNECTED_ENTITY_TYPES,
 } from "../lib/entityGraph";
-import { matchParticipants, neighborhoodOfParticipants, agentClusterIds } from "../lib/search";
 import { EntityFlow } from "./constellations/EntityFlow";
 import { Loading } from "./Loading";
 import { ErrorBoundary, PanelError } from "./ErrorBoundary";
@@ -24,7 +22,6 @@ export function ConstellationsPage({
   onNavigate: (id: string) => void;
   query: string;
 }) {
-  const graphData = useLoaded(loadGraph);
   const atlas = useLoaded(loadAtlas);
   const docNoToId = atlas?.docNoToId ?? null;
   const [, navigate] = useLocation();
@@ -32,9 +29,7 @@ export function ConstellationsPage({
   const urlId = searchParams.get("id");
 
   const selectEntity = useCallback(
-    (id: string) => {
-      navigate(`/constellations?id=${id}`);
-    },
+    (id: string) => navigate(`/constellations?id=${id}`),
     [navigate],
   );
 
@@ -44,52 +39,49 @@ export function ConstellationsPage({
   );
   const [focusAgentId, setFocusAgentId] = useState<string | null>(null);
 
-  const allEntities = useMemo(
-    () => (graphData ? [...graphData.participants, ...graphData.instances] : []),
-    [graphData],
-  );
-
-  const entityById = useMemo(() => buildEntityIndex(allEntities), [allEntities]);
-
-  const queryScope = useMemo(() => {
-    if (!graphData || !query.trim()) return null;
-    const matches = matchParticipants(query, allEntities);
-    if (matches.length === 0) return { ids: new Set<string>(), topId: null as string | null };
-    const seedIds = matches.map((m) => m.participant.id);
-    const ids = neighborhoodOfParticipants(seedIds, graphData.edges, 2);
-    return { ids, topId: matches[0].participant.id };
-  }, [graphData, query, allEntities]);
+  const { init, neighborIds, topId, clusterIds } = useConstellationsWorker(query, focusAgentId);
 
   useEffect(() => {
-    if (queryScope?.topId) selectEntity(queryScope.topId);
+    if (topId) selectEntity(topId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryScope?.topId]);
+  }, [topId]);
 
-  const focusCluster = useMemo(() => {
-    if (!graphData || !focusAgentId) return null;
-    return agentClusterIds(focusAgentId, allEntities, graphData.edges);
-  }, [graphData, focusAgentId, allEntities]);
+  const graphData = useMemo(
+    () =>
+      init
+        ? {
+            participants: init.entities.filter((e) => e.et !== "instance"),
+            instances: init.entities.filter((e) => e.et === "instance"),
+            edges: init.entityEdges,
+          }
+        : null,
+    [init],
+  );
 
-  const { nodes, edges } = useMemo(() => {
-    if (!graphData) return { nodes: [], edges: [] };
-    const allNodes = buildEntityNodes(graphData).filter((n) => {
+  const allEntities = useMemo(() => init?.entities ?? [], [init]);
+
+  const allNodes = useMemo(() => (graphData ? buildEntityNodes(graphData) : []), [graphData]);
+  const allEdges = useMemo(() => (graphData ? buildEntityEdges(graphData) : []), [graphData]);
+
+  const visibleIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const n of allNodes) {
       const subKey = n.entity.et === "instance" && n.entity.st ? `instance:${n.entity.st}` : null;
-      if (hiddenTypes.has(n.entity.et)) return false;
-      if (subKey && hiddenTypes.has(subKey)) return false;
-      if (focusCluster && !focusCluster.has(n.id)) return false;
-      if (queryScope && !queryScope.ids.has(n.id)) return false;
-      return true;
-    });
-    const visible = new Set(allNodes.map((n) => n.id));
-    const allEdges = buildEntityEdges(graphData).filter(
-      (e) => visible.has(e.src) && visible.has(e.tgt),
-    );
-    return { nodes: allNodes, edges: allEdges };
-  }, [graphData, hiddenTypes, queryScope, focusCluster]);
+      if (hiddenTypes.has(n.entity.et)) continue;
+      if (subKey && hiddenTypes.has(subKey)) continue;
+      if (clusterIds && !clusterIds.has(n.id)) continue;
+      if (neighborIds && !neighborIds.has(n.id)) continue;
+      ids.add(n.id);
+    }
+    return ids;
+  }, [allNodes, hiddenTypes, neighborIds, clusterIds]);
+
+  const visibleEdgeCount = useMemo(
+    () => allEdges.filter((e) => visibleIds.has(e.src) && visibleIds.has(e.tgt)).length,
+    [allEdges, visibleIds],
+  );
 
   const typeRows = useMemo(() => {
-    if (!graphData)
-      return [] as { key: string; et: string; label: string; count: number; color: string }[];
     const m = new Map<
       string,
       { key: string; et: string; label: string; count: number; color: string }
@@ -98,10 +90,7 @@ export function ConstellationsPage({
       const key = e.et === "instance" && e.st ? `instance:${e.st}` : e.et;
       const label =
         e.et === "instance" && e.st
-          ? e.st
-              .split("-")
-              .map((w) => w[0].toUpperCase() + w.slice(1))
-              .join(" ")
+          ? e.st.split("-").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ")
           : (ENTITY_TYPE_LABEL[e.et] ?? e.et);
       const color = ENTITY_TYPE_COLOR[e.et] ?? "#888";
       const cur = m.get(key);
@@ -109,40 +98,36 @@ export function ConstellationsPage({
       else m.set(key, { key, et: e.et, label, count: 1, color });
     }
     return [...m.values()].sort((a, b) => b.count - a.count);
-  }, [graphData, allEntities]);
+  }, [allEntities]);
 
-  const primeAgents = useMemo(() => {
-    if (!graphData) return [] as Participant[];
-    return graphData.participants
-      .filter((e) => e.et === "agent" && e.st === "prime")
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [graphData]);
+  const primeAgents = useMemo(
+    () =>
+      allEntities
+        .filter((e) => e.et === "agent" && e.st === "prime")
+        .sort((a, b) => a.name.localeCompare(b.name)) as Participant[],
+    [allEntities],
+  );
 
   if (!graphData || !docNoToId) {
     return <Loading>loading constellations</Loading>;
   }
-
-  const totalShown = graphData.participants.length + graphData.instances.length;
 
   return (
     <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
       <div className="shrink-0 px-1 py-1 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="flex items-center gap-2">
           <p className="mono text-[10px] uppercase tracking-wide" style={{ color: "var(--tan-3)" }}>
-            {queryScope
-              ? nodes.length === 0
+            {neighborIds
+              ? visibleIds.size === 0
                 ? `no results for "${query}"`
-                : `"${query}" · ${nodes.length} shown · ${edges.length} relationships`
-              : `${totalShown} total · ${nodes.length} shown · ${edges.length} relationships`}
+                : `"${query}" · ${visibleIds.size} shown · ${visibleEdgeCount} relationships`
+              : `${allEntities.length} total · ${visibleIds.size} shown · ${visibleEdgeCount} relationships`}
           </p>
           <button
             aria-label="Toggle the filters"
             onClick={() => setFiltersOpen((v) => !v)}
             className="mono text-[25px] leading-none transition-transform duration-150"
-            style={{
-              color: "var(--tan-3)",
-              transform: filtersOpen ? "rotate(0deg)" : "rotate(-90deg)",
-            }}
+            style={{ color: "var(--tan-3)", transform: filtersOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
             title={filtersOpen ? "Hide filters" : "Show filters"}
           >
             ▾
@@ -186,18 +171,9 @@ export function ConstellationsPage({
                       return next;
                     });
                   }}
-                  title={
-                    connected
-                      ? hidden
-                        ? "Show"
-                        : "Hide"
-                      : "No direct entity-to-entity edges — panel context only"
-                  }
+                  title={connected ? (hidden ? "Show" : "Hide") : "No direct entity-to-entity edges — panel context only"}
                 >
-                  <span
-                    className="inline-block w-2 h-2 rounded-full"
-                    style={{ background: row.color }}
-                  />
+                  <span className="inline-block w-2 h-2 rounded-full" style={{ background: row.color }} />
                   {row.label} · {row.count}
                   {!connected && <span style={{ color: "var(--tan-3)" }}>·</span>}
                 </button>
@@ -211,10 +187,7 @@ export function ConstellationsPage({
           className="shrink-0 px-4 py-2 border-b flex items-center gap-2 flex-wrap"
           style={{ borderColor: "var(--border)" }}
         >
-          <span
-            className="mono text-[10px] uppercase tracking-wide"
-            style={{ color: "var(--tan-3)" }}
-          >
+          <span className="mono text-[10px] uppercase tracking-wide" style={{ color: "var(--tan-3)" }}>
             Focus:
           </span>
           <button
@@ -253,12 +226,11 @@ export function ConstellationsPage({
       <div className="flex-1 relative" style={{ minHeight: 0 }}>
         <ErrorBoundary fallback={<PanelError />}>
           <EntityFlow
-            nodes={nodes}
-            edges={edges}
+            allNodes={allNodes}
+            allEdges={allEdges}
+            visibleIds={visibleIds}
             selectedId={urlId}
             onSelect={selectEntity}
-            graphData={graphData}
-            entityById={entityById}
             onNavigateDoc={onNavigate}
           />
         </ErrorBoundary>

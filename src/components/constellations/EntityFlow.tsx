@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useCallback, memo } from "react";
+import { useMemo, useEffect, useCallback, memo, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -20,13 +20,8 @@ import forceAtlas2 from "graphology-layout-forceatlas2";
 import noverlap from "graphology-layout-noverlap";
 import { parseMeta } from "../../lib/meta";
 import type { EntityNodeData, EntityEdgeData, EntityRelation } from "../../lib/entityGraph";
-import {
-  edgeLabel,
-  ENTITY_TYPE_LABEL,
-  SUBTYPE_LABEL,
-  getEntityRelations,
-} from "../../lib/entityGraph";
-import type { GraphData } from "../../lib/graph";
+import { edgeLabel, ENTITY_TYPE_LABEL, SUBTYPE_LABEL } from "../../lib/entityGraph";
+import { getEdges, type EdgeResult } from "../../lib/graph";
 import type { Participant } from "../../types";
 
 const EDGE_COLOR = "#5a3a32";
@@ -39,8 +34,6 @@ type CardData = {
   subtype: string | null;
   degree: number;
   entity: Participant;
-  graphData: GraphData;
-  entityById: Map<string, Participant>;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 };
@@ -48,19 +41,7 @@ type CardData = {
 type CardNode = Node<CardData, "entity">;
 
 const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNode>) {
-  const {
-    label,
-    color,
-    entityType,
-    subtype,
-    degree,
-    entity,
-    graphData,
-    entityById,
-    onSelect,
-    onNavigateDoc,
-  } = data;
-
+  const { label, color, entityType, subtype, degree, entity, onSelect, onNavigateDoc } = data;
   const typeLabel = ENTITY_TYPE_LABEL[entityType] ?? entityType;
   const subLabel = subtype ? (SUBTYPE_LABEL[subtype] ?? subtype) : null;
 
@@ -80,36 +61,15 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
       }}
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{ opacity: 0, pointerEvents: "none" }}
-      />
-
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, pointerEvents: "none" }} />
       <div className="flex items-center gap-2">
-        <span
-          className="inline-block rounded-full shrink-0"
-          style={{ background: color, width: selected ? 10 : 8, height: selected ? 10 : 8 }}
-        />
-        <span className="font-semibold text-sm truncate" style={{ color: "var(--tan)" }}>
-          {label}
-        </span>
+        <span className="inline-block rounded-full shrink-0" style={{ background: color, width: selected ? 10 : 8, height: selected ? 10 : 8 }} />
+        <span className="font-semibold text-sm truncate" style={{ color: "var(--tan)" }}>{label}</span>
       </div>
-
       <div className="mono text-[10px] mt-0.5" style={{ color: "var(--tan-3)" }}>
-        {typeLabel}
-        {subLabel ? ` · ${subLabel}` : ""}
+        {typeLabel}{subLabel ? ` · ${subLabel}` : ""}
       </div>
-
-      {selected && (
-        <CardBody
-          entity={entity}
-          graphData={graphData}
-          entityById={entityById}
-          onSelect={onSelect}
-          onNavigateDoc={onNavigateDoc}
-        />
-      )}
+      {selected && <CardBody entity={entity} onSelect={onSelect} onNavigateDoc={onNavigateDoc} />}
       {!selected && degree > 0 && (
         <div className="mono text-[9px] mt-1" style={{ color: "var(--tan-3)" }}>
           {degree} connection{degree !== 1 ? "s" : ""}
@@ -119,40 +79,47 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
   );
 });
 
-function CardBody({
-  entity,
-  graphData,
-  entityById,
-  onSelect,
-  onNavigateDoc,
-}: {
+function resolveLabel(id: string, type: string, workerLabel?: string): string {
+  if (workerLabel) return workerLabel;
+  if (type === "address") return id.startsWith("addr:") ? id.slice(5, 17) + "…" : id.slice(0, 10);
+  return id.slice(0, 8);
+}
+
+function edgeResultToRelations(result: EdgeResult): EntityRelation[] {
+  return [
+    ...result.outbound.map((e) => ({
+      edge: e, direction: "outbound" as const,
+      otherId: e.t, otherType: e.tt as EntityRelation["otherType"],
+      otherLabel: resolveLabel(e.t, e.tt, e.to_label),
+    })),
+    ...result.inbound.map((e) => ({
+      edge: e, direction: "inbound" as const,
+      otherId: e.f, otherType: e.ft as EntityRelation["otherType"],
+      otherLabel: resolveLabel(e.f, e.ft, e.from_label),
+    })),
+  ];
+}
+
+function CardBody({ entity, onSelect, onNavigateDoc }: {
   entity: Participant;
-  graphData: GraphData;
-  entityById: Map<string, Participant>;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 }) {
+  const [edgeResult, setEdgeResult] = useState<EdgeResult | null>(null);
+  useEffect(() => { getEdges(entity.id).then(setEdgeResult); }, [entity.id]);
+
   const grouped = useMemo(() => {
-    const rels = getEntityRelations(entity.id, graphData, entityById);
-    // Key includes direction so the group label matches every chip in the group.
-    const byType = new Map<
-      string,
-      { edgeType: string; direction: "outbound" | "inbound"; rels: EntityRelation[] }
-    >();
-    for (const r of rels) {
+    if (!edgeResult) return [];
+    const byType = new Map<string, { edgeType: string; direction: "outbound" | "inbound"; rels: EntityRelation[] }>();
+    for (const r of edgeResultToRelations(edgeResult)) {
       const k = `${r.edge.e}|${r.direction}`;
       let bucket = byType.get(k);
-      if (!bucket) {
-        bucket = { edgeType: r.edge.e, direction: r.direction, rels: [] };
-        byType.set(k, bucket);
-      }
+      if (!bucket) { bucket = { edgeType: r.edge.e, direction: r.direction, rels: [] }; byType.set(k, bucket); }
       bucket.rels.push(r);
     }
     return [...byType.values()].sort((a, b) => b.rels.length - a.rels.length);
-  }, [entity, graphData, entityById]);
+  }, [edgeResult]);
 
-  // Parse meta.params for instance entities — structured tuples of
-  // [formattedValue, srcUuid, srcDocNo] per key.
   const params = useMemo(() => {
     const m = parseMeta<{ params?: Record<string, [string, string, string]> }>(entity.m);
     return m?.params && Object.keys(m.params).length > 0 ? m.params : null;
@@ -161,109 +128,67 @@ function CardBody({
   return (
     <div className="mt-3 pt-3 border-t" style={{ borderColor: "var(--border)" }}>
       {entity.did && (
-        <button
-          className="mono text-[11px] hover:underline mb-3"
-          style={{ color: "var(--accent)" }}
-          onClick={(e) => {
-            e.stopPropagation();
-            onNavigateDoc(entity.did!);
-          }}
-        >
+        <button className="mono text-[11px] hover:underline mb-3" style={{ color: "var(--accent)" }}
+          onClick={(e) => { e.stopPropagation(); onNavigateDoc(entity.did!); }}>
           → defining document
         </button>
       )}
       {params && (
         <div className="mb-3">
-          <p
-            className="mono text-[9px] uppercase tracking-wide mb-1"
-            style={{ color: "var(--tan-3)" }}
-          >
+          <p className="mono text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--tan-3)" }}>
             parameters · {Object.keys(params).length}
           </p>
           <div className="space-y-1">
             {Object.entries(params).map(([key, [value, srcId, srcDocNo]]) => (
               <div key={key} className="text-[10px] leading-tight">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onNavigateDoc(srcId);
-                  }}
-                  className="mono hover:underline"
-                  style={{ color: "var(--tan-3)" }}
-                  title={srcDocNo}
-                >
-                  {key}
-                </button>
-                <span className="mx-1" style={{ color: "var(--tan-3)" }}>
-                  :
-                </span>
-                <span style={{ color: "var(--tan-2)" }}>
-                  {value.length > 90 ? value.slice(0, 90) + "…" : value}
-                </span>
+                <button onClick={(e) => { e.stopPropagation(); onNavigateDoc(srcId); }}
+                  className="mono hover:underline" style={{ color: "var(--tan-3)" }} title={srcDocNo}>{key}</button>
+                <span className="mx-1" style={{ color: "var(--tan-3)" }}>:</span>
+                <span style={{ color: "var(--tan-2)" }}>{value.length > 90 ? value.slice(0, 90) + "…" : value}</span>
               </div>
             ))}
           </div>
         </div>
       )}
-      {grouped.length === 0 ? (
-        <p className="mono text-[10px]" style={{ color: "var(--tan-3)" }}>
-          No relations.
-        </p>
-      ) : (
-        grouped.map(({ edgeType, direction, rels }) => (
-          <div key={`${edgeType}|${direction}`} className="mb-2.5 last:mb-0">
-            <p
-              className="mono text-[9px] uppercase tracking-wide mb-1"
-              style={{ color: "var(--tan-3)" }}
-            >
-              {edgeLabel(edgeType, direction)} · {rels.length}
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {rels.map((r, i) => (
-                <RelationChip key={i} rel={r} onSelect={onSelect} onNavigateDoc={onNavigateDoc} />
-              ))}
-            </div>
+      {!edgeResult ? (
+        <p className="mono text-[10px]" style={{ color: "var(--tan-3)" }}>…</p>
+      ) : grouped.length === 0 ? (
+        <p className="mono text-[10px]" style={{ color: "var(--tan-3)" }}>No relations.</p>
+      ) : grouped.map(({ edgeType, direction, rels }) => (
+        <div key={`${edgeType}|${direction}`} className="mb-2.5 last:mb-0">
+          <p className="mono text-[9px] uppercase tracking-wide mb-1" style={{ color: "var(--tan-3)" }}>
+            {edgeLabel(edgeType, direction)} · {rels.length}
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {rels.map((r, i) => <RelationChip key={i} rel={r} onSelect={onSelect} onNavigateDoc={onNavigateDoc} />)}
           </div>
-        ))
-      )}
+        </div>
+      ))}
     </div>
   );
 }
 
-function RelationChip({
-  rel,
-  onSelect,
-  onNavigateDoc,
-}: {
+function RelationChip({ rel, onSelect, onNavigateDoc }: {
   rel: EntityRelation;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 }) {
   const { otherType, otherId, otherLabel, direction } = rel;
   const sources = rel.edge.s ?? [];
-  const arrow = direction === "outbound" ? "→" : "←";
-
+  const clickable = otherType === "entity" || otherType === "doc";
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (otherType === "entity") onSelect(otherId);
     else if (otherType === "doc") onNavigateDoc(otherId);
   };
-
-  const clickable = otherType === "entity" || otherType === "doc";
-
   return (
     <button
       className={`mono text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 ${clickable ? "hover:bg-hover" : ""}`}
-      style={{
-        background: "var(--bg)",
-        color: "var(--tan-2)",
-        border: "1px solid var(--border)",
-        cursor: clickable ? "pointer" : "default",
-      }}
+      style={{ background: "var(--bg)", color: "var(--tan-2)", border: "1px solid var(--border)", cursor: clickable ? "pointer" : "default" }}
       onClick={clickable ? handle : undefined}
       title={sources.length ? `cited in ${sources.join(", ")}` : "structural edge"}
     >
-      <span style={{ color: "var(--tan-3)" }}>{arrow}</span>
+      <span style={{ color: "var(--tan-3)" }}>{direction === "outbound" ? "→" : "←"}</span>
       <span>{otherLabel}</span>
     </button>
   );
@@ -271,174 +196,101 @@ function RelationChip({
 
 const nodeTypes = { entity: EntityCard };
 
-export function EntityFlow({
-  nodes: entityNodes,
-  edges: entityEdges,
+function EntityFlowInner({
+  allNodes,
+  allEdges,
+  visibleIds,
   selectedId,
   onSelect,
-  graphData,
-  entityById,
   onNavigateDoc,
 }: {
-  nodes: EntityNodeData[];
-  edges: EntityEdgeData[];
+  allNodes: EntityNodeData[];
+  allEdges: EntityEdgeData[];
+  visibleIds: Set<string>;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  graphData: GraphData;
-  entityById: Map<string, Participant>;
   onNavigateDoc: (id: string) => void;
 }) {
-  // Compute positions once per nodes/edges reference using forceatlas2 + noverlap.
-  const { rfNodes, rfEdges } = useMemo(() => {
-    const graph = new MultiDirectedGraph();
-    const N = entityNodes.length || 1;
-    entityNodes.forEach((n, i) => {
+  // Force layout runs ONCE on the full node/edge set.
+  const positions = useMemo(() => {
+    const g = new MultiDirectedGraph();
+    const N = allNodes.length || 1;
+    allNodes.forEach((n, i) => {
       const angle = (i / N) * 2 * Math.PI;
-      graph.addNode(n.id, {
-        x: Math.cos(angle) * 200,
-        y: Math.sin(angle) * 200,
-        size: 90,
-      });
+      g.addNode(n.id, { x: Math.cos(angle) * 200, y: Math.sin(angle) * 200, size: 90 });
     });
-    for (const e of entityEdges) {
-      if (graph.hasNode(e.src) && graph.hasNode(e.tgt)) {
-        graph.addDirectedEdgeWithKey(e.key, e.src, e.tgt);
-      }
+    for (const e of allEdges) {
+      if (g.hasNode(e.src) && g.hasNode(e.tgt)) g.addDirectedEdgeWithKey(e.key, e.src, e.tgt);
     }
-    const settings = forceAtlas2.inferSettings(graph);
-    forceAtlas2.assign(graph, {
-      iterations: 500,
-      settings: { ...settings, gravity: 1.5, scalingRatio: 5, slowDown: 3 },
+    const settings = forceAtlas2.inferSettings(g);
+    forceAtlas2.assign(g, { iterations: 500, settings: { ...settings, gravity: 1.5, scalingRatio: 5, slowDown: 3 } });
+    noverlap.assign(g, { maxIterations: 300, settings: { margin: 12, ratio: 1.0, speed: 4 } });
+    const pts: { x: number; y: number }[] = [];
+    g.forEachNode((_, a) => pts.push({ x: a.x as number, y: a.y as number }));
+    const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+    const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+    const dists = pts.map((p) => Math.hypot(p.x - cx, p.y - cy)).sort((a, b) => a - b);
+    const cap = dists[Math.floor(dists.length * 0.85)] * 1.2;
+    g.updateEachNodeAttributes((_, attrs) => {
+      const dx = (attrs.x as number) - cx, dy = (attrs.y as number) - cy;
+      const d = Math.hypot(dx, dy);
+      if (d > cap) { const s = cap / d; return { ...attrs, x: cx + dx * s, y: cy + dy * s }; }
+      return attrs;
     });
-    noverlap.assign(graph, {
-      maxIterations: 300,
-      settings: { margin: 12, ratio: 1.0, speed: 4 },
-    });
+    const pos = new Map<string, { x: number; y: number }>();
+    g.forEachNode((id, a) => pos.set(id, { x: a.x as number, y: a.y as number }));
+    return pos;
+  }, [allNodes, allEdges]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Clamp outliers (isolated nodes like instances) back toward the cluster.
-    // Cap at 1.2× the 85th-percentile radius so only true strays are pulled in.
-    {
-      const pts: { x: number; y: number }[] = [];
-      graph.forEachNode((_, a) => pts.push({ x: a.x as number, y: a.y as number }));
-      const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
-      const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-      const dists = pts.map((p) => Math.hypot(p.x - cx, p.y - cy)).sort((a, b) => a - b);
-      const cap = dists[Math.floor(dists.length * 0.85)] * 1.2;
-      graph.updateEachNodeAttributes((_, attrs) => {
-        const dx = (attrs.x as number) - cx;
-        const dy = (attrs.y as number) - cy;
-        const d = Math.hypot(dx, dy);
-        if (d > cap) {
-          const s = cap / d;
-          return { ...attrs, x: cx + dx * s, y: cy + dy * s };
-        }
-        return attrs;
-      });
-    }
-
-    const rfNodes: CardNode[] = entityNodes.map((n) => {
-      const attrs = graph.getNodeAttributes(n.id);
+  // Cheap O(n) — just sets hidden/selected flags on pre-positioned nodes.
+  const rfNodes = useMemo<CardNode[]>(() =>
+    allNodes.map((n) => {
+      const pos = positions.get(n.id) ?? { x: 0, y: 0 };
       return {
-        id: n.id,
-        type: "entity",
-        position: { x: attrs.x as number, y: attrs.y as number },
-        data: {
-          label: n.label,
-          color: n.color,
-          entityType: n.entity.et,
-          subtype: n.entity.st,
-          degree: n.degree,
-          entity: n.entity,
-          graphData,
-          entityById,
-          onSelect,
-          onNavigateDoc,
-        },
+        id: n.id, type: "entity" as const, position: pos,
+        hidden: !visibleIds.has(n.id),
+        selected: n.id === selectedId,
+        data: { label: n.label, color: n.color, entityType: n.entity.et, subtype: n.entity.st, degree: n.degree, entity: n.entity, onSelect, onNavigateDoc },
       };
-    });
+    }), [positions, allNodes, visibleIds, selectedId, onSelect, onNavigateDoc]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const rfEdges: Edge[] = entityEdges.map((e) => ({
-      id: e.key,
-      source: e.src,
-      target: e.tgt,
-      label: edgeLabel(e.type, "outbound"),
-      style: { stroke: EDGE_COLOR, strokeWidth: 1.2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_COLOR, width: 16, height: 16 },
-      labelStyle: { fill: "#8a6a60", fontSize: 10, fontFamily: "'Source Code Pro', monospace" },
-      labelBgStyle: { fill: "#160e0d", fillOpacity: 0.9 },
-      labelBgPadding: [4, 2] as [number, number],
-    }));
-
-    return { rfNodes, rfEdges };
-    // onSelect/onNavigateDoc/graphData/entityById are stable enough per user session;
-    // relayout should only happen when the visible node/edge set changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entityNodes, entityEdges]);
+  // Cheap O(edges) — hides edges where either endpoint is hidden.
+  const rfEdges = useMemo<Edge[]>(() =>
+    allEdges.map((e) => {
+      const active = !!selectedId && (e.src === selectedId || e.tgt === selectedId);
+      return {
+        id: e.key, source: e.src, target: e.tgt,
+        hidden: !(visibleIds.has(e.src) && visibleIds.has(e.tgt)),
+        label: edgeLabel(e.type, "outbound"),
+        style: { stroke: active ? EDGE_HIGHLIGHT : EDGE_COLOR, strokeWidth: active ? 2 : 1.2 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: active ? EDGE_HIGHLIGHT : EDGE_COLOR, width: 16, height: 16 },
+        labelStyle: { fill: "#8a6a60", fontSize: 10, fontFamily: "'Source Code Pro', monospace" },
+        labelBgStyle: { fill: "#160e0d", fillOpacity: 0.9 },
+        labelBgPadding: [4, 2] as [number, number],
+        zIndex: active ? 1 : 0,
+      };
+    }), [allEdges, visibleIds, selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [nodes, setNodes, onNodesChange] = useNodesState<CardNode>(rfNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(rfEdges);
 
-  // Rebuild state when the incoming (filtered) set changes.
-  useEffect(() => {
-    setNodes(rfNodes);
-  }, [rfNodes, setNodes]);
-  useEffect(() => {
-    setEdges(rfEdges);
-  }, [rfEdges, setEdges]);
-
-  // Drive "selected" attribute from external selectedId so the card can expand.
-  useEffect(() => {
-    setNodes((ns) =>
-      ns.map((n) =>
-        n.selected === (n.id === selectedId) ? n : { ...n, selected: n.id === selectedId },
-      ),
-    );
-  }, [selectedId, setNodes]);
-
-  // Highlight edges incident to selection.
-  useEffect(() => {
-    setEdges((es) =>
-      es.map((e) => {
-        const active = selectedId && (e.source === selectedId || e.target === selectedId);
-        return {
-          ...e,
-          style: { stroke: active ? EDGE_HIGHLIGHT : EDGE_COLOR, strokeWidth: active ? 2 : 1.2 },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: active ? EDGE_HIGHLIGHT : EDGE_COLOR,
-            width: 16,
-            height: 16,
-          },
-          zIndex: active ? 1 : 0,
-        };
-      }),
-    );
-  }, [selectedId, setEdges]);
+  useEffect(() => { setNodes(rfNodes); }, [rfNodes, setNodes]);
+  useEffect(() => { setEdges(rfEdges); }, [rfEdges, setEdges]);
 
   const handleNodeClick = useCallback<NodeMouseHandler<CardNode>>(
-    (_, node) => {
-      onSelect(node.id);
-    },
+    (_, node) => onSelect(node.id),
     [onSelect],
   );
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onNodeClick={handleNodeClick}
-      nodeTypes={nodeTypes}
-      fitView
-      minZoom={0.2}
-      maxZoom={2}
-      nodesConnectable={false}
-      colorMode="dark"
-      proOptions={{ hideAttribution: true }}
+    <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
+      onNodeClick={handleNodeClick} nodeTypes={nodeTypes} fitView minZoom={0.2} maxZoom={2}
+      nodesConnectable={false} colorMode="dark" proOptions={{ hideAttribution: true }}
     >
       <Background variant={BackgroundVariant.Dots} gap={32} size={1} color="#2a1a16" />
       <Controls showInteractive={false} />
     </ReactFlow>
   );
 }
+
+export const EntityFlow = memo(EntityFlowInner) as typeof EntityFlowInner;

@@ -98,13 +98,17 @@ export type GraphWorkerInMessage =
   | { type: "ping" }
   | { type: "edges"; id: string }
   | { type: "entity"; slug: string }
-  | { type: "neighbors"; id: string; depth?: number } // BFS depth 1 by default
-  | { type: "subgraph"; rootId: string; depth: number }; // BFS subgraph for viz
+  | { type: "neighbors"; id: string; depth?: number }
+  | { type: "subgraph"; rootId: string; depth: number }
+  | { type: "constellation-query"; id: number; q: string }
+  | { type: "constellation-cluster"; agentId: string };
 
 export type GraphWorkerOutMessage =
-  | { type: "ready" }
+  | { type: "ready"; entities: Participant[]; entityEdges: RelationEdge[] }
   | { type: "edges"; id: string; inbound: ResolvedEdge[]; outbound: ResolvedEdge[] }
   | { type: "entity"; slug: string; entity: Participant | null; edges: ResolvedEdge[] }
   | ({ type: "neighbors"; id: string } & SerializedSubgraph)
   | ({ type: "subgraph"; rootId: string } & SerializedSubgraph)
+  | { type: "constellation-query"; id: number; neighborIds: string[]; topId: string | null }
+  | { type: "constellation-cluster"; agentId: string; clusterIds: string[] }
   | { type: "error"; message: string };
