@@ -1,0 +1,40 @@
+[
+  {
+    "date": "2026-04-27",
+    "commitHash": "569ba9f",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Risk Curation Framework defines the conditions under which Spark governance may authorize external contributors to execute approved changes onchain, while preserving governance oversight, timelock protections, and cancellation authorities."
+      ]
+    ],
+    "pr": 209,
+    "prTitle": "SAEP-13: Risk Curation Framework",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/209",
+    "reviewCount": 3,
+    "approvalCount": 1,
+    "summary": "SAEP-13: Risk Curation Framework",
+    "description": "Originating forum post: https://forum.skyeco.com/t/saep-13-risk-curation-framework/27796/1\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-04-27",
+    "commitHash": "569ba9f",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Risk Curation Framework defines the conditions under which Spark governance may authorize external contributors to execute approved changes onchain, while preserving governance oversight, timelock protections, and cancellation authorities."
+      ]
+    ],
+    "pr": 209,
+    "prTitle": "SAEP-13: Risk Curation Framework",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/209",
+    "reviewCount": 3,
+    "approvalCount": 1,
+    "summary": "SAEP-13: Risk Curation Framework",
+    "description": "Originating forum post: https://forum.skyeco.com/t/saep-13-risk-curation-framework/27796/1\r\n\r\n**Do not merge unless associated poll passes**"
+  }
+]

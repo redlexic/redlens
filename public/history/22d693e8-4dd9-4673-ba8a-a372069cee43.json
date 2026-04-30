@@ -1,0 +1,21 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The signers of the Avalanche SkyLink Freezer Multisig are two (2) addresses controlled by Operational GovOps Soter Labs, two (2) addresses controlled by Operational Facilitator Endgame Edge, and one (1) address controlled by Prime Agent Grove."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Avalanche SkyLink Bridge",
+    "description": "Adds documentation for the Avalanche SkyLink Bridge, specifying Freezer Multisig configuration, Rate Limits, and Validator parameters."
+  }
+]

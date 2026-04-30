@@ -1,0 +1,19 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Avalanche SkyLink Bridge currently has no rate limit for sUSDS. A rate limit for sUSDS may be set or subsequently modified by the Core Facilitator, in consultation with the Core Council Risk Advisor, through the Operational Weekly Cycle. Such changes can be effected directly via an Executive Vote, without requiring a prior Governance Poll."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

@@ -4,10 +4,51 @@
     "commitHash": "ede66d5",
     "changeType": "added",
     "diff": [
-      ["+", "The deposit rate limits are:"],
-      ["+", ""],
-      ["+", "- `maxAmount`: 100,000,000 USDC"],
-      ["+", "- `slope`: 20,000,000 USDC per day"]
+      [
+        "+",
+        "The deposit rate limits are:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- `maxAmount`: 100,000,000 USDC"
+      ],
+      [
+        "+",
+        "- `slope`: 20,000,000 USDC per day"
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The deposit rate limits are:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- `maxAmount`: 100,000,000 USDC"
+      ],
+      [
+        "+",
+        "- `slope`: 20,000,000 USDC per day"
+      ]
     ],
     "pr": 222,
     "prTitle": "Atlas Edit Proposal — 2026-04-13",

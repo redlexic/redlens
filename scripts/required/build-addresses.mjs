@@ -60,7 +60,7 @@ const { misses = 0, errors = 0 } = out.__stats ?? {};
 
 await fetchImplABIs(out, API_KEY);
 
-await fs.writeFile(OUT_PATH, JSON.stringify(out));
+await fs.writeFile(OUT_PATH, JSON.stringify(out, null, 2) + "\n");
 // addresses.atlas.json is kept as a permanent artifact — not deleted.
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,19 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "This Instance uses the Tracking Methodology specified in [A.2.2.8.1.2.1.2.2.1 - Ethereum Mainnet General Tracking Methodology](87fd6861-ba8a-4bde-945e-ee9ad37ae3e2)."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

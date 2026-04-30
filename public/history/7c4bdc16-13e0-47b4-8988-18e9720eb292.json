@@ -8,15 +8,71 @@
         "+",
         "Only an operator with the admin role is able to set unlimited rate limit data for a specific key by configuring it with maximum values. Calling this function will carry out the following actions:"
       ],
-      ["+", ""],
+      [
+        "+",
+        ""
+      ],
       [
         "+",
         "- The contract will call setRateLimitData internally with type(uint256).max for maxAmount and lastAmount, 0 for slope, and the current block timestamp for lastUpdated."
       ],
-      ["+", ""],
-      ["+", "The function call is as follows:"],
-      ["+", ""],
-      ["+", "`function setUnlimitedRateLimitData(bytes32 key) external override`"]
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "The function call is as follows:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "`function setUnlimitedRateLimitData(bytes32 key) external override`"
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Only an operator with the admin role is able to set unlimited rate limit data for a specific key by configuring it with maximum values. Calling this function will carry out the following actions:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- The contract will call setRateLimitData internally with type(uint256).max for maxAmount and lastAmount, 0 for slope, and the current block timestamp for lastUpdated."
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "The function call is as follows:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "`function setUnlimitedRateLimitData(bytes32 key) external override`"
+      ]
     ],
     "pr": 222,
     "prTitle": "Atlas Edit Proposal — 2026-04-13",

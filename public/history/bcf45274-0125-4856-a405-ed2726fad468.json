@@ -1,0 +1,40 @@
+[
+  {
+    "date": "2026-04-27",
+    "commitHash": "76ca35c",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein contain exposure details for this Instance"
+      ]
+    ],
+    "pr": 210,
+    "prTitle": "Spark proposal - Morpho Vault Curation",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/210",
+    "reviewCount": 3,
+    "approvalCount": 1,
+    "summary": "Spark proposal - Morpho Vault Curation",
+    "description": "Originating forum post: https://forum.skyeco.com/t/morpho-vault-curation-proposals/27797\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-04-27",
+    "commitHash": "76ca35c",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein contain exposure details for this Instance"
+      ]
+    ],
+    "pr": 210,
+    "prTitle": "Spark proposal - Morpho Vault Curation",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/210",
+    "reviewCount": 3,
+    "approvalCount": 1,
+    "summary": "Spark proposal - Morpho Vault Curation",
+    "description": "Originating forum post: https://forum.skyeco.com/t/morpho-vault-curation-proposals/27797\r\n\r\n**Do not merge unless associated poll passes**"
+  }
+]

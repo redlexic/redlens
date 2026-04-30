@@ -1,0 +1,27 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Prime Agent may define instance-specific customization of the routine protocol to extend the baseline functionality defined in the Sky Core Atlas. This can include custom routines or processes layered on top of the inherited Sky Core logic. Any extensions must remain fully aligned with the requirements specified in the Sky Core Atlas. This document defines those customizations, if any."
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "[No customization presently.]"
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

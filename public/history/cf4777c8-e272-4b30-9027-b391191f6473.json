@@ -1,0 +1,19 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the protocol for non-routine ongoing management of the Grove Finance Instance of this Distribution Reward Primitive."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

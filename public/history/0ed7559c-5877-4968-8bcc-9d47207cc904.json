@@ -1,0 +1,40 @@
+[
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the process for including novel items in Spells."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Process For Novel Spell Items",
+    "description": "Adds a definition and process for assessing and including novel Spell items in Executive Votes."
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the process for including novel items in Spells."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Process For Novel Spell Items",
+    "description": "Adds a definition and process for assessing and including novel Spell items in Executive Votes."
+  }
+]

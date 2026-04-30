@@ -1,0 +1,36 @@
+[
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the responsibilities and requirements applicable to Multisig signers during the setup phase of a Multisig. Signers may consult with their Multisig Administrator for guidance on fulfilling these requirements."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the responsibilities and requirements applicable to Multisig signers during the setup phase of a Multisig. Signers may consult with their Multisig Administrator for guidance on fulfilling these requirements."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

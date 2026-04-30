@@ -20,17 +20,50 @@
       [
         "~",
         [
-          ["=", "The ALMProxy for"],
-          ["-", " Launch Agent"],
-          ["=", " "],
-          ["-", "4"],
-          ["+", "Obex"],
-          ["=", " must be whitelisted on the LitePSM. This will effectively allow"],
-          ["-", " Launch Agent"],
-          ["=", " "],
-          ["-", "4"],
-          ["+", "Obex"],
-          ["=", " to call `buyGemNoFee` and `sellGemNoFee` on the `MCD_LITE_PSM_USDC_A` contract."]
+          [
+            "=",
+            "The ALMProxy for"
+          ],
+          [
+            "-",
+            " Launch Agent"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "Obex"
+          ],
+          [
+            "=",
+            " must be whitelisted on the LitePSM. This will effectively allow"
+          ],
+          [
+            "-",
+            " Launch Agent"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "Obex"
+          ],
+          [
+            "=",
+            " to call `buyGemNoFee` and `sellGemNoFee` on the `MCD_LITE_PSM_USDC_A` contract."
+          ]
         ]
       ]
     ],
@@ -42,5 +75,176 @@
     "approvalCount": 1,
     "summary": "Nov 24 Atlas edit",
     "description": "Do not merge unless associated poll passes"
+  },
+  {
+    "date": "2025-11-21",
+    "commitHash": "22cc27b",
+    "changeType": "added",
+    "pr": 117,
+    "prTitle": "Migrate To Markdown File",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/117",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Migrate To Markdown File",
+    "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2025-11-30",
+    "commitHash": "32b0cc1",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The ALMProxy for"
+          ],
+          [
+            "-",
+            " Launch Agent"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "Obex"
+          ],
+          [
+            "=",
+            " must be whitelisted on the LitePSM. This will effectively allow"
+          ],
+          [
+            "-",
+            " Launch Agent"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "Obex"
+          ],
+          [
+            "=",
+            " to call `buyGemNoFee` and `sellGemNoFee` on the `MCD_LITE_PSM_USDC_A` contract."
+          ]
+        ]
+      ]
+    ],
+    "pr": 121,
+    "prTitle": "Nov 24 Atlas edit",
+    "prAuthor": "MakerJanSky",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
+    "reviewCount": 6,
+    "approvalCount": 1,
+    "summary": "Nov 24 Atlas edit",
+    "description": "Do not merge unless associated poll passes"
+  },
+  {
+    "date": "2026-04-13",
+    "commitHash": "3365665",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The ALMProxy for Obex must be whitelisted on the LitePSM. This will effectively allow Obex to call"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "`buyGemNoFee`"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "and"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "`sellGemNoFee`"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "on the"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "`MCD_LITE_PSM_USDC_A`"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "contract."
+          ]
+        ]
+      ]
+    ],
+    "pr": 223,
+    "prTitle": "remove non breaking space characters",
+    "prAuthor": "0xldr",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/223",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

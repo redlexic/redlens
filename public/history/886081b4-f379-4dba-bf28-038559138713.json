@@ -15,5 +15,22 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the operations performed by the admin role (see [A.6.1.1.6.2.6.1.2.2.1.1.1 - Default Admin Role](6434ee18-27d9-4dcc-9895-0bbf316b8144)) within the `MainnetController` contract."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

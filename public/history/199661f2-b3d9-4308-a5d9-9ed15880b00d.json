@@ -1,0 +1,19 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Avalanche SkyLink Bridge can be frozen from Ethereum Mainnet by the Ethereum SkyLink Freezer Multisig as specified in [A.1.9.4.1.1 - Ethereum SkyLink Freezer Multisig](21fa6749-6209-4280-9b5f-b2a73d400421). The document herein defines the Avalanche-side freezer multisig."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

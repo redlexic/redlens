@@ -18,5 +18,59 @@
     "commentCount": 2,
     "summary": "Spark proposal - Onboard Spark Prime / Arkis",
     "description": "Originating forum post: https://forum.sky.money/t/december-11-2025-proposed-changes-to-spark-for-upcoming-spell/27481\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2025-12-15",
+    "commitHash": "894a044",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The specific `RateLimitID`(s) for this conduit’s inflow and outflow will be specified in a future iteration of the Spark Artifact."
+      ]
+    ],
+    "pr": 134,
+    "prTitle": "Spark proposal - Onboard Spark Prime / Arkis",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/134",
+    "reviewCount": 4,
+    "approvalCount": 2,
+    "commentCount": 2,
+    "summary": "Spark proposal - Onboard Spark Prime / Arkis",
+    "description": "Originating forum post: https://forum.sky.money/t/december-11-2025-proposed-changes-to-spark-for-upcoming-spell/27481\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-04-13",
+    "commitHash": "3365665",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The specific"
+          ],
+          [
+            "-",
+            " "
+          ],
+          [
+            "+",
+            " "
+          ],
+          [
+            "=",
+            "`RateLimitID`(s) for this conduit’s inflow and outflow will be specified in a future iteration of the Spark Artifact."
+          ]
+        ]
+      ]
+    ],
+    "pr": 223,
+    "prTitle": "remove non breaking space characters",
+    "prAuthor": "0xldr",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/223",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

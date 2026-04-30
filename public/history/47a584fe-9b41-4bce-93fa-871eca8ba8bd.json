@@ -1,0 +1,36 @@
+[
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The process begins when a stakeholder's needs require an item that Core GovOps believes is novel in an upcoming Spell. Core GovOps submits a request to the Core Facilitator for inclusion of the item. The Core Facilitator also has the authority to independently request inclusion of a novel item."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The process begins when a stakeholder's needs require an item that Core GovOps believes is novel in an upcoming Spell. Core GovOps submits a request to the Core Facilitator for inclusion of the item. The Core Facilitator also has the authority to independently request inclusion of a novel item."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

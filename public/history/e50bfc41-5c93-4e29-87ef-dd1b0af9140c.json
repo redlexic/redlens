@@ -15,5 +15,22 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "This Instance's associated Instance Configuration Document is located at [A.6.1.1.2.2.6.1.3.1.1.4 - Ethereum Mainnet - Centrifuge JTRSY USDS Vault Instance Configuration Document](acbe1bed-7639-45a4-9a5d-73c7d434bd0a)."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

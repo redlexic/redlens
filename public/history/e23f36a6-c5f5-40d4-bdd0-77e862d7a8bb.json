@@ -4,11 +4,59 @@
     "commitHash": "ede66d5",
     "changeType": "added",
     "diff": [
-      ["+", "The swap rate limits are:"],
-      ["+", ""],
-      ["+", "- `maxAmount`: 5,000,000 USDS/USDC"],
-      ["+", "- `slope`: 100,000,000 USDS/USDC per day"],
-      ["+", "- `maxSlippage`: 0.1%"]
+      [
+        "+",
+        "The swap rate limits are:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- `maxAmount`: 5,000,000 USDS/USDC"
+      ],
+      [
+        "+",
+        "- `slope`: 100,000,000 USDS/USDC per day"
+      ],
+      [
+        "+",
+        "- `maxSlippage`: 0.1%"
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The swap rate limits are:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- `maxAmount`: 5,000,000 USDS/USDC"
+      ],
+      [
+        "+",
+        "- `slope`: 100,000,000 USDS/USDC per day"
+      ],
+      [
+        "+",
+        "- `maxSlippage`: 0.1%"
+      ]
     ],
     "pr": 222,
     "prTitle": "Atlas Edit Proposal — 2026-04-13",

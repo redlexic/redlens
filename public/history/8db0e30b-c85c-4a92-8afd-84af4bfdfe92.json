@@ -1,0 +1,72 @@
+[
+  {
+    "date": "2026-04-27",
+    "commitHash": "a0bd7bb",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "- Initial LTV: 80%"
+      ],
+      [
+        "+",
+        "- Maintenance LTV: 85%"
+      ],
+      [
+        "+",
+        "- Liquidation LTV: 90%"
+      ],
+      [
+        "+",
+        "- Exposure limit: $500 million (of which, not more than $50 million from XAUM)"
+      ],
+      [
+        "+",
+        "- Staked and wrapped versions: Tether XAUT, Paxos PAXG, Matrixdock XAUM"
+      ]
+    ],
+    "pr": 214,
+    "prTitle": "SAEP-14: Update Offchain Collateralized Lending Artifact Section",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/214",
+    "reviewCount": 3,
+    "approvalCount": 1,
+    "summary": "SAEP-14: Update Offchain Collateralized Lending Artifact Section",
+    "description": "Originating forum post: https://forum.skyeco.com/t/saep-14-update-offchain-collateralized-lending-artifact-section/27805\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-04-27",
+    "commitHash": "a0bd7bb",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "- Initial LTV: 80%"
+      ],
+      [
+        "+",
+        "- Maintenance LTV: 85%"
+      ],
+      [
+        "+",
+        "- Liquidation LTV: 90%"
+      ],
+      [
+        "+",
+        "- Exposure limit: $500 million (of which, not more than $50 million from XAUM)"
+      ],
+      [
+        "+",
+        "- Staked and wrapped versions: Tether XAUT, Paxos PAXG, Matrixdock XAUM"
+      ]
+    ],
+    "pr": 214,
+    "prTitle": "SAEP-14: Update Offchain Collateralized Lending Artifact Section",
+    "prAuthor": "blimpa",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/214",
+    "reviewCount": 3,
+    "approvalCount": 1,
+    "summary": "SAEP-14: Update Offchain Collateralized Lending Artifact Section",
+    "description": "Originating forum post: https://forum.skyeco.com/t/saep-14-update-offchain-collateralized-lending-artifact-section/27805\r\n\r\n**Do not merge unless associated poll passes**"
+  }
+]

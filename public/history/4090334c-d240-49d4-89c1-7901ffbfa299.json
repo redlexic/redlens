@@ -1,0 +1,76 @@
+[
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Periodic reviews may include, but are not limited to:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- Verification that Multisig documentation in the Multisig Registry remains accurate and up to date."
+      ],
+      [
+        "+",
+        "- Reassessment of Multisig operational purpose where operational patterns change."
+      ],
+      [
+        "+",
+        "- Reassessment of financial exposure or protocol impact where asset exposure or operational scope changes."
+      ],
+      [
+        "+",
+        "- Verification that Multisig configuration and operational practices remain consistent with the Multisig Security Enforcement Framework."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Periodic reviews may include, but are not limited to:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- Verification that Multisig documentation in the Multisig Registry remains accurate and up to date."
+      ],
+      [
+        "+",
+        "- Reassessment of Multisig operational purpose where operational patterns change."
+      ],
+      [
+        "+",
+        "- Reassessment of financial exposure or protocol impact where asset exposure or operational scope changes."
+      ],
+      [
+        "+",
+        "- Verification that Multisig configuration and operational practices remain consistent with the Multisig Security Enforcement Framework."
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]

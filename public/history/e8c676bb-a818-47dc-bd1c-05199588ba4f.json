@@ -15,5 +15,22 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-04-16",
+    "commitHash": "ede66d5",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Allocator Vault parameters for ALLOCATOR-PATTERN-A are defined in [A.3.7.1.2.1.5 - ALLOCATOR-PATTERN-A Parameters](322e7ccc-6dcb-4f83-96e5-d8f2fa87cd00)."
+      ]
+    ],
+    "pr": 222,
+    "prTitle": "Atlas Edit Proposal — 2026-04-13",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

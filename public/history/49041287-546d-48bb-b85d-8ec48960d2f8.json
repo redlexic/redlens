@@ -1,0 +1,27 @@
+[
+  {
+    "date": "2026-04-09",
+    "commitHash": "fd54481",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Avalanche SkyLink Bridge uses net accounting."
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "Net accounting means that the rate limit applies to the net amount of tokens transferred from one side of the bridge to the other. For example, if 5,000,000 USDS were transferred from Ethereum Mainnet to Avalanche and 3,000,000 USDS were transferred from Avalanche to Ethereum Mainnet, the net amount transferred would be 2,000,000 USDS."
+      ]
+    ],
+    "pr": 219,
+    "prTitle": "Atlas Edit Proposal — 2026-04-06",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
+    "reviewCount": 1,
+    "approvalCount": 1
+  }
+]
