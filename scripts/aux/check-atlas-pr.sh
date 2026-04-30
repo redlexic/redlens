@@ -7,21 +7,24 @@
 #
 # Only OPEN PRs are eligible. Closed / merged PRs are rejected.
 #
-# On success: writes .cache/pr-check/pr<N>-<sha7>.md with a relationship-delta
-#             summary for the agent to describe, then exits 0.
-# On failure: writes the same report with the build log and diagnosis hints,
-#             then exits 1.
+# Builds run in a git worktree so the main checkout's public/ is never written
+# to and built artifacts can't be accidentally staged/committed.
 #
-# Atlas submodule stays at the PR head SHA after the run. To restore:
-#   git submodule update
+# Flow:
+#   1. Create a git worktree at HEAD (detached, isolated public/ directory)
+#   2. Build baseline at main's pinned atlas commit (skip if already cached)
+#   3. Build + test at the PR's head commit
+#   4. Write a relationship-delta report (PR vs main) to .cache/pr-check/
+#   5. Remove the worktree
+#
+# On success: .cache/pr-check/pr<N>-<sha7>.md — delta vs main, exits 0.
+# On failure: same path — build log + failed phase, exits 1.
 
 set -euo pipefail
 
 ATLAS_REPO="sky-ecosystem/next-gen-atlas"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-ATLAS_DIR="$ROOT/vendor/next-gen-atlas"
 CACHE_DIR="$ROOT/.cache/pr-check"
-PUBLIC="$ROOT/public"
 
 # ---------------------------------------------------------------------------
 # Args
@@ -32,8 +35,7 @@ if [[ -z "$PR" || ! "$PR" =~ ^[0-9]+$ ]]; then
 Usage: check-atlas-pr <pr-number>
 
 Builds and tests RedLens at the head commit of an open
-sky-ecosystem/next-gen-atlas PR, then reports failures or
-relationship changes.
+sky-ecosystem/next-gen-atlas PR, then reports relationship changes vs main.
 
 Only OPEN PRs are eligible.
 USAGE
@@ -66,38 +68,106 @@ if [[ "$PR_STATE" != "OPEN" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Setup
+# Pinned atlas SHA — from parent repo's committed tree, not the submodule's
+# current HEAD (which may point to a prior check:pr SHA).
+# ---------------------------------------------------------------------------
+# Baseline is the atlas repo's current main HEAD — not the lens submodule
+# pointer, which lags behind by one atlas-update cycle. Fetch to ensure fresh.
+git -C "$ROOT/vendor/next-gen-atlas" fetch origin main --quiet
+PINNED_SHA=$(git -C "$ROOT/vendor/next-gen-atlas" rev-parse origin/main)
+PINNED_SHA7="${PINNED_SHA:0:7}"
+
+# ---------------------------------------------------------------------------
+# Setup: worktree + temp files
 # ---------------------------------------------------------------------------
 mkdir -p "$CACHE_DIR"
 REPORT="$CACHE_DIR/pr${PR}-${SHA7}.md"
-
 BASELINE=$(mktemp)
+BASELINE_LOG=$(mktemp)
 BUILD_LOG=$(mktemp)
-trap 'rm -f "$BASELINE" "$BUILD_LOG"' EXIT
+SNAP_LOG=$(mktemp)
 
-# Snapshot relations.json — valid baseline only when manifest.json records the
-# same atlas commit as the currently pinned submodule. A stale or absent
-# manifest means public/ is from a different build; use null so the success
-# report shows absolute counts with a note instead of a meaningless diff.
-PINNED_SHA=$(git -C "$ATLAS_DIR" rev-parse HEAD)
-MANIFEST_COMMIT=$(node -e "
+# Worktree lives in a temp dir; removed on exit regardless of outcome
+WORKTREE=$(mktemp -d)
+rmdir "$WORKTREE"
+
+cleanup() {
+  rm -f "$BASELINE" "$BASELINE_LOG" "$BUILD_LOG" "$SNAP_LOG" 2>/dev/null || true
+  git -C "$ROOT" worktree remove "$WORKTREE" --force 2>/dev/null || true
+}
+trap cleanup EXIT
+
+echo "Creating isolated git worktree ..."
+git -C "$ROOT" worktree add "$WORKTREE" HEAD --detach --quiet
+
+# Share node_modules (pnpm store is content-addressed; symlink is safe)
+ln -s "$ROOT/node_modules" "$WORKTREE/node_modules"
+
+# Share env vars and build caches (read-only from worktree's perspective)
+[[ -f "$ROOT/.env.local" ]] && ln -s "$ROOT/.env.local" "$WORKTREE/.env.local"
+mkdir -p "$WORKTREE/.cache"
+[[ -d "$ROOT/.cache/etherscan"     ]] && ln -s "$ROOT/.cache/etherscan"     "$WORKTREE/.cache/etherscan"
+[[ -f "$ROOT/.cache/block-pins.json" ]] && ln -s "$ROOT/.cache/block-pins.json" "$WORKTREE/.cache/block-pins.json"
+
+# Initialize atlas submodule in the worktree.
+# Shares git objects with the main checkout — no network fetch needed.
+echo "Initializing atlas submodule in worktree ..."
+git -C "$WORKTREE" submodule update --init --quiet vendor/next-gen-atlas
+
+WT_PUBLIC="$WORKTREE/public"
+WT_ATLAS="$WORKTREE/vendor/next-gen-atlas"
+
+# ---------------------------------------------------------------------------
+# Baseline: build at main's pinned atlas commit.
+# If the main checkout already has a valid build (manifest matches pinned SHA),
+# seed the worktree's public/ from it to skip the baseline rebuild.
+# ---------------------------------------------------------------------------
+MANIFEST_COMMIT=$(MF="$ROOT/public/manifest.json" node -e "
   try {
     const m = JSON.parse(require('fs').readFileSync(process.env.MF, 'utf8'));
     process.stdout.write(m.atlasCommit ?? '');
   } catch { process.stdout.write(''); }
-" MF="$PUBLIC/manifest.json" 2>/dev/null || true)
+" 2>/dev/null || true)
 
-if [[ -n "$MANIFEST_COMMIT" && "$MANIFEST_COMMIT" == "$PINNED_SHA" && -f "$PUBLIC/relations.json" ]]; then
-  cp "$PUBLIC/relations.json" "$BASELINE"
+if [[ -n "$MANIFEST_COMMIT" && "$MANIFEST_COMMIT" == "$PINNED_SHA" && -f "$ROOT/public/relations.json" ]]; then
+  echo "Baseline: seeding worktree from cached main build (${PINNED_SHA7})"
+  cp -r "$ROOT/public" "$WORKTREE/public"
+  cp "$WT_PUBLIC/relations.json" "$BASELINE"
 else
-  printf 'null' > "$BASELINE"
-  if [[ -f "$PUBLIC/relations.json" ]]; then
-    echo "(baseline skipped: public/ is from a different atlas commit; delta will show absolute counts)"
+  echo ""
+  echo "=== baseline: build:at ${PINNED_SHA7} (main's pinned atlas commit) ==="
+  if ! (cd "$WORKTREE" && pnpm build:at "$PINNED_SHA") 2>&1 | tee "$BASELINE_LOG"; then
+    {
+      echo "# Atlas PR check — BASELINE FAILED"
+      echo ""
+      echo "The build at main's pinned atlas commit failed."
+      echo "This is a pre-existing issue, not caused by PR #${PR}."
+      echo ""
+      echo "**Pinned SHA:** \`${PINNED_SHA}\`"
+      echo "**PR:** [#${PR} ${PR_TITLE}](${PR_URL})"
+      echo ""
+      echo "## Baseline build log"
+      echo ""
+      echo '```'
+      cat "$BASELINE_LOG"
+      echo '```'
+    } > "$REPORT"
+    echo "" >&2
+    echo "FAILED: baseline build at ${PINNED_SHA7} (pre-existing issue, unrelated to PR #${PR})" >&2
+    echo "Report: $REPORT" >&2
+    exit 1
   fi
+  cp "$WT_PUBLIC/relations.json" "$BASELINE"
+  echo ""
 fi
 
+# Record baseline snapshots so test:snap can diff against them after the PR build.
+# Output suppressed — this is bookkeeping, not a gate.
+echo "Recording baseline graph snapshots ..."
+(cd "$WORKTREE" && NO_COLOR=1 pnpm test:snap:update) > /dev/null 2>&1 || true
+
 # ---------------------------------------------------------------------------
-# Failure report writer
+# Failure report writer (PR build or test failures only)
 # ---------------------------------------------------------------------------
 write_failure_report() {
   local phase="$1"
@@ -107,6 +177,7 @@ write_failure_report() {
     echo "**PR:** [#${PR} ${PR_TITLE}](${PR_URL}) \`${PR_STATE}\`"
     echo "**Atlas SHA:** \`${HEAD_SHA}\`"
     echo "**Failed phase:** \`${phase}\`"
+    echo "**Baseline (main):** \`${PINNED_SHA}\`"
     echo "**RedLens branch:** \`${REDLENS_BRANCH}\`"
     echo ""
     echo "## Build log"
@@ -122,33 +193,45 @@ write_failure_report() {
 }
 
 # ---------------------------------------------------------------------------
-# Pre-fetch the PR head ref into the atlas submodule.
-# GitHub creates refs/pull/<N>/head for every PR including forks, so this
-# ensures build:at's `git checkout <sha>` resolves even for non-branch SHAs.
+# Pre-fetch the PR head ref into the WORKTREE's atlas submodule.
+# build:at runs git checkout inside $WT_ATLAS; the objects must be present
+# in that submodule's git dir. (The worktree submodule has its own git dir,
+# separate from the main checkout's — they do not share refs or objects.)
 # ---------------------------------------------------------------------------
 echo "Fetching atlas PR head ref ..."
-git -C "$ATLAS_DIR" fetch origin "+refs/pull/${PR}/head:refs/remotes/origin/pr/${PR}" --quiet
+git -C "$WT_ATLAS" fetch origin \
+  "+refs/pull/${PR}/head:refs/remotes/origin/pr/${PR}" --quiet
 
 # ---------------------------------------------------------------------------
-# Phase 1: build pipeline at the PR's atlas SHA
+# Phase 1: build pipeline at the PR's atlas SHA (in worktree)
 # ---------------------------------------------------------------------------
 echo ""
-echo "=== build:at ${SHA7} ==="
-(cd "$ROOT" && pnpm build:at "$HEAD_SHA") 2>&1 | tee -a "$BUILD_LOG" \
+echo "=== build:at ${SHA7} (PR #${PR}) ==="
+(cd "$WORKTREE" && pnpm build:at "$HEAD_SHA") 2>&1 | tee -a "$BUILD_LOG" \
   || { write_failure_report "build:at ${SHA7}"; exit 1; }
 
 # ---------------------------------------------------------------------------
-# Phase 2: test suite
+# Phase 2: invariant test suite — hard gate
 # ---------------------------------------------------------------------------
 echo ""
 echo "=== pnpm test ==="
-(cd "$ROOT" && pnpm test) 2>&1 | tee -a "$BUILD_LOG" \
+(cd "$WORKTREE" && pnpm test) 2>&1 | tee -a "$BUILD_LOG" \
   || { write_failure_report "pnpm test"; exit 1; }
 
 # ---------------------------------------------------------------------------
-# Success: compute relationship delta
+# Phase 3: graph snapshot diff — informational, not a gate
+# A PR that changes graph content will produce failures here by design.
+# The output shows exactly which named entities, instances, and role pairs changed.
 # ---------------------------------------------------------------------------
-DELTA=$(BASELINE_FILE="$BASELINE" RELATIONS="$PUBLIC/relations.json" \
+echo ""
+echo "=== pnpm test:snap (vs baseline) ==="
+(cd "$WORKTREE" && NO_COLOR=1 pnpm test:snap 2>&1) > "$SNAP_LOG" || true
+cat "$SNAP_LOG"
+
+# ---------------------------------------------------------------------------
+# Success: compute relationship delta (PR vs main baseline)
+# ---------------------------------------------------------------------------
+DELTA=$(BASELINE_FILE="$BASELINE" RELATIONS="$WT_PUBLIC/relations.json" \
   node --input-type=module <<'JS'
 import { readFileSync } from "fs";
 
@@ -164,10 +247,11 @@ function countByKey(items, key) {
   return out;
 }
 
-const oldEnt = baseline ? countByKey(baseline.entities, "entity_type") : {};
-const newEnt =            countByKey(current.entities,  "entity_type");
-const oldEdge = baseline ? countByKey(baseline.edges,   "edge_type")   : {};
-const newEdge =             countByKey(current.edges,   "edge_type");
+// relations.json uses abbreviated keys: et=entity_type, e=edge_type
+const oldEnt  = baseline ? countByKey(baseline.entities, "et") : {};
+const newEnt  =            countByKey(current.entities,  "et");
+const oldEdge = baseline ? countByKey(baseline.edges,    "e")  : {};
+const newEdge =            countByKey(current.edges,     "e");
 
 const allEntTypes  = new Set([...Object.keys(oldEnt),  ...Object.keys(newEnt)]);
 const allEdgeTypes = new Set([...Object.keys(oldEdge), ...Object.keys(newEdge)]);
@@ -181,39 +265,36 @@ function deltas(oldC, newC, allKeys) {
   return rows;
 }
 
-const entDeltas  = deltas(oldEnt,  newEnt,  allEntTypes);
-const edgeDeltas = deltas(oldEdge, newEdge, allEdgeTypes);
+const entDeltas   = deltas(oldEnt,  newEnt,  allEntTypes);
+const edgeDeltas  = deltas(oldEdge, newEdge, allEdgeTypes);
 const newEntTypes  = [...allEntTypes].filter(t => !oldEnt[t]  && newEnt[t]);
 const newEdgeTypes = [...allEdgeTypes].filter(t => !oldEdge[t] && newEdge[t]);
 
 const lines = [];
-
 const noBaseline = !baseline;
 
 lines.push("### Entities");
 if (noBaseline) {
-  lines.push("_(no baseline — first run; showing current counts)_");
+  lines.push("_(no baseline; showing current counts)_");
   for (const [t, n] of Object.entries(newEnt).sort()) lines.push(`- ${t}: ${n}`);
 } else if (entDeltas.length === 0) {
   lines.push("No change.");
 } else {
-  for (const { type, before, after, delta } of entDeltas) {
+  for (const { type, before, after, delta } of entDeltas)
     lines.push(`- **${type}**: ${before} → ${after} (${delta > 0 ? "+" : ""}${delta})`);
-  }
 }
 if (newEntTypes.length) lines.push(`\n> New entity types: ${newEntTypes.join(", ")}`);
 
 lines.push("");
 lines.push("### Edges by type");
 if (noBaseline) {
-  lines.push("_(no baseline — first run; showing current counts)_");
+  lines.push("_(no baseline; showing current counts)_");
   for (const [t, n] of Object.entries(newEdge).sort()) lines.push(`- ${t}: ${n}`);
 } else if (edgeDeltas.length === 0) {
   lines.push("No change.");
 } else {
-  for (const { type, before, after, delta } of edgeDeltas) {
+  for (const { type, before, after, delta } of edgeDeltas)
     lines.push(`- **${type}**: ${before} → ${after} (${delta > 0 ? "+" : ""}${delta})`);
-  }
 }
 if (newEdgeTypes.length) lines.push(`\n> New edge types: ${newEdgeTypes.join(", ")}`);
 
@@ -226,23 +307,28 @@ process.stdout.write(lines.join("\n"));
 JS
 )
 
-# Write success report
+# Write success report to main checkout (not worktree)
 {
   echo "# Atlas PR check — PASSED"
   echo ""
   echo "**PR:** [#${PR} ${PR_TITLE}](${PR_URL}) \`${PR_STATE}\`"
   echo "**Atlas SHA:** \`${HEAD_SHA}\`"
+  echo "**Baseline (main):** \`${PINNED_SHA}\`"
   echo "**RedLens branch:** \`${REDLENS_BRANCH}\`"
   echo ""
-  echo "## Relationship delta"
+  echo "## Relationship delta (PR vs main)"
   echo ""
   echo "$DELTA"
+  echo ""
+  echo "## Graph snapshot diff"
+  echo ""
+  echo '```'
+  cat "$SNAP_LOG"
+  echo '```'
 } > "$REPORT"
 
 echo ""
 echo "All checks passed for atlas PR #${PR} (${SHA7})."
 echo ""
 echo "Report: $REPORT"
-echo ""
-echo "Atlas submodule is now at ${HEAD_SHA}."
-echo "To restore the pinned commit: git submodule update"
+echo "Main checkout's public/ was not modified."

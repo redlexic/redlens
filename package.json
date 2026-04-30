@@ -20,6 +20,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:snap": "vitest run graph-snapshots",
+    "test:snap:update": "vitest run graph-snapshots -u",
     "check:pr": "bash scripts/aux/check-atlas-pr.sh",
     "tva": "bash scripts/aux/tva.sh",
     "query": "node scripts/aux/query-rag.mjs",

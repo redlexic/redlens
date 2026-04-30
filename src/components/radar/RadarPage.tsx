@@ -70,7 +70,7 @@ export function RadarPage({ onNavigate, query, actorSlug }: Props) {
     <div className="flex-1 flex overflow-hidden">
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} breakpoint={850}>
         {ready ? (
-          <ActorList groups={filteredGroups} selectedSlug={actorSlug} onSelect={selectActor} />
+          <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} onSelect={selectActor} />
         ) : (
           <div className="p-4 mono text-xs" style={{ color: "var(--tan-3)" }}>
             Loading…
