@@ -22,6 +22,7 @@ import { flattenTree } from "../../lib/atlasHelpers";
 import { useDepth6Expand } from "./useDepth6Expand";
 import { RightPanel } from "./RightPanel";
 import { JuniorPane } from "./JuniorPane";
+import { ErrorBoundary, PanelError } from "../ErrorBoundary";
 import { DrawerToggle } from "../Drawer";
 import {
   extractLinkedIds,
@@ -316,35 +317,43 @@ export function AtlasView({
             </button>
           )}
           <div ref={scrollContainerRef} className="overflow-y-auto flex-1" style={{ minHeight: 0 }}>
-            <div className="mx-auto px-3 py-2">{docList}</div>
+            <div className="mx-auto px-3 py-2">
+              <ErrorBoundary key={id} fallback={<PanelError />}>
+                {docList}
+              </ErrorBoundary>
+            </div>
           </div>
           {splitId && data && (
-            <JuniorPane
-              splitId={splitId}
-              data={data}
-              onShiftNavigate={onSplitChange}
-              onClose={() => onSplitChange(null)}
-            />
+            <ErrorBoundary key={splitId} fallback={<PanelError />}>
+              <JuniorPane
+                splitId={splitId}
+                data={data}
+                onShiftNavigate={onSplitChange}
+                onClose={() => onSplitChange(null)}
+              />
+            </ErrorBoundary>
           )}
         </div>
         {id && (
           <div className="flex flex-col hidden min-[750px]:flex" style={{ minHeight: 0 }}>
-            <RightPanel
-              id={id}
-              linkedNodes={linkedNodes}
-              targetAddresses={targetAddresses}
-              chainValues={chainValues}
-              annotationCount={annotationCount}
-              graphEdges={graphEdges}
-              glossaryTerms={glossaryTerms}
-              onNavigate={handleNavigate}
-              onNavigateByDocNo={(docNo) => {
-                const uuid = data?.atlas.docNoToId.get(docNo);
-                if (uuid) handleNavigate(uuid);
-              }}
-              tab={view}
-              onTabChange={onViewChange}
-            />
+            <ErrorBoundary key={id} fallback={(_, reset) => <PanelError reset={reset} />}>
+              <RightPanel
+                id={id}
+                linkedNodes={linkedNodes}
+                targetAddresses={targetAddresses}
+                chainValues={chainValues}
+                annotationCount={annotationCount}
+                graphEdges={graphEdges}
+                glossaryTerms={glossaryTerms}
+                onNavigate={handleNavigate}
+                onNavigateByDocNo={(docNo) => {
+                  const uuid = data?.atlas.docNoToId.get(docNo);
+                  if (uuid) handleNavigate(uuid);
+                }}
+                tab={view}
+                onTabChange={onViewChange}
+              />
+            </ErrorBoundary>
           </div>
         )}
       </div>

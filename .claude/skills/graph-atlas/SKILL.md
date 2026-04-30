@@ -442,15 +442,18 @@ const INSTANCE_SCOPED_PRIMITIVES = {
   "Allocation System Primitive": "allocation-system",
   "Pioneer Chain Primitive": "pioneer-chain",
   "Core Governance Reward Primitive": "core-governance-reward",
+  "Agent Creation Primitive": "agent-creation",
+  "Prime Transformation Primitive": "prime-transformation",
   "Agent Token Primitive": "agent-token",
   "Executor Accord Primitive": "executor-accord",
   "Root Edit Primitive": "root-edit",
   "Distribution Requirement Primitive": "distribution-requirement",
   "Upkeep Rebate Primitive": "upkeep-rebate",
+  "Ecosystem Upkeep Fee Primitive": "ecosystem-upkeep-fee",
 };
 ```
 
-**Excluded deliberately:** `Agent Creation Primitive`, `Prime Transformation Primitive`. Both are single-invocation lifecycle milestones whose outcome is already captured by the Prime Agent entity (created, transformed). Emitting instance entities for them would add 16 low-information boilerplate entities with no distinguishing params.
+**Instance display name for "Single" ICDs.** Some ICDs are titled `"Single Instance Configuration Document"` — stripping "Instance Configuration Document" yields the useless name `"Single"`. For these, extract the display name from `primRoot.content` instead: match `/for (.+?)\. See/i` to get the full actor-scoped phrase (e.g. `"Spark's Instance of the Agent Token Primitive"`). Normalize `instance`/`instances` → `Instance` to paper over atlas casing inconsistencies. Implemented in `scripts/lib/graph-entities.mjs`.
 
 **Status derivation.** `{status}` lives on both the entity meta and the `instance_of` edge meta. Derive by **reading the tier doc's title**, not its position — Allocation System inserts a Multi-Instance Coordinator Document that shifts every tier down by one:
 
@@ -502,6 +505,13 @@ Token Symbol / Genesis Supply / Token Address / Underlying Asset Address /
 Allocator Role Address / Pool Address / Address / Network / Target Protocol /
 Token / Asset Supplied By Spark Liquidity Layer
 ```
+
+**Regex-keyed fallback** (`scripts/lib/graph-instances.mjs:71`, `RATE_LIMIT_ID_RE`). After the exact-match registry, `formatParam` checks a regex. Titles matching `/^(Inflow|Outflow|Swap) Rate ?Limit ?ID/i` (9 variants including token qualifiers like `(AUSD)`, `(USDC)`, and both spaced and unspaced forms) are dispatched to `extractRateLimitId`, which:
+- Extracts the backtick-wrapped 64-char hex hash → bare `0x…` string
+- Preserves `N/A` and `N/A - swap only` for conduits where the direction is unused
+- Falls through to `unwrapBt` for any other content (e.g. placeholder prose)
+
+Content pattern: `"The inflow RateLimitID is: \`0x{64hex}\`."` (also handles newline before backtick). 77 param entries across ~40 Allocation System instances use this path today.
 
 **Per-key expanders** (`scripts/lib/graph-instances.mjs:98`, `PARAM_EXPANDERS`). When a single leaf packs multiple values into prose, a registered expander returns `Array<[key, value]>` and each tuple becomes its own param entry (sharing the source doc). The expander runs before the formatter; returning `null` falls through to the regular formatter path. Currently one entry:
 
@@ -624,11 +634,7 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 
 **Atlas phrasing:** every Primitive can be invoked, and every invocation produces an ICD (A.2.2.1.3). A uniform reading would emit an `et="instance"` entity for every ICD the atlas contains.
 
-**Choice:** only the 10 primitives in `INSTANCE_SCOPED_PRIMITIVES` get instance entities. `Agent Creation Primitive` and `Prime Transformation Primitive` are intentionally excluded.
-
-**Why:** both excluded primitives are single-invocation lifecycle milestones. The outcome of "Agent X invoked Agent Creation" is already modelled by the existence of the Prime Agent entity itself. Emitting 16 boilerplate "Single" instances (8 agents × 2 primitives) with empty params would add noise without signal. The allowlist also bounds entity count — adding all ICDs would roughly double the entity count for primitives that have nothing meaningful to expose.
-
-**What we lose:** two minor gaps in the structural model. If a future consumer needs to cite "Spark invoked Agent Creation Primitive at doc A.6.1.1.1.2.1.1.3.1", they walk the atlas directly — there is no entity to query.
+**Choice:** all 13 primitives currently in `INSTANCE_SCOPED_PRIMITIVES` get instance entities — including `Agent Creation`, `Prime Transformation`, and `Ecosystem Upkeep Fee`. The allowlist still exists to keep the door closed on any future primitives that don't warrant entity-level representation; add a new entry only when you want its instances to appear in constellations/radar.
 
 ### 10. Instance params are `[value, srcUuid, srcDocNo]` tuples with per-key formatters
 

@@ -14,6 +14,7 @@ import {
 import { matchParticipants, neighborhoodOfParticipants, agentClusterIds } from "../lib/search";
 import { EntityFlow } from "./constellations/EntityFlow";
 import { Loading } from "./Loading";
+import { ErrorBoundary, PanelError } from "./ErrorBoundary";
 import type { Participant } from "../types";
 
 export function ConstellationsPage({
@@ -250,15 +251,17 @@ export function ConstellationsPage({
         </div>
       )}
       <div className="flex-1 relative" style={{ minHeight: 0 }}>
-        <EntityFlow
-          nodes={nodes}
-          edges={edges}
-          selectedId={urlId}
-          onSelect={selectEntity}
-          graphData={graphData}
-          entityById={entityById}
-          onNavigateDoc={onNavigate}
-        />
+        <ErrorBoundary fallback={<PanelError />}>
+          <EntityFlow
+            nodes={nodes}
+            edges={edges}
+            selectedId={urlId}
+            onSelect={selectEntity}
+            graphData={graphData}
+            entityById={entityById}
+            onNavigateDoc={onNavigate}
+          />
+        </ErrorBoundary>
       </div>
     </div>
   );

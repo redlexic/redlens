@@ -14,6 +14,7 @@ import { SearchHintsPage } from "./components/SearchHints";
 import { HomePage } from "./components/HomePage";
 import { DevPanel } from "./DevPanel";
 import { Footer } from "./components/Footer";
+import { ErrorBoundary, PanelError } from "./components/ErrorBoundary";
 
 const ConstellationsPage = lazy(() =>
   import("./components/ConstellationsPage").then((m) => ({ default: m.ConstellationsPage })),
@@ -111,15 +112,26 @@ export default function App() {
       />
       <div className="flex-1 flex overflow-hidden">
         {showTree && (
-          <Drawer open={treeOpen} onClose={() => setTreeOpen(false)}>
-            <TreeSidebar
-              nodeId={nodeId}
-              onNavigate={handleTreeNavigate}
-              onShiftNavigate={setSplitId}
-            />
-          </Drawer>
+          <ErrorBoundary fallback={<PanelError />}>
+            <Drawer open={treeOpen} onClose={() => setTreeOpen(false)}>
+              <TreeSidebar
+                nodeId={nodeId}
+                onNavigate={handleTreeNavigate}
+                onShiftNavigate={setSplitId}
+              />
+            </Drawer>
+          </ErrorBoundary>
         )}
         <div className="flex-1 flex flex-col overflow-hidden">
+          <ErrorBoundary
+            key={location}
+            fallback={(error) => (
+              <div className="flex flex-col items-center justify-center flex-1 py-24 gap-4">
+                <p className="text-sm mono" style={{ color: "var(--red)" }}>page failed to load</p>
+                <p className="text-xs mono text-tan-3 text-center max-w-md">{error.message}</p>
+              </div>
+            )}
+          >
           <Switch>
             <Route path={ROUTES.HOME}>
               {query.startsWith("__dev") ? (
@@ -198,6 +210,7 @@ export default function App() {
               </Suspense>
             </Route>
           </Switch>
+          </ErrorBoundary>
         </div>
       </div>
       <Footer />

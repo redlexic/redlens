@@ -1,4 +1,5 @@
 import { memo, lazy, Suspense } from "react";
+import { ErrorBoundary, InlineError } from "./ErrorBoundary";
 
 const NodeContentInner = lazy(() => import("./NodeContentInner"));
 
@@ -27,8 +28,10 @@ function NodeContentSkeleton() {
 
 export const NodeContent = memo(function NodeContent(props: Props) {
   return (
-    <Suspense fallback={<NodeContentSkeleton />}>
-      <NodeContentInner {...props} />
-    </Suspense>
+    <ErrorBoundary fallback={<InlineError />}>
+      <Suspense fallback={<NodeContentSkeleton />}>
+        <NodeContentInner {...props} />
+      </Suspense>
+    </ErrorBoundary>
   );
 });

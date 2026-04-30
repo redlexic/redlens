@@ -201,6 +201,38 @@ describe("instance params (extracted from ICD Parameters subtree)", () => {
     }
   });
 
+  it("Inflow/Outflow/Swap RateLimitID values are bare 64-char hex hashes or N/A — not prose sentences", () => {
+    const HASH_RE = /^0x[0-9a-fA-F]{64}$/;
+    const NA_RE = /^N\/A/i;
+    for (const e of instances) {
+      const p = paramsOf(e);
+      for (const [key, tup] of Object.entries(p)) {
+        if (!/^(Inflow|Outflow|Swap) Rate ?Limit ?ID/i.test(key)) continue;
+        const value = tup[0];
+        expect(
+          HASH_RE.test(value) || NA_RE.test(value) || value.startsWith("The "),
+          `${e.name}.${key}: unexpected value ${JSON.stringify(value)}`,
+        ).toBe(true);
+        // Must NOT be the raw prose sentence form "The X RateLimitID is: ..."
+        expect(
+          value,
+          `${e.name}.${key}: value still contains prose — formatter did not strip it`,
+        ).not.toMatch(/^The \w+ RateLimitID is:/i);
+      }
+    }
+  });
+
+  it("Allocation System instances with a hash RateLimitID have a valid 64-char hex value", () => {
+    const allocations = instances.filter((x) => x.st === "allocation-system");
+    const withHash = allocations.filter((e) => {
+      const p = paramsOf(e);
+      return Object.keys(p).some(
+        (k) => /^(Inflow|Outflow|Swap) Rate ?Limit ?ID/i.test(k) && /^0x[0-9a-fA-F]{64}$/.test(p[k][0]),
+      );
+    });
+    expect(withHash.length, "expected some allocation-system instances to have hash RateLimitIDs").toBeGreaterThan(30);
+  });
+
   it("at least 95% of instances carry at least one param", () => {
     const populated = instances.filter((e) => Object.keys(paramsOf(e)).length > 0).length;
     expect(populated / instances.length).toBeGreaterThanOrEqual(0.95);
