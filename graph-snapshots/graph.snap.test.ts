@@ -262,19 +262,46 @@ describe("allocation-system sub-doc content", () => {
       .map((n) => ({ title: n.title, content: n.content.trim() }));
   }
 
-  it("sub-doc tree for each allocation-system instance", () => {
-    const instances = relations.entities
-      .filter((e) => e.et === "instance" && e.st === "allocation-system" && e.did)
-      .map((e) => {
-        const meta = JSON.parse(e.m ?? "{}");
-        const instanceDoc = docs[e.did!];
-        return {
-          name: e.name,
-          agent: meta.agent_doc_no ?? null,
-          subDocs: instanceDoc ? subdocsByPrefix(instanceDoc.doc_no) : [],
-        };
-      })
-      .sort((a, b) => (a.agent ?? "").localeCompare(b.agent ?? "") || a.name.localeCompare(b.name));
-    expect(instances).toMatchSnapshot();
-  });
+  // Map agent doc_no → agent name for readable, stable test names
+  const agentNameByDocNo = new Map<string, string>();
+  for (const e of relations.entities) {
+    if (e.et === "agent" && e.st === "prime" && e.did) {
+      const d = docs[e.did];
+      if (d) agentNameByDocNo.set(d.doc_no, e.name);
+    }
+  }
+
+  // One snapshot per agent — keeps each diff small enough for vitest to display fully
+  const agentDocNos = [
+    ...new Set(
+      relations.entities
+        .filter((e) => e.et === "instance" && e.st === "allocation-system" && e.m)
+        .map((e) => (JSON.parse(e.m ?? "{}").agent_doc_no ?? "") as string)
+        .filter(Boolean),
+    ),
+  ].sort();
+
+  for (const agentDocNo of agentDocNos) {
+    const agentName = agentNameByDocNo.get(agentDocNo) ?? agentDocNo;
+    it(`${agentName} — allocation-system sub-docs`, () => {
+      const instances = relations.entities
+        .filter(
+          (e) =>
+            e.et === "instance" &&
+            e.st === "allocation-system" &&
+            e.did &&
+            e.m &&
+            JSON.parse(e.m).agent_doc_no === agentDocNo,
+        )
+        .map((e) => {
+          const instanceDoc = docs[e.did!];
+          return {
+            name: e.name,
+            subDocs: instanceDoc ? subdocsByPrefix(instanceDoc.doc_no) : [],
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+      expect(instances).toMatchSnapshot();
+    });
+  }
 });
