@@ -162,9 +162,10 @@ else
 fi
 
 # Record baseline snapshots so test:snap can diff against them after the PR build.
-# Output suppressed — this is bookkeeping, not a gate.
+# Call vitest directly (not via pnpm) to avoid the ELIFECYCLE noise on non-zero exit.
 echo "Recording baseline graph snapshots ..."
-(cd "$WORKTREE" && NO_COLOR=1 pnpm test:snap:update) > /dev/null 2>&1 || true
+(cd "$WORKTREE" && NO_COLOR=1 node_modules/.bin/vitest run --config vitest.snap.config.ts -u) \
+  > /dev/null 2>&1 || true
 
 # ---------------------------------------------------------------------------
 # Failure report writer (PR build or test failures only)
@@ -225,7 +226,8 @@ echo "=== pnpm test ==="
 # ---------------------------------------------------------------------------
 echo ""
 echo "=== pnpm test:snap (vs baseline) ==="
-(cd "$WORKTREE" && NO_COLOR=1 pnpm test:snap 2>&1) > "$SNAP_LOG" || true
+(cd "$WORKTREE" && NO_COLOR=1 node_modules/.bin/vitest run --config vitest.snap.config.ts 2>&1) \
+  > "$SNAP_LOG" || true
 cat "$SNAP_LOG"
 
 # ---------------------------------------------------------------------------
