@@ -22,6 +22,25 @@ const INSTANCE_SLUGS = new Set([
   "allocation-system",
   "pioneer-chain",
   "core-governance-reward",
+  "agent-creation",
+  "prime-transformation",
+  "agent-token",
+  "executor-accord",
+  "root-edit",
+  "distribution-requirement",
+  "upkeep-rebate",
+  "ecosystem-upkeep-fee",
+]);
+
+// Primitives whose ICDs carry Active/Completed/Pending status tiers.
+// Agent Creation, Prime Transformation, and Ecosystem Upkeep Fee use
+// "Primitive Hub Document" instead — no status derived.
+const STATUS_PRIMITIVES = new Set([
+  "distribution-reward",
+  "integration-boost",
+  "allocation-system",
+  "pioneer-chain",
+  "core-governance-reward",
   "agent-token",
   "executor-accord",
   "root-edit",
@@ -55,10 +74,9 @@ describe("instance entity emission", () => {
     }
   });
 
-  it("excludes Agent Creation and Prime Transformation (covered by Prime Agent entity)", () => {
-    for (const e of instances) {
-      expect(e.st).not.toBe("agent-creation");
-      expect(e.st).not.toBe("prime-transformation");
+  it("includes Agent Creation, Prime Transformation, and Ecosystem Upkeep Fee", () => {
+    for (const slug of ["agent-creation", "prime-transformation", "ecosystem-upkeep-fee"]) {
+      expect(instances.some((e) => e.st === slug), `missing instances for ${slug}`).toBe(true);
     }
   });
 });
@@ -94,9 +112,9 @@ describe("instance_of edges", () => {
     }
   });
 
-  it("every instance entity's edge carries a status in meta (in-scope primitives only)", () => {
+  it("every status-carrying instance entity's edge has status in meta", () => {
     const edgeBySource = new Map(instanceOfEdges.map((e) => [e.f, e]));
-    for (const ent of instances) {
+    for (const ent of instances.filter((e) => STATUS_PRIMITIVES.has(e.st ?? ""))) {
       const edge = edgeBySource.get(ent.id);
       expect(edge?.m, `${ent.name}: missing status meta`).toBeTruthy();
     }
