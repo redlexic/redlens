@@ -271,7 +271,8 @@ describe("allocation-system sub-doc content", () => {
     }
   }
 
-  // One snapshot per agent — keeps each diff small enough for vitest to display fully
+  // One snapshot per instance nested under per-agent describes.
+  // Each test covers only ~5–15 sub-docs so vitest can display the full diff.
   const agentDocNos = [
     ...new Set(
       relations.entities
@@ -283,25 +284,24 @@ describe("allocation-system sub-doc content", () => {
 
   for (const agentDocNo of agentDocNos) {
     const agentName = agentNameByDocNo.get(agentDocNo) ?? agentDocNo;
-    it(`${agentName} — allocation-system sub-docs`, () => {
-      const instances = relations.entities
-        .filter(
-          (e) =>
-            e.et === "instance" &&
-            e.st === "allocation-system" &&
-            e.did &&
-            e.m &&
-            JSON.parse(e.m).agent_doc_no === agentDocNo,
-        )
-        .map((e) => {
+    const agentInstances = relations.entities
+      .filter(
+        (e) =>
+          e.et === "instance" &&
+          e.st === "allocation-system" &&
+          e.did &&
+          e.m &&
+          JSON.parse(e.m).agent_doc_no === agentDocNo,
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    describe(agentName, () => {
+      for (const e of agentInstances) {
+        it(e.name, () => {
           const instanceDoc = docs[e.did!];
-          return {
-            name: e.name,
-            subDocs: instanceDoc ? subdocsByPrefix(instanceDoc.doc_no) : [],
-          };
-        })
-        .sort((a, b) => a.name.localeCompare(b.name));
-      expect(instances).toMatchSnapshot();
+          expect(instanceDoc ? subdocsByPrefix(instanceDoc.doc_no) : []).toMatchSnapshot();
+        });
+      }
     });
   }
 });
