@@ -89,6 +89,7 @@ BASELINE=$(mktemp)
 BASELINE_LOG=$(mktemp)
 BUILD_LOG=$(mktemp)
 SNAP_LOG=$(mktemp)
+SNAP_BASELINE=$(mktemp -d)
 
 # Worktree lives in a temp dir; removed on exit regardless of outcome
 WORKTREE=$(mktemp -d)
@@ -96,6 +97,7 @@ rmdir "$WORKTREE"
 
 cleanup() {
   rm -f "$BASELINE" "$BASELINE_LOG" "$BUILD_LOG" "$SNAP_LOG" 2>/dev/null || true
+  rm -rf "$SNAP_BASELINE" 2>/dev/null || true
   git -C "$ROOT" worktree remove "$WORKTREE" --force 2>/dev/null || true
 }
 trap cleanup EXIT
@@ -169,6 +171,7 @@ fi
 echo "Recording baseline graph snapshots ..."
 (cd "$WORKTREE" && NO_COLOR=1 node_modules/.bin/vitest run --config vitest.snap.config.ts -u) \
   > /dev/null 2>&1 || true
+cp -r "$WORKTREE/graph-snapshots" "$SNAP_BASELINE/"
 
 # ---------------------------------------------------------------------------
 # Failure report writer (PR build or test failures only)
@@ -223,14 +226,19 @@ echo "=== pnpm test ==="
 
 # ---------------------------------------------------------------------------
 # Phase 3: graph snapshot diff — informational, not a gate
-# A PR that changes graph content will produce failures here by design.
-# The output shows exactly which named entities, instances, and role pairs changed.
+# Update snapshots to the PR state, then diff against the saved baseline.
+# Using diff -ru instead of vitest output avoids vitest's truncated context lines.
 # ---------------------------------------------------------------------------
 echo ""
-echo "=== pnpm test:snap (vs baseline) ==="
-(cd "$WORKTREE" && NO_COLOR=1 node_modules/.bin/vitest run --config vitest.snap.config.ts 2>&1) \
-  > "$SNAP_LOG" || true
-cat "$SNAP_LOG"
+echo "=== graph snapshot diff (PR vs baseline) ==="
+(cd "$WORKTREE" && NO_COLOR=1 node_modules/.bin/vitest run --config vitest.snap.config.ts -u) \
+  > /dev/null 2>&1 || true
+diff -ru "$SNAP_BASELINE/graph-snapshots" "$WORKTREE/graph-snapshots" > "$SNAP_LOG" 2>&1 || true
+if [[ -s "$SNAP_LOG" ]]; then
+  cat "$SNAP_LOG"
+else
+  echo "(no snapshot changes)"
+fi
 
 # ---------------------------------------------------------------------------
 # Success: compute relationship delta (PR vs main baseline)
