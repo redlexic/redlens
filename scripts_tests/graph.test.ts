@@ -174,8 +174,9 @@ describe("Pattern 13 — bootstrap entities", () => {
   it("sky-governance is anchored to A.1 (The Governance Scope)", () => {
     const e = graph.entities.find((x) => x.slug === "sky-governance");
     expect(e, "sky-governance missing").toBeDefined();
-    expect(e!.defining_doc_id).toBeTruthy();
-    expect(docs[e!.defining_doc_id!]?.doc_no).toBe("A.1");
+    // Check against UUID — doc_nos are not stable across atlas edits.
+    // UUID 18ac7dd3 = A.1 (The Governance Scope)
+    expect(e!.defining_doc_id).toBe("18ac7dd3-c646-4352-9b0d-d01a2932d7d1");
   });
 });
 
@@ -381,11 +382,11 @@ describe("Pattern 6 — Active Data", () => {
 });
 
 describe("Pattern 7 — ERG membership", () => {
-  const ERG_DOC_NO = "A.1.8.1.2.2.0.6.1";
+  // UUID e9807449 = A.1.8.1.2.2.0.6.1 (ERG Active Data doc)
+  const ERG_UUID = "e9807449-fdc3-4860-8d53-c56181311618";
   it("every erg_member_for edge points at the single ERG Active Data doc", () => {
-    const ergDoc = docByDocNo.get(ERG_DOC_NO);
-    expect(ergDoc, `ERG doc ${ERG_DOC_NO} absent from atlas`).toBeDefined();
-    const bad = edgesOfType("erg_member_for").filter((e) => e.to_id !== ergDoc!.id);
+    expect(docs[ERG_UUID], `ERG doc ${ERG_UUID} absent from atlas`).toBeDefined();
+    const bad = edgesOfType("erg_member_for").filter((e) => e.to_id !== ERG_UUID);
     expect(bad).toEqual([]);
   });
 });

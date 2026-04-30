@@ -31,7 +31,7 @@ type Edge = {
   s?: string[];
   m?: string;
 };
-type AtlasNode = { id: string; doc_no: string; title: string; type: string };
+type AtlasNode = { id: string; doc_no: string; title: string; type: string; parentId: string | null; content: string };
 type Relations = { entities: Entity[]; edges: Edge[] };
 
 const relations: Relations = JSON.parse(fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"));
@@ -236,4 +236,52 @@ describe("instances", () => {
       expect(instances).toMatchSnapshot();
     });
   }
+});
+
+// ---------------------------------------------------------------------------
+// Allocation-system sub-doc content
+//
+// ICD params (above) capture structured `**Label**: value` fields extracted by
+// build-graph. But Atlas docs can also carry configuration as child docs with
+// plain content — e.g. vault "Market Exposure" sections listing pool IDs and
+// caps. This snapshot traverses the full sub-doc tree under each instance's
+// defining Atlas doc so those changes show up in PR diffs.
+// ---------------------------------------------------------------------------
+
+describe("allocation-system sub-doc content", () => {
+  // Build parentId → sorted children map
+  const byParent = new Map<string, AtlasNode[]>();
+  for (const n of Object.values(docs)) {
+    if (n.parentId) {
+      if (!byParent.has(n.parentId)) byParent.set(n.parentId, []);
+      byParent.get(n.parentId)!.push(n);
+    }
+  }
+  for (const ch of byParent.values())
+    ch.sort((a, b) => a.doc_no.localeCompare(b.doc_no, undefined, { numeric: true }));
+
+  function subdocs(id: string): { title: string; content: string }[] {
+    const result: { title: string; content: string }[] = [];
+    for (const child of byParent.get(id) ?? []) {
+      const content = child.content.trim();
+      result.push({ title: child.title, content });
+      result.push(...subdocs(child.id));
+    }
+    return result;
+  }
+
+  it("sub-doc tree for each allocation-system instance", () => {
+    const instances = relations.entities
+      .filter((e) => e.et === "instance" && e.st === "allocation-system" && e.did)
+      .map((e) => {
+        const meta = JSON.parse(e.m ?? "{}");
+        return {
+          name: e.name,
+          agent: meta.agent_doc_no ?? null,
+          subDocs: subdocs(e.did!),
+        };
+      })
+      .sort((a, b) => (a.agent ?? "").localeCompare(b.agent ?? "") || a.name.localeCompare(b.name));
+    expect(instances).toMatchSnapshot();
+  });
 });

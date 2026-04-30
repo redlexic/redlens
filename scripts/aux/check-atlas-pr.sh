@@ -68,14 +68,17 @@ if [[ "$PR_STATE" != "OPEN" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Pinned atlas SHA — from parent repo's committed tree, not the submodule's
-# current HEAD (which may point to a prior check:pr SHA).
+# Merge base — the exact point where this PR diverged from atlas main.
+# This matches what GitHub shows in "Files changed": only what the PR adds,
+# not everything that has accumulated in main since the branch point.
 # ---------------------------------------------------------------------------
-# Baseline is the atlas repo's current main HEAD — not the lens submodule
-# pointer, which lags behind by one atlas-update cycle. Fetch to ensure fresh.
 git -C "$ROOT/vendor/next-gen-atlas" fetch origin main --quiet
-PINNED_SHA=$(git -C "$ROOT/vendor/next-gen-atlas" rev-parse origin/main)
-PINNED_SHA7="${PINNED_SHA:0:7}"
+git -C "$ROOT/vendor/next-gen-atlas" fetch origin \
+  "+refs/pull/${PR}/head:refs/remotes/origin/pr/${PR}" --quiet
+MERGE_BASE=$(git -C "$ROOT/vendor/next-gen-atlas" merge-base "$HEAD_SHA" origin/main)
+MERGE_BASE7="${MERGE_BASE:0:7}"
+echo "Merge base with main: ${MERGE_BASE7}"
+echo ""
 
 # ---------------------------------------------------------------------------
 # Setup: worktree + temp files
@@ -129,21 +132,21 @@ MANIFEST_COMMIT=$(MF="$ROOT/public/manifest.json" node -e "
   } catch { process.stdout.write(''); }
 " 2>/dev/null || true)
 
-if [[ -n "$MANIFEST_COMMIT" && "$MANIFEST_COMMIT" == "$PINNED_SHA" && -f "$ROOT/public/relations.json" ]]; then
-  echo "Baseline: seeding worktree from cached main build (${PINNED_SHA7})"
+if [[ -n "$MANIFEST_COMMIT" && "$MANIFEST_COMMIT" == "$MERGE_BASE" && -f "$ROOT/public/relations.json" ]]; then
+  echo "Baseline: seeding worktree from cached build at merge base (${MERGE_BASE7})"
   cp -r "$ROOT/public" "$WORKTREE/public"
   cp "$WT_PUBLIC/relations.json" "$BASELINE"
 else
   echo ""
-  echo "=== baseline: build:at ${PINNED_SHA7} (main's pinned atlas commit) ==="
-  if ! (cd "$WORKTREE" && pnpm build:at "$PINNED_SHA") 2>&1 | tee "$BASELINE_LOG"; then
+  echo "=== baseline: build:at ${MERGE_BASE7} (merge base with atlas main) ==="
+  if ! (cd "$WORKTREE" && pnpm build:at "$MERGE_BASE") 2>&1 | tee "$BASELINE_LOG"; then
     {
       echo "# Atlas PR check — BASELINE FAILED"
       echo ""
-      echo "The build at main's pinned atlas commit failed."
+      echo "The build at the PR's merge base failed."
       echo "This is a pre-existing issue, not caused by PR #${PR}."
       echo ""
-      echo "**Pinned SHA:** \`${PINNED_SHA}\`"
+      echo "**Merge base:** \`${MERGE_BASE}\`"
       echo "**PR:** [#${PR} ${PR_TITLE}](${PR_URL})"
       echo ""
       echo "## Baseline build log"
@@ -153,7 +156,7 @@ else
       echo '```'
     } > "$REPORT"
     echo "" >&2
-    echo "FAILED: baseline build at ${PINNED_SHA7} (pre-existing issue, unrelated to PR #${PR})" >&2
+    echo "FAILED: baseline build at ${MERGE_BASE7} (pre-existing issue, unrelated to PR #${PR})" >&2
     echo "Report: $REPORT" >&2
     exit 1
   fi
@@ -178,7 +181,7 @@ write_failure_report() {
     echo "**PR:** [#${PR} ${PR_TITLE}](${PR_URL}) \`${PR_STATE}\`"
     echo "**Atlas SHA:** \`${HEAD_SHA}\`"
     echo "**Failed phase:** \`${phase}\`"
-    echo "**Baseline (main):** \`${PINNED_SHA}\`"
+    echo "**Baseline (merge base):** \`${MERGE_BASE}\`"
     echo "**RedLens branch:** \`${REDLENS_BRANCH}\`"
     echo ""
     echo "## Build log"
@@ -194,12 +197,11 @@ write_failure_report() {
 }
 
 # ---------------------------------------------------------------------------
-# Pre-fetch the PR head ref into the WORKTREE's atlas submodule.
-# build:at runs git checkout inside $WT_ATLAS; the objects must be present
-# in that submodule's git dir. (The worktree submodule has its own git dir,
-# separate from the main checkout's — they do not share refs or objects.)
+# Fetch the PR head ref into the WORKTREE's atlas submodule.
+# The worktree's submodule has its own git dir (separate from the main
+# checkout's) so objects fetched above are not visible here.
 # ---------------------------------------------------------------------------
-echo "Fetching atlas PR head ref ..."
+echo "Fetching atlas PR head ref into worktree ..."
 git -C "$WT_ATLAS" fetch origin \
   "+refs/pull/${PR}/head:refs/remotes/origin/pr/${PR}" --quiet
 
@@ -315,10 +317,10 @@ JS
   echo ""
   echo "**PR:** [#${PR} ${PR_TITLE}](${PR_URL}) \`${PR_STATE}\`"
   echo "**Atlas SHA:** \`${HEAD_SHA}\`"
-  echo "**Baseline (main):** \`${PINNED_SHA}\`"
+  echo "**Baseline (merge base):** \`${MERGE_BASE}\`"
   echo "**RedLens branch:** \`${REDLENS_BRANCH}\`"
   echo ""
-  echo "## Relationship delta (PR vs main)"
+  echo "## Relationship delta (PR vs merge base)"
   echo ""
   echo "$DELTA"
   echo ""

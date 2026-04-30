@@ -233,17 +233,17 @@ export function buildRewardsIndex(
     };
   });
 
-  const eco = (docNo: string): RewardsEcosystemNode | null => {
-    const n = byDocNo.get(docNo);
+  const eco = (id: string): RewardsEcosystemNode | null => {
+    const n = docs[id];
     return n ? { id: n.id, docNo: n.doc_no, title: n.title, description: n.content.trim() } : null;
   };
 
   return {
     agents,
-    stUsdsDr: eco("A.4.4.1.3.7"),
-    srUsdsDr: eco("A.3.2.2.4.2.4"),
-    drPrimitive: eco("A.2.3.8.1"),
-    ibPrimitive: eco("A.2.3.8.2"),
+    stUsdsDr:    eco("673676d8-62a4-4422-b870-fbcdb3c0aabd"), // A.4.4.1.3.7
+    srUsdsDr:    eco("626f0f67-1df9-41e8-a4a6-230aa1ccc824"), // A.3.2.2.4.2.4
+    drPrimitive: eco("e632c38f-3e4e-4c7e-acfd-b6ec45a422e6"), // A.2.2.8.1 (Distribution Reward Primitive)
+    ibPrimitive: eco("73577399-62e4-4a83-ae11-64ef7e7b7f20"), // A.2.2.8.2 (Integration Boost Primitive)
     demandSideBufferAddress: "0x5e2fec3a3c4e63a422e45c1bb83edb3a5ad0543b",
   };
 }

@@ -284,9 +284,11 @@ export function buildActiveDataRows(
           })()
         : null;
 
-      // A.1.12.1.3.1 only specifies a Facilitator for Agent Artifacts (A.6.1.1.*) and
-      // the Sky Core Atlas (A.1.*). For other areas (primitive specs A.2.*, ecosystem
-      // accords, etc.) the Atlas is silent — leave it null rather than guess.
+      // UUID ecce1a73 (A.1.12.1.3.1) only specifies a Facilitator for Agent Artifacts
+      // (under A.6.1.1, UUID 9fb7f1cc) and the Sky Core Atlas (under A.1, UUID 18ac7dd3).
+      // For other areas (primitive specs A.2.*, ecosystem accords, etc.) the Atlas is
+      // silent — leave it null rather than guess.
+      // fragile: doc_no prefix — migrate to UUID ancestor check
       const isSkyCoreAtlasAdc = (controllerDocNo ?? "").startsWith("A.1.");
       const facilitator: Facilitator | null = (() => {
         if (agent && chain?.facilitatorName && chain.facilitatorId) {

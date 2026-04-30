@@ -1,5 +1,520 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`allocation-system sub-doc content > sub-doc tree for each allocation-system instance 1`] = `
+[
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Arbitrum - Aave USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Arbitrum - Fluid sUSDS ERC4626 Vault",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Avalanche - Aave v3 USDC Vault",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Avalanche - Spark Savings v2 USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Base - Aave USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Base - Morpho Blue USDC ERC4626 Vault",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Base Mainnet - Fluid sUSDS ERC4626 Vault",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Aave Core USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Aave Core USDS",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Aave Core USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Aave Prime USDS",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Aave USDe",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Anchorage USAT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Anchorage USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Arkis",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Blackrock USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Centrifuge USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Curve pyUSD/USDC Pool",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Curve pyUSD/USDS Pool",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Curve sUSDS/USDT Pool",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Curve USDC/USDT Pool",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Curve weETH/WETH-ng for Swaps",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Ethena sUSDe",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Ethena USDe",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Fluid sUSDS ERC4626 Vault",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Maple USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Maple USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Morpho Dai",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Morpho USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Morpho USDS",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Morpho USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Spark Savings v2 ETH",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Spark Savings v2 spPYUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Spark Savings v2 USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Spark Savings v2 USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - SparkLend Dai",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - SparkLend ETH",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - SparkLend pyUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - SparkLend USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - SparkLend USDS",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - SparkLend USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Superstate USTB",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Transfer PYUSD to Paxos (receive USDC)",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Transfer PYUSD to Paxos (receive USDG)",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Transfer USDC to Paxos (receive PYUSD)",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Transfer USDG to Paxos (receive PYUSD)",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Uniswap v4 PYUSD/USDS Pool",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.1",
+    "name": "Ethereum Mainnet - Uniswap v4 USDT/USDS Pool",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Avalanche - Centrifuge JAAA",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Avalanche - Centrifuge JTRSY",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Avalanche - Curve USDS/USDC LP",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Avalanche - Curve USDS/USDC Swaps",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Base - Morpho Grove x Steakhouse High Yield Vault USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Base - Steakhouse Prime Instant USDC Morpho Vault V2",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Aave Core v3 RLUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Aave Core v3 USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Aave Horizon RLUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Aave Horizon USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Agora AUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Blackrock BUIDL-I",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Centrifuge ACRDX",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Centrifuge JAAA",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Centrifuge JTRSY",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Centrifuge JTRSY USDS Vault",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Curve AUSD/USDC LP",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Curve AUSD/USDC Swaps",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Curve PYUSD/USDS Swaps",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Curve RLUSD/USDC Pool",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Curve RLUSD/USDC Pool LP Deposits",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Ethena PT-sUSDe",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Ethena PT-USDe",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Ethena sUSDe",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Ethena USDe",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Galaxy Arch CLOs",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Galaxy Warehouse",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Grove x Steakhouse AUSD Morpho Vault V2",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Grove x Steakhouse USDC Morpho Vault v2",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Maple syrupUSDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Monad Morpho Grove x Steakhouse High Yield Vault AUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Monad Uniswap AUSD/USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Morpho Grove x Steakhouse High Yield Vault USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Ripple RLUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Securitize Tokenized AAA CLO Fund (STAC)",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Sentora PYUSD Morpho Vault V2",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Sentora RLUSD Morpho Vault V2",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Steakhouse PYUSD Morpho Vault",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Superstate USTB",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Uniswap v3 AUSD/USDC LP",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Uniswap v3 AUSD/USDC Swaps",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Plasma - Aave v3 USDT0",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Plume - Centrifuge ACRDX",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Drift PYUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Drift USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Drift USDS",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Drift USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Kamino PYUSD",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Kamino USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Kamino USDG",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Kamino USDS",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.3",
+    "name": "Solana - Kamino USDT",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.5",
+    "name": "Ethereum Mainnet - Maple USDC",
+    "subDocs": [],
+  },
+  {
+    "agent": "A.6.1.1.6",
+    "name": "Ethereum Mainnet - Maple USDC",
+    "subDocs": [],
+  },
+]
+`;
+
 exports[`edge type counts > all edge types and their counts 1`] = `
 {
   "active_data_for": 73,
