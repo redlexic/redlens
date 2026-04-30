@@ -327,13 +327,25 @@ app.get("/", (c) => {
     <em>"Show me the Active Data sections controlled by Spark."</em>
   </p>
 
+  <h2>Add to Claude Code</h2>
+  <p>Add the following to your project's <code>.mcp.json</code>:</p>
+  <pre><code>{
+  "mcpServers": {
+    "redlens": {
+      "type": "http",
+      "url": "https://redlens-mcp.anscharo.workers.dev/mcp"
+    }
+  }
+}</code></pre>
+
   <h2>Add to Claude Desktop</h2>
   <p>Add the following to your <code>claude_desktop_config.json</code>:</p>
   <pre><code>{
   "mcpServers": {
-    "sky-atlas": {
+    "redlens": {
       "command": "npx",
       "args": [
+        "-y",
         "mcp-remote",
         "https://redlens-mcp.anscharo.workers.dev/mcp"
       ]
@@ -344,6 +356,19 @@ app.get("/", (c) => {
   <h2>Add to Cursor / other MCP clients</h2>
   <p>Point your client at the streamable HTTP endpoint:</p>
   <pre><code>https://redlens-mcp.anscharo.workers.dev/mcp</code></pre>
+
+  <h2>Run locally (development)</h2>
+  <p>Clone the repo, then in <code>redlens-mcp/</code>:</p>
+  <pre><code>pnpm dev   # starts wrangler dev on http://localhost:8787</code></pre>
+  <p>Then add to <code>.mcp.json</code>:</p>
+  <pre><code>{
+  "mcpServers": {
+    "redlens-local": {
+      "type": "http",
+      "url": "http://localhost:8787/mcp"
+    }
+  }
+}</code></pre>
 
   <h2>REST API (no client needed)</h2>
   <p class="endpoint">

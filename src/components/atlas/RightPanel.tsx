@@ -5,6 +5,7 @@ import type { GlossaryEntry } from "../../lib/glossary";
 import { RelatedNode } from "../RelatedNode";
 import { AddressCard } from "../AddressCard";
 import { NodeHistory } from "../history/NodeHistory";
+import { ErrorBoundary, InlineError } from "../ErrorBoundary";
 
 type RightTab = "annotations" | "glossary" | "history";
 
@@ -169,12 +170,13 @@ export function RightPanel({
                   addresses · {Object.keys(targetAddresses).length}
                 </p>
                 {Object.entries(targetAddresses).map(([address, info]) => (
-                  <AddressCard
-                    key={address}
-                    address={address}
-                    info={info}
-                    chainValues={chainValues[address]}
-                  />
+                  <ErrorBoundary key={address} fallback={<InlineError />}>
+                    <AddressCard
+                      address={address}
+                      info={info}
+                      chainValues={chainValues[address]}
+                    />
+                  </ErrorBoundary>
                 ))}
               </div>
             )}
@@ -214,7 +216,9 @@ export function RightPanel({
           </div>
         ) : (
           <div className="px-4 py-5">
-            <NodeHistory nodeId={id} />
+            <ErrorBoundary key={id} fallback={<InlineError />}>
+              <NodeHistory nodeId={id} />
+            </ErrorBoundary>
           </div>
         )}
       </div>

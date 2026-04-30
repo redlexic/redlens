@@ -11,11 +11,14 @@ export const INSTANCE_SCOPED_PRIMITIVES = {
   "Allocation System Primitive": "allocation-system",
   "Pioneer Chain Primitive": "pioneer-chain",
   "Core Governance Reward Primitive": "core-governance-reward",
+  "Agent Creation Primitive": "agent-creation",
+  "Prime Transformation Primitive": "prime-transformation",
   "Agent Token Primitive": "agent-token",
   "Executor Accord Primitive": "executor-accord",
   "Root Edit Primitive": "root-edit",
   "Distribution Requirement Primitive": "distribution-requirement",
   "Upkeep Rebate Primitive": "upkeep-rebate",
+  "Ecosystem Upkeep Fee Primitive": "ecosystem-upkeep-fee",
 };
 
 export function instanceStatusFor(icd, primRoot, docByDocNo) {
@@ -67,6 +70,15 @@ const stripSentence =
     if (suffixRe) v = v.replace(suffixRe, "");
     return v.replace(/\.$/, "").trim();
   };
+// Extracts the 64-char hex hash from backticks, or preserves N/A variants.
+const RATE_LIMIT_ID_RE = /^(Inflow|Outflow|Swap) Rate ?Limit ?ID/i;
+const extractRateLimitId = (s) => {
+  const hash = s.match(/`(0x[0-9a-fA-F]{64})`/)?.[1];
+  if (hash) return hash;
+  const na = s.match(/:\s*(N\/A[^.]*)/i)?.[1]?.trim();
+  return na ?? unwrapBt(s);
+};
+
 const PARAM_FORMATTERS = {
   "Reward Code": unwrapBt,
   "Integration Partner Name": stripSentence(/^The partner for the [^.]*? is /i),
@@ -88,7 +100,9 @@ const PARAM_FORMATTERS = {
 };
 function formatParam(title, raw) {
   const fn = PARAM_FORMATTERS[title];
-  return fn ? fn(raw.trim()) : unwrapBt(raw.trim());
+  if (fn) return fn(raw.trim());
+  if (RATE_LIMIT_ID_RE.test(title)) return extractRateLimitId(raw.trim());
+  return unwrapBt(raw.trim());
 }
 
 // Expanders turn a compound prose leaf into multiple keyed params sharing the
