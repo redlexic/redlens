@@ -562,5 +562,293 @@
     "approvalCount": 1,
     "summary": "Clarify Deviation Percentage Calculation In Monthly Settlement Cycle",
     "description": "Clarifies how the percentage deviation between the Initial Calculation and the Independent Calculation is calculated in the Agreed Amount definition within the Monthly Settlement Cycle."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "If"
+          ],
+          [
+            "+",
+            ", after"
+          ],
+          [
+            "=",
+            " the haircut"
+          ],
+          [
+            "+",
+            ","
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "covers"
+          ],
+          [
+            "+",
+            "losses still exceed"
+          ],
+          [
+            "=",
+            " the "
+          ],
+          [
+            "-",
+            "loss"
+          ],
+          [
+            "+",
+            "combined"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "in"
+          ],
+          [
+            "+",
+            "capacity"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "full"
+          ],
+          [
+            "+",
+            "of the Prime Agent’s capital and Aggregate Backstop Capital (see [A.3.5.3.1.2 - Aggregate Backstop Capital](6dbead44-5ac4-4c5b-be3c-64eddd004e5c))"
+          ],
+          [
+            "=",
+            ", "
+          ],
+          [
+            "-",
+            "Sky"
+          ],
+          [
+            "+",
+            "the"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "will"
+          ],
+          [
+            "+",
+            "SKY"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "distribute"
+          ],
+          [
+            "+",
+            "Backstop"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "24"
+          ],
+          [
+            "+",
+            "(see"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "billion"
+          ],
+          [
+            "+",
+            "[A.3.6 - SKY Backstop](4d8b0d82-97da-4041-b185-4b98c2779cbe)) is activated. The"
+          ],
+          [
+            "=",
+            " SKY"
+          ],
+          [
+            "+",
+            " mint must be sized"
+          ],
+          [
+            "=",
+            " to "
+          ],
+          [
+            "-",
+            "Genesis"
+          ],
+          [
+            "+",
+            "cover"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Agents"
+          ],
+          [
+            "+",
+            "the remaining loss. If losses still exceed what the SKY Backstop can absorb"
+          ],
+          [
+            "=",
+            ", "
+          ],
+          [
+            "-",
+            "in"
+          ],
+          [
+            "+",
+            "Sky"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "proportion"
+          ],
+          [
+            "+",
+            "will"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "to"
+          ],
+          [
+            "+",
+            "adjust"
+          ],
+          [
+            "=",
+            " the "
+          ],
+          [
+            "-",
+            "amount"
+          ],
+          [
+            "+",
+            "USDS"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "each"
+          ],
+          [
+            "+",
+            "target"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Agent"
+          ],
+          [
+            "+",
+            "price"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "lost"
+          ],
+          [
+            "+",
+            "below"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "in"
+          ],
+          [
+            "+",
+            "$1 to"
+          ],
+          [
+            "=",
+            " the "
+          ],
+          [
+            "-",
+            "haircut"
+          ],
+          [
+            "+",
+            "extent necessary to settle the remaining deficit; Sky will then distribute 24 billion SKY to USDS holders via an airdrop"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "If, after the haircut, losses still exceed the combined capacity of the Prime Agent’s capital, the Sky Surplus Buffer, and Genesis Capital, the SKY Backstop (see [A.3.6 - SKY Backstop](4d8b0d82-97da-4041-b185-4b98c2779cbe)) is activated. The SKY mint must be sized to cover the remaining loss. If losses still exceed what the SKY Backstop can absorb, Sky will adjust the USDS target price below $1 to the extent necessary to settle the remaining deficit; Sky will then distribute 24 billion SKY to USDS holders via an airdrop."
+      ]
+    ]
   }
 ]

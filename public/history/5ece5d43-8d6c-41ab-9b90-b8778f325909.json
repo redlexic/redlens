@@ -24,5 +24,16 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "A percentage of the Step 3 Capital equal to the Stability Capital Retention (\"SCR\") is allocated to funding the Stability Capital Buffer. The remaining percentage becomes Step 4 Capital."
+      ]
+    ]
   }
 ]

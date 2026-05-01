@@ -98,5 +98,24 @@
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
     "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The High Activity Staking Rewards distribution occurs linearly over the course of each month. The total amount distributed equals the lesser of 1) 5% of Step 2 Capital, or 2) 15% of the current High Activity Staking Rewards Buffer, with a minimum floor of 5% of HASRB."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "In periods of high profitability, funds build up in the High Activity Staking Rewards Buffer. Then in periods of low profitability these funds are paid out from the High Activity Staking Rewards Buffer, ensuring that there is a continued incentive for active involvement in governance even in periods of low profitability to maintain security."
+      ]
+    ]
   }
 ]

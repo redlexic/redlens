@@ -192,5 +192,16 @@
     "approvalCount": 1,
     "summary": "Feb 9 edit",
     "description": "Do not merge until poll passes"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "In the short term, 22% of Step 1 Capital is allocated as specified in the documents herein. The remaining 78% of Step 1 Capital becomes Step 4 Capital and is allocated as specified in [A.2.3.1.4.2 - Allocation Of Step 4 Capital](04bd9df4-275e-4520-83a6-d634aa605fe3)."
+      ]
+    ]
   }
 ]

@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The address of the RWA Instance contract will be specified in a future iteration of the Atlas."
+      ]
+    ]
+  }
+]

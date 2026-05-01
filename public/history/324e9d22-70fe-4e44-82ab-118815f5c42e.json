@@ -120,5 +120,189 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "All of the Net Revenue from Step 0 ("
+          ],
+          [
+            "+",
+            "see "
+          ],
+          [
+            "=",
+            "[A.2.3.1.2.1.1 - Net Revenue](bddce7bf-c568-444b-b196-e15a99016696)) becomes Step 1 Capital. "
+          ],
+          [
+            "-",
+            "10"
+          ],
+          [
+            "+",
+            "Twenty percent (20"
+          ],
+          [
+            "=",
+            "%"
+          ],
+          [
+            "+",
+            ")"
+          ],
+          [
+            "=",
+            " of Step 1 Capital is allocated for security and"
+          ],
+          [
+            "-",
+            " stability"
+          ],
+          [
+            "=",
+            " maintenance"
+          ],
+          [
+            "+",
+            " of the Sky Ecosystem"
+          ],
+          [
+            "=",
+            " as specified in the documents herein. The remaining "
+          ],
+          [
+            "-",
+            "90"
+          ],
+          [
+            "+",
+            "eighty percent (80"
+          ],
+          [
+            "=",
+            "%"
+          ],
+          [
+            "+",
+            ")"
+          ],
+          [
+            "=",
+            " of Step 1 Capital becomes Step 2 Capital and is allocated as specified in [A.2.3.1.2.3 - Step 2:"
+          ],
+          [
+            "-",
+            " High"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Activity"
+          ],
+          [
+            "+",
+            "Aggregate"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Staking"
+          ],
+          [
+            "+",
+            "Backstop"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Rewards"
+          ],
+          [
+            "+",
+            "Capital"
+          ],
+          [
+            "=",
+            "]("
+          ],
+          [
+            "-",
+            "b560829c"
+          ],
+          [
+            "+",
+            "2b28d464"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "f8ea"
+          ],
+          [
+            "+",
+            "e683"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "4e44"
+          ],
+          [
+            "+",
+            "48ba"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "a96f"
+          ],
+          [
+            "+",
+            "9a66"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "a0d51d9f437b"
+          ],
+          [
+            "+",
+            "2fee05ea0a88"
+          ],
+          [
+            "=",
+            ")."
+          ]
+        ]
+      ]
+    ]
   }
 ]

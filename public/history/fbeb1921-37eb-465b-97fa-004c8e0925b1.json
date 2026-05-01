@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The `REDEEMER_ROLE` on a Tokenized Treasury Instance is authorized to initiate and complete the two-step redemption of credit tokens back into collateral tokens through an authorized redeemer contract. The `REDEEMER_ROLE` is controlled by the credit token issuer; the holder address is specified in each Instance Configuration Document."
+      ]
+    ]
+  }
+]

@@ -24,5 +24,16 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The methods for High Activity Stakers to provide their input will be specified in a future iteration of the Atlas, but may for instance include filling out AI generated questionnaires or other easily measurable and easy to complete tasks. The Core Executor Agents must continuously improve these input methods."
+      ]
+    ]
   }
 ]

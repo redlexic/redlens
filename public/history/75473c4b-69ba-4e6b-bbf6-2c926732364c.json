@@ -96,5 +96,29 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The documents herein define the initial implementation of the Monthly Settlement Cycle. This initial implementation of the Monthly Settlement Cycle does not include the Senior Risk Capital System, which is still being developed"
+          ],
+          [
+            "-",
+            ", and funds continue to be allocated through the modified Treasury Management Function. See [A.2.3.1.4 - Short Term Transitionary Measures](a0186d71-d5f6-4643-a5c5-8fcf6c2625f8)"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ]
   }
 ]

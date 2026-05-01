@@ -1,0 +1,21 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The withdrawal rate limits are:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- `maxAmount`: Unlimited"
+      ]
+    ]
+  }
+]

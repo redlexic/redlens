@@ -320,5 +320,65 @@
     "reviewCount": 2,
     "approvalCount": 1,
     "commentCount": 1
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "The sole function of Step 0 is to establish the Net Revenue of the Sky Protocol. It performs no allocations to downstream functions or buffers, unlike subsequent steps for which this Net Revenue serves as the input."
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "All items of Income and Expense are recognized on a \"cash basis\" based on when USDS/DAI enter or leave the Sky Surplus Buffer. Transfers out of accounts other than the Sky Surplus Buffer are not recognized as Expenses, except as provided in [A.2.3.1."
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            ".1.6.4 - Expense Recognition For Legacy Account Consolidation](1760b35f-da5a-4504-a014-dd7a611b4c0e)."
+          ]
+        ]
+      ]
+    ]
   }
 ]
