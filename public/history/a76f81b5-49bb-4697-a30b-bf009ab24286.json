@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the requirements for forum account registration, disclosure, and enforcement applicable to entities participating in Sky governance."
+      ]
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The current Turbo-Fill Floor for the Aggregate Backstop Capital is 150 million USDS. The Turbo-Fill Floor is the level below which an accelerated retention rate applies, as specified in [A.2.3.1.2.3 - Step 2: Aggregate Backstop Capital](2b28d464-e683-48ba-9a66-2fee05ea0a88)."
+      ]
+    ]
+  }
+]

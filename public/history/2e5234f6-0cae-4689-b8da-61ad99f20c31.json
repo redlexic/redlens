@@ -1,0 +1,25 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The inflow rate limits are:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- `maxAmount`: 0 USDS"
+      ],
+      [
+        "+",
+        "- `slope`: 0 USDS per day"
+      ]
+    ]
+  }
+]

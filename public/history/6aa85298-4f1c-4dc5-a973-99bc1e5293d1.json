@@ -96,5 +96,169 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "SKY stakers are eligible to receive Agent Token rewards as specified in [A.4.5 - Distribution Of Agent Tokens](e2f1f01f-3303-41c3-b337-f09eb41ba6be)."
+          ],
+          [
+            "-",
+            " At the Monthly Settlement Cycle,"
+          ],
+          [
+            "=",
+            " Agent Tokens are distributed"
+          ],
+          [
+            "+",
+            " continuously,"
+          ],
+          [
+            "=",
+            " pro‑rata"
+          ],
+          [
+            "-",
+            ","
+          ],
+          [
+            "=",
+            " by staked SKY, among wallets that have opted to receive a specific Agent Token"
+          ],
+          [
+            "-",
+            " for the cycle"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            " To qualify for Agent Token payout a wallet must satisfy the Standard Activity criteria specified in"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "[A.2.3.1.2.5.2.2"
+          ],
+          [
+            "+",
+            "Distribution"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "-"
+          ],
+          [
+            "+",
+            "parameters"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Payout"
+          ],
+          [
+            "+",
+            "are"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "From"
+          ],
+          [
+            "+",
+            "updated"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Standard"
+          ],
+          [
+            "+",
+            "at"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Activity"
+          ],
+          [
+            "+",
+            "each"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Staking"
+          ],
+          [
+            "+",
+            "Monthly"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Rewards"
+          ],
+          [
+            "+",
+            "Settlement"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Buffer](e288b944-759e-4d30-8db7-b59de7b5f912)"
+          ],
+          [
+            "+",
+            "Cycle"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ]
   }
 ]

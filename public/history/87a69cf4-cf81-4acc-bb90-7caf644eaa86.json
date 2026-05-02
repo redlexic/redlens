@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "When posting on behalf of another entity, the Authorized Representative must clearly indicate in the post that they are acting on behalf of that entity."
+      ]
+    ]
+  }
+]

@@ -120,5 +120,16 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "At the Monthly Settlement Cycle, all SKY-staking wallets are tagged as High Activity or Standard Activity, pursuant to the criteria defined in [A.2.3.1.2.3.4 - High Activity Staker Qualification](8e83f80f-5606-41a7-bc90-d79df38b55fe) and [A.2.3.1.2.5.2.3 - Standard Activity Staker Qualification](a22d900a-d15c-41f0-af90-eec23112dcb6). Only High Activity wallets share HASR; both High and Standard Activity wallets share SASR."
+      ]
+    ]
   }
 ]

@@ -148,5 +148,16 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The Stability Capital Buffer is the surplus of the Sky Protocol that absorbs losses from unsuccessful liquidation of failed Prime Agents. See [A.3.5.1 - Surplus Buffer](9782cdc5-c274-45c2-bf4a-690f22c6a294)."
+      ]
+    ]
   }
 ]

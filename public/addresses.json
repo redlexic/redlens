@@ -198,6 +198,13 @@
     "isContract": true,
     "isProxy": false
   },
+  "0xe3ec4cc359e68c9dce15bf667b1ad37df54a5a42": {
+    "chain": "ethereum",
+    "etherscanName": "SafeProxy",
+    "isContract": true,
+    "isProxy": true,
+    "implementation": "0x41675c099f32341bf84bfc5382af534df5c7461a"
+  },
   "8JmDPG5BFQ6gpUPJV9xBixYJLqTKCSNotkXksTmNsQfj": {
     "chain": "solana",
     "isContract": false,
@@ -1151,6 +1158,19 @@
     "isContract": false,
     "isProxy": false
   },
+  "0xd79b9a9f5fc240f2dcfcf260f004110b4713a7e7": {
+    "chain": "ethereum",
+    "etherscanName": "FixedRateProvider",
+    "isContract": true,
+    "isProxy": false
+  },
+  "0xa188eec8f81263234da3622a406892f3d630f98c": {
+    "chain": "ethereum",
+    "chainlogId": "WRAPPER_USDS_LITE_PSM_USDC_A",
+    "etherscanName": "UsdsPsmWrapper",
+    "isContract": true,
+    "isProxy": false
+  },
   "0x4364d17b578b0ed1c42be9075d774d1d6aeafe96": {
     "chain": "ethereum",
     "etherscanName": "SafeProxy",
@@ -1280,6 +1300,12 @@
     "isContract": true,
     "isProxy": false
   },
+  "0xbeeff4fd39f8e48b6a6e475445d650cb11e9599f": {
+    "chain": "ethereum",
+    "etherscanName": "VaultV2",
+    "isContract": true,
+    "isProxy": false
+  },
   "0x51c2d74017390cbbd30550179a16a1c28f7210fc": {
     "chain": "ethereum",
     "etherscanName": "ERC1967Proxy",
@@ -1322,6 +1348,43 @@
     "etherscanName": "UniswapV3Pool",
     "isContract": true,
     "isProxy": false
+  },
+  "0x7fb719fc99a737ba15d676a09491805cd9623a8f": {
+    "chain": "ethereum",
+    "etherscanName": "ChronicleRateProvider",
+    "isContract": true,
+    "isProxy": false
+  },
+  "0x30860b17f984d0f909b71ab8d7b0c2e01c650479": {
+    "chain": "ethereum",
+    "etherscanName": "UsdsUsdcPocket",
+    "isContract": true,
+    "isProxy": false
+  },
+  "0x471c4d7b1f38009061e7c545a08732d82bd54b15": {
+    "chain": "ethereum",
+    "etherscanName": "JTRSYTokenRedeemer",
+    "isContract": true,
+    "isProxy": false
+  },
+  "0xfb805f2f88e862e687bebdf120306ef39380f3bf": {
+    "chain": "ethereum",
+    "etherscanName": "TimelockController",
+    "isContract": true,
+    "isProxy": false
+  },
+  "0x34b7385d87793bac8b94d95d8ef75200787a61f7": {
+    "chain": "ethereum",
+    "etherscanName": "GroveBasin",
+    "isContract": true,
+    "isProxy": false
+  },
+  "0x9184ddbcc4824b76ce2aefa72534a1a87aa5037c": {
+    "chain": "ethereum",
+    "etherscanName": "SafeProxy",
+    "isContract": true,
+    "isProxy": true,
+    "implementation": "0x41675c099f32341bf84bfc5382af534df5c7461a"
   },
   "0x1121f4e21ed8b9bc1bb9a2952cdd8639ac897784": {
     "chain": "ethereum",

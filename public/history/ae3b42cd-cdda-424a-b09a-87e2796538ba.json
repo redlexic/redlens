@@ -104,5 +104,245 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "When Aggregate Backstop Capital is below Target Aggregate Backstop Capital, "
+          ],
+          [
+            "-",
+            "Sky"
+          ],
+          [
+            "+",
+            "a"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Governance"
+          ],
+          [
+            "+",
+            "portion"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "will"
+          ],
+          [
+            "+",
+            "of"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "retain"
+          ],
+          [
+            "+",
+            "Step"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "25%"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "of"
+          ],
+          [
+            "+",
+            "Capital"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Net"
+          ],
+          [
+            "+",
+            "is"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Revenue"
+          ],
+          [
+            "+",
+            "retained"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "(see"
+          ],
+          [
+            "+",
+            "to grow Aggregate Backstop Capital, as specified in"
+          ],
+          [
+            "=",
+            " [A.2.3.1.2."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "3"
+          ],
+          [
+            "=",
+            " - Step "
+          ],
+          [
+            "-",
+            "0"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            ": "
+          ],
+          [
+            "-",
+            "Net"
+          ],
+          [
+            "+",
+            "Aggregate"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Revenue"
+          ],
+          [
+            "+",
+            "Backstop Capital"
+          ],
+          [
+            "=",
+            "]("
+          ],
+          [
+            "-",
+            "c09435ff"
+          ],
+          [
+            "+",
+            "2b28d464"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "d876"
+          ],
+          [
+            "+",
+            "e683"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "442a"
+          ],
+          [
+            "+",
+            "48ba"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "899c"
+          ],
+          [
+            "+",
+            "9a66"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "ad494175500b)"
+          ],
+          [
+            "+",
+            "2fee05ea0a88"
+          ],
+          [
+            "=",
+            ")"
+          ],
+          [
+            "-",
+            " to grow Aggregate Backstop Capital. In the short term, this is implemented on a monthly basis by Sky Governance by adjusting the parameters of the Treasury Management System and the Smart Burn Engine"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ]
   }
 ]

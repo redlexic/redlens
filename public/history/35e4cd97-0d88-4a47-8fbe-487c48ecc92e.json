@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The `EXECUTOR_ROLE` on the OpenZeppelin `TimelockController` holding the `OWNER_ROLE` of a Tokenized Treasury Instance is authorized to execute queued operations once the Timelock delay period has elapsed. Across Tokenized Treasury Instances, this role is held by the Grove Proxy at `0x1369f7b2b38c76B6478c0f0E66D94923421891Ba`."
+      ]
+    ]
+  }
+]

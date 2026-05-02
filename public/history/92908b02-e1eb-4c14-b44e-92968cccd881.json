@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the roles and permissions on Tokenized Treasury Instances of the Allocation System Primitive."
+      ]
+    ]
+  }
+]

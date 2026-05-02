@@ -80,5 +80,16 @@
     "approvalCount": 1,
     "summary": "Raise Aggregate Backstop Capital Target And Introduce Genesis Capital Phase-Out",
     "description": "Raises the Target Aggregate Backstop Capital to 150 million USDS and introduces a Genesis Capital Phase-Out mechanism that progressively reduces the backstop capital contribution required of Genesis Agents as the Aggregate Backstop Capital grows."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "In the short term, the allocation of Step 4 Capital evolves through three sequential stages as specified in the documents herein."
+      ]
+    ]
   }
 ]
