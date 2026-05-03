@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The `REDEEMER_CONTRACT_ROLE` on a Tokenized Treasury Instance is granted to authorized redeemer contracts that execute the two-step redemption of credit tokens on behalf of holders of the `REDEEMER_ROLE`. `REDEEMER_CONTRACT_ROLE` holders are added and removed via the `addTokenRedeemer` and `removeTokenRedeemer` functions, which are authorized for the `MANAGER_ADMIN_ROLE`."
+      ]
+    ]
+  }
+]

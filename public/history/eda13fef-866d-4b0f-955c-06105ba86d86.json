@@ -24,5 +24,48 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The Target Stability Capital Buffer (`TSCB`) is the Target level of the Stability Capital Buffer, expressed as a percentage of the total supply of USDS. It is calculated according to the following formula:"
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "`TCSB = 0.75% + (TS * 1.4e-14)`."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "The `TSCB` cannot exceed 5%."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "This formula begins with a Target Stability Capital Buffer of 0.75% and gradually increases this as the Total USDS Supply increases, reflecting the fact that a greater capital buffer is required as USDS becomes more systemically important."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "For example, with USDS Supply of 8 billion, the Target Stability Capital Buffer would be approximately 0.76%."
+      ]
+    ]
   }
 ]

@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The `MANAGER_ROLE` on a Tokenized Treasury Instance is authorized to adjust the maximum swap size and oracle staleness threshold within bounds established by the `MANAGER_ADMIN_ROLE`. The `MANAGER_ROLE` is held by the Grove Relayer Multisig at `0x0eEC86649E756a23CBc68d9EFEd756f16aD5F85f` across all Tokenized Treasury Instances."
+      ]
+    ]
+  }
+]

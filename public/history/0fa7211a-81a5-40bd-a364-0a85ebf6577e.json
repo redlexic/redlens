@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "Posts on governance matters from unregistered forum accounts may be disregarded for governance purposes. Accounts that repeatedly post in a governance capacity without registration are subject to moderation as specified in [A.2.7.1.2 - Moderation](be3da4c5-6882-4694-9ccd-3fa7c5f6e09a)."
+      ]
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The Protocol Security Workstream Lead role must be held by an individual with demonstrated expertise in protocol security, smart contract security, and operational security practices. The individual must not have involvement in any business, political, or governance-related activities that could create a conflict of interest, either directly or indirectly."
+      ]
+    ]
+  }
+]

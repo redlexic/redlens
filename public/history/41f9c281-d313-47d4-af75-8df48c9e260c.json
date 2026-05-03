@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The specific `RateLimitID`(s) for this conduit's inflow and outflow are defined in the subdocuments herein."
+      ]
+    ]
+  }
+]

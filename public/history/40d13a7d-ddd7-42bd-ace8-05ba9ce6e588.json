@@ -24,5 +24,16 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The High Activity Staking Rewards (HASR) is a boosted reward provided to High Activity wallets. The HASR amount is distributed each monthly cycle pro-rata to the SKY stake of all High Activity wallets. High Activity wallets receive SASR (when funding is available) plus their separate HASR boost."
+      ]
+    ]
   }
 ]

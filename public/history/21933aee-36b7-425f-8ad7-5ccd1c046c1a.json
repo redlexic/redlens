@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The address of the Chronicle Rate Provider contract pricing USDS and USDC, shared across Tokenized Treasury Instances that use USDS and USDC, is: `0xd79B9a9f5Fc240f2DCfcf260f004110B4713A7e7`."
+      ]
+    ]
+  }
+]

@@ -24,5 +24,193 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "Internal Senior Risk Capital (ISRC) is capital "
+          ],
+          [
+            "-",
+            "provided"
+          ],
+          [
+            "+",
+            "sourced"
+          ],
+          [
+            "=",
+            " from"
+          ],
+          [
+            "-",
+            " Sky Core’s Surplus Buffer. The composition of Internal"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Senior"
+          ],
+          [
+            "+",
+            "Aggregate"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Risk"
+          ],
+          [
+            "+",
+            "Backstop"
+          ],
+          [
+            "=",
+            " Capital"
+          ],
+          [
+            "-",
+            " will"
+          ],
+          [
+            "+",
+            ","
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "be"
+          ],
+          [
+            "+",
+            "as"
+          ],
+          [
+            "=",
+            " specified in"
+          ],
+          [
+            "-",
+            " more"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "detail"
+          ],
+          [
+            "+",
+            "[A.2.3.1.3"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "in"
+          ],
+          [
+            "+",
+            "-"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "a"
+          ],
+          [
+            "+",
+            "Sourcing"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "future"
+          ],
+          [
+            "+",
+            "Of"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "iteration"
+          ],
+          [
+            "+",
+            "Internal"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "of"
+          ],
+          [
+            "+",
+            "Senior"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "Risk"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Atlas"
+          ],
+          [
+            "+",
+            "Capital](ac7a6636-acbc-40c9-abc1-4543c0beb300)"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ]
   }
 ]

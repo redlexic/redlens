@@ -458,5 +458,121 @@
     "reviewCount": 2,
     "approvalCount": 1,
     "commentCount": 1
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "Legacy Accounts are all accounts controlled by Sky Core, with the exception of the Core Council Buffer, the Aligned Delegates Buffer (see [A.2.3.1."
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2.2"
+          ],
+          [
+            "=",
+            ".2 -"
+          ],
+          [
+            "-",
+            " Allocation To"
+          ],
+          [
+            "=",
+            " Aligned Delegates Buffer]("
+          ],
+          [
+            "-",
+            "2a9bcfb1"
+          ],
+          [
+            "+",
+            "05fa5c41"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "4dad"
+          ],
+          [
+            "+",
+            "26ca"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "4baf"
+          ],
+          [
+            "+",
+            "4c25"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "a09a"
+          ],
+          [
+            "+",
+            "94dd"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "e9264b3d17bb"
+          ],
+          [
+            "+",
+            "834ef72c318a"
+          ],
+          [
+            "=",
+            ")), and the Demand Side Buffer and its auxiliary accounts (see [A.2.2.8.1.2.1.4 - Demand Side Buffer](862b6d83-f464-4125-8259-233b7de75ec4)). This includes, without limitation:"
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "- the former Distribution Reward Controller Wallet;"
+      ]
+    ]
   }
 ]
