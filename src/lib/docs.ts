@@ -30,6 +30,9 @@ export function loadAtlas(): Promise<AtlasBundle> {
           reject(new Error(msg.message));
         }
       });
+    }).catch((err) => {
+      cached = null;
+      throw err;
     });
   }
   return cached;

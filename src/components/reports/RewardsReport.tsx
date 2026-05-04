@@ -117,13 +117,18 @@ export function RewardsReport({
 }) {
   const [idx, setIdx] = useState<RewardsIndex | null>(null);
   const [addrMap, setAddrMap] = useState<Record<string, AddressInfo>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    setError(null);
     Promise.all([loadDocs(), loadAddresses(), loadGraph()]).then(([docs, addrs, graph]) => {
       setIdx(buildRewardsIndex(docs, graph));
       setAddrMap(addrs);
+    }).catch((err) => {
+      setError(String(err));
     });
-  }, []);
+  }, [attempt]);
 
   const summary = useMemo(() => {
     if (!idx) return null;
@@ -160,7 +165,17 @@ export function RewardsReport({
           )}
         </p>
 
-        {!idx ? (
+        {error ? (
+          <div className="flex items-center gap-3">
+            <p className="text-sm mono" style={{ color: "var(--red)" }}>Failed to load report.</p>
+            <button
+              onClick={() => setAttempt((n) => n + 1)}
+              className="text-xs mono text-accent hover:underline"
+            >
+              retry
+            </button>
+          </div>
+        ) : !idx ? (
           <p className="text-sm text-tan-3">Loading…</p>
         ) : (
           <>
