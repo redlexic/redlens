@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
+import askAtlasAgent from "../../.claude/agents/ask-atlas.md";
 
 export interface Env {
   DB: D1Database;
@@ -386,6 +387,17 @@ app.get("/", (c) => {
     <em>"Show me the Active Data sections controlled by Spark."</em>
   </p>
 
+  <h2>Ask the Atlas (Claude Code agent)</h2>
+  <p>
+    Install the <code>ask-atlas</code> subagent into your project — a Sky Atlas governance specialist
+    that retrieves and cites atlas documents to answer questions about rules, roles, primitives, and entities.
+  </p>
+  <pre><code>mkdir -p .claude/agents && curl -fsSL https://redlens-mcp.anscharo.workers.dev/install/ask-atlas -o .claude/agents/ask-atlas.md</code></pre>
+  <p>Then connect the MCP server (see below), reload Claude Code, and invoke with <code>@ask-atlas</code>:</p>
+  <pre><code>@ask-atlas What does the Atlas say about USDS stability fees?
+@ask-atlas Show me the Active Data sections controlled by Spark
+@ask-atlas learn: [paste content] (source: forum post by X)</code></pre>
+
   <h2>Add to Claude Code</h2>
   <p>Add the following to your project's <code>.mcp.json</code>:</p>
   <pre><code>{
@@ -450,6 +462,11 @@ app.get("/", (c) => {
 </html>`;
   return c.html(html);
 });
+
+// Install: serve the ask-atlas agent definition
+app.get("/install/ask-atlas", (c) =>
+  c.text(askAtlasAgent, 200, { "Content-Type": "text/plain; charset=utf-8" }),
+);
 
 // MCP endpoint (streamable HTTP transport — POST only; SSE not supported in stateless workers)
 app.get("/mcp", (c) => c.text("Method Not Allowed", 405));
