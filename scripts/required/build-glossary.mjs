@@ -93,22 +93,6 @@ function printStats(glossary, definitionsSections) {
 
   // Sample: first, middle, last alphabetically
   const sorted = [...keys].sort();
-  const samplePicks = [
-    0,
-    1,
-    2,
-    Math.floor(sorted.length / 2),
-    Math.floor(sorted.length / 2) + 1,
-    sorted.length - 2,
-    sorted.length - 1,
-  ].filter((i) => i >= 0 && i < sorted.length);
-  console.log("\nSample terms:");
-  for (const i of samplePicks) {
-    const e = glossary[sorted[i]][0];
-    const snippet = e.content.slice(0, 120).replace(/\s+/g, " ");
-    console.log(`  ${e.term}`);
-    console.log(`    ${snippet}${e.content.length > 120 ? "…" : ""}`);
-  }
 
   // Length distribution
   const lens = [];
