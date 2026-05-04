@@ -125,6 +125,24 @@ The Sky Atlas is a git submodule at `vendor/next-gen-atlas/`. When the upstream 
 
 These are not part of the web app build and are not required for local development.
 
+### ask-atlas agent (Claude Code)
+
+The repo ships a `.claude/agents/ask-atlas.md` subagent definition. In any Claude Code session opened in this directory, type `@ask-atlas` to ask governance questions about the Atlas with exhaustive inline citations:
+
+```
+@ask-atlas What does the Atlas say about USDS stability fees?
+@ask-atlas Show me the Active Data sections controlled by Spark
+@ask-atlas Does the Prime Agent Executor Agent requirement interact with the Allocation System?
+```
+
+The agent retrieves answers from the [hosted MCP server](#hosted-mcp-server--worker) (requires the `.mcp.json` connection). It also supports a `learn:` command for persisting external context (forum posts, legal opinions, off-chain agreements) that will be cited in future answers:
+
+```
+@ask-atlas learn: [paste content] (source: Sky Forum post by X, 2024-03-15)
+```
+
+External knowledge is saved to `.claude/agents/ask-atlas/EXTERNAL.md` and survives across sessions.
+
 ### Local Atlas MCP server
 
 `mcp-atlas/` contains a local [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes the Sky Atlas as queryable tools for Claude Code. It uses a local vector index over the node index so you can ask natural-language questions about the Atlas without sending data off your machine.
