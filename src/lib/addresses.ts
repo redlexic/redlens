@@ -67,6 +67,9 @@ export function loadAddresses(): Promise<Record<string, AddressInfo>> {
         };
       }
       return out;
+    }).catch((err) => {
+      cached = null;
+      throw err;
     });
   }
   return cached;
