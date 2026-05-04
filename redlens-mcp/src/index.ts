@@ -208,7 +208,7 @@ function createMcpServer(db: D1Database): McpServer {
         .bind(name)
         .first<{ id: string }>();
       const entityId = entity?.id ?? null;
-      const prefix = agentDocPrefix(name);
+      const rootUuid = agentRootUuid(name);
 
       const [byEdge, byDocNo, responsibilities, activeData] = await Promise.all([
         entityId
@@ -219,11 +219,16 @@ function createMcpServer(db: D1Database): McpServer {
               .bind(entityId)
               .all()
           : Promise.resolve({ results: [] }),
-        prefix
+        rootUuid
           ? db
-              .prepare(`SELECT id,doc_no,title,type,depth FROM docs
-                        WHERE doc_no LIKE ? ORDER BY doc_no LIMIT 200`)
-              .bind(prefix + "%")
+              .prepare(`WITH RECURSIVE tree(id) AS (
+                          SELECT ? UNION ALL
+                          SELECT d.id FROM docs d JOIN tree t ON d.parent_id = t.id
+                        )
+                        SELECT d.id,d.doc_no,d.title,d.type,d.depth
+                        FROM docs d JOIN tree t ON d.id = t.id
+                        ORDER BY d.doc_no LIMIT 200`)
+              .bind(rootUuid)
               .all()
           : Promise.resolve({ results: [] }),
         entityId
@@ -263,18 +268,72 @@ function createMcpServer(db: D1Database): McpServer {
     },
   );
 
+  // atlas_filter — structured query: doc type × entity subtree
+  server.tool(
+    "atlas_filter",
+    "Filter Atlas documents by type and/or entity. For entity queries, traverses the full document subtree rooted at the entity's artifact section. Faster than text search for structured questions like 'all Active Data docs controlled by Spark'.",
+    {
+      type: z.string().optional().describe("Atlas document type (e.g. 'Active Data', 'Core', 'Active Data Controller')."),
+      entity: z.string().optional().describe("Entity slug (e.g. 'spark', 'grove'). Restricts results to the entity's artifact subtree."),
+      limit: z.number().int().min(1).max(500).default(200),
+    },
+    async ({ type, entity, limit }) => {
+      if (!type && !entity) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: "Provide at least one of: type, entity" }) }] };
+      }
+
+      let sql: string;
+      let params: unknown[];
+
+      if (entity) {
+        // Resolve entity slug → defining_doc_id (artifact root)
+        const ent = await db
+          .prepare(`SELECT defining_doc_id FROM entities WHERE slug = ? LIMIT 1`)
+          .bind(entity.toLowerCase())
+          .first<{ defining_doc_id: string }>();
+        if (!ent?.defining_doc_id) {
+          return { content: [{ type: "text", text: JSON.stringify({ error: `Entity '${entity}' not found` }) }] };
+        }
+        sql = `
+          WITH RECURSIVE tree(id) AS (
+            SELECT ?
+            UNION ALL
+            SELECT d.id FROM docs d JOIN tree t ON d.parent_id = t.id
+          )
+          SELECT d.id, d.doc_no, d.title, d.type, d.depth, d.content
+          FROM docs d JOIN tree t ON d.id = t.id
+          ${type ? "WHERE d.type = ?" : ""}
+          ORDER BY d.doc_no
+          LIMIT ?
+        `;
+        params = type ? [ent.defining_doc_id, type, limit] : [ent.defining_doc_id, limit];
+      } else {
+        sql = `SELECT id, doc_no, title, type, depth, content FROM docs WHERE type = ? ORDER BY doc_no LIMIT ?`;
+        params = [type!, limit];
+      }
+
+      const { results } = await db.prepare(sql).bind(...params).all();
+      return {
+        content: [{ type: "text", text: JSON.stringify({ count: results.length, results }) }],
+      };
+    },
+  );
+
   return server;
 }
 
-// Map entity slug to Atlas doc_no prefix
-function agentDocPrefix(name: string): string {
+// Map entity slug to Atlas artifact root UUID for subtree fallback queries.
+// UUIDs are stable; doc_nos change on atlas renumbering.
+function agentRootUuid(name: string): string {
   const map: Record<string, string> = {
-    spark: "A.6.1.1.1",
-    grove: "A.6.1.1.2",
-    keel: "A.6.1.1.3",
-    skybase: "A.6.1.1.4",
-    obex: "A.6.1.1.5",
-    pattern: "A.6.1.1.6",
+    spark:           "dee2f5a4-279a-488c-9a9d-9583e3216fbf", // A.6.1.1.1
+    grove:           "727b0de6-095b-485e-bf9c-02108a364480", // A.6.1.1.2
+    keel:            "bc6aed17-2969-4d04-9af6-c7bf3e4497e6", // A.6.1.1.3
+    skybase:         "c88439b5-f456-4e51-8825-42e0ba83546f", // A.6.1.1.4
+    obex:            "f558e673-cbab-4696-8ca1-3af9b90fe5d4", // A.6.1.1.5
+    pattern:         "dc083d10-74bc-43b6-ab2f-c91efce76e84", // A.6.1.1.6
+    "launch-agent-6": "eba0dcc7-e135-496f-b866-342deeb91dc4", // A.6.1.1.7
+    "launch-agent-7": "d0d77316-0b08-447c-b75a-ae7926b07019", // A.6.1.1.8
   };
   return map[name.toLowerCase()] ?? "";
 }
@@ -381,7 +440,7 @@ app.get("/", (c) => {
   <h2>Available MCP tools</h2>
   <p class="endpoint">
     <code>atlas_search</code> · <code>atlas_get</code> · <code>atlas_neighbors</code> ·
-    <code>atlas_traverse</code> · <code>atlas_entity</code>
+    <code>atlas_traverse</code> · <code>atlas_entity</code> · <code>atlas_filter</code>
   </p>
 
   <footer>
@@ -392,8 +451,9 @@ app.get("/", (c) => {
   return c.html(html);
 });
 
-// MCP endpoint (streamable HTTP transport)
-app.all("/mcp", async (c) => {
+// MCP endpoint (streamable HTTP transport — POST only; SSE not supported in stateless workers)
+app.get("/mcp", (c) => c.text("Method Not Allowed", 405));
+app.post("/mcp", async (c) => {
   const server = createMcpServer(c.env.DB);
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   await server.connect(transport);
@@ -439,7 +499,7 @@ app.get("/api/node/:id", async (c) => {
 // REST: entity view
 app.get("/api/entity/:name", async (c) => {
   const name = c.req.param("name").toLowerCase();
-  const prefix = agentDocPrefix(name);
+  const rootUuid = agentRootUuid(name);
 
   const entity = await c.env.DB.prepare(
     `SELECT id,slug,name,entity_type,subtype FROM entities WHERE slug=? LIMIT 1`,
@@ -455,11 +515,17 @@ app.get("/api/entity/:name", async (c) => {
           .bind(entityId)
           .all()
       : Promise.resolve({ results: [] }),
-    prefix
+    rootUuid
       ? c.env.DB.prepare(
-          `SELECT id,doc_no,title,type,depth FROM docs WHERE doc_no LIKE ? ORDER BY doc_no LIMIT 200`,
+          `WITH RECURSIVE tree(id) AS (
+             SELECT ? UNION ALL
+             SELECT d.id FROM docs d JOIN tree t ON d.parent_id = t.id
+           )
+           SELECT d.id,d.doc_no,d.title,d.type,d.depth
+           FROM docs d JOIN tree t ON d.id = t.id
+           ORDER BY d.doc_no LIMIT 200`,
         )
-          .bind(prefix + "%")
+          .bind(rootUuid)
           .all()
       : Promise.resolve({ results: [] }),
     entityId
