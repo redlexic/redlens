@@ -258,5 +258,65 @@
     "approvalCount": 1,
     "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "4. the amount to be paid out to each Aligned Delegate."
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "Once calculated by the Core Facilitator, AD payouts are paid from the Aligned Delegates Buffer Multisig. See [A.2.3.1."
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            ".2."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            " - Aligned Delegates Buffer](05fa5c41-26ca-4c25-94dd-834ef72c318a)."
+          ]
+        ]
+      ]
+    ]
   }
 ]

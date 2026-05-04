@@ -314,5 +314,78 @@
     "commentCount": 2,
     "summary": "Lint Lists",
     "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "101039e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "- `line`: controlled by DC-IAM"
+      ],
+      [
+        "=",
+        "- DC-IAM parameters:"
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "    - `gap`: "
+          ],
+          [
+            "-",
+            "10"
+          ],
+          [
+            "+",
+            "50"
+          ],
+          [
+            "=",
+            " million USDS"
+          ]
+        ]
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "    - `line`: "
+          ],
+          [
+            "-",
+            "10"
+          ],
+          [
+            "+",
+            "2.5"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "million"
+          ],
+          [
+            "+",
+            "billion"
+          ],
+          [
+            "=",
+            " USDS"
+          ]
+        ]
+      ],
+      [
+        "=",
+        "    - `ttl`: 24 hours"
+      ]
+    ]
   }
 ]

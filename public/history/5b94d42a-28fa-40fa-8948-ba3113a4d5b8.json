@@ -96,5 +96,121 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "At the same time that no new SKY tokens are issued, SKY tokens are bought back and burned on a regular basis, using a portion of the Net Revenue of the Protocol as dictated by the Treasury Management Function. See [A.2.3.1.2"
+          ],
+          [
+            "-",
+            ".5"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "4"
+          ],
+          [
+            "=",
+            " -"
+          ],
+          [
+            "+",
+            " Step 3:"
+          ],
+          [
+            "=",
+            " Smart Burn "
+          ],
+          [
+            "-",
+            "Buffer"
+          ],
+          [
+            "+",
+            "Engine"
+          ],
+          [
+            "=",
+            "]("
+          ],
+          [
+            "-",
+            "c2a0ca01"
+          ],
+          [
+            "+",
+            "5ce73730"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "ffea"
+          ],
+          [
+            "+",
+            "4d5d"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "46ee"
+          ],
+          [
+            "+",
+            "479c"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "8077"
+          ],
+          [
+            "+",
+            "b01e"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "e46e0510d097"
+          ],
+          [
+            "+",
+            "40e87f072121"
+          ],
+          [
+            "=",
+            "). As a result, the total supply of SKY tokens will continue to decrease over time."
+          ]
+        ]
+      ]
+    ]
   }
 ]

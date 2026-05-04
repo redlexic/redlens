@@ -384,5 +384,29 @@
     "approvalCount": 1,
     "summary": "January 12 edit",
     "description": "Do not merge unless poll passes"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "SKY holders can stake their tokens via the SKY Staking Mechanism available on Ethereum Mainnet and SkyLink Deployments. SKY stakers earn"
+          ],
+          [
+            "-",
+            " voting"
+          ],
+          [
+            "=",
+            " rewards sourced from the Sky Treasury Management Function. SKY stakers may be able to earn USDS rewards, SKY rewards, and Agent Token Rewards, as determined by Sky Governance. SKY stakers can also borrow USDS against their staked collateral using the SKY-backed borrowing mechanism defined herein."
+          ]
+        ]
+      ]
+    ]
   }
 ]

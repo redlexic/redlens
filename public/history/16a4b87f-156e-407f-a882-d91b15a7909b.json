@@ -1,0 +1,41 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The configuration parameters for this Instance are as follows:"
+      ],
+      [
+        "+",
+        ""
+      ],
+      [
+        "+",
+        "- Max Swap Size: 50,000,000 USD"
+      ],
+      [
+        "+",
+        "- Staleness Threshold: seven (7) days"
+      ],
+      [
+        "+",
+        "- Fees: 0"
+      ],
+      [
+        "+",
+        "- Credit Token Deposits: Disabled"
+      ],
+      [
+        "+",
+        "- Credit Token Withdrawals: Disabled"
+      ],
+      [
+        "+",
+        "- Stablecoin Swaps: Disabled"
+      ]
+    ]
+  }
+]
