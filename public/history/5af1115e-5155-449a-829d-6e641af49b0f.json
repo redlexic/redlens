@@ -15,22 +15,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Additional threshold requirements and considerations may apply depending on the specific operational use case of the Multisig. These requirements supplement the baseline threshold requirements defined in [A.2.11.1.3.2.1.1.2.1 - Threshold Requirements](89b7bcf9-8268-4e46-bdfb-dae3a5985a98)."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

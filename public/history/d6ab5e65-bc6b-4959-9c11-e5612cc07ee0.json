@@ -15,22 +15,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Multisig signers must verify Solana Virtual Machine (SVM) Multisig transactions prior to signing to ensure that the proposal contains the intended instructions and parameters."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

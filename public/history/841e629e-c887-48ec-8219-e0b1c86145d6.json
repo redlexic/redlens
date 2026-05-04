@@ -15,22 +15,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-16",
-    "commitHash": "ede66d5",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "The Freezer Multisig has the `FREEZER_ROLE` as defined in [A.6.1.1.6.2.6.1.2.2.1.1.4 - Freezer Role](62db1fa2-9958-4692-a2af-907feb5d2c72) and is controlled by Operational GovOps Soter Labs."
-      ]
-    ],
-    "pr": 222,
-    "prTitle": "Atlas Edit Proposal — 2026-04-13",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

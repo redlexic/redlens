@@ -15,22 +15,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "The Multisig Security Enforcement Framework establishes binding policies and operational requirements for the use of Multisig wallets across the Sky Ecosystem. Its objective is to ensure that Multisigs used to control smart contracts, allocate capital, and operate under emergency conditions across Sky Core and Prime Agent infrastructure comply with established security and operational requirements, providing clear grounds for oversight, auditing, and enforcement in cases of noncompliance."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

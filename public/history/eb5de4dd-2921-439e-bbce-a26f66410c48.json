@@ -15,22 +15,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Signers must verify that the transaction hash displayed on the signing device matches the expected transaction hash derived from the transaction parameters. When signing transactions involving nested Multisigs, the hash displayed on the signing device may correspond to an approval hash rather than the underlying transaction. In such cases, signers must verify both the nested transaction and the parent Multisig approval."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

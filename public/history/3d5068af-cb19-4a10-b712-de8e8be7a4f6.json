@@ -51,58 +51,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Multisig Administrators are responsible for ensuring that Multisigs classified with a Time-Sensitive or Emergency Operational Classification level, as defined in [A.2.11.1.3.2.1.1.1.2 - Operational Assessment](35224359-76a6-41fe-adc2-6f70a29f3f4a), maintain operational readiness appropriate to their function."
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "To satisfy this requirement, Multisig Administrators must ensure that the following activities are conducted:"
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "- Periodic operational drills"
-      ],
-      [
-        "+",
-        "- Quarterly testing of emergency communication and alerting systems to ensure continued reliability"
-      ],
-      [
-        "+",
-        "- Semi-annual paging system tests to verify alert functionality"
-      ],
-      [
-        "+",
-        "- An annual full emergency simulation involving all signers"
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "The Multisig Administrator must document the completion and outcome of all required readiness activities and provide testing reports and confirmation of completion to Core GovOps."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

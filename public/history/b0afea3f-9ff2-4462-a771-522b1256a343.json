@@ -47,54 +47,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-16",
-    "commitHash": "ede66d5",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Anyone can query the current rate limit value for a specific key, accounting for time-based slope accrual. Calling this function will carry out the following actions:"
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "- The contract will retrieve the RateLimitData for the key from the _data mapping."
-      ],
-      [
-        "+",
-        "- If maxAmount is type(uint256).max (unlimited case), the contract will return type(uint256).max."
-      ],
-      [
-        "+",
-        "- Otherwise, the contract will calculate and return the minimum of (slope * time elapsed since lastUpdated + lastAmount) and maxAmount."
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "The function call is as follows:"
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "`function getCurrentRateLimit(bytes32 key) public override view returns (uint256)`"
-      ]
-    ],
-    "pr": 222,
-    "prTitle": "Atlas Edit Proposal — 2026-04-13",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

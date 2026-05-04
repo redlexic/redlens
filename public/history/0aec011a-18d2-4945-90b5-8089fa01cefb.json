@@ -51,58 +51,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "All standard incident reports must include, at minimum, the following information:"
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "- Multisig details and classification"
-      ],
-      [
-        "+",
-        "- Incident type"
-      ],
-      [
-        "+",
-        "- Time of incident occurrence and discovery"
-      ],
-      [
-        "+",
-        "- Reporting signer"
-      ],
-      [
-        "+",
-        "- Description of the incident"
-      ],
-      [
-        "+",
-        "- Immediate actions taken"
-      ],
-      [
-        "+",
-        "- Current Multisig status"
-      ],
-      [
-        "+",
-        "- Impact"
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

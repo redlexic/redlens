@@ -15,22 +15,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-16",
-    "commitHash": "ede66d5",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "The documents herein define the general Pattern Liquidity Layer operational procedures for interacting with ERC-4626-compliant tokenized vaults. ERC-4626 is a standard interface for vaults representing shares of an underlying ERC-20 token. Pattern Liquidity Layer can integrate with various ERC-4626 vaults. For instance-specific parameters (such as vault addresses, asset addresses, and rate limits), refer to the relevant ERC-4626 Instance Configuration Document."
-      ]
-    ],
-    "pr": 222,
-    "prTitle": "Atlas Edit Proposal — 2026-04-13",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]
