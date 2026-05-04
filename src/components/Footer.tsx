@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 
 const BASE = import.meta.env.BASE_URL;
 const REPO = "https://github.com/Anscharo/redlens";
 const PROVENANCE_HREF = `${BASE}provenance`;
 
 export function Footer() {
+  const online = useOnlineStatus();
   const [block, setBlock] = useState<string | null>(null);
   const [chainTime, setChainTime] = useState<string | null>(null);
 
@@ -22,9 +24,17 @@ export function Footer() {
 
   return (
     <footer
-      className="shrink-0 border-t flex items-center justify-end gap-0 overflow-hidden"
+      className="shrink-0 border-t flex items-center justify-between gap-0 overflow-hidden"
       style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px" }}
     >
+      <div>
+        {!online && (
+          <FooterItem>
+            <span style={{ color: "var(--red)" }}>offline</span>
+          </FooterItem>
+        )}
+      </div>
+      <div className="flex items-center overflow-hidden">
       {block && (
         <>
           <FooterItem title={chainTime ? `chain state generated ${chainTime}` : undefined}>
@@ -96,6 +106,7 @@ export function Footer() {
           src
         </a>
       </FooterItem>
+      </div>
     </footer>
   );
 }

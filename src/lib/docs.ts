@@ -12,7 +12,7 @@ let cached: Promise<AtlasBundle> | null = null;
 
 export function loadAtlas(): Promise<AtlasBundle> {
   if (!cached) {
-    cached = new Promise((resolve, reject) => {
+    cached = new Promise<AtlasBundle>((resolve, reject) => {
       const worker = new Worker(new URL("../workers/atlas.worker.ts", import.meta.url), {
         type: "module",
       });
@@ -35,7 +35,7 @@ export function loadAtlas(): Promise<AtlasBundle> {
       throw err;
     });
   }
-  return cached;
+  return cached!;
 }
 
 export function loadDocs(): Promise<Record<string, AtlasNode>> {

@@ -85,22 +85,26 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Don't precache large data files — they're handled by runtime caching
+        // Don't precache large/dynamic data files — they're handled by runtime caching
         globIgnores: [
           "**/docs.json",
           "**/search-index.json",
           "**/addresses.json",
+          "**/addresses.atlas.json",
+          "**/relations.json",
           "**/chain-state.json",
-          "**/atlas-graph.json",
           "**/history/**",
         ],
+        // Serve index.html for all navigation requests so deep-URL refreshes work offline
+        navigateFallback: "/redlens/",
         runtimeCaching: [
           {
-            // Large data files: serve from cache if available, update in background
-            urlPattern: /\/(docs|search-index|addresses|chain-state|atlas-graph)\.json$/,
+            // Atlas data JSON files — network-first, 3 s timeout before falling to cache
+            urlPattern: /\/(docs|search-index|addresses(?:\.atlas)?|relations|chain-state|glossary|manifest)\.json$/,
             handler: "NetworkFirst",
             options: {
               cacheName: "atlas-data",
+              networkTimeoutSeconds: 3,
               expiration: { maxAgeSeconds: 7 * 24 * 60 * 60 },
             },
           },
