@@ -17,24 +17,5 @@
     "approvalCount": 1,
     "summary": "Add Multisig Security Enforcement Framework",
     "description": "Adds the Multisig Security Enforcement Framework governing security and operational requirements for Multisigs across Sky Core and Prime Agent infrastructure, effective May 20, 2026."
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Treasury Multisigs must use an allowance module that grants the Sky Pause Proxy allowance equal to the maximum amount of each token held by the Multisig."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1,
-    "summary": "Add Multisig Security Enforcement Framework",
-    "description": "Adds the Multisig Security Enforcement Framework governing security and operational requirements for Multisigs across Sky Core and Prime Agent infrastructure, effective May 20, 2026."
   }
 ]

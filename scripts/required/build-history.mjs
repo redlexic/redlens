@@ -586,7 +586,10 @@ async function main() {
   for (const [nodeId, newEntries] of newHistory) {
     const filePath = path.join(OUT_DIR, `${nodeId}.json`);
     const existing = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, "utf8")) : [];
-    fs.writeFileSync(filePath, JSON.stringify([...existing, ...newEntries], null, 2) + "\n");
+    const seenHashes = new Set(existing.map((e) => e.commitHash));
+    const dedupedNew = newEntries.filter((e) => !seenHashes.has(e.commitHash));
+    if (dedupedNew.length === 0) continue;
+    fs.writeFileSync(filePath, JSON.stringify([...existing, ...dedupedNew], null, 2) + "\n");
     fileCount++;
   }
 

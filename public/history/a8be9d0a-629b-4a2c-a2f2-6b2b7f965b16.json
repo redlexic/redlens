@@ -41,48 +41,5 @@
     "approvalCount": 1,
     "summary": "Add Plasma SkyLink Bridge",
     "description": "Adds documentation for the Plasma SkyLink Bridge, specifying Freezer Multisig configuration, Rate Limits, and Validator parameters."
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Operational GovOps Soter Labs, Operational Facilitator Redline Facilitation Group, and Launch Agent 6 can change the signers of the Plasma SkyLink Freezer Multisig so long as:"
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "- there are five (5) signers;"
-      ],
-      [
-        "+",
-        "- two (2) signers are required to execute transactions;"
-      ],
-      [
-        "+",
-        "- three (3) signers are controlled by Operational GovOps Soter Labs;"
-      ],
-      [
-        "+",
-        "- one (1) signer is controlled by Operational Facilitator Redline Facilitation Group; and"
-      ],
-      [
-        "+",
-        "- one (1) signer is controlled by Launch Agent 6."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1,
-    "summary": "Add Plasma SkyLink Bridge",
-    "description": "Adds documentation for the Plasma SkyLink Bridge, specifying Freezer Multisig configuration, Rate Limits, and Validator parameters."
   }
 ]

@@ -35,42 +35,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "The list of registered Multisigs is defined as Active Data in [A.2.11.1.3.4.2.0.6.1 - Registered Multisigs](7d966e5e-ecb3-4a5b-9111-a70927cfa79a)."
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "The Active Data is updated as follows:"
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "- The Responsible Party is Core GovOps."
-      ],
-      [
-        "+",
-        "- The Update Process must follow the protocol for 'Direct Edit'."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

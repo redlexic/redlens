@@ -32,39 +32,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2025-12-04",
-    "commitHash": "8e28270",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "`Inactive`"
-      ]
-    ],
-    "pr": 133,
-    "prTitle": "2025-12-01 AEW Proposal",
-    "prAuthor": "0xldr",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/133",
-    "reviewCount": 3,
-    "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "removed",
-    "diff": [
-      [
-        "-",
-        "`Inactive`"
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]

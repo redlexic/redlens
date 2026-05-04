@@ -23,30 +23,5 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1
-  },
-  {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "added",
-    "diff": [
-      [
-        "+",
-        "Threshold Exceptions define the limited circumstances under which Multisigs may operate below the baseline threshold requirements defined in [A.2.11.1.3.2.1.1.2.1 - Threshold Requirements](89b7bcf9-8268-4e46-bdfb-dae3a5985a98)."
-      ],
-      [
-        "+",
-        ""
-      ],
-      [
-        "+",
-        "Exceptions may be permitted by Core GovOps, in consultation with the Protocol Security Workstream Lead. Examples include rate-setting or parameter adjustment operations where parameters are tightly bounded and set by governance, and where a defined recovery or replacement mechanism exists in the event of Multisig failure or compromise."
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1
   }
 ]
