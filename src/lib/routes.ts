@@ -25,7 +25,7 @@ export type SearchScope = "atlas" | "constellations" | "radar" | "reports";
 
 export const SCOPE_CONFIG: Record<SearchScope, { label: string; placeholder: string }> = {
   atlas:          { label: "atlas",         placeholder: "Search the Atlas or type /hints for query help" },
-  constellations: { label: "constellation", placeholder: "Filter constellation — name, type" },
+  constellations: { label: "constellation", placeholder: "Filter by name — e.g. Spark, Aave, Bonapublica" },
   radar:          { label: "radar",         placeholder: "Filter actors — name, role" },
   reports:        { label: "reports",       placeholder: "Filter reports" },
 };
