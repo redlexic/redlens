@@ -29,7 +29,10 @@ export function loadGraph(): Promise<GraphData> {
       participants: data.entities.filter((e) => e.et !== "instance"),
       instances: data.entities.filter((e) => e.et === "instance"),
       edges: data.edges,
-    }));
+    })).catch((err) => {
+      graphCache = null;
+      throw err;
+    });
   }
   return graphCache;
 }
