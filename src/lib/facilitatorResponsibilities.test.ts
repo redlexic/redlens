@@ -18,16 +18,21 @@ const relations: { entities: Participant[]; edges: RelationEdge[] } = JSON.parse
 );
 
 const byParent = new Map<string, AtlasNode[]>();
+const docNoToId = new Map<string, string>();
 for (const node of Object.values(docs)) {
+  docNoToId.set(node.doc_no, node.id);
   if (node.parentId) {
     if (!byParent.has(node.parentId)) byParent.set(node.parentId, []);
     byParent.get(node.parentId)!.push(node);
   }
 }
 
+const participants = relations.entities.filter((e) => e.et !== "instance");
+const instances = relations.entities.filter((e) => e.et === "instance");
+
 const results = deriveResponsibilities(
-  { docs, byParent },
-  { edges: relations.edges },
+  { docs, byParent, docNoToId },
+  { participants, instances, edges: relations.edges },
 );
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_LABELS));
