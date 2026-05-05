@@ -214,13 +214,18 @@ export function extractEntityEdges(allDocs, docById, docByDocNo, entityContext, 
     return entityMap.get(slugify(cleaned)) ?? null;
   }
 
+  const emittedComprises = new Set();
   for (const [, partyDocs] of accordPartyDocsByAccordDocNo) {
     for (const { partyEntity, sourceDocNo, memberStr, isSky } of partyDocs) {
       if (isSky) continue;
       for (const memberName of parseNameList(memberStr)) {
         const memberEntity = resolveMember(memberName);
         if (memberEntity && memberEntity.id !== partyEntity.id) {
-          addEdge(partyEntity.id, "entity", memberEntity.id, "entity", "comprises", [sourceDocNo]);
+          const key = `${partyEntity.id}:${memberEntity.id}`;
+          if (!emittedComprises.has(key)) {
+            emittedComprises.add(key);
+            addEdge(partyEntity.id, "entity", memberEntity.id, "entity", "comprises", [sourceDocNo]);
+          }
         }
       }
     }
