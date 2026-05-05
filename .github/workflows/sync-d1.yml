@@ -13,6 +13,7 @@ env:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    environment: WorkerDeploy
     steps:
       - uses: actions/checkout@v5
         with:
