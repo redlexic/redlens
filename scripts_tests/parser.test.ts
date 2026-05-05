@@ -70,6 +70,19 @@ describe("parser invariants", () => {
     }
   });
 
+  it("docs.json contains at least 10 000 nodes", () => {
+    expect(Object.keys(docs).length).toBeGreaterThanOrEqual(10_000);
+  });
+
+  it("every node's parentId resolves to a real node", () => {
+    const orphans: { doc_no: string; parentId: string }[] = [];
+    for (const node of Object.values(docs)) {
+      if (node.parentId && !docs[node.parentId])
+        orphans.push({ doc_no: node.doc_no, parentId: node.parentId });
+    }
+    expect(orphans).toEqual([]);
+  });
+
   it("every intra-content UUID link resolves to a real node", () => {
     const UUID_LINK =
       /\[[^\]]+\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/g;
