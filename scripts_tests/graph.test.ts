@@ -1,6 +1,6 @@
 // Semantic invariants for build-graph.mjs output.
 //
-// Each extraction pattern in the graph-atlas skill has to hold against the
+// Each extraction pattern in the parse-atlas skill has to hold against the
 // current graph.json / relations.json. These tests read the already-built
 // artifacts — they don't re-run the build (too slow for every `pnpm test`).
 // Run `pnpm build:graph` first if stale.
@@ -84,7 +84,7 @@ function parseSources(e: GraphEdge): string[] {
 }
 
 // ---------------------------------------------------------------------------
-// Known vocabularies (must match the graph-atlas skill)
+// Known vocabularies (must match the parse-atlas skill)
 // ---------------------------------------------------------------------------
 
 const KNOWN_ENTITY_TYPES = new Set([

@@ -5,7 +5,7 @@
  * Pattern-driven extraction of the Atlas graph. Outputs live at repo root so
  * they're first-class artifacts for every consumer — the frontend loads
  * relations.json directly; the redlens-mcp Worker mirrors the graph into D1.
- * See .claude/skills/graph-atlas/SKILL.md for the full relationship reference.
+ * See .claude/skills/parse-atlas/SKILL.md for the full relationship reference.
  *
  * Usage (from repo root):
  *   node scripts/required/build-graph.mjs                       # builds JSONs only
@@ -23,6 +23,7 @@
  *   [with --apply-to-d1] D1 tables: docs, entities, addresses, edges
  */
 
+import crypto from "node:crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -30,6 +31,11 @@ import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 
 import { slugify } from "../lib/graph-patterns.mjs";
+import {
+  parseMarkdownTable,
+  extractEthAddresses,
+  extractUrl,
+} from "../lib/table-parser.mjs";
 import { extractEntities } from "../lib/graph-entities.mjs";
 import { extractDocEdges } from "../lib/graph-doc-edges.mjs";
 import { extractEntityEdges } from "../lib/graph-entity-edges.mjs";
@@ -419,6 +425,172 @@ for (const e of edges) edgeTypeCounts.set(e.edgeType, (edgeTypeCounts.get(e.edge
 console.log("  edge type breakdown:");
 for (const [et, count] of [...edgeTypeCounts.entries()].sort((a, b) => b[1] - a[1])) {
   console.log(`    ${et.padEnd(36)} ${count}`);
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2.7: Active Data table entity extraction
+//
+// Parses three Active Data tables that contain named actors not captured by
+// the prose-pattern phases above:
+//   - Current Aligned Delegates  (5f584db8) — delegate_org, is_active=1
+//   - Derecognized Delegates     (e7aec672) — delegate_org, is_active=0
+//   - SRC Membership Registry    (d9c6ed16) — src_member, is_active=1
+//
+// For existing delegate_org entities (bootstrapped from chainlog addresses),
+// enriches meta with forum_url and updates has_address edge role metadata.
+// Creates new entities for delegates absent from the chainlog (e.g. BLUE,
+// Cloaky) and registers their addresses in addressesAtlas + addressesRaw so
+// Phase 3 picks them up in addressRows.
+// ---------------------------------------------------------------------------
+{
+  const CURRENT_DELEGATES_UUID  = "5f584db8-f8d8-4118-988c-b2bc3f68ceb7";
+  const DERECOGNIZED_UUID       = "e7aec672-ed19-4329-aaf7-736950be2eb7";
+  const SRC_UUID                = "d9c6ed16-5b0d-4a6f-bb43-387398090afc";
+
+  // Reverse map: address (no chain suffix) → entity id, from existing has_address edges
+  const addrToEntityId = new Map();
+  for (const edge of edges) {
+    if (edge.edgeType === "has_address" && edge.fromType === "entity") {
+      addrToEntityId.set(edge.toId.split(":")[0], edge.fromId);
+    }
+  }
+  const entityById = new Map([...entityMap.values()].map((e) => [e.id, e]));
+
+  function addTableEntity(slug, name, et, isActive, defDocId, meta) {
+    const id = crypto.randomUUID();
+    const entity = {
+      id,
+      slug,
+      name,
+      entity_type: et,
+      subtype: null,
+      defining_doc_id: defDocId,
+      is_active: isActive,
+      meta: JSON.stringify(meta),
+    };
+    entityMap.set(slug, entity);
+    entityById.set(id, entity);
+    return entity;
+  }
+
+  function addTableEdge(fromId, fromType, toId, toType, edgeType, meta) {
+    edges.push({ fromId, fromType, toId, toType, edgeType, meta: meta ? JSON.stringify(meta) : undefined });
+  }
+
+  let enriched = 0, created = 0, derecognized = 0, srcMembers = 0;
+
+  // --- Table 1: Current Aligned Delegates ---
+  const delegatesDoc = docById.get(CURRENT_DELEGATES_UUID);
+  if (delegatesDoc) {
+    for (const row of parseMarkdownTable(delegatesDoc.content ?? "")) {
+      const name = row["Delegate Name"]?.trim();
+      if (!name) continue;
+      const eaAddr = extractEthAddresses(row["EA Address"] ?? "")[0];
+      const contractAddr = extractEthAddresses(row["Delegation Contract"] ?? "")[0];
+      const forumUrl = extractUrl(row["Forum Post"] ?? "");
+      if (!eaAddr) continue;
+
+      const existingId = addrToEntityId.get(eaAddr);
+      const entity = existingId ? entityById.get(existingId) : null;
+
+      if (entity) {
+        // Enrich: add forum_url to meta, update has_address edge roles.
+        // Also upgrade ecosystem_actor → delegate_org (e.g. entities that appear
+        // in the ERG list get created as ecosystem_actor first; delegate table wins).
+        if (entity.entity_type === "ecosystem_actor") entity.entity_type = "delegate_org";
+        const m = JSON.parse(entity.meta ?? "{}");
+        if (forumUrl) m.forum_url = forumUrl;
+        entity.meta = JSON.stringify(m);
+
+        for (const edge of edges) {
+          if (edge.edgeType !== "has_address" || edge.fromId !== entity.id) continue;
+          const addr = edge.toId.split(":")[0];
+          if (addr === eaAddr) edge.meta = JSON.stringify({ role: "ea_address" });
+          else if (contractAddr && addr === contractAddr) edge.meta = JSON.stringify({ role: "delegation_contract" });
+        }
+        enriched++;
+      } else {
+        // New entity — register addresses, emit has_address edges
+        const s = slugify(name);
+        const ent = addTableEntity(s, name, "delegate_org", 1, CURRENT_DELEGATES_UUID, {
+          source: "active_data_table",
+          forum_url: forumUrl,
+        });
+        for (const [addr, role] of [[eaAddr, "ea_address"], [contractAddr, "delegation_contract"]]) {
+          if (!addr) continue;
+          if (!addressesAtlas[addr]) {
+            const label = role === "ea_address" ? name : `${name} Delegation Contract`;
+            addressesAtlas[addr] = { chain: "ethereum", roles: ["delegate"], entityLabel: label };
+            addressesRaw[addr] = { ...addressesAtlas[addr], label, aliases: [] };
+          }
+          addTableEdge(ent.id, "entity", `${addr}:ethereum`, "address", "has_address", { role });
+        }
+        created++;
+      }
+
+      addTableEdge(
+        entity?.id ?? entityMap.get(slugify(name))?.id,
+        "entity",
+        CURRENT_DELEGATES_UUID,
+        "doc",
+        "instance_of",
+        null,
+      );
+    }
+  }
+
+  // --- Table 2: Derecognized Alignment Conservers ---
+  const derecognizedDoc = docById.get(DERECOGNIZED_UUID);
+  if (derecognizedDoc) {
+    for (const row of parseMarkdownTable(derecognizedDoc.content ?? "")) {
+      const name = row["Identity"]?.trim();
+      if (!name || name === "-") continue;
+      const s = slugify(name);
+      if (entityMap.has(s)) continue;
+      const ent = addTableEntity(s, name, "delegate_org", 0, DERECOGNIZED_UUID, {
+        source: "active_data_table",
+        derecognition_date: row["Date"]?.trim(),
+        forum_url: extractUrl(row["Reasoning Post"] ?? ""),
+      });
+      addTableEdge(ent.id, "entity", DERECOGNIZED_UUID, "doc", "instance_of", null);
+      derecognized++;
+    }
+  }
+
+  // --- Table 3: SRC Membership Registry ---
+  const srcDoc = docById.get(SRC_UUID);
+  if (srcDoc) {
+    for (const row of parseMarkdownTable(srcDoc.content ?? "")) {
+      const name = row["Name or Alias"]?.trim();
+      if (!name) continue;
+      const s = slugify(name);
+      if (entityMap.has(s)) continue;
+      const ent = addTableEntity(s, name, "src_member", 1, SRC_UUID, {
+        source: "active_data_table",
+        domain_expertise: row["Domain Expertise"]?.trim(),
+        start_date: row["Start Date"]?.trim(),
+        term_status: row["Term Status"]?.trim(),
+        standing: row["Standing"]?.trim(),
+      });
+      const govRaw = row["Verified Governance Address"]?.trim();
+      if (govRaw && govRaw !== "N/A") {
+        for (const addr of extractEthAddresses(govRaw)) {
+          if (!addressesAtlas[addr]) {
+            addressesAtlas[addr] = { chain: "ethereum", roles: ["governance"], entityLabel: name };
+            addressesRaw[addr] = { ...addressesAtlas[addr], label: name, aliases: [] };
+          }
+          addTableEdge(ent.id, "entity", `${addr}:ethereum`, "address", "has_address", { role: "governance" });
+        }
+      }
+      addTableEdge(ent.id, "entity", SRC_UUID, "doc", "instance_of", null);
+      srcMembers++;
+    }
+  }
+
+  console.log(
+    `\n  Phase 2.7: ${enriched} delegates enriched, ${created} created,` +
+    ` ${derecognized} derecognized, ${srcMembers} SRC members`,
+  );
 }
 
 // ---------------------------------------------------------------------------
