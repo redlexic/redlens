@@ -21,6 +21,8 @@ function loadJson<T>(name: string): T | null {
 
 const docs = loadJson<Record<string, AtlasNode>>("docs.json")!;
 const addresses = loadJson<Record<string, AddressInfo>>("addresses.json");
+const atlasAddresses = loadJson<Record<string, { chain: string }>>("addresses.atlas.json");
+const glossary = loadJson<Record<string, { nodeId: string }[]>>("glossary.json");
 const chainState = loadJson<{ block: string; values: Record<string, unknown> }>("chain-state.json");
 const relations = loadJson<{
   entities: { id: string; slug: string }[];
@@ -74,6 +76,42 @@ describe("cross-artifact consistency", () => {
       }
     }
     expect(bad).toEqual([]);
+  });
+
+  it("every addressRef has a chain entry in addresses.atlas.json", () => {
+    if (!atlasAddresses) return;
+    const missing: string[] = [];
+    for (const node of Object.values(docs)) {
+      for (const addr of node.addressRefs ?? []) {
+        if (!atlasAddresses[addr]?.chain) missing.push(addr);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it("every glossary term's nodeId resolves to a real doc", () => {
+    if (!glossary) return;
+    const orphans: { term: string; nodeId: string }[] = [];
+    for (const [term, entries] of Object.entries(glossary)) {
+      for (const entry of entries) {
+        if (!docs[entry.nodeId]) orphans.push({ term, nodeId: entry.nodeId });
+      }
+    }
+    expect(orphans).toEqual([]);
+  });
+
+  it("relations.json entity slugs are unique", () => {
+    if (!relations) return;
+    const seen = new Map<string, string>();
+    const dupes: { slug: string; ids: string[] }[] = [];
+    for (const { id, slug } of relations.entities) {
+      if (seen.has(slug)) {
+        dupes.push({ slug, ids: [seen.get(slug)!, id] });
+      } else {
+        seen.set(slug, id);
+      }
+    }
+    expect(dupes).toEqual([]);
   });
 
   it("history/*.json files are well-formed", () => {
