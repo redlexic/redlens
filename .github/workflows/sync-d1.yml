@@ -35,6 +35,16 @@ jobs:
       - name: Build Graph 
         run: pnpm build:graph 
 
+      - name: Check Cloudflare token
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN is empty — secret may be missing from repo settings"
+            exit 1
+          fi
+          echo "CLOUDFLARE_API_TOKEN is set (${#CLOUDFLARE_API_TOKEN} chars)"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Sync graph data to D1
         run: pnpm graph:remote
         working-directory: redlens-mcp
