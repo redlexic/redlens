@@ -91,9 +91,6 @@ function printStats(glossary, definitionsSections) {
     }
   }
 
-  // Sample: first, middle, last alphabetically
-  const sorted = [...keys].sort();
-
   // Length distribution
   const lens = [];
   for (const k of keys) for (const e of glossary[k]) lens.push(e.content.length);
