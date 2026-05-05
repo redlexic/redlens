@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "prepare": "pnpm -w run build:index && pnpm -w run build:addresses && pnpm -w run build:snapshot && pnpm -w run build:graph",
     "deploy": "npx wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
