@@ -2656,6 +2656,98 @@ exports[`allocation-system sub-doc content > Grove > Ethereum Mainnet - Grove x 
 ]
 `;
 
+exports[`allocation-system sub-doc content > Grove > Ethereum Mainnet - Grove x Steakhouse RLUSD Morpho Vault V2 1`] = `
+[
+  {
+    "content": "\`Pending\`",
+    "title": "RRC Framework Full Implementation Coverage",
+  },
+  {
+    "content": "The documents herein define the parameters of the Grove x Steakhouse RLUSD Morpho Vault V2 Instance of the Allocation System Primitive.",
+    "title": "Parameters",
+  },
+  {
+    "content": "The documents herein define the Instance identifiers.",
+    "title": "Instance Identifiers",
+  },
+  {
+    "content": "Ethereum Mainnet",
+    "title": "Network",
+  },
+  {
+    "content": "Grove x Steakhouse RLUSD Morpho Vault V2",
+    "title": "Target Protocol",
+  },
+  {
+    "content": "RLUSD",
+    "title": "Asset Supplied By Grove Liquidity Layer",
+  },
+  {
+    "content": "grove-bbqRLUSD",
+    "title": "Token",
+  },
+  {
+    "content": "The documents herein define the Instance contract addresses.",
+    "title": "Contract Addresses",
+  },
+  {
+    "content": "\`0xBeEff4fD39F8e48b6a6e475445D650cb11e9599F\`",
+    "title": "Token Address",
+  },
+  {
+    "content": "\`0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD\`",
+    "title": "Underlying Asset Address",
+  },
+  {
+    "content": "The specific \`RateLimitID\`(s) for this conduit's inflow and outflow are defined in the subdocuments herein.",
+    "title": "Rate Limit IDs",
+  },
+  {
+    "content": "The inflow RateLimitID is: \`0xf655bc101a615fbcb591acce756dacae96cb119ff1beec548d9cc5d4558ea53a\`",
+    "title": "Inflow RateLimitID",
+  },
+  {
+    "content": "The outflow RateLimitID is: \`0xa6e68f8214d2fb32e0deb2888ef4644c36401d18605447843e4f936529f6a3cb\`",
+    "title": "Outflow RateLimitID",
+  },
+  {
+    "content": "The current \`maxAmount\` and \`slope\` for this conduit's inflow/outflow are defined in the subdocuments herein.",
+    "title": "Rate Limits",
+  },
+  {
+    "content": "The deposit rate limits are:
+
+- \`maxAmount\`: 100,000,000 RLUSD
+- \`slope\`: 100,000,000 RLUSD per day",
+    "title": "Deposit Rate Limits",
+  },
+  {
+    "content": "The withdrawal rate limits are:
+
+- \`maxAmount\`: Unlimited",
+    "title": "Withdrawal Rate Limits",
+  },
+  {
+    "content": "The documents herein contain specific off-chain parameters for this Instance.",
+    "title": "Off-chain Operational Parameters",
+  },
+  {
+    "content": "The documents herein contain operational procedures or monitoring requirements unique to this Instance that deviate from or otherwise supplement the general Grove Liquidity Layer processes.",
+    "title": "Instance-specific Operational Processes",
+  },
+  {
+    "content": "The documents herein contain operational parameters or configuration details unique to this Instance that deviate from or otherwise supplement the general Grove Liquidity Layer parameters.",
+    "title": "Instance-specific Operational Parameters",
+  },
+  {
+    "content": "Controllers now have protections that require a \`maxExchangeRate\` to be set for deposits. The following ensures 1 share can represent at most 3 RLUSD:
+
+- \`setMaxExchangeRate(GROVE_X_STEAKHOUSE_RLUSD_V2, 1e18, 3e18)\`",
+    "title": "Max Exchange Rate",
+  },
+]
+`;
+
 exports[`allocation-system sub-doc content > Grove > Ethereum Mainnet - Grove x Steakhouse USDC Morpho Vault v2 1`] = `
 [
   {
@@ -3600,6 +3692,132 @@ exports[`allocation-system sub-doc content > Grove > Ethereum Mainnet - Supersta
   {
     "content": "The documents herein contain operational procedures or monitoring requirements unique to this Instance that deviate from or otherwise supplement the general Grove Liquidity Layer processes.",
     "title": "Instance-specific Operational Processes",
+  },
+]
+`;
+
+exports[`allocation-system sub-doc content > Grove > Ethereum Mainnet - Tokenized Treasury JTRSY 1`] = `
+[
+  {
+    "content": "\`Pending\`",
+    "title": "RRC Framework Full Implementation Coverage",
+  },
+  {
+    "content": "The documents herein define the parameters of the Tokenized Treasury JTRSY Instance of the Allocation System Primitive.",
+    "title": "Parameters",
+  },
+  {
+    "content": "The documents herein define the Instance identifiers.",
+    "title": "Instance Identifiers",
+  },
+  {
+    "content": "Ethereum Mainnet",
+    "title": "Network",
+  },
+  {
+    "content": "Tokenized Treasury",
+    "title": "Target Protocol",
+  },
+  {
+    "content": "USDS",
+    "title": "Asset Supplied By Grove Liquidity Layer",
+  },
+  {
+    "content": "JTRSY",
+    "title": "Token",
+  },
+  {
+    "content": "The documents herein define the Instance-specific contract addresses.",
+    "title": "Contract Addresses",
+  },
+  {
+    "content": "\`0x8c213ee79581Ff4984583C6a801e5263418C4b86\`",
+    "title": "Token Address",
+  },
+  {
+    "content": "\`0xFE6920eB6C421f1179cA8c8d4170530CDBdfd77A\`",
+    "title": "Centrifuge ERC-7540 Vault Address",
+  },
+  {
+    "content": "\`0x7FB719Fc99A737bA15D676a09491805cD9623A8f\`",
+    "title": "JTRSY Rate Provider Address",
+  },
+  {
+    "content": "\`0x30860b17f984D0f909B71Ab8D7b0C2e01C650479\`",
+    "title": "Pocket Contract Address",
+  },
+  {
+    "content": "\`0x471C4D7B1F38009061e7c545A08732d82Bd54B15\`",
+    "title": "Token Redeemer Contract Address",
+  },
+  {
+    "content": "\`0xfB805f2f88e862e687bEBdF120306ef39380F3bf\`",
+    "title": "Owner Timelock Contract Address",
+  },
+  {
+    "content": "\`0x34B7385D87793bAc8b94d95d8eF75200787A61F7\`",
+    "title": "RWA Instance Contract Address",
+  },
+  {
+    "content": "The specific \`RateLimitID\`(s) for this conduit's inflow and outflow will be specified in a future iteration of the Atlas.",
+    "title": "Rate Limit IDs",
+  },
+  {
+    "content": "The current \`maxAmount\` and \`slope\` for this conduit's inflow/outflow are defined in the subdocuments herein.",
+    "title": "Rate Limits",
+  },
+  {
+    "content": "The inflow rate limits are:
+
+- \`maxAmount\`: 0 USDS
+- \`slope\`: 0 USDS per day",
+    "title": "Inflow Rate Limits",
+  },
+  {
+    "content": "The outflow rate limits are:
+
+- \`maxAmount\`: 0 USDS
+- \`slope\`: 0 USDS per day",
+    "title": "Outflow Rate Limits",
+  },
+  {
+    "content": "The documents herein contain specific off-chain parameters for this Instance.",
+    "title": "Off-chain Operational Parameters",
+  },
+  {
+    "content": "The documents herein contain operational procedures or monitoring requirements unique to this Instance that deviate from or otherwise supplement the general Grove Liquidity Layer processes.",
+    "title": "Instance-specific Operational Processes",
+  },
+  {
+    "content": "The documents herein contain operational parameters or configuration details unique to this Instance that deviate from or otherwise supplement the general Grove Liquidity Layer parameters.",
+    "title": "Instance-specific Operational Parameters",
+  },
+  {
+    "content": "The configuration parameters for this Instance are as follows:
+
+- Max Swap Size: 50,000,000 USD
+- Staleness Threshold: seven (7) days
+- Fees: 0
+- Credit Token Deposits: Disabled
+- Credit Token Withdrawals: Disabled
+- Stablecoin Swaps: Disabled",
+    "title": "Instance Configuration Parameters",
+  },
+  {
+    "content": "The documents herein define the role holders that are specific to this Instance's credit token issuer.",
+    "title": "Issuer-Specific Role Holders",
+  },
+  {
+    "content": "The \`OWNER_ROLE\`, as defined in [A.6.1.1.2.2.6.1.2.2.1.6.1 - Tokenized Treasury Owner Role](41a7e6fb-59e1-40e8-a05a-68c1520fb361), is held by Anemoy via an OpenZeppelin \`TimelockController\` at the address specified in [A.6.1.1.2.2.6.1.3.1.14.1.2.2.6 - Owner Timelock Contract Address](d2069cde-3b55-487a-9b1d-919bd3f76197).",
+    "title": "Owner Role Holder",
+  },
+  {
+    "content": "The \`PROPOSER_ROLE\` of the Owner Timelock is held by Anemoy at \`0x9184DdBCc4824B76CE2AEFA72534a1a87aA5037c\`.",
+    "title": "Proposer Role Holder",
+  },
+  {
+    "content": "The \`REDEEMER_ROLE\`, as defined in [A.6.1.1.2.2.6.1.2.2.1.6.5 - Tokenized Treasury Redeemer Role](fbeb1921-37eb-465b-97fa-004c8e0925b1), is controlled by Anemoy; the holder address will be specified in a future iteration of the Atlas.",
+    "title": "Redeemer Role Holder",
   },
 ]
 `;
@@ -9594,30 +9812,31 @@ exports[`allocation-system sub-doc content > Spark > Ethereum Mainnet - Uniswap 
 
 exports[`edge type counts > all edge types and their counts 1`] = `
 {
-  "active_data_for": 73,
+  "active_data_for": 74,
   "annotates": 102,
-  "cites": 1800,
+  "cites": 1804,
   "comprises": 22,
   "core_facilitator_for": 1,
   "core_govops_for": 1,
-  "defines_entity": 212,
+  "defines_entity": 216,
   "ecosystem_accord": 18,
   "erg_member_for": 6,
-  "has_address": 229,
+  "has_address": 232,
   "has_status": 136,
-  "holds_role_for": 1,
+  "holds_role_for": 2,
   "implements": 188,
-  "instance_of": 215,
-  "invoked_by": 188,
-  "located_at": 182,
-  "mentions": 516,
+  "instance_of": 191,
+  "invoked_by": 190,
+  "listed_in": 26,
+  "located_at": 184,
+  "mentions": 534,
   "operational_executor_agent_for": 8,
   "operational_facilitator_for": 2,
   "operational_govops_for": 2,
   "prime_agent_for": 8,
-  "proxies_to": 59,
+  "proxies_to": 61,
   "ranked_delegate_for": 3,
-  "responsible_party_for": 61,
+  "responsible_party_for": 62,
 }
 `;
 
@@ -9815,6 +10034,7 @@ exports[`governance edges > active_data_for — AD doc → ADC doc 1`] = `
   "A.2.2.8.2.2.1.5.1.0.6.1 → A.2.2.8.2.2.1.5.1",
   "A.2.2.8.3.1.2.1.0.6.1 → A.2.2.8.3.1.2.1",
   "A.2.2.9.1.1.1.1.2.0.6.1 → A.2.2.9.1.1.1.1.2",
+  "A.2.7.1.1.1.1.4.0.6.1 → A.2.7.1.1.1.1.4",
   "A.2.8.1.2.0.6.1 → A.2.8.1.2",
   "A.2.9.1.1.1.2.3.0.6.1 → A.2.9.1.1.1.2.3",
   "A.2.9.1.1.2.6.0.6.1 → A.2.9.1.1.2.6",
@@ -9977,6 +10197,11 @@ exports[`governance edges > responsible_party_for — entity → ADC doc 1`] = `
     "adc": "A.2.2.9.1.1.1.1.2",
     "declared": "Core Facilitator",
     "party": "JanSky",
+  },
+  {
+    "adc": "A.2.7.1.1.1.1.4",
+    "declared": "entity to which the registration pertains",
+    "party": "entity to which the registration pertains",
   },
   {
     "adc": "A.2.8.1.2",
@@ -11833,6 +12058,25 @@ exports[`instances > allocation-system instances 1`] = `
   },
   {
     "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Grove x Steakhouse RLUSD Morpho Vault V2",
+    "params": {
+      "Asset Supplied By Grove Liquidity Layer": "RLUSD",
+      "Deposit Rate Limits / maxAmount": "100,000,000 RLUSD",
+      "Deposit Rate Limits / slope": "100,000,000 RLUSD per day",
+      "Inflow RateLimitID": "0xf655bc101a615fbcb591acce756dacae96cb119ff1beec548d9cc5d4558ea53a",
+      "Network": "Ethereum Mainnet",
+      "Outflow RateLimitID": "0xa6e68f8214d2fb32e0deb2888ef4644c36401d18605447843e4f936529f6a3cb",
+      "Target Protocol": "Grove x Steakhouse RLUSD Morpho Vault V2",
+      "Token": "grove-bbqRLUSD",
+      "Token Address": "0xBeEff4fD39F8e48b6a6e475445D650cb11e9599F",
+      "Underlying Asset Address": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+      "Withdrawal Rate Limits / maxAmount": "Unlimited",
+    },
+    "slug": "grove-allocation-system-ethereum-mainnet-grove-x-steakhouse-rlusd-morpho-vault-v2",
+    "status": "Active",
+  },
+  {
+    "agent": "A.6.1.1.2",
     "name": "Ethereum Mainnet - Grove x Steakhouse USDC Morpho Vault v2",
     "params": {
       "Asset Supplied By Grove Liquidity Layer": "USDC",
@@ -12051,6 +12295,30 @@ exports[`instances > allocation-system instances 1`] = `
       "Underlying Asset Address": "This address will be specified in a future iteration of the Grove Artifact.",
     },
     "slug": "grove-allocation-system-ethereum-mainnet-superstate-ustb",
+    "status": "Active",
+  },
+  {
+    "agent": "A.6.1.1.2",
+    "name": "Ethereum Mainnet - Tokenized Treasury JTRSY",
+    "params": {
+      "Asset Supplied By Grove Liquidity Layer": "USDS",
+      "Centrifuge ERC-7540 Vault Address": "0xFE6920eB6C421f1179cA8c8d4170530CDBdfd77A",
+      "Inflow Rate Limits / maxAmount": "0 USDS",
+      "Inflow Rate Limits / slope": "0 USDS per day",
+      "JTRSY Rate Provider Address": "0x7FB719Fc99A737bA15D676a09491805cD9623A8f",
+      "Network": "Ethereum Mainnet",
+      "Outflow Rate Limits / maxAmount": "0 USDS",
+      "Outflow Rate Limits / slope": "0 USDS per day",
+      "Owner Timelock Contract Address": "0xfB805f2f88e862e687bEBdF120306ef39380F3bf",
+      "Pocket Contract Address": "0x30860b17f984D0f909B71Ab8D7b0C2e01C650479",
+      "RWA Instance Contract Address": "0x34B7385D87793bAc8b94d95d8eF75200787A61F7",
+      "Rate Limit IDs": "The specific \`RateLimitID\`(s) for this conduit's inflow and outflow will be specified in a future iteration of the Atlas.",
+      "Target Protocol": "Tokenized Treasury",
+      "Token": "JTRSY",
+      "Token Address": "0x8c213ee79581Ff4984583C6a801e5263418C4b86",
+      "Token Redeemer Contract Address": "0x471C4D7B1F38009061e7c545A08732d82Bd54B15",
+    },
+    "slug": "grove-allocation-system-ethereum-mainnet-tokenized-treasury-jtrsy",
     "status": "Active",
   },
   {
@@ -12611,7 +12879,7 @@ exports[`instances > instance counts by type 1`] = `
 {
   "agent-creation": 8,
   "agent-token": 8,
-  "allocation-system": 102,
+  "allocation-system": 104,
   "core-governance-reward": 1,
   "distribution-reward": 16,
   "ecosystem-upkeep-fee": 8,

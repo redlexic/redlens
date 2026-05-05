@@ -81,6 +81,48 @@ echo "Merge base with main: ${MERGE_BASE7}"
 echo ""
 
 # ---------------------------------------------------------------------------
+# Hardcoded UUID impact check
+# Greps all UUIDs referenced in RedLens source files, then checks whether this
+# PR's diff touches any of them. Touched = the node was added, removed, or
+# edited; its title/content may no longer match what our code assumes.
+# ---------------------------------------------------------------------------
+_atlas_diff=$(git -C "$ROOT/vendor/next-gen-atlas" diff \
+  "$MERGE_BASE" "$HEAD_SHA" 2>/dev/null)
+
+_src_uuids=$(grep -rhEo \
+  "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" \
+  "$ROOT/scripts/lib/" "$ROOT/scripts/required/" "$ROOT/src/lib/" \
+  --include="*.mjs" --include="*.ts" 2>/dev/null | sort -u)
+
+UUID_IMPACT_LINES=""
+while IFS= read -r _uuid; do
+  [[ -z "$_uuid" ]] && continue
+  if echo "$_atlas_diff" | grep -qF "$_uuid"; then
+    _usages=$(grep -rn "$_uuid" \
+      "$ROOT/scripts/lib/" "$ROOT/scripts/required/" "$ROOT/src/lib/" \
+      --include="*.mjs" --include="*.ts" 2>/dev/null \
+      | sed "s|$ROOT/||" | head -5 | sed 's/^/    /')
+    UUID_IMPACT_LINES="${UUID_IMPACT_LINES}
+- \`${_uuid}\`
+${_usages}"
+  fi
+done <<< "$_src_uuids"
+
+if [[ -n "$UUID_IMPACT_LINES" ]]; then
+  UUID_IMPACT_SECTION="## ⚠️ Hardcoded UUID impact
+
+The following UUIDs are hardcoded in RedLens source and were touched by this PR.
+Verify that the node's title/content still matches what the code assumes.
+${UUID_IMPACT_LINES}"
+  echo "⚠️  Hardcoded UUIDs touched by this PR — see report for details."
+else
+  UUID_IMPACT_SECTION="## Hardcoded UUID impact
+
+✅ No hardcoded source UUIDs are touched by this PR."
+fi
+echo ""
+
+# ---------------------------------------------------------------------------
 # Setup: worktree + temp files
 # ---------------------------------------------------------------------------
 mkdir -p "$CACHE_DIR"
@@ -186,6 +228,9 @@ write_failure_report() {
     echo "**Failed phase:** \`${phase}\`"
     echo "**Baseline (merge base):** \`${MERGE_BASE}\`"
     echo "**RedLens branch:** \`${REDLENS_BRANCH}\`"
+    echo ""
+    echo ""
+    echo "$UUID_IMPACT_SECTION"
     echo ""
     echo "## Build log"
     echo ""
@@ -327,6 +372,8 @@ JS
   echo "**Atlas SHA:** \`${HEAD_SHA}\`"
   echo "**Baseline (merge base):** \`${MERGE_BASE}\`"
   echo "**RedLens branch:** \`${REDLENS_BRANCH}\`"
+  echo ""
+  echo "$UUID_IMPACT_SECTION"
   echo ""
   echo "## Relationship delta (PR vs merge base)"
   echo ""
