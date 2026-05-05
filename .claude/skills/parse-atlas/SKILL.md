@@ -581,7 +581,7 @@ Three Active Data nodes contain structured registry tables whose rows become nam
 - `Term Status` → entity `meta.term_status`
 - `Standing` → entity `meta.standing`
 
-**`instance_of` edges:** every table entity emits `instance_of` → the Active Data doc UUID. This is an `entity → doc` edge (distinct from the `doc → doc` use in Patterns 2 and 14).
+**`listed_in` edges:** every table entity emits `listed_in` → the Active Data doc UUID. This is a structural `entity → doc` edge — it records table membership, not primitive instantiation. Do **not** use `instance_of` here; that type is reserved for ICD doc → Primitive root (Patterns 2 and 14). `listed_in` is exempt from the auditable-edge `source_doc_nos` requirement (derived from table structure, not from prose attribution).
 
 **Identity lookup for existing entities:** entities are matched by EA address via the `has_address` edges built in Phase 2u, **not by slug**. Slug matching is fragile when the label in `addressesRaw` differs from the table's Delegate Name column.
 
@@ -799,12 +799,12 @@ annotates                          doc     → doc      Annotation/Tenet/Variati
 active_data_for                    doc     → doc      Active Data (*.0.6.X) → its controller
 located_at                         doc     → doc      ICD Location → ICD (via UUID in content)
 instance_of                        doc     → doc      ICD → primitive root (strip 2 segments)
-                                   entity  → doc      Table entity (delegate_org, src_member) → Active Data node (Pattern 16)
+listed_in                          entity  → doc      Table entity (delegate_org, src_member) → Active Data node (Pattern 16); structural, no source_doc_nos required
 has_status                         doc     → doc      Primitive root → Global Activation Status (strip 2)
 implements                         doc     → doc      Agent primitive → global def in A.2.2 (via "See" cite)
 ```
 
-**Total: 26 edge types** (instance_of now spans two node-type pairs; no new type added).
+**Total: 27 edge types.**
 
 ### Entity meta serialization
 
@@ -872,9 +872,9 @@ For `et="instance"`, the parsed meta is:
 - **Pattern 16 (new) — Active Data table entity extraction:** documents the three target Active Data UUIDs, column→field mappings for Current Aligned Delegates / Derecognized Delegates / SRC Membership Registry, the `entity → doc` variant of `instance_of`, the address-based identity lookup, the `ecosystem_actor → delegate_org` upgrade rule, and the `scripts/lib/table-parser.mjs` utilities.
 - **Entity Types table:** `delegate_org` row updated to reference Active Data UUIDs and note `is_active=0` for derecognized. `src_member` row added.
 - **Edge vocabulary — `has_address`:** documents `meta.role` values (`ea_address`, `delegation_contract`, `governance`) that disambiguate multiple addresses on one entity.
-- **Edge vocabulary — `instance_of`:** notes the `entity → doc` cross-type variant added by Pattern 16 alongside the existing `doc → doc` ICD use.
+- **Edge vocabulary — `listed_in` (new):** structural `entity → doc` edge for table membership (Pattern 16). Replaces the incorrect `instance_of` `entity → doc` variant. `instance_of` remains `doc → doc` only.
 - **Editorial Decision §12 (new):** rationale for UUID anchoring, address-based identity lookup, and `ecosystem_actor → delegate_org` upgrade.
-- **Edge total:** still 26 (no new edge type; `instance_of` gained a second node-type pair).
+- **Edge total:** 26 → 27 (`listed_in` added; `instance_of` reverts to `doc → doc` only — the `entity → doc` variant described in v2.0 was incorrect and has been replaced).
 
 ---
 
