@@ -38,7 +38,6 @@ const relations: Relations = JSON.parse(fs.readFileSync(path.join(PUBLIC, "relat
 const docs: Record<string, AtlasNode> = JSON.parse(fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"));
 
 const entityById = new Map(relations.entities.map((e) => [e.id, e]));
-const docByDocNo = new Map(Object.values(docs).map((d) => [d.doc_no, d]));
 
 function label(id: string, type: string): string {
   if (type === "doc") return docs[id]?.doc_no ?? id;
@@ -48,11 +47,6 @@ function label(id: string, type: string): string {
 
 function edgesOfType(et: string): Edge[] {
   return relations.edges.filter((e) => e.e === et);
-}
-
-// Stable sort key for edges
-function edgeKey(e: Edge): string {
-  return `${label(e.f, e.ft)} → ${label(e.t, e.tt)}`;
 }
 
 // ---------------------------------------------------------------------------
