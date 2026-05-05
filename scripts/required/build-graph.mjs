@@ -151,7 +151,6 @@ if (chainState.chains) {
       chainStateByAddr[addr.toLowerCase()] = {
         chain,
         block: data.block ?? data.slot ?? null,
-        at: chainState.generatedAt,
         values,
       };
     }
@@ -161,7 +160,6 @@ if (chainState.chains) {
     chainStateByAddr[addr.toLowerCase()] = {
       chain: "ethereum",
       block: chainState.block ?? null,
-      at: chainState.generatedAt,
       values,
     };
   }
@@ -456,8 +454,13 @@ for (const [et, count] of [...edgeTypeCounts.entries()].sort((a, b) => b[1] - a[
   }
   const entityById = new Map([...entityMap.values()].map((e) => [e.id, e]));
 
+  function slugToId(slug) {
+    const h = crypto.createHash("sha256").update(slug).digest("hex");
+    return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-${h.slice(16,20)}-${h.slice(20,32)}`;
+  }
+
   function addTableEntity(slug, name, et, isActive, defDocId, meta) {
-    const id = crypto.randomUUID();
+    const id = slugToId(slug);
     const entity = {
       id,
       slug,
@@ -637,7 +640,6 @@ const addressRows = Object.entries(addressesRaw).map(([addr, info]) => {
     expected_tokens: JSON.stringify(info.expectedTokens ?? []),
     chain_state: cs ? JSON.stringify(cs.values) : null,
     state_block: cs?.block ?? null,
-    state_at: cs?.at ?? null,
     entity_id: s ? (entityMap.get(s)?.id ?? null) : null,
   };
 });
@@ -669,7 +671,6 @@ fs.writeFileSync(
   path.join(ROOT, "public/graph.json"),
   JSON.stringify({
     meta: {
-      generatedAt: new Date().toISOString(),
       schemaVersion: 4,
       counts: {
         entities: entityRows.length,
@@ -743,7 +744,6 @@ fs.writeFileSync(
   path.join(ROOT, "public/relations.json"),
   JSON.stringify({
     meta: {
-      generatedAt: new Date().toISOString(),
       schemaVersion: 4,
       counts: { entities: relationEntities.length, edges: relationEdges.length },
     },

@@ -6,7 +6,12 @@
  * context object consumed by graph-doc-edges and graph-entity-edges.
  */
 
-import crypto from "crypto";
+import crypto from "node:crypto";
+
+function slugToId(slug) {
+  const h = crypto.createHash("sha256").update(slug).digest("hex");
+  return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-${h.slice(16,20)}-${h.slice(20,32)}`;
+}
 import {
   slugify,
   ERG_DOC_NO,
@@ -42,7 +47,7 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
   function addEntity(slug, name, entity_type, subtype, defining_doc_id, meta = null) {
     if (entityMap.has(slug)) return entityMap.get(slug);
     const ent = {
-      id: crypto.randomUUID(),
+      id: slugToId(slug),
       slug,
       name,
       entity_type,

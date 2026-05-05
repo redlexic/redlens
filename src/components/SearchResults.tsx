@@ -64,11 +64,11 @@ export const SearchResults = memo(function SearchResults({
                     className="search-result-link px-4 py-3 flex items-center gap-3"
                   >
                     <span
-                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0 mr-3"
                       style={{ background: ENTITY_TYPE_COLOR[participant.et] ?? "#888" }}
                     />
                     <span className="text-sm font-semibold text-tan">{participant.name}</span>
-                    <span className="mono text-[10px] text-tan-3">
+                    <span className="mono text-[10px] text-tan-3 ml-4">
                       {ENTITY_TYPE_LABEL[participant.et] ?? participant.et}
                       {participant.st
                         ? ` · ${SUBTYPE_LABEL[participant.st] ?? participant.st}`

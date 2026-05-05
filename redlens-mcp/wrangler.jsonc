@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "redlens-mcp",
+  "account_id": "f4b82e41fe4413aaeb2fb43d0bb54015",
   "main": "src/index.ts",
   "compatibility_date": "2026-04-15",
   "compatibility_flags": ["nodejs_compat"],

@@ -8,14 +8,12 @@ const PROVENANCE_HREF = `${BASE}provenance`;
 export function Footer() {
   const online = useOnlineStatus();
   const [block, setBlock] = useState<string | null>(null);
-  const [chainTime, setChainTime] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${BASE}chain-state.json`)
       .then((r) => r.json())
       .then((d) => {
         if (d.block) setBlock(d.block);
-        if (d.generatedAt) setChainTime(d.generatedAt);
       })
       .catch(() => {});
   }, []);
@@ -37,7 +35,7 @@ export function Footer() {
       <div className="flex items-center overflow-hidden">
       {block && (
         <>
-          <FooterItem title={chainTime ? `chain state generated ${chainTime}` : undefined}>
+          <FooterItem>
             <a
               href={`https://etherscan.io/block/${block}`}
               target="_blank"

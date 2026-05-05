@@ -193,7 +193,6 @@ for (const fns of Object.values(values)) {
 }
 
 const output = {
-  generatedAt: new Date().toISOString(),
   block: block.toString(),
   values,
 };
