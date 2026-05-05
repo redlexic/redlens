@@ -29,17 +29,6 @@ const CHAIN_HINTS = [
   { chain: "gnosis", patterns: [/\bgnosis\b/i, /\bxdai\b/i] },
 ];
 
-const EXPLORER = {
-  ethereum: "https://etherscan.io/address/",
-  base: "https://basescan.org/address/",
-  arbitrum: "https://arbiscan.io/address/",
-  optimism: "https://optimistic.etherscan.io/address/",
-  polygon: "https://polygonscan.com/address/",
-  avalanche: "https://snowtrace.io/address/",
-  gnosis: "https://gnosisscan.io/address/",
-  solana: "https://explorer.solana.com/address/",
-};
-
 // "address on [the] CHAIN is 0x..." — most reliable signal
 const EXPLICIT_RE = /\baddress\s+on\s+(?:the\s+)?(.{3,30}?)\s+is\s*$/i;
 
