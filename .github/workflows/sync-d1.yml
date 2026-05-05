@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v5
 
@@ -25,7 +28,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: redlens-mcp
+
+      - name: Build index (generates docs.json)
+        run: pnpm build:index
+      
+      - name: Build Graph 
+        run: pnpm build:graph 
 
       - name: Sync graph data to D1
         run: pnpm graph:remote
