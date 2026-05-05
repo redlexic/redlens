@@ -2,7 +2,7 @@
 name: parse-atlas
 description: >
   Knowledge base for parsing the Sky Atlas into the RedLens graph. Use when
-  writing or modifying scripts/build-graph.mjs or any lib/ phase script,
+  writing or modifying scripts/required/build-graph.mjs or any lib/ phase script,
   designing edge types, querying the Atlas MCP for relationships, reading raw
   Atlas markdown to understand doc_no patterns, or reviewing Atlas PRs for new
   structural conventions. Covers Atlas document numbering rules, the heading
