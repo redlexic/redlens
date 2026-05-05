@@ -1,22 +1,22 @@
 ---
-name: graph-atlas
+name: parse-atlas
 description: >
-  Knowledge base for the RedLens Atlas graph schema. Use when writing or
-  modifying scripts/build-graph.mjs, designing edge types, querying
-  the Atlas MCP for relationships, reading raw Atlas markdown to understand
-  doc_no patterns, or reviewing Atlas PRs for new structural conventions.
-  Covers Atlas document numbering rules, the heading depth cap (parentId
-  unreliability), primitive hub structure, entity extraction patterns, the
-  role-as-edge vocabulary, composite accord parties, and auditable provenance
-  requirements.
-  Keywords: graph, atlas, doc_no, edge, entity, primitive, instance, role, facilitator, govops, prime agent, executor agent, composite party, build-graph, relations.json
+  Knowledge base for parsing the Sky Atlas into the RedLens graph. Use when
+  writing or modifying scripts/build-graph.mjs or any lib/ phase script,
+  designing edge types, querying the Atlas MCP for relationships, reading raw
+  Atlas markdown to understand doc_no patterns, or reviewing Atlas PRs for new
+  structural conventions. Covers Atlas document numbering rules, the heading
+  depth cap (parentId unreliability), primitive hub structure, entity
+  extraction patterns, Active Data table parsing, the role-as-edge vocabulary,
+  composite accord parties, and auditable provenance requirements.
+  Keywords: graph, atlas, doc_no, edge, entity, primitive, instance, role, facilitator, govops, prime agent, executor agent, composite party, build-graph, relations.json, table-parser, delegate, src_member, derecognized, active data
 license: MIT
 metadata:
   author: anscharo
-  version: "1.7"
+  version: "2.0"
 ---
 
-# graph-atlas
+# parse-atlas
 
 **Source of truth for Atlas document structure:** `vendor/next-gen-atlas/ATLAS_MARKDOWN_SYNTAX.md`
 Read that file before making any changes to graph extraction logic. This skill summarises what we've learned and must stay in sync with it.
@@ -139,7 +139,8 @@ Every entity type below either has a defining Atlas doc number pattern, or is bo
 | `governance_body`     | —                      | Bootstrapped: **Sky Governance**                                                                                                                                                                                                                  |
 | `facilitator_org`     | —                      | Named in `"The (Operational\|Core) Facilitator for {Executor} is {Name}."`                                                                                                                                                                        |
 | `govops_org`          | —                      | Named in `"(Operational\|Core) GovOps for {Executor} is {Name}."`                                                                                                                                                                                 |
-| `delegate_org`        | —                      | Named in the Aligned Delegates list (`A.1.5.1.5.0.6.1`) or Ranked Delegates list (`A.1.5.4.1.{L}.3.1`); also `addresses.json` entries with `roles: ["delegate"]`                                                                                  |
+| `delegate_org`        | —                      | Active Delegates: Current Aligned Delegates Active Data (`5f584db8`, `is_active=1`). Derecognized: Derecognized Delegates Active Data (`e7aec672`, `is_active=0`). Ranked: `A.1.5.4.1.{L}.3.1`. Fallback: `addresses.json` entries with `roles: ["delegate"]`. If an entity already exists as `ecosystem_actor` and appears in the active delegates table, it is **upgraded to `delegate_org`** (Pattern 16). |
+| `src_member`          | —                      | Named in the SRC Membership Registry Active Data (`d9c6ed16`). Institutional risk advisors (currently Blockworks Advisory, L2 Beat, Aragon). Meta carries `domain_expertise`, `start_date`, `term_status`, `standing`.                           |
 | `ecosystem_actor`     | —                      | Catch-all: named actors surfaced by patterns that don't fit a more specific kind (ERG members, role-binding holders, etc.)                                                                                                                        |
 | `instance`            | `<primitive-slug>`     | Primitive Instance Configuration Document. Entity id = ICD doc UUID. Emitted for every in-scope primitive (see Pattern 14 for the allowlist). `st` is the primitive slug (`distribution-reward`, `integration-boost`, `allocation-system`, etc.). |
 
@@ -546,6 +547,53 @@ Every in-scope Instance entity emits an entity→entity `invoked_by` edge to its
 - Resolver: match the ICD doc_no against `/^(A\.6\.1\.1\.\d+)/` to locate the prime agent doc, then its entity via `entityByDocId`
 - `scripts/lib/graph-doc-edges.mjs:98`
 
+### Pattern 16: Active Data table entity extraction (Phase 2.7)
+
+Three Active Data nodes contain structured registry tables whose rows become named entities. Parsed by `scripts/lib/table-parser.mjs` and processed in Phase 2.7 of `build-graph.mjs` (runs after Phase 2.5, before Phase 3).
+
+**Target nodes — keyed by UUID, never by doc_no:**
+
+| UUID | Title | `entity_type` | `is_active` |
+|------|-------|---------------|-------------|
+| `5f584db8-f8d8-4118-988c-b2bc3f68ceb7` | Current Aligned Delegates | `delegate_org` | 1 |
+| `e7aec672-ed19-4329-aaf7-736950be2eb7` | Derecognized Alignment Conservers | `delegate_org` | 0 |
+| `d9c6ed16-5b0d-4a6f-bb43-387398090afc` | SRC Membership Registry List | `src_member` | 1 |
+
+**Column → field mapping:**
+
+*Current Aligned Delegates (`5f584db8`):*
+- `Delegate Name` → entity `name`
+- `EA Address` → first `0x…` in cell → `has_address` edge, `meta.role = "ea_address"`
+- `Delegation Contract` → first `0x…` in cell → `has_address` edge, `meta.role = "delegation_contract"`
+- `Forum Post` → first URL in cell → entity `meta.forum_url`
+
+*Derecognized Alignment Conservers (`e7aec672`):*
+- `Identity` → entity `name`
+- `Date` → entity `meta.derecognition_date` (YYYY-MM-DD)
+- `Reasoning Post` → first URL in cell → entity `meta.forum_url`
+- No addresses; no `has_address` edges emitted.
+
+*SRC Membership Registry (`d9c6ed16`):*
+- `Name or Alias` → entity `name`
+- `Domain Expertise` → entity `meta.domain_expertise`
+- `Verified Governance Address` → `has_address` edge, `meta.role = "governance"` — **skipped when cell value is `"N/A"`**
+- `Start Date` → entity `meta.start_date`
+- `Term Status` → entity `meta.term_status`
+- `Standing` → entity `meta.standing`
+
+**`instance_of` edges:** every table entity emits `instance_of` → the Active Data doc UUID. This is an `entity → doc` edge (distinct from the `doc → doc` use in Patterns 2 and 14).
+
+**Identity lookup for existing entities:** entities are matched by EA address via the `has_address` edges built in Phase 2u, **not by slug**. Slug matching is fragile when the label in `addressesRaw` differs from the table's Delegate Name column.
+
+**`ecosystem_actor → delegate_org` upgrade rule:** if an entity already exists as `ecosystem_actor` (e.g. from the ERG list, Pattern 7) and its EA address appears in the Current Aligned Delegates table, its `entity_type` is upgraded to `delegate_org` in place. The delegates table is the authoritative governance record; ERG membership is incidental.
+
+**Table parser utilities (`scripts/lib/table-parser.mjs`):**
+- `parseMarkdownTable(content)` — splits on `|`, skips separator rows (cells of only `-`, `:`, spaces), returns `Array<Record<columnHeader, cellText>>`
+- `extractEthAddresses(cell)` — returns all lowercase `0x[0-9a-f]{40}` addresses from a cell (handles Etherscan URL format and bare addresses)
+- `extractUrl(cell)` — returns the first `(https://…)` URL from a markdown link in the cell
+
+These utilities are reusable for any future Active Data table added to Phase 2.7.
+
 ---
 
 ## Editorial Decisions
@@ -623,6 +671,24 @@ The extractor is not a neutral reading of the atlas — it makes judgment calls 
 **Why:** the browser's entity-flow canvas becomes unreadable above ~150 nodes. The MCP needs the full set for graph queries.
 
 **What we lose:** two contracts to maintain.
+
+### 12. Table entities anchored by UUID, identity matched by address
+
+**Context:** Pattern 16 targets three Active Data nodes by UUID. Each row in those tables becomes a named entity.
+
+**Choice 1 — UUID anchoring, not doc_no.** Phase 2.7 hard-codes the three target node UUIDs, not their doc_nos.
+
+**Why:** Active Data doc_nos follow a structural suffix convention (`.0.6.X`) but their prefix can change if the parent section is renumbered. PR #235 proved doc_nos are editorial labels — they changed when the atlas was renumbered. UUIDs are the stable identity for any specific document.
+
+**Choice 2 — Address-based entity lookup, not slug.** When searching for an existing entity to enrich (rather than create), Phase 2.7 builds a reverse map from `has_address` edges (`addr → entity_id`) and looks up by EA address.
+
+**Why:** the label in `addressesRaw` (which drives the slug via `slugify(label)`) may differ from the table's Delegate Name column in casing or punctuation. Address values are exact — they're the same on-chain fact regardless of the prose context they were extracted from.
+
+**Choice 3 — `ecosystem_actor → delegate_org` upgrade.** If a Phase 1 pattern already created an entity with `entity_type = "ecosystem_actor"` (e.g. ERG membership, Pattern 7) and Phase 2.7 later finds that entity's EA address in the Current Aligned Delegates table, the `entity_type` is mutated to `delegate_org` in the live `entityMap`.
+
+**Why:** the delegates table is the authoritative governance record — inclusion there means Sky Governance formally recognises this actor as an Aligned Delegate. ERG membership is a weaker signal (it just means the actor contributes risk analysis). The more specific classification wins. Mutation happens in-place so Phase 3's `entityRows` picks up the upgraded type without duplication.
+
+**What we lose:** the ERG membership signal is not separately preserved on the entity; it survives only via the `erg_member_for` edge, which remains in the graph regardless of entity_type.
 
 ### 8. Edge `weight = 1.0` is a placeholder
 
@@ -715,8 +781,11 @@ defines_entity                     doc     → entity   Defining doc → the ent
 **Addresses**:
 
 ```
-has_address                        entity  → address  Entity owns an on-chain address (1:N supported)
-controlled_by                      address → entity   Address controlled by entity
+has_address                        entity  → address  Entity owns an on-chain address (1:N).
+                                                       meta.role disambiguates when multiple per entity:
+                                                         "ea_address"          — delegate's EA wallet
+                                                         "delegation_contract" — delegate's voting contract
+                                                         "governance"          — SRC member governance address
 proxies_to                         address → address  Proxy → implementation address
 mentions                           doc     → address  addressRefs in doc content
 ```
@@ -730,11 +799,12 @@ annotates                          doc     → doc      Annotation/Tenet/Variati
 active_data_for                    doc     → doc      Active Data (*.0.6.X) → its controller
 located_at                         doc     → doc      ICD Location → ICD (via UUID in content)
 instance_of                        doc     → doc      ICD → primitive root (strip 2 segments)
+                                   entity  → doc      Table entity (delegate_org, src_member) → Active Data node (Pattern 16)
 has_status                         doc     → doc      Primitive root → Global Activation Status (strip 2)
 implements                         doc     → doc      Agent primitive → global def in A.2.2 (via "See" cite)
 ```
 
-**Total: 26 edge types.**
+**Total: 26 edge types** (instance_of now spans two node-type pairs; no new type added).
 
 ### Entity meta serialization
 
@@ -795,6 +865,16 @@ For `et="instance"`, the parsed meta is:
 - **Vocabulary tests:** `KNOWN_ENTITY_TYPES` gained `instance`; `KNOWN_EDGE_TYPES` gained `invoked_by`.
 - **`PARAM_EXPANDERS` added:** Agent Token's `Token Address` compound prose is now split into per-chain keys (`Token Address (Ethereum Mainnet)`, `Token Address (Base)`, …). Unset agents keep the single `Token Address` key with placeholder prose. Backward-incompatible for any consumer that expected a plain `Token Address` on Spark or Grove.
 - **Generic bullet-list expansion:** any leaf whose content contains ``- `key`: value`` bullets splits into `{leafTitle} / {bulletKey}` sub-keys. Primary use: Allocation System rate limits — 343 new sub-keys across 95 instances, replacing opaque "Inflow Rate Limits" prose values with direct `{Inflow,Outflow,Deposit,Withdrawal,Swap} Rate Limits / {maxAmount,slope,maxSlippage}` lookups. Fires after per-title `PARAM_EXPANDERS`.
+
+**v2.0 diff from v1.7:**
+
+- **Skill renamed** from `graph-atlas` to `parse-atlas`. Description updated to centre on parsing the atlas into graph form.
+- **Pattern 16 (new) — Active Data table entity extraction:** documents the three target Active Data UUIDs, column→field mappings for Current Aligned Delegates / Derecognized Delegates / SRC Membership Registry, the `entity → doc` variant of `instance_of`, the address-based identity lookup, the `ecosystem_actor → delegate_org` upgrade rule, and the `scripts/lib/table-parser.mjs` utilities.
+- **Entity Types table:** `delegate_org` row updated to reference Active Data UUIDs and note `is_active=0` for derecognized. `src_member` row added.
+- **Edge vocabulary — `has_address`:** documents `meta.role` values (`ea_address`, `delegation_contract`, `governance`) that disambiguate multiple addresses on one entity.
+- **Edge vocabulary — `instance_of`:** notes the `entity → doc` cross-type variant added by Pattern 16 alongside the existing `doc → doc` ICD use.
+- **Editorial Decision §12 (new):** rationale for UUID anchoring, address-based identity lookup, and `ecosystem_actor → delegate_org` upgrade.
+- **Edge total:** still 26 (no new edge type; `instance_of` gained a second node-type pair).
 
 ---
 
