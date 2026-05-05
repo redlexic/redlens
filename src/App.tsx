@@ -16,26 +16,33 @@ import { DevPanel } from "./DevPanel";
 import { Footer } from "./components/Footer";
 import { ErrorBoundary, PanelError } from "./components/ErrorBoundary";
 
+// Retries a failed dynamic import once before propagating the error.
+// Silently handles transient "Failed to fetch dynamically imported module"
+// errors that occur when a chunk isn't cached yet on first navigation.
+function lazyRetry<T>(factory: () => Promise<T>): Promise<T> {
+  return factory().catch(() => factory());
+}
+
 const ConstellationsPage = lazy(() =>
-  import("./components/ConstellationsPage").then((m) => ({ default: m.ConstellationsPage })),
+  lazyRetry(() => import("./components/ConstellationsPage")).then((m) => ({ default: m.ConstellationsPage })),
 );
 const OpFacilitatorsReport = lazy(() =>
-  import("./components/reports/OpFacilitatorsReport").then((m) => ({ default: m.OFReport })),
+  lazyRetry(() => import("./components/reports/OpFacilitatorsReport")).then((m) => ({ default: m.OFReport })),
 );
 const ActiveDataReport = lazy(() =>
-  import("./components/reports/ActiveDataReport").then((m) => ({ default: m.ActiveDataReport })),
+  lazyRetry(() => import("./components/reports/ActiveDataReport")).then((m) => ({ default: m.ActiveDataReport })),
 );
 const RewardsReport = lazy(() =>
-  import("./components/reports/RewardsReport").then((m) => ({ default: m.RewardsReport })),
+  lazyRetry(() => import("./components/reports/RewardsReport")).then((m) => ({ default: m.RewardsReport })),
 );
 const ReportsIndex = lazy(() =>
-  import("./components/ReportsIndex").then((m) => ({ default: m.ReportsIndex })),
+  lazyRetry(() => import("./components/ReportsIndex")).then((m) => ({ default: m.ReportsIndex })),
 );
 const ProvenancePage = lazy(() =>
-  import("./components/ProvenancePage").then((m) => ({ default: m.ProvenancePage })),
+  lazyRetry(() => import("./components/ProvenancePage")).then((m) => ({ default: m.ProvenancePage })),
 );
 const RadarPage = lazy(() =>
-  import("./components/radar/RadarPage").then((m) => ({ default: m.RadarPage })),
+  lazyRetry(() => import("./components/radar/RadarPage")).then((m) => ({ default: m.RadarPage })),
 );
 
 prefetchNodeContent();
