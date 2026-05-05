@@ -97,6 +97,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   "facilitator_org",
   "govops_org",
   "delegate_org",
+  "src_member",
   "ecosystem_actor",
   "instance",
 ]);
@@ -131,6 +132,7 @@ const KNOWN_EDGE_TYPES = new Set([
   "active_data_for",
   "located_at",
   "instance_of",
+  "listed_in",
   "has_status",
   "implements",
   // instance → agent
@@ -493,7 +495,7 @@ describe("auditability", () => {
   it("every role edge carries ≥1 source_doc_no (auditable-edge requirement)", () => {
     // Structural edges (parent_of, defines_entity, has_address, proxies_to) are
     // exempt — they're derived from id references, not from prose.
-    const STRUCTURAL = new Set(["parent_of", "defines_entity", "has_address", "proxies_to"]);
+    const STRUCTURAL = new Set(["parent_of", "defines_entity", "has_address", "proxies_to", "listed_in"]);
     const bad: string[] = [];
     for (const e of graph.edges) {
       if (STRUCTURAL.has(e.edge_type)) continue;

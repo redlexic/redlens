@@ -533,7 +533,7 @@ for (const [et, count] of [...edgeTypeCounts.entries()].sort((a, b) => b[1] - a[
         "entity",
         CURRENT_DELEGATES_UUID,
         "doc",
-        "instance_of",
+        "listed_in",
         null,
       );
     }
@@ -552,7 +552,7 @@ for (const [et, count] of [...edgeTypeCounts.entries()].sort((a, b) => b[1] - a[
         derecognition_date: row["Date"]?.trim(),
         forum_url: extractUrl(row["Reasoning Post"] ?? ""),
       });
-      addTableEdge(ent.id, "entity", DERECOGNIZED_UUID, "doc", "instance_of", null);
+      addTableEdge(ent.id, "entity", DERECOGNIZED_UUID, "doc", "listed_in", null);
       derecognized++;
     }
   }
@@ -582,7 +582,7 @@ for (const [et, count] of [...edgeTypeCounts.entries()].sort((a, b) => b[1] - a[
           addTableEdge(ent.id, "entity", `${addr}:ethereum`, "address", "has_address", { role: "governance" });
         }
       }
-      addTableEdge(ent.id, "entity", SRC_UUID, "doc", "instance_of", null);
+      addTableEdge(ent.id, "entity", SRC_UUID, "doc", "listed_in", null);
       srcMembers++;
     }
   }
