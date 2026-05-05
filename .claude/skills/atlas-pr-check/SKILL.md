@@ -63,7 +63,7 @@ This is untruncated. Read it to understand exactly which named entities, instanc
 params, and role pairs changed. If the section says "(no snapshot changes)", the PR
 adds no graph-visible content.
 
-If new edge or entity types appear, consider whether `.claude/skills/graph-atlas/SKILL.md`
+If new edge or entity types appear, consider whether `.claude/skills/parse-atlas/SKILL.md`
 needs a new entry documenting the pattern (see "When to update" below).
 
 ---
@@ -102,7 +102,7 @@ wrong, UUID missing from `docs.json`, field shape unexpected).
 **Root cause:** Atlas changed its heading syntax, introduced a new doc type, or
 added / reordered a field in the document header.
 
-**Action — update parsers and tests only. Do not touch the graph-atlas skill.**
+**Action — update parsers and tests only. Do not touch the parse-atlas skill.**
 
 1. Read the raw diff: `git -C vendor/next-gen-atlas diff HEAD~1 "Sky Atlas/Sky Atlas.md" | head -200`
 2. Identify what changed in the heading format or doc type list
@@ -121,11 +121,11 @@ missing, edge type not emitted, doc_no pattern unmatched, ICD param shape change
 new role relationship, new doc_no pattern, new ICD parameter form, or a new way
 of expressing an existing relationship.
 
-**Action — update code AND the graph-atlas skill.**
+**Action — update code AND the parse-atlas skill.**
 
 1. Read the atlas diff: `git -C vendor/next-gen-atlas diff HEAD~1 "Sky Atlas/Sky Atlas.md" | head -400`
 2. Identify the new pattern (new heading under a Scope/Article, new ICD field, etc.)
-3. Update `.claude/skills/graph-atlas/SKILL.md` (see "When to update" section below)
+3. Update `.claude/skills/parse-atlas/SKILL.md` (see "When to update" section below)
 4. Update the relevant `scripts/lib/graph-*.mjs` module to extract the new pattern
 5. Add a test assertion to `scripts_tests/graph.test.ts` for the new edge / entity
 6. Verify: `pnpm build:graph && pnpm test`
@@ -152,9 +152,9 @@ not in ROLE_VOCAB.
 
 ---
 
-## When to update the graph-atlas skill
+## When to update the parse-atlas skill
 
-Update `.claude/skills/graph-atlas/SKILL.md` **only for category 2 structural
+Update `.claude/skills/parse-atlas/SKILL.md` **only for category 2 structural
 changes** — new Atlas conventions that affect entity/edge extraction.
 
 Add the new entry under the appropriate section:
