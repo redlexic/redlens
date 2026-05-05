@@ -54,9 +54,11 @@ export default defineConfig({
     {
       name: "redirect-root",
       configureServer(server) {
-        server.middlewares.use((req, _res, next) => {
+        server.middlewares.use((req, res, next) => {
           if (req.url === "/" || req.url === "/redlens") {
-            req.url = "/redlens/";
+            res.writeHead(307, { Location: "/redlens/" });
+            res.end();
+            return;
           }
           next();
         });

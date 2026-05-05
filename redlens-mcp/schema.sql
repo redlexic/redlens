@@ -88,7 +88,6 @@ CREATE TABLE IF NOT EXISTS addresses (
   expected_tokens TEXT,            -- JSON string[]
   chain_state     TEXT,            -- JSON view-fn snapshot
   state_block     TEXT,
-  state_at        TEXT,
   entity_id       TEXT REFERENCES entities(id),
   PRIMARY KEY (address, chain)
 );
