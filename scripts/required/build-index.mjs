@@ -8,9 +8,10 @@
  * Run: node scripts/required/build-index.mjs
  */
 
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import lunr from "lunr";
 
 import { sha256, HEADING_RE, parse, cleanContent } from "../lib/atlas-parser.mjs";
@@ -93,6 +94,18 @@ function printStats(nodes) {
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
+const ATLAS_ROOT = path.join(ROOT, "vendor/next-gen-atlas");
+const COMPOSE_SCRIPT = path.join(ATLAS_ROOT, "sync/compose.py");
+const CONTENT_DIR = path.join(ATLAS_ROOT, "content");
+
+if (!fs.existsSync(ATLAS_PATH) && fs.existsSync(COMPOSE_SCRIPT) && fs.existsSync(CONTENT_DIR)) {
+  console.log("Sky Atlas.md not found — composing from folder tree via sync/compose.py…");
+  fs.mkdirSync(path.dirname(ATLAS_PATH), { recursive: true });
+  execFileSync("python3", [COMPOSE_SCRIPT, "--input", CONTENT_DIR, "--output", ATLAS_PATH], {
+    stdio: "inherit",
+  });
+}
+
 const src = fs.readFileSync(ATLAS_PATH, "utf8");
 console.log("Parsing Atlas…");
 const { nodes } = parse(src);
