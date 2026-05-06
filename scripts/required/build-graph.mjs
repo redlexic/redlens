@@ -318,7 +318,7 @@ for (const ent of entityMap.values()) {
   try { meta = JSON.parse(ent.meta ?? "{}"); } catch { continue; }
   const params = meta.params ?? {};
 
-  const agentDoc = meta.agent_doc_no ? docByDocNo.get(meta.agent_doc_no) : null;
+  const agentDoc = meta.agent_doc_id ? docById.get(meta.agent_doc_id) : null;
   const agentEntity = agentDoc ? entityByDocId.get(agentDoc.id) : null;
   const agentName = agentEntity?.name ?? null;
   if (agentName) icdAgentResolved++;

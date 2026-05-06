@@ -63,8 +63,8 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
       const m = JSON.parse(ent.m) as InstanceMeta;
       instanceEntities.push(ent);
       instanceMetaById.set(ent.id, {
-        agent_doc_no: m.agent_doc_no ?? null,
-        primitive_doc_no: m.primitive_doc_no ?? null,
+        agent_doc_id: m.agent_doc_id ?? null,
+        primitive_category_doc_id: m.primitive_category_doc_id ?? null,
         status: m.status ?? null,
         params: m.params ?? {},
       });
@@ -180,7 +180,7 @@ function extractPrimitive(
   const globalActivation = unwrapBackticks(plain(byDocNo.get(`${primitiveDocNo}.1.1`))) || null;
   const primSlug = kind === "DR" ? "distribution-reward" : "integration-boost";
   const relevant = ctx.instanceEntities.filter(
-    (e) => e.st === primSlug && ctx.instanceMetaById.get(e.id)?.agent_doc_no === agent.docNo,
+    (e) => e.st === primSlug && ctx.instanceMetaById.get(e.id)?.agent_doc_id === agent.docId,
   );
   const buckets: Record<InstanceStatus, RewardsInstance[]> = {
     Active: [],

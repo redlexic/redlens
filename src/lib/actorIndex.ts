@@ -43,6 +43,9 @@ export interface RadarInstance {
   docNo: string | null;
   primitiveTitle: string | null;
   primitiveDocId: string | null;
+  primitiveCategory: string | null;
+  primitiveCategoryDocId: string | null;
+  isUnknownPrimitive: boolean;
   signalParams: InstanceParam[];
 }
 export interface Recommendation {
@@ -89,17 +92,6 @@ const EXEC_EDGES = new Set(["operational_executor_agent_for", "core_executor_age
 const FAC_EDGES = new Set(["operational_facilitator_for", "core_facilitator_for"]);
 const GOV_EDGES = new Set(["operational_govops_for", "core_govops_for"]);
 const EXCLUDED_INSTANCE_TYPES = new Set(["root-edit"]);
-const INSTANCE_TYPE_LABEL: Record<string, string> = {
-  "agent-token": "Agent Token",
-  "allocation-system": "Allocation System",
-  "distribution-reward": "Distribution Reward",
-  "integration-boost": "Integration Boost",
-  "upkeep-rebate": "Upkeep Rebate",
-  "executor-accord": "Executor Accord",
-  "distribution-requirement": "Distribution Requirement",
-  "pioneer-chain": "Pioneer Chain",
-  "core-governance-reward": "Core Governance Reward",
-};
 
 // Params whose values are purely forward references to other docs — no displayable content.
 const PARAM_BLACKLIST = new Set(["Tracking Methodology", "Operational Executor Agent"]);
@@ -269,12 +261,10 @@ export function buildActorProfile(
       if (!inst.m || !inst.st || EXCLUDED_INSTANCE_TYPES.has(inst.st)) continue;
       const meta = parseMeta<InstanceMeta>(inst.m);
       if (!meta) continue;
-      if (meta.agent_doc_no !== definingDoc.doc_no) continue;
+      if (meta.agent_doc_id !== definingDoc.id) continue;
       const signalParams = Object.entries(meta.params)
         .filter(([k]) => !PARAM_BLACKLIST.has(k))
         .map(([key, t]) => ({ key, value: t[0], srcDocId: t[1] || null }));
-      const displayName =
-        inst.name === "Single" ? (INSTANCE_TYPE_LABEL[inst.st] ?? inst.st) : inst.name;
       const instDoc = inst.did ? docs[inst.did] : null;
       const primitiveDocId = inst.did ? (instanceOfMap.get(inst.did) ?? null) : null;
       const primitiveDoc = primitiveDocId ? docs[primitiveDocId] : null;
@@ -283,12 +273,15 @@ export function buildActorProfile(
         slug: inst.slug,
         rawName: inst.name,
         st: inst.st,
-        displayName,
+        displayName: inst.name,
         status: meta.status,
         docId: inst.did,
-        docNo: instDoc?.doc_no ?? meta.primitive_doc_no,
+        docNo: instDoc?.doc_no ?? null,
         primitiveTitle: primitiveDoc?.title ?? null,
         primitiveDocId,
+        primitiveCategoryDocId: meta.primitive_category_doc_id ?? null,
+        primitiveCategory: meta.primitive_category_doc_id ? (docs[meta.primitive_category_doc_id]?.title ?? null) : null,
+        isUnknownPrimitive: meta.is_unknown_primitive ?? false,
         signalParams,
       });
     }
