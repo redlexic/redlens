@@ -68,7 +68,11 @@ export default defineConfig({
     react(),
     VitePWA({
       scope: "/redlens/",
-      registerType: "autoUpdate",
+      // "prompt" — the new SW waits for explicit activation. Avoids the
+      // mid-session race where autoUpdate evicts the chunks the live page
+      // is still importing (manifests as "Failed to fetch dynamically
+      // imported module: …/RadarPage-<hash>.js" until the user reloads).
+      registerType: "prompt",
       manifest: {
         name: "RedLens' Sky Atlas",
         short_name: "RedLens",
@@ -81,7 +85,7 @@ export default defineConfig({
         icons: [
           {
             src: "/redlens/icon-SMALL.png",
-            sizes: "512x512",
+            sizes: "28x28",
             type: "image/png",
           },
         ],
@@ -97,8 +101,9 @@ export default defineConfig({
           "**/chain-state.json",
           "**/history/**",
         ],
-        // Serve index.html for all navigation requests so deep-URL refreshes work offline
-        navigateFallback: "/redlens/",
+        // Serve index.html for all navigation requests so deep-URL refreshes work offline.
+        // Must point at a precached URL — `/redlens/` itself is not in the precache, only `index.html` is.
+        navigateFallback: "/redlens/index.html",
         runtimeCaching: [
           {
             // Atlas data JSON files — network-first, 3 s timeout before falling to cache
