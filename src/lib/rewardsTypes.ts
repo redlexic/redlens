@@ -47,8 +47,9 @@ export type ParamTuple = [string, string, string];
 
 /** Parsed meta block on `et="instance"` Participant.m. */
 export interface InstanceMeta {
-  agent_doc_no: string | null;
-  primitive_doc_no: string | null;
+  agent_doc_id: string | null;
+  primitive_category_doc_id: string | null;
+  is_unknown_primitive?: boolean;
   status: "Active" | "Completed" | "Pending" | null;
   params: Record<string, ParamTuple>;
 }

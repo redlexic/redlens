@@ -35,7 +35,8 @@ import {
   primitiveRootFor,
 } from "./graph-patterns.mjs";
 import {
-  INSTANCE_SCOPED_PRIMITIVES,
+  buildKnownPrimitives,
+  primitiveSlugFromTitle,
   instanceStatusFor,
   buildChildrenIndex,
   extractInstanceParams,
@@ -373,17 +374,17 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
 
   // --- 1i. Primitive Instance entities (Pattern: per-agent ICD → entity) ---
   const childrenByDocNo = buildChildrenIndex(allDocs);
+  const knownPrimitives = buildKnownPrimitives(docById);
 
   for (const icd of allDocs.filter((d) => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
     const primRoot = primitiveRootFor(icd, docByDocNo);
     if (!primRoot) continue;
-    const primitiveSlug = INSTANCE_SCOPED_PRIMITIVES[primRoot.title];
-    if (!primitiveSlug) continue;
 
     const agentMatch = icd.doc_no.match(/^(A\.6\.1\.1\.\d+)(?:\.|$)/);
     const agentDoc = agentMatch ? docByDocNo.get(agentMatch[1]) : null;
     const agentSlug = agentDoc ? slugify(agentDoc.title) : "unknown";
 
+    const primitiveSlug = primitiveSlugFromTitle(primRoot.title);
     const rawName = icd.title.replace(/\s+Instance Configuration Document\s*$/i, "").trim();
     const instanceOfMatch = rawName === "Single"
       ? primRoot.content?.match(/for (.+?)\.\s+See/i)
@@ -394,9 +395,13 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
     const slug = `${agentSlug}-${primitiveSlug}-${slugify(name)}`;
     const status = instanceStatusFor(icd, primRoot, docByDocNo);
     const params = extractInstanceParams(icd, childrenByDocNo);
+    const categoryDocNo = primRoot.doc_no.slice(0, primRoot.doc_no.lastIndexOf("."));
+    const categoryDoc = docByDocNo.get(categoryDocNo) ?? null;
+    const isUnknown = !knownPrimitives.has(primRoot.title);
     const ent = addEntity(slug, name, "instance", primitiveSlug, icd.id, {
-      primitive_doc_no: primRoot.doc_no,
-      agent_doc_no: agentDoc?.doc_no ?? null,
+      agent_doc_id: agentDoc?.id ?? null,
+      primitive_category_doc_id: categoryDoc?.id ?? null,
+      is_unknown_primitive: isUnknown || undefined,
       status,
       params,
     });

@@ -2,24 +2,32 @@
  * ICD / primitive instance parameter extraction.
  */
 
-// Scoped allowlist — primitives with rich per-instance data worth modeling as
-// entities. Agent Creation and Prime Transformation are intentionally omitted:
-// their lifecycle is already captured by the Prime Agent entity.
-export const INSTANCE_SCOPED_PRIMITIVES = {
-  "Distribution Reward Primitive": "distribution-reward",
-  "Integration Boost Primitive": "integration-boost",
-  "Allocation System Primitive": "allocation-system",
-  "Pioneer Chain Primitive": "pioneer-chain",
-  "Core Governance Reward Primitive": "core-governance-reward",
-  "Agent Creation Primitive": "agent-creation",
-  "Prime Transformation Primitive": "prime-transformation",
-  "Agent Token Primitive": "agent-token",
-  "Executor Accord Primitive": "executor-accord",
-  "Root Edit Primitive": "root-edit",
-  "Distribution Requirement Primitive": "distribution-requirement",
-  "Upkeep Rebate Primitive": "upkeep-rebate",
-  "Ecosystem Upkeep Fee Primitive": "ecosystem-upkeep-fee",
-};
+const CURRENT_PRIMITIVES_UUID = "203b8c79-c7cf-4fcc-94e3-5bf42f791619";
+
+/**
+ * Parse the "Current Primitives" doc content to build the authoritative set of
+ * known primitive titles. Indented list items are primitives; top-level items
+ * are category headings and are excluded from the set.
+ */
+export function buildKnownPrimitives(docById) {
+  const doc = docById.get(CURRENT_PRIMITIVES_UUID);
+  const known = new Set();
+  if (!doc?.content) return known;
+  for (const line of doc.content.split("\n")) {
+    const m = line.match(/^(\s+)-\s+(.+)$/);
+    if (m) known.add(m[2].trim());
+  }
+  return known;
+}
+
+/** Derive a stable slug from a primitive title by stripping the "Primitive" suffix. */
+export function primitiveSlugFromTitle(title) {
+  return title
+    .replace(/\s+Primitive$/i, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export function instanceStatusFor(icd, primRoot, docByDocNo) {
   // Tier position varies (Allocation System interposes a Multi-Instance Coordinator

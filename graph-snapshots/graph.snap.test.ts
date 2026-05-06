@@ -221,7 +221,7 @@ describe("instances", () => {
           return {
             name: e.name,
             slug: e.slug,
-            agent: meta.agent_doc_no ?? null,
+            agent: meta.agent_doc_id ? (docs[meta.agent_doc_id]?.doc_no ?? null) : null,
             status: meta.status ?? null,
             params,
           };
@@ -271,7 +271,10 @@ describe("allocation-system sub-doc content", () => {
     ...new Set(
       relations.entities
         .filter((e) => e.et === "instance" && e.st === "allocation-system" && e.m)
-        .map((e) => (JSON.parse(e.m ?? "{}").agent_doc_no ?? "") as string)
+        .map((e) => {
+          const id = JSON.parse(e.m ?? "{}").agent_doc_id ?? "";
+          return id ? (docs[id]?.doc_no ?? "") : "";
+        })
         .filter(Boolean),
     ),
   ].sort();
@@ -285,7 +288,7 @@ describe("allocation-system sub-doc content", () => {
           e.st === "allocation-system" &&
           e.did &&
           e.m &&
-          JSON.parse(e.m).agent_doc_no === agentDocNo,
+          docs[JSON.parse(e.m).agent_doc_id]?.doc_no === agentDocNo,
       )
       .sort((a, b) => a.name.localeCompare(b.name));
 
