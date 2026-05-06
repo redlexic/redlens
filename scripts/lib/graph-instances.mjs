@@ -37,9 +37,9 @@ export function instanceStatusFor(icd, primRoot, docByDocNo) {
   const tierSeg = rest.split(".")[0];
   const tierDoc = docByDocNo.get(`${primRoot.doc_no}.${tierSeg}`);
   const title = tierDoc?.title.toLowerCase() ?? "";
-  if (title === "active instances") return "Active";
-  if (title === "completed instances") return "Completed";
-  if (title === "in progress invocations") return "Pending";
+  if (title.startsWith("active instances")) return "Active";
+  if (title.startsWith("completed instances")) return "Completed";
+  if (title.startsWith("in progress invocations")) return "Pending";
   return null;
 }
 
