@@ -1,15 +1,16 @@
-import { useState, useEffect, useMemo } from "react";
+import { Suspense, use, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
-import type { GraphData } from "../../lib/graph";
-import type { AtlasNode } from "../../types";
 import { buildRewardsIndex } from "../../lib/rewardsIndex";
 import { buildActiveDataRows } from "../../lib/activeDataIndex";
-import { buildSidebarActors, buildActorProfile, type SidebarGroup } from "../../lib/actorIndex";
+import { buildSidebarActors, buildActorProfile } from "../../lib/actorIndex";
+import { buildPrimitiveStats } from "../../lib/primitiveStats";
 import { ActorList } from "./ActorList";
 import { ActorDashboard } from "./ActorDashboard";
+import { PrimitiveDashboard } from "./PrimitiveDashboard";
 import { Drawer, DrawerToggle } from "../Drawer";
+import { Loading } from "../Loading";
 
 interface Props {
   onNavigate: (id: string) => void;
@@ -17,25 +18,17 @@ interface Props {
   actorSlug?: string;
 }
 
-export function RadarPage({ onNavigate, query, actorSlug }: Props) {
-  const [, navigate] = useLocation();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+interface InnerProps extends Props {
+  drawerOpen: boolean;
+  onDrawerClose: () => void;
+  onActor: (slug: string) => void;
+}
 
-  const [docs, setDocs] = useState<Record<string, AtlasNode> | null>(null);
-  const [graph, setGraph] = useState<GraphData | null>(null);
+function RadarLoaded({ onNavigate, query, actorSlug, drawerOpen, onDrawerClose, onActor }: InnerProps) {
+  const docs = use(loadDocs());
+  const graph = use(loadGraph());
 
-  useEffect(() => {
-    Promise.all([loadDocs(), loadGraph()]).then(([d, g]) => {
-      setDocs(d);
-      setGraph(g);
-    });
-  }, []);
-
-  const sidebarGroups = useMemo((): SidebarGroup[] => {
-    if (!graph || !docs) return [];
-    return buildSidebarActors(graph, docs);
-  }, [graph, docs]);
-
+  const sidebarGroups = useMemo(() => buildSidebarActors(graph, docs), [graph, docs]);
   const filteredGroups = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return sidebarGroups;
@@ -44,65 +37,58 @@ export function RadarPage({ onNavigate, query, actorSlug }: Props) {
       .filter((g) => g.actors.length > 0);
   }, [sidebarGroups, query]);
 
-  const rewardsIndex = useMemo(() => {
-    if (!docs || !graph) return null;
-    return buildRewardsIndex(docs, graph);
-  }, [docs, graph]);
-
-  const allActiveDataRows = useMemo(() => {
-    if (!docs || !graph) return null;
-    return buildActiveDataRows(docs, graph);
-  }, [docs, graph]);
-
+  const rewardsIndex = useMemo(() => buildRewardsIndex(docs, graph), [docs, graph]);
+  const allActiveDataRows = useMemo(() => buildActiveDataRows(docs, graph), [docs, graph]);
+  const primitiveStats = useMemo(() => buildPrimitiveStats(graph, docs), [graph, docs]);
   const profile = useMemo(() => {
-    if (!actorSlug || !graph || !docs || !rewardsIndex || !allActiveDataRows) return null;
+    if (!actorSlug) return null;
     return buildActorProfile(actorSlug, graph, docs, rewardsIndex, allActiveDataRows);
   }, [actorSlug, graph, docs, rewardsIndex, allActiveDataRows]);
+
+  return (
+    <>
+      <Drawer open={drawerOpen} onClose={onDrawerClose} breakpoint={850}>
+        <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} onSelect={onActor} />
+      </Drawer>
+      {!actorSlug ? (
+        <PrimitiveDashboard agents={primitiveStats} onActor={onActor} onNavigate={onNavigate} />
+      ) : !profile ? (
+        <Loading>actor not found</Loading>
+      ) : (
+        <ActorDashboard profile={profile} onNavigate={onNavigate} onActor={onActor} />
+      )}
+    </>
+  );
+}
+
+export function RadarPage({ onNavigate, query, actorSlug }: Props) {
+  const [, navigate] = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const selectActor = (slug: string) => {
     navigate(`/radar/${slug}`);
     setDrawerOpen(false);
   };
 
-  const ready = docs !== null && graph !== null;
-
   return (
     <div className="flex-1 flex overflow-hidden">
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} breakpoint={850}>
-        {ready ? (
-          <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} onSelect={selectActor} />
-        ) : (
-          <div className="p-4 mono text-xs" style={{ color: "var(--tan-3)" }}>
-            Loading…
-          </div>
-        )}
-      </Drawer>
+      <Suspense fallback={
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <DrawerToggle label="Actors" onClick={() => setDrawerOpen(true)} breakpoint={850} />
+          <Loading />
+        </div>
+      }>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
         <DrawerToggle label="Actors" onClick={() => setDrawerOpen(true)} breakpoint={850} />
-
-        {!ready ? (
-          <div className="flex-1 flex items-center justify-center">
-            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>
-              Loading graph…
-            </span>
-          </div>
-        ) : !actorSlug ? (
-          <div className="flex-1 flex items-center justify-center">
-            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>
-              Select an Agent or Facilitator or GovOps
-            </span>
-          </div>
-        ) : !profile ? (
-          <div className="flex-1 flex items-center justify-center">
-            <span className="mono text-sm" style={{ color: "var(--tan-3)" }}>
-              Actor not found
-            </span>
-          </div>
-        ) : (
-          <ActorDashboard profile={profile} onNavigate={onNavigate} onActor={selectActor} />
-        )}
-      </div>
+        <RadarLoaded
+          onNavigate={onNavigate}
+          query={query}
+          actorSlug={actorSlug}
+          drawerOpen={drawerOpen}
+          onDrawerClose={() => setDrawerOpen(false)}
+          onActor={selectActor}
+        />
+      </Suspense>
     </div>
   );
 }
