@@ -11,7 +11,7 @@ export type DiffLine = ["=" | "+" | "-", string] | ["~", WordSegment[]] | ["…"
 export interface HistoryEntry {
   date: string;
   commitHash: string;
-  changeType: "added" | "modified" | "removed";
+  changeType: "added" | "modified" | "removed" | "moved";
   pr?: number;
   prTitle?: string;
   prAuthor?: string;
@@ -25,6 +25,10 @@ export interface HistoryEntry {
   description?: string;
   /** Per-node line diff */
   diff?: DiffLine[];
+  /** Source path for `changeType: "moved"` */
+  movedFrom?: string;
+  /** Destination path for `changeType: "moved"` */
+  movedTo?: string;
 }
 
 // Module-level cache: nodeId → promise

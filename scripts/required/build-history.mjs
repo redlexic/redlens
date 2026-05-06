@@ -88,12 +88,13 @@ function readMonolithicAt(hash) {
 // Parse atlas into uuid → { doc_no, title, type, contentHash, content }
 // ---------------------------------------------------------------------------
 
-function makeNodeEntry(doc_no, title, type, content) {
+function makeNodeEntry(doc_no, title, type, content, path) {
   return {
     doc_no,
     title,
     type,
     content,
+    path,
     contentHash: crypto.createHash("md5").update(content).digest("hex"),
   };
 }
@@ -105,6 +106,11 @@ function parseMonolithic(text) {
   const lines = text.split("\n");
   let cur = null;
   let buf = [];
+
+  // All monolithic-format nodes share the same path: the single source file.
+  // This makes `prev.path !== curr.path` cleanly detect the cutover (atomization)
+  // and any post-cutover doc moves, while never firing within the monolithic era.
+  const monoPath = ATLAS_FILE;
 
   function flush() {
     if (cur) {
@@ -119,7 +125,7 @@ function parseMonolithic(text) {
     if (m) {
       flush();
       const [, , doc_no, title, type, id] = m;
-      const entry = { doc_no, title, type, contentHash: "", content: "" };
+      const entry = { doc_no, title, type, contentHash: "", content: "", path: monoPath };
       nodes.set(id, entry);
       cur = { id, entry };
       buf = [];
@@ -241,7 +247,7 @@ function loadAtomizedAt(hash) {
     const fm = parseFrontmatter(raw);
     if (!fm || !fm.id) continue; // not a document.md we recognize
     const body = extractBody(raw);
-    nodes.set(fm.id, makeNodeEntry(fm.docNo, fm.name, fm.type, body));
+    nodes.set(fm.id, makeNodeEntry(fm.docNo, fm.name, fm.type, body, blob.path));
   }
   return nodes;
 }
@@ -405,20 +411,31 @@ function lineDiff(prevText, currText) {
 }
 
 // ---------------------------------------------------------------------------
-// Diff two snapshots → { added, modified, removed }
+// Diff two snapshots → { added, modified, removed, moved }
+//
+// `moved` is independent of `modified` — a node that is renamed AND has its
+// content edited in the same commit appears in both lists, producing two
+// separate history entries. This makes "renumbered" / "atomized" events
+// visible even when the content didn't change.
 // ---------------------------------------------------------------------------
 
 function diffSnapshots(prev, curr) {
   const added = [];
   const modified = [];
   const removed = [];
+  const moved = [];
 
   for (const [id, node] of curr) {
     const old = prev.get(id);
     if (!old) {
       added.push({ id, ...node });
-    } else if (old.contentHash !== node.contentHash || old.title !== node.title) {
+      continue;
+    }
+    if (old.contentHash !== node.contentHash || old.title !== node.title) {
       modified.push({ id, ...node, prevTitle: old.title });
+    }
+    if (old.path && node.path && old.path !== node.path) {
+      moved.push({ id, ...node, movedFrom: old.path, movedTo: node.path });
     }
   }
   for (const [id, node] of prev) {
@@ -427,7 +444,7 @@ function diffSnapshots(prev, curr) {
     }
   }
 
-  return { added, modified, removed };
+  return { added, modified, removed, moved };
 }
 
 // ---------------------------------------------------------------------------
@@ -644,10 +661,17 @@ async function main() {
     // On the very first atlas commit, prevSnapshot is empty so every node is "added".
     // This records the creation of all nodes that haven't changed since.
 
-    const { added, modified, removed } = diffSnapshots(prevSnapshot, snapshot);
-    const allChanged = [...added, ...modified, ...removed];
+    const { added, modified, removed, moved } = diffSnapshots(prevSnapshot, snapshot);
+    // Tag each changed node with its event type. A node can appear twice
+    // (once as "modified", once as "moved") — both entries are emitted.
+    const events = [
+      ...added.map((n) => ({ node: n, changeType: "added" })),
+      ...modified.map((n) => ({ node: n, changeType: "modified" })),
+      ...removed.map((n) => ({ node: n, changeType: "removed" })),
+      ...moved.map((n) => ({ node: n, changeType: "moved" })),
+    ];
 
-    if (allChanged.length === 0) {
+    if (events.length === 0) {
       prevSnapshot = snapshot;
       lastCommitHash = commit.hash;
       continue;
@@ -657,23 +681,19 @@ async function main() {
     const prNum = extractPrNumber(commit.message);
     const pr = prNum ? await fetchPr(prNum) : null;
 
-    // Try to match bullets to nodes for edit proposals
+    // Try to match bullets to nodes for edit proposals. Pass the unique nodes
+    // (modified ∪ added ∪ removed) so a moved-and-modified node isn't scored twice.
     let bulletMatches = new Map();
     if (pr?.body) {
       const bullets = parsePrBullets(pr.body);
       if (bullets.length > 0) {
-        bulletMatches = matchBulletsToNodes(bullets, allChanged);
+        const matchTargets = [...added, ...modified, ...removed];
+        bulletMatches = matchBulletsToNodes(bullets, matchTargets);
       }
     }
 
     // Record history entries
-    for (const node of allChanged) {
-      const changeType = added.includes(node)
-        ? "added"
-        : modified.includes(node)
-          ? "modified"
-          : "removed";
-
+    for (const { node, changeType } of events) {
       const entry = {
         date: commit.date.slice(0, 10),
         commitHash: commit.hash.slice(0, 7),
@@ -699,6 +719,9 @@ async function main() {
           const lines = prevContent.split("\n").map((l) => ["-", l]);
           entry.diff = lines.length > 20 ? [...lines.slice(0, 20), ["…"]] : lines;
         }
+      } else if (changeType === "moved") {
+        entry.movedFrom = node.movedFrom;
+        entry.movedTo = node.movedTo;
       }
 
       if (pr) {
@@ -731,13 +754,15 @@ async function main() {
     lastCommitHash = commit.hash;
   }
 
-  // Write per-node files: append new entries to any existing file
+  // Write per-node files: append new entries to any existing file.
+  // Dedup key is (commitHash, changeType) so a node can have both a
+  // "modified" and a "moved" entry from the same commit — see diffSnapshots.
   let fileCount = 0;
   for (const [nodeId, newEntries] of newHistory) {
     const filePath = path.join(OUT_DIR, `${nodeId}.json`);
     const existing = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, "utf8")) : [];
-    const seenHashes = new Set(existing.map((e) => e.commitHash));
-    const dedupedNew = newEntries.filter((e) => !seenHashes.has(e.commitHash));
+    const seen = new Set(existing.map((e) => `${e.commitHash}:${e.changeType}`));
+    const dedupedNew = newEntries.filter((e) => !seen.has(`${e.commitHash}:${e.changeType}`));
     if (dedupedNew.length === 0) continue;
     fs.writeFileSync(filePath, JSON.stringify([...existing, ...dedupedNew], null, 2) + "\n");
     fileCount++;

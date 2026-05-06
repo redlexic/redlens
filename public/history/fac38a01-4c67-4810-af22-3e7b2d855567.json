@@ -401,5 +401,18 @@
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
     "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/4/4/1/3/6/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]
