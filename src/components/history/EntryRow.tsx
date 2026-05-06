@@ -5,12 +5,14 @@ const CHANGE_COLOR: Record<string, string> = {
   added: "var(--depth-6)",
   modified: "var(--tan-3)",
   removed: "var(--red)",
+  moved: "var(--accent)",
 };
 
 const CHANGE_LABEL: Record<string, string> = {
   added: "added",
   modified: "edited",
   removed: "removed",
+  moved: "moved",
 };
 
 export function EntryRow({ entry }: { entry: HistoryEntry }) {
@@ -65,6 +67,13 @@ export function EntryRow({ entry }: { entry: HistoryEntry }) {
       </div>
 
       {entry.diff && <DiffView lines={entry.diff} />}
+
+      {entry.changeType === "moved" && entry.movedTo && (
+        <div className="mono text-[10px] mt-1" style={{ color: "var(--tan-3)" }}>
+          {entry.movedFrom && <span>{entry.movedFrom} </span>}
+          <span style={{ color: "var(--tan)" }}>→ {entry.movedTo}</span>
+        </div>
+      )}
     </div>
   );
 }
