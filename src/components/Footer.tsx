@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRegisterSW } from "virtual:pwa-register/react";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 
 const BASE = import.meta.env.BASE_URL;
@@ -7,6 +8,10 @@ const PROVENANCE_HREF = `${BASE}provenance`;
 
 export function Footer() {
   const online = useOnlineStatus();
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW();
   const [block, setBlock] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,11 +30,21 @@ export function Footer() {
       className="shrink-0 border-t flex items-center justify-between gap-0 overflow-hidden"
       style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px" }}
     >
-      <div>
+      <div className="flex items-center">
         {!online && (
-          <FooterItem>
-            <span style={{ color: "var(--red)" }}>offline</span>
-          </FooterItem>
+          <StatusPill color="var(--red)" title="No network connection">
+            offline
+          </StatusPill>
+        )}
+        {needRefresh && (
+          <StatusPill
+            as="button"
+            color="var(--magenta)"
+            title="A new version is available — click to reload"
+            onClick={() => updateServiceWorker(true)}
+          >
+            update available ↻
+          </StatusPill>
         )}
       </div>
       <div className="flex items-center overflow-hidden">
@@ -123,4 +138,42 @@ function FooterItem({ children, title }: { children: React.ReactNode; title?: st
 
 function Sep() {
   return <span style={{ color: "var(--border)", fontSize: "10px", userSelect: "none" }}>|</span>;
+}
+
+type StatusPillProps = {
+  color: string;
+  title?: string;
+  children: React.ReactNode;
+} & (
+  | { as?: "span"; onClick?: never }
+  | { as: "button"; onClick: () => void }
+);
+
+function StatusPill({ as = "span", color, title, children, onClick }: StatusPillProps) {
+  const style: React.CSSProperties = {
+    fontSize: "10px",
+    lineHeight: "24px",
+    color,
+    background: "var(--tan)",
+    fontWeight: 600,
+    letterSpacing: "0.02em",
+  };
+  if (as === "button") {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={title}
+        className="mono px-3 whitespace-nowrap hover:underline cursor-pointer"
+        style={style}
+      >
+        {children}
+      </button>
+    );
+  }
+  return (
+    <span title={title} className="mono px-3 whitespace-nowrap" style={style}>
+      {children}
+    </span>
+  );
 }
