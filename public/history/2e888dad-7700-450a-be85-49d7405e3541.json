@@ -56,5 +56,18 @@
     "commentCount": 1,
     "summary": "Transition Keel To Pioneer Incentive Pool And Update Development Company",
     "description": "Transitions Keel from the Pre-Pioneer to the Pioneer Incentive Pool. Specifies that Keel may retain one hundred percent of Pioneer Incentive funds. Replaces Matariki Labs with Elodin as development company for Keel."
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/2/8/2/3/1/1/2/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

@@ -47,5 +47,216 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "Internal Senior Risk Capital income is the revenue attributed to Sky from the total payments made by Primes for Originated Senior Risk Capital (OSRC). ISRC itself "
+          ],
+          [
+            "-",
+            "comprises"
+          ],
+          [
+            "+",
+            "is"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "surplus"
+          ],
+          [
+            "+",
+            "sourced"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "capital"
+          ],
+          [
+            "+",
+            "from"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "allocated"
+          ],
+          [
+            "+",
+            "Aggregate"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "from"
+          ],
+          [
+            "+",
+            "Backstop"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "designated"
+          ],
+          [
+            "+",
+            "Capital,"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "buffers"
+          ],
+          [
+            "+",
+            "as"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "funded"
+          ],
+          [
+            "+",
+            "specified"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "by"
+          ],
+          [
+            "+",
+            "in"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "the"
+          ],
+          [
+            "+",
+            "[A.2.3.1.3"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Sky"
+          ],
+          [
+            "+",
+            "-"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Treasury"
+          ],
+          [
+            "+",
+            "Sourcing"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Management"
+          ],
+          [
+            "+",
+            "Of"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Function"
+          ],
+          [
+            "+",
+            "Internal Senior Risk Capital](ac7a6636-acbc-40c9-abc1-4543c0beb300)"
+          ],
+          [
+            "=",
+            ". While Primes pay a single clearing price for their OSRC based on the monthly Origination Process, the total revenue received by Sky is subsequently allocated proportionally, with the portion corresponding to ISRC's share of the Total Senior Risk Capital (TSRC) pool designated as ISRC Income"
+          ],
+          [
+            "-",
+            ". See [A.2.3.1.3 - Sourcing Of Internal Senior Risk Capital From Surplus Buffers](ac7a6636-acbc-40c9-abc1-4543c0beb300)"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/2/3/1/2/1/2/2/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

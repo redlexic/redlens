@@ -17,5 +17,18 @@
     "approvalCount": 1,
     "summary": "Spark proposal - Ethereum - SLL - Onboard Curve weETH/WETH-ng for Swaps",
     "description": "Originating forum post: https://forum.sky.money/t/january-15-2026-proposed-changes-to-spark-for-upcoming-spell/27585\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/6/1/1/1/2/6/1/3/1/7/5/2/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

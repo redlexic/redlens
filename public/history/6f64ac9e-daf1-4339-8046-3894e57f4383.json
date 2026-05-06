@@ -17,5 +17,18 @@
     "approvalCount": 1,
     "summary": "SAEP-13: Risk Curation Framework",
     "description": "Originating forum post: https://forum.skyeco.com/t/saep-13-risk-curation-framework/27796/1\r\n\r\n**Do not merge unless associated poll passes**"
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/6/1/1/1/3/9/3/3/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

@@ -228,5 +228,142 @@
     "reviewCount": 2,
     "approvalCount": 1,
     "commentCount": 1
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "Legacy Accounts are all accounts controlled by Sky Core, with the exception of the Core Council Buffer, the Aligned Delegates Buffer (see [A.2.3.1."
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2.2"
+          ],
+          [
+            "=",
+            ".2 -"
+          ],
+          [
+            "-",
+            " Allocation To"
+          ],
+          [
+            "=",
+            " Aligned Delegates Buffer]("
+          ],
+          [
+            "-",
+            "2a9bcfb1"
+          ],
+          [
+            "+",
+            "05fa5c41"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "4dad"
+          ],
+          [
+            "+",
+            "26ca"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "4baf"
+          ],
+          [
+            "+",
+            "4c25"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "a09a"
+          ],
+          [
+            "+",
+            "94dd"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "e9264b3d17bb"
+          ],
+          [
+            "+",
+            "834ef72c318a"
+          ],
+          [
+            "=",
+            ")), and the Demand Side Buffer and its auxiliary accounts (see [A.2.2.8.1.2.1.4 - Demand Side Buffer](862b6d83-f464-4125-8259-233b7de75ec4)). This includes, without limitation:"
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "- the former Distribution Reward Controller Wallet;"
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Add Authorized Forum Accounts Requirements",
+    "description": "Establishes registration, disclosure, and enforcement requirements for Sky Forum accounts used in a governance capacity, so the community can trust that posts made on behalf of an entity come from its authorized representatives."
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/2/3/1/2/2/2/1/6/1/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]
