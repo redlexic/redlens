@@ -153,5 +153,144 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "USDS rewards for SKY stakers are available as specified in [A.2.3.1"
+          ],
+          [
+            "-",
+            ".4"
+          ],
+          [
+            "=",
+            ".2"
+          ],
+          [
+            "+",
+            ".5"
+          ],
+          [
+            "=",
+            " -"
+          ],
+          [
+            "-",
+            " Allocation Of"
+          ],
+          [
+            "=",
+            " Step 4"
+          ],
+          [
+            "+",
+            ":"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Capital"
+          ],
+          [
+            "+",
+            "Staking Rewards"
+          ],
+          [
+            "=",
+            "]("
+          ],
+          [
+            "-",
+            "04bd9df4"
+          ],
+          [
+            "+",
+            "bb163691"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "275e"
+          ],
+          [
+            "+",
+            "630e"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "4520"
+          ],
+          [
+            "+",
+            "4fda"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "83a6"
+          ],
+          [
+            "+",
+            "88f1"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "d634aa605fe3"
+          ],
+          [
+            "+",
+            "96381a649fa0"
+          ],
+          [
+            "=",
+            ")."
+          ]
+        ]
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/4/4/1/4/1/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

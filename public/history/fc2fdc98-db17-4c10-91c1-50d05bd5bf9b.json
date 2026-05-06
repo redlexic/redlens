@@ -1,0 +1,21 @@
+[
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The documents herein define the addresses of shared Tokenized Treasury contracts used across Tokenized Treasury Instances of the Allocation System Primitive."
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Add Tokenized Treasury Shared Infrastructure And JTRSY Instance",
+    "description": "Adds shared Tokenized Treasury contract addresses and role definitions at the Grove Liquidity Layer level, onboards the Tokenized Treasury JTRSY instance, and adds the Grove x Steakhouse RLUSD Morpho Vault V2 instance."
+  }
+]

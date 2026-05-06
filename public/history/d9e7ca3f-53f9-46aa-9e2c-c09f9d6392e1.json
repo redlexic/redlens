@@ -102,5 +102,18 @@
     "approvalCount": 1,
     "summary": "Spark proposal - SparkLend - Add Assets to Killswitch Oracle Mechanism",
     "description": "Originating forum post: <https://forum.sky.money/t/march-12-2026-proposed-changes-to-spark-for-upcoming-spell/27741#p-105836-ethereum-sparklend-add-assets-to-killswitch-oracle-mechanism-5>\r\n\r\n**Do not merge unless associated poll passes.**"
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/6/1/1/1/3/2/1/1/4/1/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]
