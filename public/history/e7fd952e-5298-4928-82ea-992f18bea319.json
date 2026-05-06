@@ -47,5 +47,22 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "0.5% of Step 1 Capital is allocated to Prime Agents that manage the rewards for Governance Integrators, incentivizing the active participation of Prime Agents. See [A.2.3.1.2.2.4 - Governance Accessibility Rewards Paid To Integrators](6c215fd3-61c1-4ee5-b326-a180fe0fc768)."
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1
   }
 ]

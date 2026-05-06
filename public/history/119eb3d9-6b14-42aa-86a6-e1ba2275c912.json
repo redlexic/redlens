@@ -11,5 +11,24 @@
     "approvalCount": 1,
     "summary": "Migrate To Markdown File",
     "description": "As part of join work between Atlas Axis and Core Facilitator teams, this pull request migrates the Atlas from HTML to Markdown. This allows us to express the full hierarchical structure of the Atlas and will support future automations and AI integrations that are under development."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The Current Stability Capital Buffer (`SCB`) is the current level of the Stability Capital Buffer."
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Clarify Genesis Capital Backstop Haircut And Settlement",
+    "description": "Clarifies the haircut cap as Aggregate Backstop Capital and removes the 24 billion SKY distribution to Genesis Agents when the haircut fully covers the loss."
   }
 ]

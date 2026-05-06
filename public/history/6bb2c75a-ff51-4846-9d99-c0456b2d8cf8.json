@@ -254,5 +254,100 @@
     "commentCount": 2,
     "summary": "Lint Lists",
     "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The Stability Capital Retention (`SCR`) is calculated according to the following formula:"
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "`SCR = (1 - ((SCB / TS) / TSCB)) * RF`."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "Where:"
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "- SCB = Current Stability Capital Buffer,"
+      ],
+      [
+        "-",
+        "- TS = Total USDS supply,"
+      ],
+      [
+        "-",
+        "- TSCB = Target Stability Capital Buffer,"
+      ],
+      [
+        "-",
+        "- RF = Retention Factor."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "This formula dynamically adjusts capital retention based on the current buffer status:"
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "1. When SCB/TS equals TSCB (buffer at target), SCR equals zero."
+      ],
+      [
+        "-",
+        "2. When SCB/TS is below TSCB, SCR increases proportionally to the shortfall."
+      ],
+      [
+        "-",
+        "3. The maximum possible retention is capped by the Retention Factor (RF)."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "This ensures that capital retention automatically scales with urgency - the further the Stability Capital Buffer falls below its target percentage of total supply, the greater the portion of capital retained."
+      ],
+      [
+        "-",
+        ""
+      ],
+      [
+        "-",
+        "The parameters for calculating the `SCR` are further defined in the documents herein."
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Clarify Genesis Capital Backstop Haircut And Settlement",
+    "description": "Clarifies the haircut cap as Aggregate Backstop Capital and removes the 24 billion SKY distribution to Genesis Agents when the haircut fully covers the loss."
   }
 ]

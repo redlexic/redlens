@@ -63,5 +63,114 @@
     "approvalCount": 1,
     "summary": "2026-01-19 edit",
     "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Aggregate Capital Buffer is the sum of (1) the Sky Surplus Buffer (see [A.3.5.1 - Surplus Buffer](9782cdc5-c274-45c2-bf4a-690f22c6a294)), (2) the Core Council Buffer (see [A.2.3.1."
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            ".1 - Core Council Buffer](8b6781d7-f35c-4ffe-b8ed-299fa98e3da7)), (3) the Aligned Delegates Buffer (see [A.2.3.1."
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            "."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            ".2."
+          ],
+          [
+            "-",
+            "1"
+          ],
+          [
+            "+",
+            "2"
+          ],
+          [
+            "=",
+            " - Aligned Delegates Buffer](05fa5c41-26ca-4c25-94dd-834ef72c318a)), and (4) the capital held in the SubProxy of each Prime Agent. The Aggregate Capital Buffer provides a useful metric for assessing the capital level of the entire Sky Ecosystem on a consolidated basis."
+          ]
+        ]
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Clarify Genesis Capital Backstop Haircut And Settlement",
+    "description": "Clarifies the haircut cap as Aggregate Backstop Capital and removes the 24 billion SKY distribution to Genesis Agents when the haircut fully covers the loss."
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/3/5/3/1/1/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

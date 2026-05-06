@@ -51,5 +51,74 @@
     "approvalCount": 1,
     "summary": "Raise Aggregate Backstop Capital Target And Introduce Genesis Capital Phase-Out",
     "description": "Raises the Target Aggregate Backstop Capital to 150 million USDS and introduces a Genesis Capital Phase-Out mechanism that progressively reduces the backstop capital contribution required of Genesis Agents as the Aggregate Backstop Capital grows."
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The"
+          ],
+          [
+            "-",
+            " current"
+          ],
+          [
+            "=",
+            " Target Aggregate Backstop Capital is "
+          ],
+          [
+            "-",
+            "150"
+          ],
+          [
+            "+",
+            "one"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "million"
+          ],
+          [
+            "+",
+            "and one half percent (1.5%) of the total supply of"
+          ],
+          [
+            "=",
+            " USDS."
+          ]
+        ]
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1,
+    "summary": "Clarify Genesis Capital Backstop Haircut And Settlement",
+    "description": "Clarifies the haircut cap as Aggregate Backstop Capital and removes the 24 billion SKY distribution to Genesis Agents when the haircut fully covers the loss."
+  },
+  {
+    "date": "2026-05-05",
+    "commitHash": "15909e5",
+    "changeType": "moved",
+    "movedFrom": "Sky Atlas/Sky Atlas.md",
+    "movedTo": "content/A/3/5/3/2/1/document.md",
+    "pr": 236,
+    "prTitle": "Atomic Atlas: decompose Sky Atlas.md into one-folder-per-document tree + sync tooling",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

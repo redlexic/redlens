@@ -171,5 +171,22 @@
     "approvalCount": 1,
     "summary": "Feb 9 edit",
     "description": "Do not merge until poll passes"
+  },
+  {
+    "date": "2026-04-30",
+    "commitHash": "096566e",
+    "changeType": "removed",
+    "diff": [
+      [
+        "-",
+        "The implementation of the allocations in [A.2.3.1.4.1 - Allocation Of Step 1 Capital](76eab64d-a5ba-4f3c-a295-bde0e444d0df) is specified in the documents herein."
+      ]
+    ],
+    "pr": 227,
+    "prTitle": "Atlas Edit Proposal — 2026-04-27",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
+    "reviewCount": 2,
+    "approvalCount": 1
   }
 ]
