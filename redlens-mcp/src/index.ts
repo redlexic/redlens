@@ -7,7 +7,13 @@ import askAtlasAgent from "../../.claude/agents/ask-atlas.md";
 
 export interface Env {
   DB: D1Database;
+  AI: Ai;
+  VECTORS: VectorizeIndex;
 }
+
+const VECTOR_MODEL = "@cf/baai/bge-base-en-v1.5";
+const VECTOR_DIM = 768;
+const RRF_K = 60;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -56,6 +62,117 @@ async function resolveIds(db: D1Database, ids: string[]): Promise<Map<string, st
   return map;
 }
 
+// ---- Search helpers (lexical + semantic + RRF merge) ---------------------
+
+interface BaseRow {
+  id: string;
+  doc_no: string;
+  title: string;
+  type: string;
+  depth: number;
+  parent_id: string | null;
+  content: string;
+  snippet?: string;
+}
+interface LexicalRow extends BaseRow { source: "lexical"; rank: number; score: number; }
+interface SemanticRow extends BaseRow { source: "semantic"; rank: number; score: number; }
+type SearchRow = (LexicalRow | SemanticRow) & { sources?: string[]; rrf_score?: number };
+
+async function runLexical(
+  db: D1Database,
+  query: string,
+  type: string | undefined,
+  fetchK: number,
+): Promise<LexicalRow[]> {
+  const sql = `
+    SELECT n.id, n.doc_no, n.title, n.type, n.depth, n.parent_id, n.content,
+           snippet(docs_fts, 4, '<mark>', '</mark>', '…', 24) AS snippet,
+           bm25(docs_fts) AS score
+    FROM docs_fts JOIN docs n ON docs_fts.rowid = n.rowid
+    WHERE docs_fts MATCH ?
+    ${type ? "AND n.type = ?" : ""}
+    ORDER BY score
+    LIMIT ?
+  `;
+  const params: unknown[] = [query, ...(type ? [type] : []), fetchK];
+  try {
+    const { results } = await db.prepare(sql).bind(...params).all<{
+      id: string; doc_no: string; title: string; type: string; depth: number;
+      parent_id: string | null; content: string; snippet: string; score: number;
+    }>();
+    return results.map((r, i) => ({ ...r, source: "lexical" as const, rank: i, score: r.score }));
+  } catch (err) {
+    // FTS MATCH errors on bad syntax (e.g., bare punctuation) — return empty.
+    console.error("lexical search failed:", err);
+    return [];
+  }
+}
+
+async function runSemantic(
+  env: Env,
+  db: D1Database,
+  query: string,
+  type: string | undefined,
+  fetchK: number,
+): Promise<SemanticRow[]> {
+  // Embed the query.
+  const embedRes = (await env.AI.run(VECTOR_MODEL, { text: query })) as { data: number[][] };
+  const vec = embedRes.data?.[0];
+  if (!vec || vec.length !== VECTOR_DIM) {
+    throw new Error(`bad embedding shape: ${vec?.length}`);
+  }
+  // L2-normalize so cosine == dot.
+  let norm = 0;
+  for (const x of vec) norm += x * x;
+  norm = Math.sqrt(norm) || 1;
+  const normalized = vec.map((x) => x / norm);
+
+  // Post-filter `type` from D1 rather than via Vectorize metadata-filter,
+  // which silently returns [] unless a metadata index has been created.
+  // Over-fetch when filtering so we still get a useful number of hits.
+  const overFetch = type ? Math.min(fetchK * 4, 200) : fetchK;
+  const queryRes = await env.VECTORS.query(normalized, { topK: overFetch });
+  const matches = queryRes.matches ?? [];
+  if (matches.length === 0) return [];
+
+  const ids = matches.map((m) => m.id);
+  const placeholders = ids.map(() => "?").join(",");
+  const { results: rows } = await db
+    .prepare(`SELECT id, doc_no, title, type, depth, parent_id, content FROM docs WHERE id IN (${placeholders})`)
+    .bind(...ids)
+    .all<BaseRow>();
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const out: SemanticRow[] = [];
+  let kept = 0;
+  for (let i = 0; i < matches.length && kept < fetchK; i++) {
+    const row = byId.get(matches[i].id);
+    if (!row) continue;
+    if (type && row.type !== type) continue;
+    out.push({ ...row, source: "semantic", rank: kept, score: matches[i].score });
+    kept++;
+  }
+  return out;
+}
+
+function rrfMerge(lex: LexicalRow[], sem: SemanticRow[]): SearchRow[] {
+  const acc = new Map<string, SearchRow>();
+  const bump = (row: LexicalRow | SemanticRow) => {
+    const prev = acc.get(row.id);
+    const inc = 1 / (RRF_K + row.rank + 1);
+    if (prev) {
+      prev.rrf_score = (prev.rrf_score ?? 0) + inc;
+      if (!prev.sources?.includes(row.source)) {
+        prev.sources = [...(prev.sources ?? []), row.source];
+      }
+    } else {
+      acc.set(row.id, { ...row, rrf_score: inc, sources: [row.source] });
+    }
+  };
+  for (const r of lex) bump(r);
+  for (const r of sem) bump(r);
+  return [...acc.values()].sort((a, b) => (b.rrf_score ?? 0) - (a.rrf_score ?? 0));
+}
+
 // One recursive query: ancestor chain (parent → ... → root) for a set of seed UUIDs.
 type Ancestor = { id: string; doc_no: string; title: string; type: string; depth: number };
 async function getAncestorChains(db: D1Database, seedUuids: string[]): Promise<Map<string, Ancestor[]>> {
@@ -89,47 +206,55 @@ async function getAncestorChains(db: D1Database, seedUuids: string[]): Promise<M
 // MCP server factory
 // ---------------------------------------------------------------------------
 
-function createMcpServer(db: D1Database): McpServer {
-  const server = new McpServer({ name: "redlens-atlas", version: "1.1.0" });
+function createMcpServer(env: Env): McpServer {
+  const db = env.DB;
+  const server = new McpServer({ name: "redlens-atlas", version: "1.2.0" });
 
   // ---- atlas_search ----
   server.tool(
     "atlas_search",
-    'Full-text search over the Sky Atlas (FTS5). Quoted phrases ("...") match as exact substrings (case-insensitive) on top of the FTS phrase match.',
+    'Search the Sky Atlas. mode="lexical" uses FTS5 (good for exact terms, IDs, addresses). mode="semantic" uses bge-base-en embeddings (good for paraphrase / concept queries). mode="hybrid" (default) merges both via reciprocal rank fusion. Quoted phrases ("...") are post-filtered to require exact substring match in title or content.',
     {
       query: z.string().describe('Query. Quote phrases for exact-substring match: foo "USDS PSM" bar'),
       k: z.number().int().min(1).max(50).default(10),
       type: z.string().optional().describe("Optional Atlas document type filter."),
+      mode: z.enum(["lexical", "semantic", "hybrid"]).default("hybrid"),
     },
-    async ({ query, k, type }) => {
+    async ({ query, k, type, mode }) => {
       const meta = await getMeta(db);
       const phrases = [...query.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-      // Over-fetch so the post-filter still has k results.
-      const fetchK = phrases.length > 0 ? Math.min(k * 8, 200) : k;
-      const sql = `
-        SELECT n.id, n.doc_no, n.title, n.type, n.depth, n.parent_id, n.content,
-               snippet(docs_fts, 4, '<mark>', '</mark>', '…', 24) AS snippet,
-               bm25(docs_fts) AS score
-        FROM docs_fts JOIN docs n ON docs_fts.rowid = n.rowid
-        WHERE docs_fts MATCH ?
-        ${type ? "AND n.type = ?" : ""}
-        ORDER BY score
-        LIMIT ?
-      `;
-      const params: unknown[] = [query, ...(type ? [type] : []), fetchK];
-      const { results } = await db.prepare(sql).bind(...params).all<{
-        id: string; doc_no: string; title: string; type: string; depth: number;
-        parent_id: string | null; content: string; snippet: string; score: number;
-      }>();
+      const fetchK = mode === "lexical" && phrases.length === 0 ? k : Math.min(k * 4, 200);
+
+      const [lex, sem] = await Promise.all([
+        mode === "semantic"
+          ? Promise.resolve<LexicalRow[]>([])
+          : runLexical(db, query, type, fetchK),
+        mode === "lexical"
+          ? Promise.resolve<SemanticRow[]>([])
+          : runSemantic(env, db, query, type, fetchK).catch((err) => {
+              console.error("semantic search failed:", err);
+              return [] as SemanticRow[];
+            }),
+      ]);
+
+      let merged: SearchRow[];
+      if (mode === "lexical") merged = lex;
+      else if (mode === "semantic") merged = sem;
+      else merged = rrfMerge(lex, sem);
 
       const filtered = phrases.length === 0
-        ? results
-        : results.filter((r) => {
+        ? merged
+        : merged.filter((r) => {
             const hay = `${r.title}\n${r.content}`.toLowerCase();
             return phrases.every((p) => hay.includes(p.toLowerCase()));
           });
       const trimmed = filtered.slice(0, k).map(({ content: _c, ...rest }) => rest);
-      return ok(meta, { count: trimmed.length, phrase_filter: phrases, results: trimmed });
+      return ok(meta, {
+        count: trimmed.length,
+        mode,
+        phrase_filter: phrases,
+        results: trimmed,
+      });
     },
   );
 
@@ -682,7 +807,7 @@ app.get("/install/ask-atlas", (c) =>
 // MCP endpoint (streamable HTTP transport — POST only; SSE not supported in stateless workers)
 app.get("/mcp", (c) => c.text("Method Not Allowed", 405));
 app.post("/mcp", async (c) => {
-  const server = createMcpServer(c.env.DB);
+  const server = createMcpServer(c.env);
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   await server.connect(transport);
   return transport.handleRequest(c.req.raw);

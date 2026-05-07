@@ -166,4 +166,16 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 - GitHub Actions cron refresh (daily for balances, weekly for state).
 - Atlas/chain drift detection: diff atlas-stated values against snapshot values at build time, surface warnings in the UI.
 
+### Deferred: chunk long nodes for semantic search
+
+`scripts/required/build-rag.mjs` produces one bge-base-en (768d) vector per atlas node, with a 2048-char cap that bge-base's 512-token positional limit forces anyway. ~25 nodes (0.24%) exceed the cap — registries (e.g. `Current Aligned Delegates`), Type Specifications, Reference Implementations, and a few long Cores. Their heads carry the semantic intent, but the tails (enumerated names, code, field lists) become invisible to semantic search.
+
+Lexical (FTS5) and the hybrid `atlas_search` mode already reach this tail content, so this is recall optimization on the *semantic* leg only — not a correctness gap.
+
+If/when this matters:
+- Chunk nodes with `content.length > 2048` into ~1500-char overlapping windows; emit one vector per chunk with a synthetic id (`<uuid>#<chunk-idx>`).
+- Vectorize metadata stays per-node (`docId`, `doc_no`, `type`, `depth`); the worker dedupes back to one row per `docId` before RRF merge.
+- Adds ~70 vectors total — still inside the Vectorize free tier.
+- Build cost is one extra Workers AI call per long node; trivial.
+
 ### Other / background
