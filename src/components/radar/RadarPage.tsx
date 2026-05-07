@@ -51,7 +51,7 @@ function RadarLoaded({ onNavigate, query, actorSlug, drawerOpen, onDrawerClose, 
         <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} onSelect={onActor} />
       </Drawer>
       {!actorSlug ? (
-        <PrimitiveDashboard agents={primitiveStats} onActor={onActor} onNavigate={onNavigate} />
+        <PrimitiveDashboard agents={primitiveStats} onActor={onActor} />
       ) : !profile ? (
         <Loading>actor not found</Loading>
       ) : (
