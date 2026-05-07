@@ -88,6 +88,8 @@ const extractRateLimitId = (s) => {
 };
 
 const PARAM_FORMATTERS = {
+  "Name": stripSentence(/^The name of [^.]*? is /i),
+  "Agent Type": stripSentence(/^\S+ is an? /i),
   "Reward Code": unwrapBt,
   "Integration Partner Name": stripSentence(/^The partner for the [^.]*? is /i),
   "Integration Partner Reward Address": firstBtOrAddr,
@@ -118,6 +120,17 @@ function formatParam(title, raw) {
 // values (e.g. Agent Token's "Token Address" stuffs every deployed chain
 // address into one blob). Returns Array<[key, value]> or null to fall through.
 const PARAM_EXPANDERS = {
+  // "The address of X's SubProxy/Genesis Account on (the) Network is `0xADDR`."
+  // → "SubProxy Account / Network": "0xADDR"
+  "SubProxy Account": (content) => {
+    const m = content.match(/on (?:the )?(.+?) is `(0x[0-9a-fA-F]+)`/i);
+    return m ? [[`SubProxy Account / ${m[1].trim()}`, m[2]]] : null;
+  },
+  "Genesis Account": (content) => {
+    if (/will be specified/i.test(content)) return [["Genesis Account", "TBD"]];
+    const m = content.match(/on (?:the )?(.+?) is `(0x[0-9a-fA-F]+)`/i);
+    return m ? [[`Genesis Account / ${m[1].trim()}`, m[2]]] : null;
+  },
   "Token Address": (content) => {
     // "The address of X on (the) CHAIN is `ADDR`." — repeats per chain.
     const re = /The address of \S+ on (?:the )?([^.]+?) is `([^`\n]+)`/gi;

@@ -65,8 +65,8 @@ export function RadarPage({ onNavigate, query, actorSlug }: Props) {
   const [, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const selectActor = (slug: string) => {
-    navigate(`/radar/${slug}`);
+  const selectActor = (slug: string, fragment?: string) => {
+    navigate(`/radar/${slug}${fragment ? `#${fragment}` : ""}`);
     setDrawerOpen(false);
   };
 

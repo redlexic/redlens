@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { AgentPrimitiveStat, CategoryStat, PrimitiveTypeStat } from "../../lib/primitiveStats";
+import { toAnchorId } from "../../lib/anchorId";
 
 function shortenCategoryTitle(title: string): string {
   return title.replace(/\s*Primitives\s*/i, "").trim();
@@ -39,38 +40,30 @@ const TD_DIM: React.CSSProperties = { ...TD, opacity: 0.5 };
 
 const ROW_COLORS = ["#221614", "#261916"] as const;
 
-function PrimitiveRow({ p, rowIndex, onNavigate }: { p: PrimitiveTypeStat; rowIndex: number; onNavigate: (id: string) => void }) {
+function PrimitiveRow({ p, rowIndex, agentSlug, onActor }: { p: PrimitiveTypeStat; rowIndex: number; agentSlug: string; onActor: (slug: string, fragment?: string) => void }) {
   return (
     <tr style={{ background: ROW_COLORS[rowIndex % 2] }}>
       <td className="py-0.5" style={{ maxWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {p.docId ? (
-          <button onClick={() => onNavigate(p.docId!)} className="mono text-[11px] hover:underline w-full text-left truncate" style={{ color: "var(--tan-3)" }} title={p.title}>
-            {p.title}
-          </button>
-        ) : (
-          <span className="mono text-[11px] truncate block" style={{ color: "var(--tan-3)" }} title={p.title}>{p.title}</span>
-        )}
+        <button onClick={() => onActor(agentSlug, p.st)} className="mono text-[11px] hover:underline w-full text-left truncate" style={{ color: "var(--tan-3)" }} title={p.title}>
+          {p.title}
+        </button>
       </td>
       {[p.pending, p.active, p.suspended, p.completed].map((n, i) => (
-        <td key={i} className="mono text-[10px] py-0.5" style={n === 0 ? TD_DIM : TD} title={`${n} ${p.title} ${HEADERS[i].full}`}>{n}</td>
+        <td key={i} className="mono text-[10px] py-0.5" style={n === 0 ? TD_DIM : TD} title={`${n} ${p.title} ${n === 1 ? "Primitive" : "Primitives"} ${HEADERS[i].full}`}>{n}</td>
       ))}
     </tr>
   );
 }
 
-function CategoryRows({ cat, startIndex, onNavigate }: { cat: CategoryStat; startIndex: number; onNavigate: (id: string) => void }) {
+function CategoryRows({ cat, startIndex, agentSlug, onActor }: { cat: CategoryStat; startIndex: number; agentSlug: string; onActor: (slug: string, fragment?: string) => void }) {
   const title = shortenCategoryTitle(cat.title);
   return (
     <>
       <tr>
         <td colSpan={5} className="pt-3 pb-0.5" style={{ borderBottom: BORDER }}>
-          {cat.docId ? (
-            <button onClick={() => onNavigate(cat.docId!)} className="mono text-[10px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-2)" }}>
-              {title}
-            </button>
-          ) : (
-            <span className="mono text-[10px] uppercase tracking-wider" style={{ color: "var(--tan-2)" }}>{title}</span>
-          )}
+          <button onClick={() => onActor(agentSlug, toAnchorId(cat.title))} className="mono text-[10px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-2)" }}>
+            {title}
+          </button>
         </td>
       </tr>
       {cat.primitives.length === 0 ? (
@@ -82,14 +75,14 @@ function CategoryRows({ cat, startIndex, onNavigate }: { cat: CategoryStat; star
         </tr>
       ) : (
         cat.primitives.map((p, i) => (
-          <PrimitiveRow key={p.st} p={p} rowIndex={startIndex + i} onNavigate={onNavigate} />
+          <PrimitiveRow key={p.st} p={p} rowIndex={startIndex + i} agentSlug={agentSlug} onActor={onActor} />
         ))
       )}
     </>
   );
 }
 
-function AgentPanel({ agent, onActor, onNavigate }: { agent: AgentPrimitiveStat; onActor: (slug: string) => void; onNavigate: (id: string) => void }) {
+function AgentPanel({ agent, onActor }: { agent: AgentPrimitiveStat; onActor: (slug: string, fragment?: string) => void }) {
   let rowCounter = 0;
   return (
     <article className="rounded p-4 break-inside-avoid" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
@@ -112,7 +105,7 @@ function AgentPanel({ agent, onActor, onNavigate }: { agent: AgentPrimitiveStat;
           {agent.categories.map((cat) => {
             const startIndex = rowCounter;
             rowCounter += cat.primitives.length || 1;
-            return <CategoryRows key={cat.title} cat={cat} startIndex={startIndex} onNavigate={onNavigate} />;
+            return <CategoryRows key={cat.title} cat={cat} startIndex={startIndex} agentSlug={agent.slug} onActor={onActor} />;
           })}
         </tbody>
       </table>
@@ -122,7 +115,7 @@ function AgentPanel({ agent, onActor, onNavigate }: { agent: AgentPrimitiveStat;
 
 interface Props {
   agents: AgentPrimitiveStat[];
-  onActor: (slug: string) => void;
+  onActor: (slug: string, fragment?: string) => void;
   onNavigate: (id: string) => void;
 }
 
@@ -174,7 +167,7 @@ export function PrimitiveDashboard({ agents, onActor, onNavigate }: Props) {
       <div style={{ columns: "280px", columnGap: "1rem" }}>
         {visible.map((agent) => (
           <div key={agent.slug} className="mb-4">
-            <AgentPanel agent={agent} onActor={onActor} onNavigate={onNavigate} />
+            <AgentPanel agent={agent} onActor={onActor} />
           </div>
         ))}
       </div>
