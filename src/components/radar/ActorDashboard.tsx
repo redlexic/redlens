@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { ActorProfile, ActorRelation, Recommendation } from "../../lib/actorIndex";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, edgeLabel } from "../../lib/entityGraph";
 import { ActorChain } from "./ActorChain";
@@ -73,6 +74,13 @@ function RecRow({ rec, onActor }: { rec: Recommendation; onActor: (slug: string)
 }
 
 export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    el?.scrollIntoView({ behavior: "instant", block: "start" });
+  });
+
   const {
     entity,
     definingDoc,
@@ -95,7 +103,7 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6">
-      <div className="max-w-4xl mx-auto">
+      <div>
         {/* Header */}
         <div className="flex items-start gap-3 mb-6">
           <div className="flex-1">
