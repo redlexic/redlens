@@ -116,10 +116,9 @@ function AgentPanel({ agent, onActor }: { agent: AgentPrimitiveStat; onActor: (s
 interface Props {
   agents: AgentPrimitiveStat[];
   onActor: (slug: string, fragment?: string) => void;
-  onNavigate: (id: string) => void;
 }
 
-export function PrimitiveDashboard({ agents, onActor, onNavigate }: Props) {
+export function PrimitiveDashboard({ agents, onActor }: Props) {
   const [executorFilter, setExecutorFilter] = useState<string | null>(null);
 
   const executors = [...new Map(

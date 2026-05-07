@@ -96,7 +96,7 @@ export function buildPrimitiveStats(
   }
 
   for (const inst of graph.instances) {
-    if (!inst.m) continue;
+    if (!inst.m || !inst.st) continue;
     const meta = parseMeta<InstanceMeta>(inst.m);
     if (!meta?.agent_doc_id) continue;
     const bucket = agentMap.get(meta.agent_doc_id);
