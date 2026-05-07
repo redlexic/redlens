@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { prepare, measureNaturalWidth } from "@chenglou/pretext";
+import { prepareWithSegments, measureNaturalWidth } from "@chenglou/pretext";
 import type { RadarInstance, InstanceParam } from "../../lib/actorIndex";
 import { toAnchorId } from "../../lib/anchorId";
 import { StatusPill } from "../reports/RewardsCells";
@@ -14,7 +14,7 @@ const PARAM_FONT = '10px "Source Code Pro", monospace';
 const MIN_DOTS_PX = 30;
 
 function measureKeyPx(key: string): number {
-  try { return measureNaturalWidth(prepare(key, PARAM_FONT)); }
+  try { return measureNaturalWidth(prepareWithSegments(key, PARAM_FONT)); }
   catch { return key.length * 6; }
 }
 
