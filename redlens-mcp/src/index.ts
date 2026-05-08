@@ -24,18 +24,14 @@ const isUuid = (s: string) => UUID_RE.test(s);
 
 type MetaInfo = Record<string, string | null>;
 
-// kv_meta only changes on deploy — cache successful, non-empty reads across
-// requests in this isolate. Don't cache failures or empty results, otherwise
-// a single early miss poisons the cache for the lifetime of the isolate.
-let metaCache: MetaInfo | null = null;
+// kv_meta is 4–8 rows on a PK lookup — cheaper to query each request than
+// to manage cache invalidation across isolates after a sync writes new keys.
 async function getMeta(db: D1Database): Promise<MetaInfo> {
-  if (metaCache) return metaCache;
   try {
     const { results } = await db.prepare("SELECT key, value FROM kv_meta").all<{ key: string; value: string }>();
     if (results.length === 0) return {};
     const out: MetaInfo = {};
     for (const r of results) out[r.key] = r.value;
-    metaCache = out;
     return out;
   } catch {
     return {};

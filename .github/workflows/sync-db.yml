@@ -1,0 +1,104 @@
+name: Sync DBs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # manifest.json is the universal "an artifact changed" signal — its
+      # sha256 covers every shipping file, so any docs/graph/address/chain/
+      # vectors change updates manifest.json and fires this workflow.
+      - "public/manifest.json"
+      # Sync scripts + schema — re-run when the recipe changes, not just data.
+      - "redlens-mcp/schema.sql"
+      - "redlens-mcp/sync-d1.mjs"
+      - "redlens-mcp/sync-vectors.mjs"
+      - "scripts/required/build-rag.mjs"
+      - "scripts/required/build-graph.mjs"
+      - ".github/workflows/sync-db.yml"
+  workflow_dispatch:
+
+# Parallel syncs would race on D1 writes. Cancel any in-flight run when a
+# newer commit triggers — the latest commit always wins.
+concurrency:
+  group: sync-db
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    environment: WorkerDeploy
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build index (generates docs.json)
+        run: pnpm build:index
+
+      - name: Build graph
+        run: pnpm build:graph
+
+      - name: Check Cloudflare token
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN is empty — secret may be missing from repo settings"
+            exit 1
+          fi
+          echo "CLOUDFLARE_API_TOKEN is set (${#CLOUDFLARE_API_TOKEN} chars)"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Build vectors (Workers AI bge-base-en)
+        run: pnpm build:rag
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RAG_REQUIRE: "1"
+
+      # Use the committed public/manifest.json — sync-d1.mjs reads it to
+      # populate kv_meta (atlasCommit, etc.). Atlas-update PR is responsible
+      # for keeping it current; ci.yml verifies it matches a fresh build.
+
+      - name: Sync graph data to D1
+        run: pnpm graph:remote
+        working-directory: redlens-mcp
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Sync vectors to Vectorize
+        run: pnpm vectors:remote
+        working-directory: redlens-mcp
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Verify sync landed in production
+        # Hit /api/meta and assert the worker's kv_meta now reflects the
+        # atlas SHA we just synced. Catches "sync wrote rows but kv_meta
+        # stamp got skipped" or "worker isolate cached old meta" bugs.
+        run: |
+          EXPECTED=$(jq -r .atlasCommit ../public/manifest.json)
+          ACTUAL=$(curl -fsS https://redlens-mcp.anscharo.workers.dev/api/meta | jq -r .atlasCommit)
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Sync verification failed."
+            echo "  expected atlasCommit: $EXPECTED"
+            echo "  actual atlasCommit:   $ACTUAL"
+            exit 1
+          fi
+          VECTORS=$(curl -fsS https://redlens-mcp.anscharo.workers.dev/api/meta | jq -r .vectorsAtlasCommit)
+          if [ "$EXPECTED" != "$VECTORS" ]; then
+            echo "::warning::vectorsAtlasCommit ($VECTORS) does not match atlasCommit ($EXPECTED) — vectors may not be live yet"
+          fi
+          echo "Sync verified: atlasCommit=$ACTUAL"
+        working-directory: redlens-mcp

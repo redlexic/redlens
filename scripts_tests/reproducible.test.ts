@@ -1,7 +1,11 @@
-// Determinism: running build:index twice on a clean checkout should produce
-// byte-identical docs.json and search-index.json. Only runs in REPRO=1 mode
-// because it takes ~10s — it's the kind of check you want in CI, not in
-// every local `pnpm test`.
+// Determinism: running the build twice on a clean checkout should produce
+// byte-identical artifacts. Only runs in REPRO=1 mode because each build
+// takes ~10s — it's a CI check, not part of every local `pnpm test`.
+//
+// Why this matters: ci.yml drops `build:manifest` and uses the committed
+// manifest as the source of truth. The manifest test asserts disk hashes
+// match committed hashes, which only works if every build is deterministic.
+// If determinism breaks here, CI starts flaking on the manifest test.
 
 import { describe, it, expect } from "vitest";
 import fs from "fs";
@@ -29,5 +33,21 @@ describe.runIf(run)("reproducible build:index", () => {
     };
     expect(after.docs).toBe(before.docs);
     expect(after.idx).toBe(before.idx);
+  }, 120_000);
+});
+
+describe.runIf(run)("reproducible build:graph", () => {
+  it("graph.json and relations.json are byte-identical across two runs", () => {
+    const before = {
+      graph: sha256(path.join(ROOT, "public/graph.json")),
+      rels: sha256(path.join(ROOT, "public/relations.json")),
+    };
+    execSync("pnpm build:graph", { cwd: ROOT, stdio: "pipe" });
+    const after = {
+      graph: sha256(path.join(ROOT, "public/graph.json")),
+      rels: sha256(path.join(ROOT, "public/relations.json")),
+    };
+    expect(after.graph).toBe(before.graph);
+    expect(after.rels).toBe(before.rels);
   }, 120_000);
 });
