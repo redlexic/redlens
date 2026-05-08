@@ -12,10 +12,7 @@ export function NavBar({ activePage, onNavPage }: NavBarProps) {
       <NavLink active={activePage === "atlas"} onClick={() => onNavPage("atlas")}>
         Reader
       </NavLink>
-      <NavLink active={activePage === "constellations"} onClick={() => onNavPage("constellations")}>
-        Constellations
-      </NavLink>
-      <NavLink active={activePage === "radar"} onClick={() => onNavPage("radar")}>
+<NavLink active={activePage === "radar"} onClick={() => onNavPage("radar")}>
         Radar
       </NavLink>
       <NavLink active={activePage === "reports"} onClick={() => onNavPage("reports")}>
