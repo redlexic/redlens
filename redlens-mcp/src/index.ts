@@ -24,18 +24,14 @@ const isUuid = (s: string) => UUID_RE.test(s);
 
 type MetaInfo = Record<string, string | null>;
 
-// kv_meta only changes on deploy — cache successful, non-empty reads across
-// requests in this isolate. Don't cache failures or empty results, otherwise
-// a single early miss poisons the cache for the lifetime of the isolate.
-let metaCache: MetaInfo | null = null;
+// kv_meta is 4–8 rows on a PK lookup — cheaper to query each request than
+// to manage cache invalidation across isolates after a sync writes new keys.
 async function getMeta(db: D1Database): Promise<MetaInfo> {
-  if (metaCache) return metaCache;
   try {
     const { results } = await db.prepare("SELECT key, value FROM kv_meta").all<{ key: string; value: string }>();
     if (results.length === 0) return {};
     const out: MetaInfo = {};
     for (const r of results) out[r.key] = r.value;
-    metaCache = out;
     return out;
   } catch {
     return {};
@@ -208,7 +204,40 @@ async function getAncestorChains(db: D1Database, seedUuids: string[]): Promise<M
 
 function createMcpServer(env: Env): McpServer {
   const db = env.DB;
-  const server = new McpServer({ name: "redlens-atlas", version: "1.2.0" });
+  const server = new McpServer({ name: "redlens-atlas", version: "1.3.0" });
+
+  // ---- atlas_describe ----
+  server.tool(
+    "atlas_describe",
+    "Self-describing schema. Returns live doc-type taxonomy with counts, edge-type vocabulary with counts, entity types and slugs, Type Specifications, and atlas/vectors commit pins. Call once at session start to discover what's available without relying on hardcoded lists that drift as the atlas evolves.",
+    {},
+    async () => {
+      const meta = await getMeta(db);
+      const [docTypes, edgeTypes, entityTypes, entitySlugs, typeSpecs, docCount] = await Promise.all([
+        db.prepare(`SELECT type, COUNT(*) AS count FROM docs GROUP BY type ORDER BY count DESC`)
+          .all<{ type: string; count: number }>(),
+        db.prepare(`SELECT edge_type, COUNT(*) AS count FROM edges GROUP BY edge_type ORDER BY count DESC`)
+          .all<{ edge_type: string; count: number }>(),
+        db.prepare(`SELECT entity_type, subtype, COUNT(*) AS count FROM entities WHERE is_active = 1
+                    GROUP BY entity_type, subtype ORDER BY entity_type, subtype`)
+          .all<{ entity_type: string; subtype: string | null; count: number }>(),
+        db.prepare(`SELECT slug FROM entities WHERE is_active = 1 ORDER BY slug`)
+          .all<{ slug: string }>(),
+        db.prepare(`SELECT id, doc_no, title FROM docs WHERE type = 'Type Specification'
+                    ORDER BY doc_no LIMIT 200`)
+          .all<{ id: string; doc_no: string; title: string }>(),
+        db.prepare(`SELECT COUNT(*) AS count FROM docs`).first<{ count: number }>(),
+      ]);
+      return ok(meta, {
+        doc_count: docCount?.count ?? 0,
+        doc_types: docTypes.results,
+        edge_types: edgeTypes.results,
+        entity_types: entityTypes.results,
+        entity_slugs: entitySlugs.results.map((r) => r.slug),
+        type_specifications: typeSpecs.results,
+      });
+    },
+  );
 
   // ---- atlas_search ----
   server.tool(
@@ -780,6 +809,7 @@ app.get("/", (c) => {
 
   <h2>Available MCP tools</h2>
   <p class="endpoint">
+    <code>atlas_describe</code> — live schema: doc types, edge types, entity slugs, type specs, atlas/vectors pins<br/>
     <code>atlas_search</code> — FTS5 full-text search; quoted phrases match as exact substrings<br/>
     <code>atlas_get</code> — single or bulk fetch (array of ids); each result includes ancestor chain<br/>
     <code>atlas_neighbors</code> — parent / siblings / children of a node<br/>

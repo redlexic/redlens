@@ -23,18 +23,27 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const PUBLIC = path.join(ROOT, "public");
 const OUT = path.join(PUBLIC, "manifest.json");
 
-// Artifacts we hash and verify on the frontend. Anything else in public/ is
-// either intermediate (addresses.merged.json — gitignored) or out of scope
-// for verification (history/** — too many files, fetched on demand).
+// Every shipping artifact gets a sha256 here. Frontend assets are verified
+// at fetch time against the inlined hash map. graph.json is included as a
+// reproducibility check — it's gitignored but built deterministically, so
+// the committed manifest's hash should always match a fresh rebuild.
+// Out of scope:
+//   - addresses.merged.json — intermediate, gitignored
+//   - history/** — too many files, fetched on demand
+//   - atlas-vectors.* — backend-only; provenance lives in
+//     public/atlas-vectors.meta.json + D1 kv_meta (vectorsAtlasCommit etc.)
+//     to avoid coupling frontend manifest to Workers AI availability in CI.
 const ARTIFACTS = [
+  // Frontend-fetched
   "docs.json",
   "search-index.json",
+  "addresses.atlas.json",
   "addresses.json",
   "chain-state.json",
+  "glossary.json",
   "relations.json",
-  "atlas-vectors.bin",
-  "atlas-vectors.ids.json",
-  "atlas-vectors.meta.json",
+  // Reproducibility check
+  "graph.json",
 ];
 
 function sha256(buf) {
