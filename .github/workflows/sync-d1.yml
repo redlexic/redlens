@@ -1,4 +1,4 @@
-name: Sync D1
+name: Sync DBs
 
 on:
   push:
@@ -32,9 +32,9 @@ jobs:
 
       - name: Build index (generates docs.json)
         run: pnpm build:index
-      
-      - name: Build Graph 
-        run: pnpm build:graph 
+
+      - name: Build graph
+        run: pnpm build:graph
 
       - name: Check Cloudflare token
         run: |
@@ -46,8 +46,23 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
+      - name: Build vectors (Workers AI bge-base-en)
+        run: pnpm build:rag
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RAG_REQUIRE: "1"
+
+      - name: Build manifest
+        run: pnpm build:manifest
+
       - name: Sync graph data to D1
         run: pnpm graph:remote
+        working-directory: redlens-mcp
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Sync vectors to Vectorize
+        run: pnpm vectors:remote
         working-directory: redlens-mcp
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

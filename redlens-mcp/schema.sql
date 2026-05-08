@@ -117,3 +117,14 @@ CREATE INDEX IF NOT EXISTS idx_edges_from      ON edges(from_id, edge_type);
 CREATE INDEX IF NOT EXISTS idx_edges_to        ON edges(to_id, edge_type);
 CREATE INDEX IF NOT EXISTS idx_edges_type      ON edges(edge_type);
 CREATE INDEX IF NOT EXISTS idx_edges_from_type ON edges(from_type);
+
+-- ---------------------------------------------------------------------------
+-- kv_meta — provenance for the currently-deployed snapshot.
+-- Populated by sync-d1.mjs from public/manifest.json.
+-- The worker echoes these values in every tool response so callers can tell
+-- which atlas commit produced an answer.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS kv_meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT
+);

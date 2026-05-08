@@ -19,6 +19,24 @@ For all limits and quotas, retrieve from the product's `/platform/limits/` page.
 
 Run `wrangler types` after changing bindings in wrangler.jsonc.
 
+## One-time infra setup (before first deploy)
+
+D1 database `redlens-atlas` and Vectorize index `redlens-atlas-bge` must exist
+before `wrangler deploy` will accept the bindings in `wrangler.jsonc`.
+
+```bash
+# D1 — already provisioned; recreate only if migrating
+pnpm schema:remote   # apply schema to existing DB
+
+# Vectorize — only run once per environment
+pnpm vectorize:create   # 768d, cosine, name "redlens-atlas-bge"
+```
+
+## Sync order (after every atlas update)
+
+`pnpm build:rag` (in repo root) → `pnpm graph:remote` → `pnpm vectors:remote`.
+The `Sync D1` GitHub Actions workflow runs all three on push to `main`.
+
 ## Node.js Compatibility
 
 https://developers.cloudflare.com/workers/runtime-apis/nodejs/

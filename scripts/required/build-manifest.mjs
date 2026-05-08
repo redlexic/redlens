@@ -32,6 +32,9 @@ const ARTIFACTS = [
   "addresses.json",
   "chain-state.json",
   "relations.json",
+  "atlas-vectors.bin",
+  "atlas-vectors.ids.json",
+  "atlas-vectors.meta.json",
 ];
 
 function sha256(buf) {
