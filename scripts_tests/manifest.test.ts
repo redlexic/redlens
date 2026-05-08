@@ -35,12 +35,12 @@ describe("manifest", () => {
     const required = [
       "docs.json",
       "search-index.json",
+      "addresses.atlas.json",
       "addresses.json",
       "chain-state.json",
+      "glossary.json",
       "relations.json",
-      "atlas-vectors.bin",
-      "atlas-vectors.ids.json",
-      "atlas-vectors.meta.json",
+      "graph.json",
     ];
     for (const name of required) {
       if (fs.existsSync(path.join(PUBLIC, name))) {

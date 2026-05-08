@@ -3,8 +3,22 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "0 6 * * *"
+    paths:
+      # Source code + bundle config
+      - "src/**"
+      - "index.html"
+      - "vite.config.ts"
+      - "tsconfig*.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      # Tracked data artifacts the bundle reads
+      - "public/**"
+      # Atlas content (submodule pointer change)
+      - "vendor/next-gen-atlas"
+      # Build pipeline scripts
+      - "scripts/required/**"
+      - "scripts/lib/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 env:
@@ -37,8 +51,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Pull latest Atlas content
-        run: git -C vendor/next-gen-atlas fetch origin main && git -C vendor/next-gen-atlas checkout origin/main
+      # Use the atlas SHA pinned in main (the submodule was checked out at the
+      # tracked commit). Atlas advances arrive via atlas-update.yml → PR → merge,
+      # so frontend, D1, and Vectorize all ship the same atlas snapshot.
 
       - name: Append new node history
         run: pnpm build:history
