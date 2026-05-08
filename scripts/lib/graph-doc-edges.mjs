@@ -14,7 +14,7 @@ import {
   isGlobalActivationStatus,
   ancestorByStripping,
 } from "./graph-patterns.mjs";
-import { INSTANCE_SCOPED_PRIMITIVES, instanceStatusFor } from "./graph-instances.mjs";
+import { buildKnownPrimitives, instanceStatusFor } from "./graph-instances.mjs";
 
 export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
   const edges = [];
@@ -79,18 +79,17 @@ export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
   // for in-scope primitives; out-of-scope ICDs still get the edge but no status.
   // Also emit entity→entity `invoked_by` from the Instance to its Prime Agent
   // so instances surface in the entity graph clustered around their agent. ---
+  const knownPrimitives = buildKnownPrimitives(docById);
   for (const d of allDocs.filter((d) => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
     // Inline primitiveRootFor so we don't need to re-import it here.
     const m = d.doc_no.match(/^(A\.6\.1\.1\.\d+\.2\.\d+\.\d+)(?:$|\.)/);
     if (!m) continue;
     const primRoot = docByDocNo.get(m[1]);
     if (!primRoot || !/Primitive$/i.test(primRoot.title)) continue;
-    const inScope = !!INSTANCE_SCOPED_PRIMITIVES[primRoot.title];
-    const status = inScope ? instanceStatusFor(d, primRoot, docByDocNo) : null;
+    const status = instanceStatusFor(d, primRoot, docByDocNo);
     const meta = status ? JSON.stringify({ status }) : null;
     addEdge(d.id, "doc", primRoot.id, "doc", "instance_of", [d.doc_no], meta);
 
-    if (!inScope) continue;
     const agentDocNo = d.doc_no.match(/^(A\.6\.1\.1\.\d+)(?:\.|$)/)?.[1];
     const agentDoc = agentDocNo ? docByDocNo.get(agentDocNo) : null;
     const primeEntity = agentDoc ? entityByDocId.get(agentDoc.id) : null;

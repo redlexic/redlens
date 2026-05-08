@@ -8,6 +8,7 @@ import { parseMeta } from "./meta";
 export interface AgentRef {
   name: string;
   id: string;
+  docId: string;
   docNoPrefix: string;
   docNo: string;
 }
@@ -24,7 +25,7 @@ export function agentsFromGraph(
     .map((e) => {
       const doc = e.did ? docs[e.did] : null;
       return doc
-        ? { name: e.name, id: e.id, docNo: doc.doc_no, docNoPrefix: doc.doc_no + "." }
+        ? { name: e.name, id: e.id, docId: doc.id, docNo: doc.doc_no, docNoPrefix: doc.doc_no + "." }
         : null;
     })
     .filter((a): a is AgentRef => a !== null)

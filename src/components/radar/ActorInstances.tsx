@@ -1,82 +1,97 @@
+import { useMemo } from "react";
+import { prepareWithSegments, measureNaturalWidth } from "@chenglou/pretext";
 import type { RadarInstance, InstanceParam } from "../../lib/actorIndex";
+import { toAnchorId } from "../../lib/anchorId";
 import { StatusPill } from "../reports/RewardsCells";
 
 const EVM_RE = /^0x[0-9a-fA-F]{40}$/;
 const SOL_RE = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
+const RATE_LIMIT_HASH_RE = /^0x[0-9a-fA-F]{64}$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MD_LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
+const PLACEHOLDER_RE = /will be specified in a future iteration/i;
+const PARAM_FONT = '10px "Source Code Pro", monospace';
+const MIN_DOTS_PX = 30;
+
+function measureKeyPx(key: string): number {
+  try { return measureNaturalWidth(prepareWithSegments(key, PARAM_FONT)); }
+  catch { return key.length * 6; }
+}
 
 function explorerUrl(val: string): string {
   if (SOL_RE.test(val)) return `https://solscan.io/account/${val}`;
   return `https://etherscan.io/address/${val}`;
 }
 
-function ParamPill({ p }: { p: InstanceParam }) {
-  const isAddr = EVM_RE.test(p.value) || SOL_RE.test(p.value);
-  const keyLabel = <span style={{ color: "var(--tan-3)" }}>{p.key}:</span>;
-  if (isAddr) {
-    const short = `${p.value.slice(0, 6)}…${p.value.slice(-4)}`;
-    return (
-      <span
-        className="mono text-[11px] px-1.5 py-0.5 rounded inline-flex items-center gap-1"
-        style={{ background: "var(--hover)", color: "var(--tan-2)" }}
-      >
-        {keyLabel}
-        <a
-          href={explorerUrl(p.value)}
-          target="_blank"
-          rel="noopener"
-          className="text-accent hover:underline"
-          title={p.value}
-        >
-          {short}
-        </a>
-      </span>
-    );
+function renderValue(value: string, onNavigate: (id: string) => void): React.ReactNode {
+  if (EVM_RE.test(value) || SOL_RE.test(value)) {
+    const short = `${value.slice(0, 6)}…${value.slice(-4)}`;
+    return <a href={explorerUrl(value)} target="_blank" rel="noopener" title={value} className="text-accent hover:underline">{short}</a>;
   }
+  if (RATE_LIMIT_HASH_RE.test(value.trim())) {
+    const v = value.trim();
+    return <span title={v}>{v.slice(0, 10)}…{v.slice(-6)}</span>;
+  }
+  if (PLACEHOLDER_RE.test(value)) {
+    return <span style={{ color: "var(--tan-3)", fontStyle: "italic" }}>To Be Specified</span>;
+  }
+  if (value.includes("](")) {
+    const parts: React.ReactNode[] = [];
+    let last = 0;
+    for (const m of value.matchAll(MD_LINK_RE)) {
+      const idx = m.index ?? 0;
+      if (idx > last) parts.push(value.slice(last, idx));
+      const [, text, href] = m;
+      parts.push(UUID_RE.test(href)
+        ? <button key={idx} onClick={() => onNavigate(href)} className="text-accent hover:underline">{text}</button>
+        : <a key={idx} href={href} target="_blank" rel="noopener" className="text-accent hover:underline">{text}</a>
+      );
+      last = idx + m[0].length;
+    }
+    if (last < value.length) parts.push(value.slice(last));
+    return <>{parts}</>;
+  }
+  return value;
+}
+
+function ParamLine({ p, colWidth, onNavigate }: { p: InstanceParam; colWidth: number; onNavigate: (id: string) => void }) {
   return (
-    <span
-      className="mono text-[11px] px-1.5 py-0.5 rounded inline-flex items-center gap-1"
-      style={{ background: "var(--hover)", color: "var(--tan-2)" }}
-    >
-      {keyLabel}
-      {p.value}
-    </span>
+    <div className="flex py-0.5 w-full items-baseline">
+      <span className="mono text-[10px] shrink-0" style={{ color: "var(--tan-3)" }}>
+        {p.key}
+      </span>
+      <span className="flex-1 min-w-0" style={{ borderBottom: "1px dotted rgba(184,164,142,0.25)", margin: "0 4px 3px" }} />
+      <span
+        className="mono text-[10px] shrink-0 text-right leading-relaxed"
+        style={{ maxWidth: `calc(100% - ${colWidth}px)`, wordBreak: "break-word", color: "var(--tan-2)" }}
+      >
+        {renderValue(p.value, onNavigate)}
+      </span>
+    </div>
   );
 }
 
-const SEP = <span className="text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.4 }}>|</span>;
+function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (id: string) => void }) {
+  const colWidth = useMemo(() => {
+    if (inst.signalParams.length === 0) return MIN_DOTS_PX;
+    return Math.max(...inst.signalParams.map((p) => measureKeyPx(p.key))) + MIN_DOTS_PX;
+  }, [inst.signalParams]);
 
-function InstanceRow({
-  inst,
-  onNavigate,
-}: {
-  inst: RadarInstance;
-  onNavigate: (id: string) => void;
-}) {
   return (
-    <div className="py-1.5 border-t border-[var(--border)]">
-      <div className="flex items-center gap-2 flex-wrap mb-1">
-        <span className="text-sm" style={{ color: "var(--tan)" }}>
-          {inst.displayName}
-        </span>
-        {inst.primitiveDocId && inst.primitiveTitle && (
-          <>
-            {SEP}
-            <button
-              onClick={() => onNavigate(inst.primitiveDocId!)}
-              className="mono text-[10px] hover:underline"
-              style={{ color: "var(--tan-3)" }}
-            >
-              {inst.primitiveTitle}
-            </button>
-          </>
+    <div className="rounded p-3 break-inside-avoid" style={{ background: "#0f0a08", border: "1px solid var(--border)", maxWidth: "600px" }}>
+      <div className="flex items-center gap-2 flex-wrap mb-2">
+        {inst.docId ? (
+          <button onClick={() => onNavigate(inst.docId!)} className="text-sm hover:underline" style={{ color: "var(--tan)" }}>
+            {inst.displayName}
+          </button>
+        ) : (
+          <span className="text-sm" style={{ color: "var(--tan)" }}>{inst.displayName}</span>
         )}
-        {inst.status && <>{SEP}<StatusPill s={inst.status} /></>}
+        {inst.status && <StatusPill s={inst.status} />}
       </div>
       {inst.signalParams.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {inst.signalParams.map((p) => (
-            <ParamPill key={p.key} p={p} />
-          ))}
+        <div>
+          {inst.signalParams.map((p) => <ParamLine key={p.key} p={p} colWidth={colWidth} onNavigate={onNavigate} />)}
         </div>
       )}
     </div>
@@ -88,30 +103,87 @@ interface Props {
   onNavigate: (id: string) => void;
 }
 
-export function ActorInstances({ instances, onNavigate }: Props) {
-  const byType = new Map<string, RadarInstance[]>();
+interface PrimitiveGroup {
+  st: string;
+  primitiveTitle: string | null;
+  primitiveDocId: string | null;
+  isUnknown: boolean;
+  instances: RadarInstance[];
+}
+
+interface CategoryGroup {
+  category: string;
+  categoryDocId: string | null;
+  primitives: PrimitiveGroup[];
+}
+
+function buildCategoryGroups(instances: RadarInstance[]): CategoryGroup[] {
+  const catMap = new Map<string, { docId: string | null; primMap: Map<string, PrimitiveGroup> }>();
   for (const inst of instances) {
-    const g = byType.get(inst.st) ?? [];
-    g.push(inst);
-    byType.set(inst.st, g);
+    const cat = inst.primitiveCategory ?? "Other";
+    const catDocId = inst.primitiveCategoryDocId ?? null;
+    if (!catMap.has(cat)) catMap.set(cat, { docId: catDocId, primMap: new Map() });
+    const { primMap } = catMap.get(cat)!;
+    if (!primMap.has(inst.st)) {
+      primMap.set(inst.st, {
+        st: inst.st,
+        primitiveTitle: inst.primitiveTitle,
+        primitiveDocId: inst.primitiveDocId,
+        isUnknown: inst.isUnknownPrimitive,
+        instances: [],
+      });
+    }
+    primMap.get(inst.st)!.instances.push(inst);
   }
-  const groups = [...byType.entries()].sort(([a], [b]) => a.localeCompare(b));
+  return [...catMap.entries()].map(([category, { docId, primMap }]) => ({
+    category,
+    categoryDocId: docId,
+    primitives: [...primMap.values()],
+  }));
+}
+
+export function ActorInstances({ instances, onNavigate }: Props) {
+  const groups = buildCategoryGroups(instances);
 
   return (
     <div className="space-y-6">
-      {groups.map(([st, insts]) => (
-        <div key={st}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="mono text-[11px]" style={{ color: "var(--tan-3)" }}>
-              {st}
-            </span>
-            <span className="mono text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.6 }}>
-              ({insts.length})
-            </span>
+      {groups.map((cat) => (
+        <div key={cat.category} id={toAnchorId(cat.category)}>
+          <div className="flex items-center gap-2 mb-3">
+            {cat.categoryDocId ? (
+              <button onClick={() => onNavigate(cat.categoryDocId!)} className="mono text-[11px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-3)" }}>
+                {cat.category}
+              </button>
+            ) : (
+              <span className="mono text-[11px] uppercase tracking-wider" style={{ color: "var(--tan-3)" }}>{cat.category}</span>
+            )}
           </div>
-          {insts.map((inst) => (
-            <InstanceRow key={inst.id} inst={inst} onNavigate={onNavigate} />
-          ))}
+          <div className="space-y-4 pl-3" style={{ borderLeft: "1px solid var(--border)" }}>
+            {cat.primitives.map((prim) => (
+              <div key={prim.st} id={prim.st}>
+                <div className="flex items-center gap-2 mb-2">
+                  {prim.primitiveDocId ? (
+                    <button onClick={() => onNavigate(prim.primitiveDocId!)} className="mono text-[11px] hover:underline" style={{ color: "var(--accent)" }}>
+                      {prim.primitiveTitle ?? prim.st}
+                    </button>
+                  ) : (
+                    <span className="mono text-[11px]" style={{ color: "var(--accent)" }}>{prim.primitiveTitle ?? prim.st}</span>
+                  )}
+                  <span className="mono text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.6 }}>({prim.instances.length})</span>
+                  {prim.isUnknown && (
+                    <span className="mono text-[10px] px-1 rounded" style={{ color: "var(--red)", border: "1px solid var(--red)" }} title="Not listed in Current Primitives (A.2.2.1.5.1)">unknown</span>
+                  )}
+                </div>
+                <div style={{ columns: "520px", columnGap: "0.75rem" }}>
+                  {prim.instances.map((inst) => (
+                    <div key={inst.id} className="mb-2">
+                      <InstanceCard inst={inst} onNavigate={onNavigate} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
