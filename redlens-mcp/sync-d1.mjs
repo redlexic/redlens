@@ -126,9 +126,19 @@ const docRows = allDocs.map((d) => ({
   type: d.type,
   depth: d.depth ?? 0,
   parent_id: d.parentId ?? null,
-  content: (d.content ?? "").slice(0, 50000),
+  content: d.content ?? "",
   ord: d.order ?? 0,
 }));
+
+console.log("Loading manifest.json…");
+const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "public/manifest.json"), "utf8"));
+const metaRows = [
+  { key: "atlasCommit",   value: manifest.atlasCommit ?? null },
+  { key: "redlensCommit", value: manifest.redlensCommit ?? null },
+  { key: "generatedAt",   value: manifest.generatedAt ?? null },
+  { key: "blockNumber",   value: manifest.blockNumber ?? null },
+];
+console.log(`  atlas: ${manifest.atlasCommit?.slice(0,12)}, redlens: ${manifest.redlensCommit?.slice(0,12)}`);
 
 // slug → entity id, for resolving address.entity_id
 const entityBySlug = new Map(entityRows.map((e) => [e.slug, e]));
@@ -161,6 +171,7 @@ console.log(`  docs:      ${docRows.length}`);
 console.log(`  entities:  ${entityRows.length}`);
 console.log(`  addresses: ${addressRows.length}`);
 console.log(`  edges:     ${edgeRows.length}`);
+console.log(`  kv_meta:   ${metaRows.length}`);
 
 // ---------------------------------------------------------------------------
 // Write SQL files and apply
@@ -170,13 +181,14 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "redlens-sync-"));
 const clearFile = path.join(TMP, "_0_clear.sql");
 fs.writeFileSync(
   clearFile,
-  "DELETE FROM edges;\nDELETE FROM addresses;\nDELETE FROM entities;\nDELETE FROM docs;\n",
+  "DELETE FROM edges;\nDELETE FROM addresses;\nDELETE FROM entities;\nDELETE FROM docs;\nDELETE FROM kv_meta;\n",
 );
 const files = {
   docs:      path.join(TMP, "_docs.sql"),
   entities:  path.join(TMP, "_entities.sql"),
   addresses: path.join(TMP, "_addresses.sql"),
   edges:     path.join(TMP, "_edges.sql"),
+  kv_meta:   path.join(TMP, "_kv_meta.sql"),
 };
 
 console.log("\nWriting SQL files…");
@@ -209,6 +221,7 @@ await writeBatched(
   ["id", "from_id", "from_type", "to_id", "to_type", "edge_type", "source_doc_nos", "weight", "meta"],
   edgeRows,
 );
+await writeBatched(files.kv_meta, "kv_meta", ["key", "value"], metaRows);
 
 console.log(`\nApplying to D1 ${REMOTE ? "(remote)" : "(local)"}…`);
 runFile(SCHEMA);

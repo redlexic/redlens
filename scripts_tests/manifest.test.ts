@@ -38,6 +38,9 @@ describe("manifest", () => {
       "addresses.json",
       "chain-state.json",
       "relations.json",
+      "atlas-vectors.bin",
+      "atlas-vectors.ids.json",
+      "atlas-vectors.meta.json",
     ];
     for (const name of required) {
       if (fs.existsSync(path.join(PUBLIC, name))) {

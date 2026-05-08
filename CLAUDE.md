@@ -166,4 +166,38 @@ Selected-node treatment: red left bar, transparent background, brighter text. Do
 - GitHub Actions cron refresh (daily for balances, weekly for state).
 - Atlas/chain drift detection: diff atlas-stated values against snapshot values at build time, surface warnings in the UI.
 
+### Deferred: chunk long nodes for semantic search
+
+`scripts/required/build-rag.mjs` produces one bge-base-en (768d) vector per atlas node, with a 2048-char cap that bge-base's 512-token positional limit forces anyway. ~25 nodes (0.24%) exceed the cap — registries (e.g. `Current Aligned Delegates`), Type Specifications, Reference Implementations, and a few long Cores. Their heads carry the semantic intent, but the tails (enumerated names, code, field lists) become invisible to semantic search.
+
+Lexical (FTS5) and the hybrid `atlas_search` mode already reach this tail content, so this is recall optimization on the *semantic* leg only — not a correctness gap.
+
+If/when this matters:
+- Chunk nodes with `content.length > 2048` into ~1500-char overlapping windows; emit one vector per chunk with a synthetic id (`<uuid>#<chunk-idx>`).
+- Vectorize metadata stays per-node (`docId`, `doc_no`, `type`, `depth`); the worker dedupes back to one row per `docId` before RRF merge.
+- Adds ~70 vectors total — still inside the Vectorize free tier.
+- Build cost is one extra Workers AI call per long node; trivial.
+
+### Deferred: temporal queries via atlas_history
+
+Per-node git history already lives at `public/history/<uuid>.json` (built by `scripts/required/build-history.mjs`) — what's missing is an MCP surface for it. Shape to aim for:
+
+- New D1 table `node_history(uuid, commit_sha, date, change_type, pr_number, pr_title, pr_author, summary, description)` populated from `public/history/`.
+- New tool `atlas_history(id, since?, until?, pr?)` returning the change log for a doc, optionally filtered by date range or PR.
+- New tool `atlas_changed_between(commit_a, commit_b, type?, ancestor_id?)` answering "which docs changed between atlas SHA X and Y?" — the cross-version diff query.
+- Sync step: extend `redlens-mcp/sync-d1.mjs` to load `public/history/*.json` into the new table.
+
+Use cases this unlocks: "what changed in this scope since the last reward cycle", "show me every Action Tenet that was added in PR #N", "which Active Data Controllers had their definition changed in the last 30 days".
+
+### Deferred: atlas_describe meta-tool (self-describing schema)
+
+Right now the agent prompt (`.claude/agents/ask-atlas.md`) inlines the doc-type taxonomy, doc_no suffix patterns, edge vocabulary, and entity slugs. These will drift as the atlas / graph evolves. Plan:
+
+- New tool `atlas_describe()` — returns `{ doc_types: [...with counts], edge_types: [...with counts], entity_types: [...], entity_slugs: [...], type_specifications: [...], doc_count, atlasCommit, vectorsAtlasCommit }` straight from D1 / kv_meta.
+- Agent calls it once at session start, holds it as context, doesn't have to memorize anything dynamic.
+- Trim the static parts of the prompt to *what each type means* (semantics) — leave *what types exist and how many* to the live tool.
+- Worker change is small (~30 lines: aggregate queries against `docs.type`, `edges.edge_type`, `entities`).
+
+Best paired with the temporal work above so `atlas_describe` can also report "history available from commit X to Y".
+
 ### Other / background
