@@ -189,15 +189,4 @@ Per-node git history already lives at `public/history/<uuid>.json` (built by `sc
 
 Use cases this unlocks: "what changed in this scope since the last reward cycle", "show me every Action Tenet that was added in PR #N", "which Active Data Controllers had their definition changed in the last 30 days".
 
-### Deferred: atlas_describe meta-tool (self-describing schema)
-
-Right now the agent prompt (`.claude/agents/ask-atlas.md`) inlines the doc-type taxonomy, doc_no suffix patterns, edge vocabulary, and entity slugs. These will drift as the atlas / graph evolves. Plan:
-
-- New tool `atlas_describe()` — returns `{ doc_types: [...with counts], edge_types: [...with counts], entity_types: [...], entity_slugs: [...], type_specifications: [...], doc_count, atlasCommit, vectorsAtlasCommit }` straight from D1 / kv_meta.
-- Agent calls it once at session start, holds it as context, doesn't have to memorize anything dynamic.
-- Trim the static parts of the prompt to *what each type means* (semantics) — leave *what types exist and how many* to the live tool.
-- Worker change is small (~30 lines: aggregate queries against `docs.type`, `edges.edge_type`, `entities`).
-
-Best paired with the temporal work above so `atlas_describe` can also report "history available from commit X to Y".
-
 ### Other / background
