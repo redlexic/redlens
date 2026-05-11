@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-05-08",
+    "commitHash": "728bdc7",
+    "changeType": "added",
+    "diff": [
+      [
+        "+",
+        "The \"Chronicle Point Reward Instance\" refers to the Ethereum mainnet reward mechanism through which USDS is deposited in Sky's Rewards contract to accrue Chronicle Points. Onchain, this instance is the verified `StakingRewards` contract at the address corresponding to the `REWARDS_USDS_01` key in the Chainlog."
+      ]
+    ]
+  }
+]

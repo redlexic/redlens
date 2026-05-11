@@ -99,7 +99,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
 
-          git add vendor/next-gen-atlas public/
+          git add vendor/next-gen-atlas public/ graph-snapshots/
 
           if git diff --cached --quiet; then
             echo "No artifact changes — skipping PR."
@@ -132,6 +132,7 @@ jobs:
           - \`public/chain-state.json\` (build:snapshot)
           - \`public/history/\` (build:history)
           - \`public/graph.json\` + \`public/relations.json\` (build:graph)
+          - \`graph-snapshots/__snapshots__/\` (test:snap:update)
           EOF
           )" \
             --base main \
