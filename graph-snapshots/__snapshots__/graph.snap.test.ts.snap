@@ -9819,7 +9819,7 @@ exports[`edge type counts > all edge types and their counts 1`] = `
   "core_facilitator_for": 1,
   "core_govops_for": 1,
   "defines_entity": 216,
-  "ecosystem_accord": 18,
+  "ecosystem_accord": 20,
   "erg_member_for": 6,
   "has_address": 232,
   "has_status": 136,
@@ -9829,7 +9829,7 @@ exports[`edge type counts > all edge types and their counts 1`] = `
   "invoked_by": 190,
   "listed_in": 26,
   "located_at": 184,
-  "mentions": 534,
+  "mentions": 535,
   "operational_executor_agent_for": 8,
   "operational_facilitator_for": 2,
   "operational_govops_for": 2,
@@ -10100,6 +10100,8 @@ exports[`governance edges > aligned_delegate_for 1`] = `[]`;
 
 exports[`governance edges > ecosystem_accord — accord doc → party entity 1`] = `
 [
+  "A.2.8.2.10 → Grove",
+  "A.2.8.2.10 → Sky Core",
   "A.2.8.2.2 → Grove",
   "A.2.8.2.2 → Moonbow",
   "A.2.8.2.2 → Sky Core",
