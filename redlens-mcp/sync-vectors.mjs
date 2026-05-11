@@ -9,10 +9,10 @@
  *   node sync-vectors.mjs
  *
  * Reads:
- *   public/atlas-vectors.bin         Float32Array, count*dim values
- *   public/atlas-vectors.ids.json    string[]  ordered UUIDs
- *   public/atlas-vectors.meta.json   { model, dim, count, atlasCommit, ... }
- *   public/docs.json                 to enrich Vectorize metadata
+ *   .cache/atlas-vectors/vectors.bin   Float32Array, count*dim values
+ *   .cache/atlas-vectors/ids.json      string[]  ordered UUIDs
+ *   .cache/atlas-vectors/meta.json     { model, dim, count, atlasCommit, ... }
+ *   public/docs.json                   to enrich Vectorize metadata
  *
  * Writes:
  *   Vectorize index `redlens-atlas-bge` (must be created beforehand:
@@ -32,9 +32,10 @@ const MCP_DIR = __dirname;
 const INDEX = "redlens-atlas-bge";
 const DB = "redlens-atlas";
 
-const BIN = path.join(ROOT, "public/atlas-vectors.bin");
-const IDS = path.join(ROOT, "public/atlas-vectors.ids.json");
-const META = path.join(ROOT, "public/atlas-vectors.meta.json");
+const VECTORS_DIR = path.join(ROOT, ".cache/atlas-vectors");
+const BIN = path.join(VECTORS_DIR, "vectors.bin");
+const IDS = path.join(VECTORS_DIR, "ids.json");
+const META = path.join(VECTORS_DIR, "meta.json");
 const DOCS = path.join(ROOT, "public/docs.json");
 
 for (const p of [BIN, IDS, META]) {

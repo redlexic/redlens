@@ -30,9 +30,10 @@ const OUT = path.join(PUBLIC, "manifest.json");
 // Out of scope:
 //   - addresses.merged.json — intermediate, gitignored
 //   - history/** — too many files, fetched on demand
-//   - atlas-vectors.* — backend-only; provenance lives in
-//     public/atlas-vectors.meta.json + D1 kv_meta (vectorsAtlasCommit etc.)
-//     to avoid coupling frontend manifest to Workers AI availability in CI.
+//   - atlas-vectors — backend-only; lives in .cache/atlas-vectors/ and is
+//     not bundled with the frontend. Provenance lives in D1 kv_meta
+//     (vectorsAtlasCommit etc.) to avoid coupling the frontend manifest to
+//     Workers AI availability in CI.
 const ARTIFACTS = [
   // Frontend-fetched
   "docs.json",

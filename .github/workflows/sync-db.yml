@@ -45,12 +45,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build index (generates docs.json)
-        run: pnpm build:index
-
-      - name: Build graph
-        run: pnpm build:graph
-
       - name: Check Cloudflare token
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
@@ -61,10 +55,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - name: Build vectors (Workers AI bge-base-en)
-        run: pnpm build:rag
+      - name: Build server bundle (index + graph + vectors)
+        run: pnpm build:server
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Silent vector skip would sync graph data with stale embeddings.
+          # Fail loudly so token issues surface immediately.
           RAG_REQUIRE: "1"
 
       # Use the committed public/manifest.json — sync-d1.mjs reads it to

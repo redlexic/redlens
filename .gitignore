@@ -26,14 +26,9 @@ public/graph.json
 public/addresses.merged.json
 
 # Vector index — built by build-rag (Workers AI bge-base-en).
-# ~30MB binary; rebuilt fresh on every Sync DBs CI run.
-public/atlas-vectors.bin
-public/atlas-vectors.ids.json
-public/atlas-vectors.meta.json
-
-# Pre-Workers-AI local Ollama cache — kept ignored in case anyone re-enables
-# the old offline workflow.
-.cache/atlas-rag/
+# ~30MB binary; rebuilt fresh on every Sync DBs CI run. Backend-only;
+# kept out of public/ so it never ships in the frontend bundle.
+.cache/atlas-vectors/
 
 # Editor directories and files
 .vscode/*
@@ -52,3 +47,6 @@ note.md
 
 .cache/pr-check/*
 .cache/pr-check/pr227-ffe21c9.md
+.cache/atlas-rag/chunks.json
+.cache/atlas-rag/meta.json
+.cache/atlas-rag/vectors.bin

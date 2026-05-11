@@ -15,7 +15,8 @@
     "build:manifest": "node scripts/required/build-manifest.mjs",
     "build:at": "node --env-file-if-exists=.env.local scripts/required/build-at.mjs",
     "build:ts": "tsc -b",
-    "build": "pnpm build:index && pnpm build:glossary && pnpm build:addresses && pnpm build:snapshot && pnpm build:graph && pnpm build:rag && pnpm build:manifest && pnpm run build:ts && vite build",
+    "build": "pnpm build:index && pnpm build:glossary && pnpm build:addresses && pnpm build:snapshot && pnpm build:graph && pnpm build:manifest && pnpm run build:ts && vite build",
+    "build:server": "pnpm build:index && pnpm build:graph && pnpm build:rag",
     "lint": "oxlint .",
     "preview": "vite preview",
     "test": "vitest run",
@@ -24,7 +25,6 @@
     "test:snap:update": "vitest run --config vitest.snap.config.ts -u",
     "check:pr": "bash scripts/aux/check-atlas-pr.sh",
     "tva": "bash scripts/aux/tva.sh",
-    "mcp:atlas": "node mcp-atlas/server.mjs",
     "knip": "knip",
     "pull-atlas": "git submodule update --init --recursive"
   },
