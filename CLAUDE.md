@@ -25,10 +25,11 @@ pnpm build:history   # git log of atlas submodule → public/history/<uuid>.json
 pnpm build:manifest  # sha256 digest of all artifacts → public/manifest.json
 pnpm build:at        # reproducible build at a specific atlas commit
 pnpm pull-atlas      # git submodule update --init --recursive (populate submodule after a shallow clone)
-pnpm build:rag       # embedding vectors → .cache/atlas-rag/ (offline, not in main build)
+pnpm build:rag       # Workers AI bge-base-en embeddings → .cache/atlas-vectors/{vectors,ids,meta} (hosted MCP server only; NOT in pnpm build)
 pnpm dev             # vite dev server
 pnpm preview         # serve the production build locally
-pnpm build           # full pipeline: index → glossary → addresses → snapshot → graph → manifest → tsc → vite
+pnpm build           # frontend pipeline: index → glossary → addresses → snapshot → graph → manifest → tsc → vite
+pnpm build:server    # hosted MCP server pipeline: index + graph + rag (run before sync-db sync scripts)
 REPRO=1 pnpm test    # reproducibility check — two builds at the same atlas SHA must be byte-identical
 pnpm test:snap       # graph snapshot tests — fail if relations.json structure changed (graph-snapshots/)
 pnpm test:snap:update  # update graph snapshots after a deliberate atlas PR or build-graph change

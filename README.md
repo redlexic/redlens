@@ -16,7 +16,7 @@ An alternative to [sky-atlas.io](https://sky-atlas.io) with a focus on surfacing
 
 ### Search
 
-- **Full-content search** — every node of the Atlas is indexed (lunr.js, Web Worker), so queries hit the entire ~48k-line corpus instantly
+- **Full-content search** — every node of the Atlas is indexed (lunr.js, Web Worker), so queries hit the entire ~50k-line corpus instantly
 - **Chainlog ID search** — type `MCD_VAT`, `USDS`, `REWARDS_LSSKY_SKY`, etc. to find all nodes that reference that contract
 - **Address prefix search** — type `0x` or any address prefix to find nodes containing matching addresses
 - **Phrase search** — wrap terms in quotes for exact substring matching: `"surplus buffer"`
@@ -93,7 +93,17 @@ pnpm preview # serve the production build locally
 | `build:graph` | Extracts typed relationships from the atlas text → graph artifacts |
 | `build:manifest` | sha256 digest of all artifacts → integrity manifest |
 
-Each stage can also be run individually. See the [provenance page](https://anscharo.github.io/redlens/redlens/provenance) for a description of what each stage powers in the UI.
+### Hosted MCP server data
+
+The frontend bundle has no need for the embedding vectors that power semantic search on the hosted MCP server, so they're built separately:
+
+```bash
+pnpm build:server   # build:index + build:graph + build:rag
+```
+
+`build:rag` writes `.cache/atlas-vectors/{vectors,ids,meta}` (gitignored, ~30 MB, requires `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` for Workers AI bge-base-en). The `sync-db` workflow runs `pnpm build:server` and then uploads the graph to D1 and the vectors to Cloudflare Vectorize.
+
+Each stage can also be run individually. 
 
 ### Build at any historical atlas commit
 
@@ -143,17 +153,6 @@ The agent retrieves answers from the [hosted MCP server](#hosted-mcp-server--wor
 
 External knowledge is saved to `.claude/agents/ask-atlas/EXTERNAL.md` and survives across sessions.
 
-### Local Atlas MCP server
-
-`mcp-atlas/` contains a local [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes the Sky Atlas as queryable tools for Claude Code. It uses a local vector index over the node index so you can ask natural-language questions about the Atlas without sending data off your machine.
-
-```bash
-pnpm build:rag   # build the vector index (requires Ollama + nomic-embed-text, ~2 min)
-pnpm query "what is spark"   # direct RAG query without the MCP layer
-```
-
-The repo ships a `.mcp.json` so any Claude Code session in this directory auto-discovers the server. Requires [Ollama](https://ollama.com/) running locally with `ollama pull nomic-embed-text`.
-
 ### Hosted MCP server + Worker
 
 `redlens-mcp/` is a Cloudflare Worker that hosts a public MCP endpoint and REST API, backed by a D1 graph database containing all atlas nodes, the typed edge graph, named entities, and on-chain address data.
@@ -168,8 +167,8 @@ See [`redlens-mcp/AGENTS.md`](redlens-mcp/AGENTS.md) for the full tool reference
 
 | Script | Purpose |
 |---|---|
-| `build-rag.mjs` | Builds the local vector index for the MCP server |
-| `query-rag.mjs` | CLI query against the local RAG index |
+| `check-atlas-pr.sh` | Build the repo against a next-gen-atlas PR and diff artifacts (`pnpm check:pr`) |
 | `tva.sh` | Full-history build + test sweep |
+| `walk-timeline.sh` | Walks the atlas commit timeline running builds |
 | `test-addresses.mjs` | Ad-hoc dumps from address metadata |
-| `test-mcp.mjs` | Exercises the local MCP server JSON-RPC protocol |
+| `unlabeled-addresses.mjs` | Lists addresses with no resolved label for triage |
