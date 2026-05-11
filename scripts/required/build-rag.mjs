@@ -3,9 +3,12 @@
  * Build a vector index over the Sky Atlas for semantic search.
  *
  * Reads:  public/docs.json
- * Writes: public/atlas-vectors.bin
- *         public/atlas-vectors.ids.json   (ordered UUIDs that index vectors.bin)
- *         public/atlas-vectors.meta.json  (model, dim, count, atlasCommit, …)
+ * Writes: .cache/atlas-vectors/vectors.bin
+ *         .cache/atlas-vectors/ids.json   (ordered UUIDs that index vectors.bin)
+ *         .cache/atlas-vectors/meta.json  (model, dim, count, atlasCommit, …)
+ *
+ * These are not part of the frontend bundle — they feed the hosted MCP
+ * server's Vectorize index via redlens-mcp/sync-vectors.mjs.
  *
  * Embedder: Cloudflare Workers AI `@cf/baai/bge-base-en-v1.5` (768d).
  * The same model runs in the worker at query time, so build vectors and
@@ -26,7 +29,7 @@ import { execSync } from "node:child_process";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const DOCS_PATH = resolve(ROOT, "public/docs.json");
-const OUT_DIR = resolve(ROOT, "public");
+const OUT_DIR = resolve(ROOT, ".cache/atlas-vectors");
 const WRANGLER_JSONC = resolve(ROOT, "redlens-mcp/wrangler.jsonc");
 
 const MODEL = "@cf/baai/bge-base-en-v1.5";
@@ -184,13 +187,13 @@ async function main() {
   })();
 
   mkdirSync(OUT_DIR, { recursive: true });
-  writeFileSync(resolve(OUT_DIR, "atlas-vectors.bin"), Buffer.from(vectors.buffer));
+  writeFileSync(resolve(OUT_DIR, "vectors.bin"), Buffer.from(vectors.buffer));
   writeFileSync(
-    resolve(OUT_DIR, "atlas-vectors.ids.json"),
+    resolve(OUT_DIR, "ids.json"),
     JSON.stringify(chunks.map((c) => c.id)),
   );
   writeFileSync(
-    resolve(OUT_DIR, "atlas-vectors.meta.json"),
+    resolve(OUT_DIR, "meta.json"),
     JSON.stringify(
       {
         model: MODEL,
@@ -207,9 +210,9 @@ async function main() {
 
   const totalSec = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`done in ${totalSec}s`);
-  console.log(`  atlas-vectors.bin: ${(vectors.byteLength / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`  atlas-vectors.ids.json: ${chunks.length} ids`);
-  console.log(`  atlas-vectors.meta.json: model=${MODEL}, dim=${DIM}, atlas=${atlasCommit?.slice(0, 12)}`);
+  console.log(`  .cache/atlas-vectors/vectors.bin: ${(vectors.byteLength / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`  .cache/atlas-vectors/ids.json: ${chunks.length} ids`);
+  console.log(`  .cache/atlas-vectors/meta.json: model=${MODEL}, dim=${DIM}, atlas=${atlasCommit?.slice(0, 12)}`);
 }
 
 main().catch((err) => {
