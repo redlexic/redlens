@@ -24,5 +24,57 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-08",
+    "commitHash": "728bdc7",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The list of instances justifying use of the multisig in the Target Document is not intended to be exhaustive. However, the "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Core Council"
+          ],
+          [
+            "=",
+            " must exercise due caution in reviewing and validating use of the multisig in edge cases, i.e., use of the multisig that falls outside of the examples provided in the Target Document. In such \"edge cases,\" the "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Core Council"
+          ],
+          [
+            "=",
+            " must ensure that a postmortem is publicly published on the Sky Forum which justifies the use of the multisig. The "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Core Council"
+          ],
+          [
+            "=",
+            " should also consider proposing an edit to the Target Document so that the edge case is explicitly included in the examples provided in the Target Document."
+          ]
+        ]
+      ]
+    ]
   }
 ]

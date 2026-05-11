@@ -1,40 +1,40 @@
 {
-  "generatedAt": "2026-05-08T09:20:47.298Z",
-  "redlensCommit": "a98e260f19fedd628b614db2df53d11513cfaa90",
-  "atlasCommit": "15909e534ba600eb0ae839c07703499d70b96ff1",
-  "blockNumber": "25042045",
+  "generatedAt": "2026-05-11T14:53:54.702Z",
+  "redlensCommit": "9a7228ff13766e904e1507405350f90a842f4e81",
+  "atlasCommit": "a5626901a7d619f85f9da05bfdfb28f4910ee55c",
+  "blockNumber": "25072586",
   "artifacts": {
     "docs.json": {
-      "sha256": "015079d8c8395a5f8367c2d8aca2b669f1e9ea0908c2e13decc8734ca5de8498",
-      "bytes": 5764569
+      "sha256": "a564fbd314dd881b3085453c8f1d2e210754690438c95524507810a29ab95ab5",
+      "bytes": 5770827
     },
     "search-index.json": {
-      "sha256": "d51470c2aa06a9cc37991246d9430dac808358319a81ede62b1352158b5cfb6b",
-      "bytes": 14613162
+      "sha256": "84e3a39afa192ca1e3b33bd2f2e2f5b7c778d0ac1e497d672e121243ada2bddb",
+      "bytes": 14631968
     },
     "addresses.atlas.json": {
-      "sha256": "d8afb843bedc721813a5d54d87fe306e8ee99c683f8952a33fd4fecda803d7d3",
-      "bytes": 51844
+      "sha256": "47e4c3fc5469a000291f63761890a6f5a0ce409baaa4a93942da641ea5021ab7",
+      "bytes": 51851
     },
     "addresses.json": {
-      "sha256": "5886cbe2b56ce2a1c24b6ef4f5215dfcad3b3966c8e9d5a225e8daeb9e052b59",
+      "sha256": "677c37001310782fb95e5791532fdd38db5b1a91a2cf428dade97b318e7211d3",
       "bytes": 53738
     },
     "chain-state.json": {
-      "sha256": "582e8cdb38af1197dffa72433679d47a062e57299bde0537c974b7edceb4e485",
-      "bytes": 35489
+      "sha256": "122ee03b81c8375a1dc40ff36653c90a50a0efba9091a6ee31372e72b5fc7c76",
+      "bytes": 35490
     },
     "glossary.json": {
       "sha256": "384924571ad16f9f27faed4c7efee614fc87a865c756ae3e44a6315a5ff5233a",
       "bytes": 51348
     },
     "relations.json": {
-      "sha256": "4b7eb72b5f54e7972abdfa4b9bbeabf924cc6030fa3362304e9fc359695af532",
-      "bytes": 971497
+      "sha256": "99ccfd104e7426662f8a5db61d05281be55de78fd0f2e2f80e364c4eb6143bb5",
+      "bytes": 971961
     },
     "graph.json": {
-      "sha256": "f21ffa62ab0a7242ca5a881b5154a8cfc5ec51f5fa3eecdf01e88d8142cea149",
-      "bytes": 3470422
+      "sha256": "cb6f93fb83f37c19e98d462a9af6167b30f5494c13cfccc242ac1fb52e75e351",
+      "bytes": 3473461
     }
   }
 }

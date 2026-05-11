@@ -292,6 +292,14 @@
     "isProxy": true,
     "implementation": "0x41675c099f32341bf84bfc5382af534df5c7461a"
   },
+  "0xa3931d71877c0e7a3148cb7eb4463524fec27fbd": {
+    "chain": "ethereum",
+    "chainlogId": "SUSDS",
+    "etherscanName": "ERC1967Proxy",
+    "isContract": true,
+    "isProxy": true,
+    "implementation": "0x4e7991e5c547ce825bdeb665ee14a3274f9f61e0"
+  },
   "0xa950524441892a31ebddf91d3ceefa04bf454466": {
     "chain": "ethereum",
     "chainlogId": "MCD_VOW",
@@ -688,14 +696,6 @@
     "etherscanName": "fToken",
     "isContract": true,
     "isProxy": false
-  },
-  "0xa3931d71877c0e7a3148cb7eb4463524fec27fbd": {
-    "chain": "ethereum",
-    "chainlogId": "SUSDS",
-    "etherscanName": "ERC1967Proxy",
-    "isContract": true,
-    "isProxy": true,
-    "implementation": "0x4e7991e5c547ce825bdeb665ee14a3274f9f61e0"
   },
   "0x43415eb6ff9db7e26a15b704e7a3edce97d31c4e": {
     "chain": "ethereum",
