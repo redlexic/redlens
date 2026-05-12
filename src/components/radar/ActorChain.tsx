@@ -1,11 +1,10 @@
 import { ENTITY_TYPE_COLOR } from "../../lib/entityGraph";
 import type { ActorChain, ChainNode } from "../../lib/actorIndex";
+import { useRadar } from "./RadarContext";
 
 interface Props {
   chain: ActorChain;
   currentSlug: string;
-  onActor: (slug: string) => void;
-  onNavigate: (id: string) => void;
 }
 
 interface ChainGroup {
@@ -13,7 +12,8 @@ interface ChainGroup {
   nodes: ChainNode[];
 }
 
-export function ActorChain({ chain, currentSlug, onActor }: Props) {
+export function ActorChain({ chain, currentSlug }: Props) {
+  const { onActor } = useRadar();
   const { primes, executors, facilitators, govops } = chain;
   const others = (nodes: ChainNode[]) => nodes.filter((n) => n.slug !== currentSlug);
 

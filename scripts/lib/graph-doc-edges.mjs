@@ -87,7 +87,12 @@ export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
     const primRoot = docByDocNo.get(m[1]);
     if (!primRoot || !/Primitive$/i.test(primRoot.title)) continue;
     const status = instanceStatusFor(d, primRoot, docByDocNo);
-    const meta = status ? JSON.stringify({ status }) : null;
+    const isUnknownPrimitive = !knownPrimitives.has(primRoot.title);
+    const metaObj = {
+      ...(status ? { status } : {}),
+      ...(isUnknownPrimitive ? { is_unknown_primitive: true } : {}),
+    };
+    const meta = Object.keys(metaObj).length > 0 ? JSON.stringify(metaObj) : null;
     addEdge(d.id, "doc", primRoot.id, "doc", "instance_of", [d.doc_no], meta);
 
     const agentDocNo = d.doc_no.match(/^(A\.6\.1\.1\.\d+)(?:\.|$)/)?.[1];

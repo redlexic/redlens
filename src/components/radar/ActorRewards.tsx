@@ -1,13 +1,13 @@
 import type { RewardsAgent } from "../../lib/rewardsIndex";
 import { PrimitiveTable } from "../reports/RewardsPrimitiveTable";
+import { useRadar } from "./RadarContext";
 
 interface Props {
   agent: RewardsAgent;
-  onNavigate: (id: string) => void;
-  onActor: (slug: string) => void;
 }
 
-export function ActorRewards({ agent, onNavigate, onActor }: Props) {
+export function ActorRewards({ agent }: Props) {
+  const { onNavigate, onActor } = useRadar();
   const onEntity = (slug: string) => onActor(slug);
 
   if (!agent.dr && !agent.ib) {

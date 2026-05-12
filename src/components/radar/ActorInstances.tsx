@@ -3,6 +3,7 @@ import { prepareWithSegments, measureNaturalWidth } from "@chenglou/pretext";
 import type { RadarInstance, InstanceParam } from "../../lib/actorIndex";
 import { toAnchorId } from "../../lib/anchorId";
 import { StatusPill } from "../reports/RewardsCells";
+import { useRadar } from "./RadarContext";
 
 const EVM_RE = /^0x[0-9a-fA-F]{40}$/;
 const SOL_RE = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
@@ -100,7 +101,6 @@ function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (
 
 interface Props {
   instances: RadarInstance[];
-  onNavigate: (id: string) => void;
 }
 
 interface PrimitiveGroup {
@@ -142,7 +142,8 @@ function buildCategoryGroups(instances: RadarInstance[]): CategoryGroup[] {
   }));
 }
 
-export function ActorInstances({ instances, onNavigate }: Props) {
+export function ActorInstances({ instances }: Props) {
+  const { onNavigate } = useRadar();
   const groups = buildCategoryGroups(instances);
 
   return (
