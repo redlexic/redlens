@@ -15,8 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/141",
     "reviewCount": 5,
     "approvalCount": 1,
-    "summary": "Dec 8 edit",
-    "description": "Do not merge until associated poll passes"
+    "summary": "Dec 8 edit"
   },
   {
     "date": "2026-01-22",
@@ -45,6 +44,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
@@ -85,15 +85,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1,
-    "summary": "Establish Demand Side Buffer",
-    "description": "Establishes a standalone Demand Side Buffer account for Distribution Reward and Integration Boost payments, simplifies expense recognition in the Monthly Settlement Cycle, and removes references to legacy roles from Near-Term Process documents."
+    "commentCount": 1
   },
   {
     "date": "2026-04-30",
@@ -146,6 +145,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",

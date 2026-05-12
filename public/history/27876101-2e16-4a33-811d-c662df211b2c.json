@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -34,6 +34,7 @@
         "- `slope`: 25,000,000 USDS per day"
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -42,7 +43,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-04-27",
@@ -87,6 +88,7 @@
         "- `slope`: 25,000,000 USDS per day"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 215,
     "prTitle": "Spark Proposal - Spark Liquidity Layer - Update Rate Limits",
     "prAuthor": "blimpa",
@@ -94,7 +96,7 @@
     "reviewCount": 4,
     "approvalCount": 1,
     "summary": "Spark Proposal - Spark Liquidity Layer - Update Rate Limits",
-    "description": "Originating forum post: https://forum.skyeco.com/t/april-9-2026-proposed-changes-to-spark-for-upcoming-spell/27804\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Liquidity Layer - Update Rate Limits 2. [Arbitrum] Spark Liquidity Layer - Update Rate Limits 3. [Base] Spark Liquidity Layer - Update Rate Limits 4. [Ethereum] Spark Savings - Raise Deposit Caps for spUSDC, spUSDT, and spETH Recurring Items 5. [Ethereum] SparkLend - Claim SparkLend Reserves (Exec)"
   },
   {
     "date": "2026-05-05",

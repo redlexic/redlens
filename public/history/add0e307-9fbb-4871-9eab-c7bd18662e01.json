@@ -15,8 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2025-12-04",
@@ -57,6 +56,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 133,
     "prTitle": "2025-12-01 AEW Proposal",
     "prAuthor": "0xldr",
@@ -91,6 +91,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 186,
     "prTitle": "2026-02-16 AEW proposal",
     "prAuthor": "0xldr",

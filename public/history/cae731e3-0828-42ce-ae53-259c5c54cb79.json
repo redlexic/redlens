@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -59,6 +59,7 @@
         "Governance Polls occur on-chain and are used to measure the sentiment of SKY voters. Polls often run concurrently, allowing voters to participate in any number of them at the same time. Polls may have different formats like Binary Voting, Instant Run-Off Voting, or Approval Voting depending on the topic. The voting period of a given Governance Poll varies; the most common are three (3) and fourteen (14) day periods. Concurrently-posted polls do not necessarily have the same voting periods."
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

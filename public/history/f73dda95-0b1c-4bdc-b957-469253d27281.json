@@ -43,6 +43,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 219,
     "prTitle": "Atlas Edit Proposal — 2026-04-06",
     "prAuthor": "adamgfraser",
@@ -99,6 +100,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",

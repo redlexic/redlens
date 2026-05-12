@@ -15,8 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/156",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "January 12 edit",
-    "description": "Do not merge unless poll passes"
+    "summary": "January 12 edit"
   },
   {
     "date": "2026-01-22",
@@ -45,6 +44,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",

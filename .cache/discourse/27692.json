@@ -1,0 +1,8 @@
+{
+  "topicId": 27692,
+  "url": "https://forum.skyeco.com/t/allocator-nova-a-parameter-changes/27692",
+  "title": "ALLOCATOR-NOVA-A Parameter Changes",
+  "slug": "allocator-nova-a-parameter-changes",
+  "fetchedAt": "2026-05-12T13:21:13.478Z",
+  "post1Raw": "On behalf of @atlas-axis as Core GovOps, we request the Core Facilitator to include the following parameter changes for the ALLOCATOR-NOVA-A Prime Allocator Vault in the next available Executive Vote. See [Update Process](https://sky-atlas.io/#A.3.7.1.2.2).\n\n1. DC-IAM: Remove `ALLOCATOR-NOVA-A` from the DC-IAM\n2. `line`: Set to `0`"
+}

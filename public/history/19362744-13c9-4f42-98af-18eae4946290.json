@@ -15,9 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1,
-    "summary": "Add Missing Grove Instance On Plume",
-    "description": "Adds the Centrifuge ACRDX instance to the Grove artifact for Plume, including deposit and withdrawal parameters."
+    "commentCount": 1
   },
   {
     "date": "2026-05-05",

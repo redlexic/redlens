@@ -89,14 +89,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "Define Protocol Security Workstream Lead Role",
-    "description": "Defines the Protocol Security Workstream Lead role, establishing its security and incident coordination responsibilities, and names the current holder."
+    "summary": "Defer Plasma SkyLink Bridge Deployment Date",
+    "description": "Defers the Plasma SkyLink Bridge deployment from the April 23, 2026 Executive Vote to a future Executive Vote."
   },
   {
     "date": "2026-05-05",

@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "Update Grove Artifact",
+    "description": "Add new subdocuments of `A.6.1.1.2.2.6.1.1.2.1.6 - Curve`. These documents should be located directly after `A.6.1.1.2.2.6.1.1.2.1.6.2 - Ethereum Mainnet - Curve RLUSD/USDC Pool LP Deposits Instance Configuration Document Location` to read as follows: Ethereum Mainnet - Curve AUSD/USDC Swaps Instance Configuration Document Location *(Core)* - This Instance’s associated Instance Configuration Document is located at Ethereum Mainnet - Curve AUSD/USDC Swaps Instance Configuration Document. Ethereum Mainnet - Curve AUSD/USDC LP Instance Configuration Document Location *(Core)* - This Instance’s…"
   },
   {
     "date": "2026-03-05",
@@ -41,6 +41,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",

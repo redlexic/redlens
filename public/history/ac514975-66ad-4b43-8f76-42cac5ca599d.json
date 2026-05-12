@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -42,6 +42,7 @@
         "- By separating strategy from operations, this division of labor empowers Prime Agents to innovate rapidly and expand their ventures without needing to develop specialized operational expertise, as Operational Executors manage the day-to-day technical implementation under the oversight of Core Executor Agents."
       ]
     ],
+    "changeKind": "lint",
     "pr": 218,
     "prTitle": "remove whitespace in lists",
     "prAuthor": "0xldr",

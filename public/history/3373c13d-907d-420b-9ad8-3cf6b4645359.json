@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -34,6 +34,7 @@
         "- Operational GovOps updates the Powerhouse system with the transaction details."
       ]
     ],
+    "changeKind": "lint",
     "pr": 218,
     "prTitle": "remove whitespace in lists",
     "prAuthor": "0xldr",

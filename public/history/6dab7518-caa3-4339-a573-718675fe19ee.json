@@ -24,7 +24,7 @@
     "reviewCount": 1,
     "approvalCount": 1,
     "summary": "Spark Proposal - SLL - Onboard Morpho v2 USDT Vault",
-    "description": "Originating forum post: https://forum.sky.money/t/february-26-2026-proposed-changes-to-spark-for-upcoming-spell/27719\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Treasury - Spark Foundation Grant for March (Exec) 2. [Ethereum] Spark Treasury - SPK Buybacks Transfer for February 2026 (Exec) 3. [Ethereum] SparkLend - Claim Reserves (Exec) 4. [Ethereum] Spark Liquidity Layer - Increase Rate Limit for SparkLend USDT 5. [Ethereum] Spark Liquidity Layer - Increase Rate Limit for Maple syrupUSDT 6. [Ethereum] Spark Liquidity Layer - Increase Rate Limit for Aave Core USDT 7. [Ethereum] Spark Liquidity Layer - Onboard with Paxos (Exec) 8. [Ethereum] Spark Liquidity Layer - Onboard Morpho v2 USDT Vault"
   },
   {
     "date": "2026-03-26",
@@ -48,6 +48,7 @@
         "- `slope`: unlimited"
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -56,7 +57,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-05-05",

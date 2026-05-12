@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "Collapse Ecosystem Upkeep To Uniform 50 bps",
-    "description": "Replaces the Market Cap Fee and Distribution Requirement Primitives with a single Ecosystem Upkeep Fee Primitive at a uniform 50 bps of market capitalization in USDS, and removes the Ecosystem Accord's special upkeep logic."
+    "summary": "Add Multisig Security Enforcement Framework",
+    "description": "Adds the Multisig Security Enforcement Framework governing security and operational requirements for Multisigs across Sky Core and Prime Agent infrastructure, effective May 20, 2026."
   },
   {
     "date": "2026-05-05",

@@ -43,8 +43,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/143",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "2025-12-15 Edit",
-    "description": "forum post: https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2025-12-15/27546"
+    "summary": "Add Risk Requirements For Anchorage",
+    "description": "Add a new subdocument of `A.3.2.2.1.1.1.1.3 - Exceptions`. This document should be located directly after `A.3.2.2.1.1.1.1.3.6 - Drift` to read as follows: Anchorage *(Core)* - Offchain lending through Anchorage Digital has a CRR of 3.5%. The maximum exposure is 200,000,000 USD. The terms of this offchain lending must conform to the following specifications: Collateral Asset: Native BTC Initial LTV: 80% (125% collateralization ratio) Margin Call LTV: 85% (117.6% collateralization ratio) Margin Call Period: 24 hours Liquidation LTV: 90% (111.1% collateralization ratio) Maturity Date:…"
   },
   {
     "date": "2026-02-22",
@@ -89,14 +89,15 @@
         "- Collateral Asset: Native BTC"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 186,
     "prTitle": "2026-02-16 AEW proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/186",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-16 AEW proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-16/27720/1"
+    "summary": "Update Risk Parameters For Anchorage Digital",
+    "description": "Replace `A.3.2.2.1.1.1.1.3.7 - Anchorage` to read as follows: Anchorage *(Core)* - Offchain lending through Anchorage Digital has a CRR of 3%. The maximum exposure is 500,000,000 USD. The terms of this offchain lending must conform to the following specifications: Collateral Asset: Native BTC Initial LTV: 80% (125% collateralization ratio) Margin Call LTV: 85% (117.6% collateralization ratio) Margin Call Period: 24 hours Liquidation LTV: 90% (111.1% collateralization ratio) Maturity Date: Approximately 6-month duration"
   },
   {
     "date": "2026-05-05",

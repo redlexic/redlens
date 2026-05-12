@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/200",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-03-16 Weekly Edit Proposal",
-    "description": "https://forum.skyeco.com/t/atlas-edit-weekly-cycle-proposal-week-of-2026-03-16/27767"
+    "summary": "Add Allocation System Instances To Grove Artifact",
+    "description": "Add a new subdocument of `A.6.1.1.2.2.6.1.1.2.1.1 - Centrifuge`. This document should be located directly after `A.6.1.1.2.2.6.1.1.2.1.1.2 - Ethereum Mainnet - Centrifuge JAAA Instance Configuration Document Location` to read as follows: Ethereum Mainnet - Centrifuge ACRDX Instance Configuration Document Location *(Core)* - This Instance's associated Instance Configuration Document is located at Ethereum Mainnet - Centrifuge ACRDX Instance Configuration Document. Add new subdocuments of `A.6.1.1.2.2.6.1.1.2.1.7 - Morpho`. These documents should be located directly after…"
   },
   {
     "date": "2026-05-05",

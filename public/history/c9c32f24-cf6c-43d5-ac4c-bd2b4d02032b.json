@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -83,14 +83,14 @@
         "After an emergency situation has been declared, the Support or Governance Facilitators are responsible for coordinating emergency-situation processes to ensure they are civil, consistently applied and aligned. The Governance Facilitators are responsible for publishing Polls and Executive Votes."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 180,
     "prTitle": "Feb 9 edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/180",
     "reviewCount": 4,
     "approvalCount": 1,
-    "summary": "Feb 9 edit",
-    "description": "Do not merge until poll passes"
+    "summary": "Feb 9 edit"
   },
   {
     "date": "2026-04-02",
@@ -317,6 +317,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",

@@ -9,15 +9,17 @@
  * Usage: node scripts/aux/bench-bullet-match.mjs <pr_number> [<pr_number> ...]
  */
 
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { extractForumBullets, findForumTopicIds } from "../lib/forum-parse.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const HISTORY_DIR = path.join(ROOT, "public/history");
 const DOCS_PATH = path.join(ROOT, "public/docs.json");
 const PR_CACHE_DIR = path.join(ROOT, ".cache/github-prs");
+const FORUM_CACHE_DIR = path.join(ROOT, ".cache/discourse");
 
 const prNumbers = process.argv.slice(2).map((n) => parseInt(n, 10)).filter(Boolean);
 if (prNumbers.length === 0) {
@@ -114,11 +116,16 @@ function newScore(bullet, own, ancestors) {
   const titleT = new Set(tokenize(bullet.title));
   const descT = new Set(tokenize(bullet.description ?? ""));
   if (titleT.size === 0 && descT.size === 0) return 0;
-  let ownHits = 0;
-  for (const t of own) if (titleT.has(t) || descT.has(t)) ownHits++;
+  let ownTitleHits = 0, ownTotalHits = 0;
+  for (const t of own) {
+    const inTitle = titleT.has(t);
+    if (inTitle) ownTitleHits++;
+    if (inTitle || descT.has(t)) ownTotalHits++;
+  }
   let ancHits = 0;
   for (const t of ancestors) if (titleT.has(t)) ancHits++;
-  return Math.min(1, (ownHits + ancHits) / own.size);
+  if (ownTitleHits === 0 && ownTotalHits < 2 && ancHits < 2) return 0;
+  return Math.min(1, (ownTotalHits + ancHits) / own.size);
 }
 
 function explicitRefs(bullet) {
@@ -129,9 +136,17 @@ function explicitRefs(bullet) {
   };
 }
 
-function newMatchRate(bullets, changedNodes, byDocNo) {
+function nodeInRefScope(nodeDocNo, refDocNos) {
+  for (const ref of refDocNos) {
+    if (nodeDocNo === ref || nodeDocNo.startsWith(ref + ".")) return true;
+  }
+  return false;
+}
+
+function newMatchRate(bullets, changedNodes, byDocNo, opts = {}) {
+  const { extraRefs, refFallback } = opts;
   let matched = 0;
-  const breakdown = { ref: 0, fuzzy: 0, sole: 0 };
+  const breakdown = { ref: 0, forumRef: 0, fuzzy: 0, sole: 0 };
   const bulletRefs = bullets.map((b) => ({ bullet: b, refs: explicitRefs(b) }));
   const matchedSet = new Set();
 
@@ -142,10 +157,16 @@ function newMatchRate(bullets, changedNodes, byDocNo) {
         hit = { via: "ref" }; break;
       }
     }
+    if (!hit && extraRefs && refFallback) {
+      if (extraRefs.docNos.has(node.doc_no) || extraRefs.uuids.has(node.id)) {
+        hit = { via: "forumRef" };
+      }
+    }
     if (!hit) {
       const { own, ancestors } = nodeTokenSets(node, byDocNo);
       let best = 0;
-      for (const { bullet } of bulletRefs) {
+      for (const { bullet, refs } of bulletRefs) {
+        if (refs.docNos.size > 0 && !nodeInRefScope(node.doc_no, refs.docNos)) continue;
         const s = newScore(bullet, own, ancestors);
         if (s > best) best = s;
       }
@@ -167,6 +188,31 @@ function newMatchRate(bullets, changedNodes, byDocNo) {
   }
 
   return { matched, breakdown };
+}
+
+// Load forum bullets+extraRefs from disk cache for the PR (if any forum link).
+function loadForumExtrasForBench(pr) {
+  if (!pr?.body) return null;
+  const topicIds = findForumTopicIds(pr.body);
+  if (topicIds.length === 0) return null;
+  const bullets = [];
+  const docNos = new Set();
+  const uuids = new Set();
+  let any = false;
+  for (const id of topicIds) {
+    const p = path.join(FORUM_CACHE_DIR, `${id}.json`);
+    if (!fs.existsSync(p)) continue;
+    const entry = JSON.parse(fs.readFileSync(p, "utf8"));
+    if (!entry.post1Raw) continue;
+    const { bullets: bs, extraRefs } = extractForumBullets(entry.post1Raw, {
+      fallbackTitle: pr.title,
+    });
+    bullets.push(...bs);
+    for (const r of extraRefs.docNos) docNos.add(r);
+    for (const r of extraRefs.uuids) uuids.add(r);
+    any = true;
+  }
+  return any ? { bullets, extraRefs: { docNos, uuids } } : null;
 }
 
 // ---- Load docs + per-node history to find which nodes were touched by each PR ----
@@ -199,7 +245,12 @@ for (const prNum of prNumbers) {
     continue;
   }
   const pr = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
-  const bullets = parsePrBullets(pr.body || "");
+  const prBullets = parsePrBullets(pr.body || "");
+  const forum = loadForumExtrasForBench(pr);
+  const bullets = [...prBullets, ...(forum?.bullets ?? [])];
+  const refFallback =
+    prBullets.length === 0 && forum?.bullets.length === 1 ? forum.bullets[0] : null;
+
   const touched = prToNodes.get(prNum) ?? [];
   // Dedup: a node can appear once per changeType but we want unique ids.
   const seen = new Set();
@@ -209,15 +260,19 @@ for (const prNum of prNumbers) {
     seen.add(n.id);
     uniq.push(n);
   }
-  const oldMatched = oldMatchRate(bullets, uniq);
-  const { matched: newMatched, breakdown } = newMatchRate(bullets, uniq, byDocNo);
+  const oldMatched = oldMatchRate(prBullets, uniq);
+  const { matched: newMatched, breakdown } = newMatchRate(bullets, uniq, byDocNo, {
+    extraRefs: forum?.extraRefs ?? null,
+    refFallback,
+  });
 
   console.log(`\n=== PR #${prNum}: ${pr.title} ===`);
-  console.log(`  bullets:        ${bullets.length}`);
+  console.log(`  bullets:        pr=${prBullets.length}, forum=${forum?.bullets.length ?? 0}`);
   console.log(`  touched nodes:  ${uniq.length}`);
   console.log(`  OLD matched:    ${oldMatched}/${uniq.length} (${pct(oldMatched, uniq.length)}%)`);
   console.log(`  NEW matched:    ${newMatched}/${uniq.length} (${pct(newMatched, uniq.length)}%)`);
   console.log(`    via doc_no/uuid ref: ${breakdown.ref}`);
+  console.log(`    via forum extraRefs: ${breakdown.forumRef}`);
   console.log(`    via fuzzy:           ${breakdown.fuzzy}`);
   console.log(`    via sole-bullet:     ${breakdown.sole}`);
 }

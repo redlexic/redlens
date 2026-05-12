@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -147,6 +147,7 @@
         "The Spark Savings ETH Spread will be defined as part of the ALM Planner configuration process, and will be set within a range of -0.5% to 2%."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 188,
     "prTitle": " SAEP-11: Update Spark Savings Configuration",
     "prAuthor": "blimpa",
@@ -154,7 +155,7 @@
     "reviewCount": 3,
     "approvalCount": 1,
     "summary": " SAEP-11: Update Spark Savings Configuration",
-    "description": "Originating forum post: https://forum.sky.money/t/saep-11-update-spark-savings-configuration/27723\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "This proposal is submitted by Phoenix Labs in its role as a nested contributor, as defined in section A.6.1.1.1.2.2.2.2.1.2.1.1.1 of the Spark Artifact. The proposal recommends that Spark governance update certain Target Liquidity and Rewards Rate parameters."
   },
   {
     "date": "2026-05-05",

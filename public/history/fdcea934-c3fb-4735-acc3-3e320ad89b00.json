@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -59,6 +59,7 @@
         "To perform this check, the validator must go to the \"Contract\" tab on Etherscan and the \"Contract ABI\" section. Copy the ABI JSON and compare it against the expected ABI from the official GitHub repository (e.g., Spells-mainnet repo). To obtain the expected ABI from the GitHub repository download the relevant Solidity file, paste it into a tool like Remix IDE, select the matching compiler version, and compile to extract the ABI JSON. Use a diff tool to check for exact matches in functions, parameters, and types."
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

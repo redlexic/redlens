@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -39,14 +39,15 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "Define Protocol Security Workstream Lead Role",
-    "description": "Defines the Protocol Security Workstream Lead role, establishing its security and incident coordination responsibilities, and names the current holder."
+    "summary": "Increase GSM Pause Delay From 24h To 48h",
+    "description": "Increases the GSM Pause Delay from 24 hours to 48 hours."
   },
   {
     "date": "2026-05-05",

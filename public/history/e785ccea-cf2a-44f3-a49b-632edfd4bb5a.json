@@ -15,7 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "Add Ecosystem Accord Between Sky And Grove",
-    "description": "Adds Ecosystem Accord 10, establishing compensation to Grove for the Chronicle Point Reward Instance at 20% of Base Rate on USDS deposited in the Rewards contract, retroactive to July 24, 2025."
+    "summary": "Document How To Query The Sky Savings Rate Current Value",
+    "description": "Specifies the sUSDS contract address, the `ssr()` function, and the formula to convert the per-second rate into an annualized rate."
   }
 ]

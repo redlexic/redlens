@@ -43,8 +43,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/186",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-16 AEW proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-16/27720/1"
+    "summary": "Authorize Safe Harbor Agreement",
+    "description": "Add new subdocuments of `A.2.11.1 - Ecosystem Security Infrastructure`. These documents should be located directly after `A.2.11.1.1 - Bug Bounty Program For Critical Infrastructure` and its subdocuments to read as follows: Safe Harbor *(Core)* - Sky Ecosystem is adopting the Security Alliance Safe Harbor Agreement (”Safe Harbor”) by executing the procedures specified in Execution. Safe Harbor is a public agreement that protocols may adopt to waive the right to pursue legal claims against a whitehat hacker, provided that the hacker acts competently, lawfully, and in good faith. Under Safe…"
   },
   {
     "date": "2026-03-12",
@@ -110,6 +110,7 @@
         "- Solana - `AYPtjx4Hc8us1ikULUedkmZ3wtiD6tmL7gK3qe4V3oHt`"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 196,
     "prTitle": "March 9 edit",
     "prAuthor": "MakerJanSky",
@@ -135,6 +136,7 @@
         "- Avalanche - `0xe928885BCe799Ed933651715608155F01abA23cA`"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 222,
     "prTitle": "Atlas Edit Proposal — 2026-04-13",
     "prAuthor": "adamgfraser",
@@ -162,6 +164,7 @@
         "- Plasma - `0x5CE28f2dD353945db9AB3273A2a1dD1AB632e24b`"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",

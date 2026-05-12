@@ -14,9 +14,7 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
-    "approvalCount": 1,
-    "summary": "Add Solana Bridge Distribution Reward Instance To Keel Artifact",
-    "description": "Adds documentation for the Solana Bridge Distribution Reward Primitive Instance to the Keel Artifact, with Reward Code 4001."
+    "approvalCount": 1
   },
   {
     "date": "2026-05-05",

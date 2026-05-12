@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -51,6 +51,7 @@
         "- Take rate limit: unlimited"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 130,
     "prTitle": "Spark Proposal - Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC, spUSDT, spETH",
     "prAuthor": "blimpa",
@@ -59,7 +60,7 @@
     "approvalCount": 1,
     "commentCount": 3,
     "summary": "Spark Proposal - Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC, spUSDT, spETH",
-    "description": "Originating forum post: https://forum.sky.money/t/december-11-2025-proposed-changes-to-spark-for-upcoming-spell/27481\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Treasury - Spark Foundation Grant 2. [Ethereum] SparkLend - Withdraw Reserves (Exec) 3. [Ethereum] Spark Liquidity Layer - Onboarding with Anchorage (Exec) 4. [Ethereum] Spark Liquidity Layer - Onboard Spark Prime / Arkis 5. [Ethereum] Spark Savings - Launch Spark Savings spPYUSD 6. [Ethereum] Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC, spUSDT, spETH 7. [Avalanche] Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC 8. [Ethereum] Spark USDC Morpho Vault - Update Allocator Role to ALM Proxy Freezable 9. [Ethereum] Spark USDS Morpho…"
   },
   {
     "date": "2026-03-23",
@@ -88,6 +89,7 @@
         "- Default admin role: 0x3300f198988e4C9C63F75dF86De36421f06af8c4"
       ]
     ],
+    "changeKind": "lint",
     "pr": 199,
     "prTitle": "Global linting - Remove extra spaces",
     "prAuthor": "blimpa",
@@ -96,7 +98,7 @@
     "approvalCount": 1,
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
-    "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+    "description": "Extra spaces have been removed. --- The following have been kept unchanged: - Code blocks/lines have been kept unchanged excepting the removal of: - Line-final spaces - Interlinear spaces - Table layouts excepting the removal of: - Line-final spaces Newlines have not been changed."
   },
   {
     "date": "2026-04-27",
@@ -129,6 +131,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 216,
     "prTitle": "Spark Proposal - Spark Savings - Raise Deposit Caps for spUSDC, spUSD…",
     "prAuthor": "blimpa",
@@ -136,7 +139,7 @@
     "reviewCount": 1,
     "approvalCount": 1,
     "summary": "Spark Proposal - Spark Savings - Raise Deposit Caps for spUSDC, spUSD…",
-    "description": "Originating forum post: https://forum.skyeco.com/t/april-9-2026-proposed-changes-to-spark-for-upcoming-spell/27804\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Liquidity Layer - Update Rate Limits 2. [Arbitrum] Spark Liquidity Layer - Update Rate Limits 3. [Base] Spark Liquidity Layer - Update Rate Limits 4. [Ethereum] Spark Savings - Raise Deposit Caps for spUSDC, spUSDT, and spETH Recurring Items 5. [Ethereum] SparkLend - Claim SparkLend Reserves (Exec)"
   },
   {
     "date": "2026-05-05",

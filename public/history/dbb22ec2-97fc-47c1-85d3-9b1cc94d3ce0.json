@@ -48,6 +48,7 @@
         "- Skybase Foundation: 1 signer"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",

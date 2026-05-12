@@ -51,6 +51,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 176,
     "prTitle": "2026-02-02 Edit",
     "prAuthor": "0xldr",
