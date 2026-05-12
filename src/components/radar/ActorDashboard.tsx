@@ -6,12 +6,11 @@ import { ActorResponsibilities } from "./ActorResponsibilities";
 import { ActorRewards } from "./ActorRewards";
 import { ActorInstances } from "./ActorInstances";
 import { ActorHistory } from "./ActorHistory";
+import { useRadar } from "./RadarContext";
 import { Link } from "wouter";
 
 interface Props {
   profile: ActorProfile;
-  onNavigate: (id: string) => void;
-  onActor: (slug: string) => void;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -28,7 +27,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function RelationRow({ r, onActor }: { r: ActorRelation; onActor: (slug: string) => void }) {
+function RelationRow({ r }: { r: ActorRelation }) {
+  const { onActor } = useRadar();
   const label = edgeLabel(r.edge.e, r.direction);
   const arrow = r.direction === "outbound" ? "→" : "←";
   return (
@@ -47,7 +47,8 @@ function RelationRow({ r, onActor }: { r: ActorRelation; onActor: (slug: string)
   );
 }
 
-function RecRow({ rec, onActor }: { rec: Recommendation; onActor: (slug: string) => void }) {
+function RecRow({ rec }: { rec: Recommendation }) {
+  const { onActor } = useRadar();
   return (
     <div className="flex items-start gap-2 py-1 border-t border-[var(--border)] text-sm">
       <span style={{ color: "var(--accent)" }}>▲</span>
@@ -74,7 +75,8 @@ function RecRow({ rec, onActor }: { rec: Recommendation; onActor: (slug: string)
   );
 }
 
-export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
+export function ActorDashboard({ profile }: Props) {
+  const { onNavigate, onActor } = useRadar();
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (!hash) return;
@@ -144,12 +146,7 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
 
           {/* Chain — always shown */}
           <div className="mb-6">
-            <ActorChain
-              chain={chain}
-              currentSlug={entity.slug}
-              onActor={onActor}
-              onNavigate={onNavigate}
-            />
+            <ActorChain chain={chain} currentSlug={entity.slug} />
           </div>
 
           {entity.et === "composite_party" && (
@@ -181,32 +178,32 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
           )}
           {adRows.length > 0 && (
             <Section title="Responsibilities">
-              <ActorResponsibilities rows={adRows} onNavigate={onNavigate} />
+              <ActorResponsibilities rows={adRows} />
             </Section>
           )}
           {instances.length > 0 && (
             <Section title="Instances">
-              <ActorInstances instances={instances} onNavigate={onNavigate} />
+              <ActorInstances instances={instances} />
             </Section>
           )}
           {relations.length > 0 && (
             <Section title="Relationships">
               {relations.map((r, i) => (
-                <RelationRow key={i} r={r} onActor={onActor} />
+                <RelationRow key={i} r={r} />
               ))}
             </Section>
           )}
           {recommendations.length > 0 && (
             <Section title="Notable">
               {recommendations.map((rec, i) => (
-                <RecRow key={i} rec={rec} onActor={onActor} />
+                <RecRow key={i} rec={rec} />
               ))}
             </Section>
           )}
         </div>
 
         <aside className="min-w-0">
-          <Section title="History">
+          <Section title={"History of Doc Changes affecting " + profile.entity.name}>
             <ActorHistory profile={profile} />
           </Section>
         </aside>
@@ -214,7 +211,7 @@ export function ActorDashboard({ profile, onNavigate, onActor }: Props) {
         {rewardsAgent && (
           <div className="lg:col-span-2 min-w-0">
             <Section title="Rewards">
-              <ActorRewards agent={rewardsAgent} onNavigate={onNavigate} onActor={onActor} />
+              <ActorRewards agent={rewardsAgent} />
             </Section>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { AgentPrimitiveStat, CategoryStat, PrimitiveTypeStat } from "../../lib/primitiveStats";
 import { toAnchorId } from "../../lib/anchorId";
+import { useRadar } from "./RadarContext";
 
 function shortenCategoryTitle(title: string): string {
   return title.replace(/\s*Primitives\s*/i, "").trim();
@@ -115,10 +116,10 @@ function AgentPanel({ agent, onActor }: { agent: AgentPrimitiveStat; onActor: (s
 
 interface Props {
   agents: AgentPrimitiveStat[];
-  onActor: (slug: string, fragment?: string) => void;
 }
 
-export function PrimitiveDashboard({ agents, onActor }: Props) {
+export function PrimitiveDashboard({ agents }: Props) {
+  const { onActor } = useRadar();
   const [executorFilter, setExecutorFilter] = useState<string | null>(null);
 
   const executors = [...new Map(

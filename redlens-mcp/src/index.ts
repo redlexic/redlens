@@ -202,7 +202,6 @@ async function getAncestorChains(db: D1Database, seedUuids: string[]): Promise<M
 // v0: hardcoded GitHub Pages URL. Swap to an env var when we have a stable need.
 const HISTORY_BASE_URL = "https://anscharo.github.io/redlens/history";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ---------------------------------------------------------------------------
 // MCP server factory

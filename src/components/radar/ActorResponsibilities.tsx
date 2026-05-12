@@ -1,13 +1,14 @@
 import type { ActiveDataRow } from "../../lib/activeDataIndex";
 import { Link } from "wouter";
 import { ROUTES } from "../../lib/routes";
+import { useRadar } from "./RadarContext";
 
 interface Props {
   rows: ActiveDataRow[];
-  onNavigate: (id: string) => void;
 }
 
-function Row({ r, onNavigate }: { r: ActiveDataRow; onNavigate: (id: string) => void }) {
+function Row({ r }: { r: ActiveDataRow }) {
+  const { onNavigate } = useRadar();
   return (
     <tr className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
       <td className="py-2 px-3 align-top">
@@ -44,7 +45,7 @@ function Row({ r, onNavigate }: { r: ActiveDataRow; onNavigate: (id: string) => 
   );
 }
 
-export function ActorResponsibilities({ rows, onNavigate }: Props) {
+export function ActorResponsibilities({ rows }: Props) {
   return (
     <div>
       <div className="overflow-x-auto">
@@ -60,7 +61,7 @@ export function ActorResponsibilities({ rows, onNavigate }: Props) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <Row key={r.activeDataId} r={r} onNavigate={onNavigate} />
+              <Row key={r.activeDataId} r={r} />
             ))}
           </tbody>
         </table>
