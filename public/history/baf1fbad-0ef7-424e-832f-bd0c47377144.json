@@ -84,7 +84,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/208",
     "reviewCount": 1,
     "approvalCount": 1,
-    "commentCount": 2
+    "commentCount": 2,
+    "summary": "Update Spark Prime Arkis Deployment Parameters",
+    "description": "Removes Interim Deployment status from Arkis, raises Maximum Exposure from $20M to $50M, and reduces Instance Capital Requirement Ratio from 100% to 50%."
   },
   {
     "date": "2026-05-05",

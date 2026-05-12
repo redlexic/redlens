@@ -162,6 +162,12 @@
         "=",
         "- The contract will mint the required USDS into the buffer contract."
       ]
-    ]
+    ],
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

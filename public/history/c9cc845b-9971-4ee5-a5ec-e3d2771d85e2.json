@@ -85,8 +85,8 @@
     "reviewCount": 1,
     "approvalCount": 1,
     "commentCount": 2,
-    "summary": "Remove Governance Poll Requirement For SparkLend Parameter Changes",
-    "description": "Removes the requirement for a Governance Poll before modifying SparkLend Liquidation Threshold and Liquidation Bonus parameters, allowing these changes to proceed directly to an Executive Vote via the Operational Weekly Cycle."
+    "summary": "Update Spark Prime Arkis Deployment Parameters",
+    "description": "Removes Interim Deployment status from Arkis, raises Maximum Exposure from $20M to $50M, and reduces Instance Capital Requirement Ratio from 100% to 50%."
   },
   {
     "date": "2026-05-05",

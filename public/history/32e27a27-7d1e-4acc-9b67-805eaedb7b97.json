@@ -35,7 +35,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1
+    "commentCount": 1,
+    "summary": "Establish Demand Side Buffer",
+    "description": "Establishes a standalone Demand Side Buffer account for Distribution Reward and Integration Boost payments, simplifies expense recognition in the Monthly Settlement Cycle, and removes references to legacy roles from Near-Term Process documents."
   },
   {
     "date": "2026-05-05",

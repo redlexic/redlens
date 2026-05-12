@@ -82,7 +82,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Collapse Ecosystem Upkeep To Uniform 50 bps",
+    "description": "Replaces the Market Cap Fee and Distribution Requirement Primitives with a single Ecosystem Upkeep Fee Primitive at a uniform 50 bps of market capitalization in USDS, and removes the Ecosystem Accord's special upkeep logic."
   },
   {
     "date": "2026-05-05",

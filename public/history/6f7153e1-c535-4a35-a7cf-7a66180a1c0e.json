@@ -227,7 +227,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1
+    "commentCount": 1,
+    "summary": "Establish Demand Side Buffer",
+    "description": "Establishes a standalone Demand Side Buffer account for Distribution Reward and Integration Boost payments, simplifies expense recognition in the Monthly Settlement Cycle, and removes references to legacy roles from Near-Term Process documents."
   },
   {
     "date": "2026-04-30",
@@ -350,8 +352,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "Add Authorized Forum Accounts Requirements",
-    "description": "Establishes registration, disclosure, and enforcement requirements for Sky Forum accounts used in a governance capacity, so the community can trust that posts made on behalf of an entity come from its authorized representatives."
+    "summary": "Restructure Treasury Management Function",
+    "description": "Restructures the TMF waterfall across four steps (Security and Maintenance, Aggregate Backstop Capital growth, Smart Burn Engine with split between SKY rewards / USDS rewards / burn, and Staking Rewards). Retires the Net Revenue Ratio and activity-based staking reward tiers."
   },
   {
     "date": "2026-05-05",
@@ -396,6 +398,12 @@
           ]
         ]
       ]
-    ]
+    ],
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

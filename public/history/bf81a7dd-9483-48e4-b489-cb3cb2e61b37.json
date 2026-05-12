@@ -121,6 +121,14 @@
           ]
         ]
       ]
-    ]
+    ],
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Fix Stray Spaces In Rate Limit Solidity Identifiers",
+    "description": "Removes spaces from Solidity identifier names in the Keel, Obex, and Pattern Rate Limit Management sections."
   }
 ]

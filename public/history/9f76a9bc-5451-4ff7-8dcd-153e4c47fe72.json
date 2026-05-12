@@ -66,7 +66,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Add Pattern Liquidity Layer Documentation",
+    "description": "Adds documentation for the Pattern Liquidity Layer, including ALM contract addresses, rate limits, Relayer and Freezer Multisigs, and the Maple syrupUSDC Active Instance."
   },
   {
     "date": "2026-05-05",

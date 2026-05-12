@@ -57,7 +57,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/208",
     "reviewCount": 1,
     "approvalCount": 1,
-    "commentCount": 2
+    "commentCount": 2,
+    "summary": "Remove Governance Poll Requirement For SparkLend Parameter Changes",
+    "description": "Removes the requirement for a Governance Poll before modifying SparkLend Liquidation Threshold and Liquidation Bonus parameters, allowing these changes to proceed directly to an Executive Vote via the Operational Weekly Cycle."
   },
   {
     "date": "2026-04-13",

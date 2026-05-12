@@ -28,7 +28,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Expand SLL And GLL Abbreviations",
+    "description": "Expands \"SLL\" and \"GLL\" abbreviations to \"Spark Liquidity Layer\" and \"Grove Liquidity Layer.\""
   },
   {
     "date": "2026-05-05",

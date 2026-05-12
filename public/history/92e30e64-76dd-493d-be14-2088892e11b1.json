@@ -44,7 +44,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Add Solana Pioneer Chain Instance To Keel",
+    "description": "Adds the Solana Instance Configuration Document to Keel's Pioneer Chain Primitive and specifies its associated parameters."
   },
   {
     "date": "2026-04-13",

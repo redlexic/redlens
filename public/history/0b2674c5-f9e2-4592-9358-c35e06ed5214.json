@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "Add Multisig Security Enforcement Framework",
-    "description": "Adds the Multisig Security Enforcement Framework governing security and operational requirements for Multisigs across Sky Core and Prime Agent infrastructure, effective May 20, 2026."
+    "summary": "Add Plasma SkyLink Bridge",
+    "description": "Adds documentation for the Plasma SkyLink Bridge, specifying Freezer Multisig configuration, Rate Limits, and Validator parameters."
   },
   {
     "date": "2026-05-05",

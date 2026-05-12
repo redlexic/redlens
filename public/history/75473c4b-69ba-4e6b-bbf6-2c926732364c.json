@@ -76,7 +76,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Clarify Genesis Capital Backstop Haircut And Settlement",
+    "description": "Clarifies the haircut cap as Aggregate Backstop Capital and removes the 24 billion SKY distribution to Genesis Agents when the haircut fully covers the loss."
   },
   {
     "date": "2026-05-05",
