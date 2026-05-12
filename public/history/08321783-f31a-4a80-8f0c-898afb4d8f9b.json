@@ -120,8 +120,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/182",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "remove ALLOCATOR-NOVA-A from DC-IAM and set `line` to 0",
-    "description": "https://forum.sky.money/t/allocator-nova-a-parameter-changes/27692"
+    "summary": "remove ALLOCATOR-NOVA-A from DC-IAM and set `line` to 0"
   },
   {
     "date": "2026-03-05",
@@ -157,8 +156,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-05-05",
