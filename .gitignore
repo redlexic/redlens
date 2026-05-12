@@ -50,3 +50,4 @@ note.md
 .cache/atlas-rag/chunks.json
 .cache/atlas-rag/meta.json
 .cache/atlas-rag/vectors.bin
+.claude/scheduled_tasks.lock
