@@ -12,6 +12,8 @@
     "build:graph": "node scripts/required/build-graph.mjs",
     "build:rag": "node --env-file-if-exists=.env.local scripts/required/build-rag.mjs",
     "build:history": "node scripts/required/build-history.mjs",
+    "sync:history:local": "node scripts/required/sync-history.mjs",
+    "sync:history:remote": "node scripts/required/sync-history.mjs --remote",
     "build:manifest": "node scripts/required/build-manifest.mjs",
     "build:at": "node --env-file-if-exists=.env.local scripts/required/build-at.mjs",
     "build:ts": "tsc -b",
