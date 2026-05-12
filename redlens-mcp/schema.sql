@@ -128,3 +128,28 @@ CREATE TABLE IF NOT EXISTS kv_meta (
   key   TEXT PRIMARY KEY,
   value TEXT
 );
+-- node_history — git-log of per-doc changes derived from public/history/<uuid>.json.
+-- One row per change event (added | modified | removed | moved).
+-- Diff payloads are NOT stored here; callers fetch the full per-node JSON from
+-- the deployed GitHub Pages site when they need line/word diffs.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS node_history (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  doc_id        TEXT NOT NULL,                -- not FK: covers nodes later removed from docs
+  date          TEXT NOT NULL,                -- YYYY-MM-DD, sortable
+  commit_hash   TEXT NOT NULL,                -- 7-char abbrev
+  change_type   TEXT NOT NULL,                -- added | modified | removed | moved
+  pr_number     INTEGER,
+  pr_title      TEXT,
+  pr_author     TEXT,
+  pr_url        TEXT,
+  summary       TEXT,                         -- matched PR bullet title, or PR title fallback
+  description   TEXT,                         -- matched bullet description, or short PR body
+  moved_from    TEXT,
+  moved_to      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_hist_doc       ON node_history(doc_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_hist_date      ON node_history(date DESC);
+CREATE INDEX IF NOT EXISTS idx_hist_type_date ON node_history(change_type, date DESC);
+CREATE INDEX IF NOT EXISTS idx_hist_pr        ON node_history(pr_number);

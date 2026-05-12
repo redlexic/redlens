@@ -198,6 +198,12 @@ async function getAncestorChains(db: D1Database, seedUuids: string[]): Promise<M
   return out;
 }
 
+// Where the deployed RedLens app serves the per-node history JSON.
+// v0: hardcoded GitHub Pages URL. Swap to an env var when we have a stable need.
+const HISTORY_BASE_URL = "https://anscharo.github.io/redlens/history";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // ---------------------------------------------------------------------------
 // MCP server factory
 // ---------------------------------------------------------------------------
@@ -671,6 +677,157 @@ function createMcpServer(env: Env): McpServer {
     },
   );
 
+  // atlas_history — change log for one doc, with PR rationale
+  server.tool(
+    "atlas_history",
+    "Why was this changed? Returns the git-log of changes for one Atlas doc (UUID or doc_no), newest first, each with PR title/author/url and the matched summary/description from the PR body. Filter by date range, PR number, or change type. Set with_diff=true to also fetch line+word diffs from the deployed RedLens site.",
+    {
+      id: z.string().describe("Doc UUID or doc_no (e.g. 'A.1.2.3')."),
+      since: z.string().optional().describe("ISO date (YYYY-MM-DD) — only changes on or after this date."),
+      until: z.string().optional().describe("ISO date (YYYY-MM-DD) — only changes on or before this date."),
+      pr: z.number().int().optional().describe("Filter to a single PR number."),
+      change_type: z.enum(["added", "modified", "removed", "moved"]).optional(),
+      with_diff: z.boolean().default(false).describe("If true, fetch line+word diffs from the deployed RedLens history JSON and inline them into matching events."),
+    },
+    async ({ id, since, until, pr, change_type, with_diff }) => {
+      // Resolve id to UUID — history is keyed by UUID
+      const doc = await db
+        .prepare(`SELECT id, doc_no, title, type FROM docs WHERE ${UUID_RE.test(id) ? "id" : "doc_no"} = ? LIMIT 1`)
+        .bind(id)
+        .first<{ id: string; doc_no: string; title: string; type: string }>();
+      if (!doc) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: "Not found" }) }] };
+      }
+
+      const where = ["doc_id = ?"];
+      const params: unknown[] = [doc.id];
+      if (since) { where.push("date >= ?"); params.push(since); }
+      if (until) { where.push("date <= ?"); params.push(until); }
+      if (pr != null) { where.push("pr_number = ?"); params.push(pr); }
+      if (change_type) { where.push("change_type = ?"); params.push(change_type); }
+
+      const { results } = await db
+        .prepare(`SELECT date, commit_hash, change_type, pr_number, pr_title, pr_author, pr_url,
+                         summary, description, moved_from, moved_to
+                  FROM node_history WHERE ${where.join(" AND ")}
+                  ORDER BY date DESC, id DESC`)
+        .bind(...params)
+        .all<{
+          date: string; commit_hash: string; change_type: string;
+          pr_number: number | null; pr_title: string | null; pr_author: string | null; pr_url: string | null;
+          summary: string | null; description: string | null;
+          moved_from: string | null; moved_to: string | null;
+        }>();
+
+      let events: Array<Record<string, unknown>> = results;
+
+      if (with_diff && results.length > 0) {
+        try {
+          const res = await fetch(`${HISTORY_BASE_URL}/${doc.id}.json`, { cf: { cacheTtl: 300 } } as RequestInit);
+          if (res.ok) {
+            const raw = (await res.json()) as Array<{ commitHash: string; diff?: unknown }>;
+            const diffByCommit = new Map(raw.map((e) => [e.commitHash, e.diff]));
+            events = results.map((e) => ({ ...e, diff: diffByCommit.get(e.commit_hash) ?? null }));
+          }
+        } catch (err) {
+          console.error("atlas_history with_diff fetch failed:", err);
+        }
+      }
+
+      return {
+        content: [{ type: "text", text: JSON.stringify({ doc, count: events.length, events }) }],
+      };
+    },
+  );
+
+  // atlas_recent_changes — global feed of recent changes, type-filterable
+  server.tool(
+    "atlas_recent_changes",
+    "What changed recently? Returns the most recent change events across the whole atlas, optionally filtered by doc type (e.g. 'Active Data') or change type. Defaults to the last 30 days.",
+    {
+      since: z.string().optional().describe("ISO date (YYYY-MM-DD). Defaults to 30 days ago."),
+      until: z.string().optional().describe("ISO date (YYYY-MM-DD). Defaults to today."),
+      type: z.string().optional().describe("Atlas doc type filter (e.g. 'Active Data', 'Core', 'Annotation')."),
+      change_type: z.enum(["added", "modified", "removed", "moved"]).optional(),
+      k: z.number().int().min(1).max(200).default(50),
+    },
+    async ({ since, until, type, change_type, k }) => {
+      const defaultSince = (() => {
+        const d = new Date();
+        d.setUTCDate(d.getUTCDate() - 30);
+        return d.toISOString().slice(0, 10);
+      })();
+
+      const where = ["h.date >= ?"];
+      const params: unknown[] = [since ?? defaultSince];
+      if (until) { where.push("h.date <= ?"); params.push(until); }
+      if (type) { where.push("n.type = ?"); params.push(type); }
+      if (change_type) { where.push("h.change_type = ?"); params.push(change_type); }
+
+      const { results } = await db
+        .prepare(`SELECT h.date, h.commit_hash, h.change_type,
+                         h.pr_number, h.pr_title, h.pr_author, h.pr_url,
+                         h.summary, h.description,
+                         n.id AS doc_id, n.doc_no, n.title, n.type
+                  FROM node_history h
+                  JOIN docs n ON n.id = h.doc_id
+                  WHERE ${where.join(" AND ")}
+                  ORDER BY h.date DESC, h.id DESC
+                  LIMIT ?`)
+        .bind(...params, k)
+        .all();
+
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            since: since ?? defaultSince,
+            until: until ?? null,
+            type: type ?? null,
+            change_type: change_type ?? null,
+            count: results.length,
+            events: results,
+          }),
+        }],
+      };
+    },
+  );
+
+  // atlas_pr — every doc touched by a single PR
+  server.tool(
+    "atlas_pr",
+    "What did PR #N touch? Returns every doc affected by a single GitHub PR against next-gen-atlas, with the matched per-doc summary/description from the PR body.",
+    {
+      pr_number: z.number().int().describe("GitHub PR number on sky-ecosystem/next-gen-atlas."),
+    },
+    async ({ pr_number }) => {
+      const { results } = await db
+        .prepare(`SELECT h.date, h.commit_hash, h.change_type,
+                         h.pr_title, h.pr_author, h.pr_url,
+                         h.summary, h.description,
+                         h.moved_from, h.moved_to,
+                         n.id AS doc_id, n.doc_no, n.title, n.type
+                  FROM node_history h
+                  LEFT JOIN docs n ON n.id = h.doc_id
+                  WHERE h.pr_number = ?
+                  ORDER BY n.doc_no, h.change_type`)
+        .bind(pr_number)
+        .all<{ pr_title: string | null; pr_author: string | null; pr_url: string | null }>();
+
+      const first = results[0];
+      const pr = first
+        ? { number: pr_number, title: first.pr_title, author: first.pr_author, url: first.pr_url }
+        : { number: pr_number, title: null, author: null, url: null };
+
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({ pr, count: results.length, events: results }),
+        }],
+      };
+    },
+  );
+
   return server;
 }
 
@@ -818,6 +975,9 @@ app.get("/", (c) => {
     <code>atlas_filter</code> — structural filter: type / entity / ancestor / doc_no_pattern / depth<br/>
     <code>atlas_get_address</code> — on-chain address lookup with merged atlas + chain metadata<br/>
     <code>atlas_entity_params</code> — child-Core "params" of an instance doc (Reward, Primitive Instance, …)
+    <code>atlas_search</code> · <code>atlas_get</code> · <code>atlas_neighbors</code> ·
+    <code>atlas_traverse</code> · <code>atlas_entity</code> ·
+    <code>atlas_history</code> · <code>atlas_recent_changes</code> · <code>atlas_pr</code>
   </p>
   <p>Every tool response is wrapped with <code>_meta: { atlasCommit, redlensCommit, generatedAt }</code> so callers can verify which atlas snapshot produced the answer.</p>
 
