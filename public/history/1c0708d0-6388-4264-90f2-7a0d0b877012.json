@@ -241,7 +241,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1
+    "commentCount": 1,
+    "summary": "Update Grove Artifact For April 9 Spell",
+    "description": "Onboards Maple syrupUSDC with a deposit rate limit of 50M USDC, increases JTRSY deposit limit to 500M USDC, and increases PSM USDS/USDC swap limit to 500M USDC."
   },
   {
     "date": "2026-05-05",

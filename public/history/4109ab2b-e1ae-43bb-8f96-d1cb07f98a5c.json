@@ -79,6 +79,8 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Remove Obsolete Keel Ecosystem Accord Documents",
+    "description": "Removes three provisions from the Keel Ecosystem Accord which became obsolete following the transfer of the Genesis Capital Allocation to Keel."
   }
 ]

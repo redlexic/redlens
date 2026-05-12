@@ -81,7 +81,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1
+    "commentCount": 1,
+    "summary": "Establish Demand Side Buffer",
+    "description": "Establishes a standalone Demand Side Buffer account for Distribution Reward and Integration Boost payments, simplifies expense recognition in the Monthly Settlement Cycle, and removes references to legacy roles from Near-Term Process documents."
   },
   {
     "date": "2026-04-16",
@@ -143,7 +145,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Add Solana Bridge Distribution Reward Instance To Keel Artifact",
+    "description": "Adds documentation for the Solana Bridge Distribution Reward Primitive Instance to the Keel Artifact, with Reward Code 4001."
   },
   {
     "date": "2026-05-05",

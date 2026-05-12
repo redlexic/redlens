@@ -67,7 +67,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/208",
     "reviewCount": 1,
     "approvalCount": 1,
-    "commentCount": 2
+    "commentCount": 2,
+    "summary": "Fix Sentora RLUSD Morpho Vault V2 MaxExchangeRate Precision",
+    "description": "Corrects the maxExchangeRate precision for the Sentora RLUSD Morpho Vault V2 from 3e6 to 3e18 to match RLUSD's 18-decimal token standard."
   },
   {
     "date": "2026-05-05",

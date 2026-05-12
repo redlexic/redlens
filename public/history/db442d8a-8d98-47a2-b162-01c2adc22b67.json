@@ -45,8 +45,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "Increase GSM Pause Delay From 24h To 48h",
-    "description": "Increases the GSM Pause Delay from 24 hours to 48 hours."
+    "summary": "Define Protocol Security Workstream Lead Role",
+    "description": "Defines the Protocol Security Workstream Lead role, establishing its security and incident coordination responsibilities, and names the current holder."
   },
   {
     "date": "2026-05-05",

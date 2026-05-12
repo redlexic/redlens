@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "Define Protocol Security Workstream Lead Role",
-    "description": "Defines the Protocol Security Workstream Lead role, establishing its security and incident coordination responsibilities, and names the current holder."
+    "summary": "Add Tokenized Treasury Shared Infrastructure And JTRSY Instance",
+    "description": "Adds shared Tokenized Treasury contract addresses and role definitions at the Grove Liquidity Layer level, onboards the Tokenized Treasury JTRSY instance, and adds the Grove x Steakhouse RLUSD Morpho Vault V2 instance."
   },
   {
     "date": "2026-05-05",

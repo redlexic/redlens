@@ -56,6 +56,14 @@
         "+",
         "This compensation recognizes Grove's role in promoting and supporting Chronicle across integrations within the Sky Ecosystem."
       ]
-    ]
+    ],
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Add Ecosystem Accord Between Sky And Grove",
+    "description": "Adds Ecosystem Accord 10, establishing compensation to Grove for the Chronicle Point Reward Instance at 20% of Base Rate on USDS deposited in the Rewards contract, retroactive to July 24, 2025."
   }
 ]

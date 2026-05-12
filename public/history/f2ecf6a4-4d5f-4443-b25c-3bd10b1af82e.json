@@ -54,33 +54,6 @@
     "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
-    "date": "2026-04-23",
-    "commitHash": "7ec751d",
-    "changeType": "modified",
-    "diff": [
-      [
-        "=",
-        "- Keel"
-      ],
-      [
-        "=",
-        "- Grove"
-      ],
-      [
-        "+",
-        "- Launch Agent 6"
-      ]
-    ],
-    "pr": 224,
-    "prTitle": "Atlas Edit Proposal — 2026-04-20",
-    "prAuthor": "adamgfraser",
-    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
-    "reviewCount": 1,
-    "approvalCount": 1,
-    "summary": "Remove 80/20 Pioneer Incentive Pool Split",
-    "description": "Removes the requirement that 80% of Pioneer Incentive Pool funds be used for third-party USDS adoption incentives, allowing the Pioneer Prime to retain 100% of the funds."
-  },
-  {
     "date": "2026-04-09",
     "commitHash": "fd54481",
     "changeType": "modified",
@@ -106,6 +79,33 @@
     "approvalCount": 1,
     "summary": "Add Solana Pioneer Chain Instance To Keel",
     "description": "Adds the Solana Instance Configuration Document to Keel's Pioneer Chain Primitive and specifies its associated parameters."
+  },
+  {
+    "date": "2026-04-23",
+    "commitHash": "7ec751d",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "- Keel"
+      ],
+      [
+        "=",
+        "- Grove"
+      ],
+      [
+        "+",
+        "- Launch Agent 6"
+      ]
+    ],
+    "pr": 224,
+    "prTitle": "Atlas Edit Proposal — 2026-04-20",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Activate Launch Agent 6 Pioneer Primitive On Plasma",
+    "description": "Activates the Pioneer Chain Primitive for Launch Agent 6 on Plasma, establishing the Pioneer Incentive Pool address and applicable terms."
   },
   {
     "date": "2026-05-05",

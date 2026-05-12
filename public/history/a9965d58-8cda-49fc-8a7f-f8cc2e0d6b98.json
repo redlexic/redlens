@@ -236,7 +236,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Reorder Loss Absorption Sequence",
+    "description": "Reorders the loss absorption sequence so the Genesis Capital Backstop is applied before the SKY Backstop, and revises the Genesis Capital Backstop trigger conditions accordingly."
   },
   {
     "date": "2026-04-30",

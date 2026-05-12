@@ -467,7 +467,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/208",
     "reviewCount": 1,
     "approvalCount": 1,
-    "commentCount": 2
+    "commentCount": 2,
+    "summary": "Remove Signal Requests And Non-Standard Weekly Polls From The Atlas",
+    "description": "Removes Non-Standard Weekly Polls, Signal Requests, and the Signal Request reference from the Emergency Declaration Procedure."
   },
   {
     "date": "2026-05-05",

@@ -44,7 +44,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Update SubDAO Proxy Terminology In Spark Foundation Grant",
+    "description": "Updates legacy SubDAO Proxy references to Spark's Prime Treasury and corrects Forum link formatting in two Spark Foundation Grant Authorization documents."
   },
   {
     "date": "2026-05-05",

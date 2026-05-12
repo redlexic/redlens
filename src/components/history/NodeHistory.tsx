@@ -1,6 +1,33 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { loadHistory, type HistoryEntry } from "../../lib/history";
 import { EntryRow } from "./EntryRow";
+
+// Before PR #117 (commit 22cc27b5, 2025-11-21) the atlas was a single HTML
+// file with no per-doc identities. Surface the prior history as a one-line
+// footer under the migration entry on docs that have it.
+const PRE_MD_PR = 117;
+const PRE_MD_COMPARE_URL =
+  "https://github.com/sky-ecosystem/next-gen-atlas/compare/4e931dfd...22cc27b5";
+
+function PreMdFooter() {
+  return (
+    <p
+      className="mono text-[10px] pl-3 pb-3 -mt-2 leading-snug"
+      style={{ color: "var(--tan-3)", borderLeft: "2px solid var(--border)" }}
+    >
+      Before this commit the atlas was maintained as a single HTML file. 79 prior commits exist in the vendor repo —{" "}
+      <a
+        href={PRE_MD_COMPARE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:underline focus-visible:underline"
+        style={{ color: "var(--accent)" }}
+      >
+        view HTML-era diff →
+      </a>
+    </p>
+  );
+}
 
 export function NodeHistory({ nodeId }: { nodeId: string }) {
   const [entries, setEntries] = useState<HistoryEntry[] | null>(undefined as unknown as null);
@@ -36,7 +63,10 @@ export function NodeHistory({ nodeId }: { nodeId: string }) {
   return (
     <div>
       {sorted.map((entry, i) => (
-        <EntryRow key={i} entry={entry} />
+        <Fragment key={i}>
+          <EntryRow entry={entry} />
+          {entry.pr === PRE_MD_PR && <PreMdFooter />}
+        </Fragment>
       ))}
     </div>
   );

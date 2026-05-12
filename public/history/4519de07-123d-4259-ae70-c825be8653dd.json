@@ -37,7 +37,7 @@
     "reviewCount": 1,
     "approvalCount": 1,
     "commentCount": 2,
-    "summary": "Remove Signal Requests And Non-Standard Weekly Polls From The Atlas",
-    "description": "Removes Non-Standard Weekly Polls, Signal Requests, and the Signal Request reference from the Emergency Declaration Procedure."
+    "summary": "Remove Governance Poll Requirement For SparkLend Parameter Changes",
+    "description": "Removes the requirement for a Governance Poll before modifying SparkLend Liquidation Threshold and Liquidation Bonus parameters, allowing these changes to proceed directly to an Executive Vote via the Operational Weekly Cycle."
   }
 ]

@@ -1,0 +1,10 @@
+{
+  "number": 237,
+  "title": "Atlas Edit Proposal — 2026-05-04",
+  "body": "This proposal includes the following edits:\n\n- **Add Ecosystem Accord Between Sky And Grove** — Adds Ecosystem Accord 10, establishing compensation to Grove for the Chronicle Point Reward Instance at 20% of Base Rate on USDS deposited in the Rewards contract, retroactive to July 24, 2025.\n- **Document How To Query The Sky Savings Rate Current Value** — Specifies the sUSDS contract address, the `ssr()` function, and the formula to convert the per-second rate into an annualized rate.\n- **Update Governance Facilitator References And Remove Sky Ecosystem Liquidity Bootstrapping** — Updates \"Governance Facilitators\" references to Core Council or Core Facilitator across SparkLend's Security Access Multisig and Liquidity Layer Freezer documents; removes the A.5.5 Liquidity Bootstrapping section, as the bootstrapping program is no longer active.\n- **Simplify Pattern Freezer Multisig Description** — Removes the controlling-party clause from the introduction; the controlling parties are already identified in the Signers subsection.\n- **Fix Stray Spaces In Rate Limit Solidity Identifiers** — Removes spaces from Solidity identifier names in the Keel, Obex, and Pattern Rate Limit Management sections.",
+  "author": "adamgfraser",
+  "url": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+  "commentCount": 0,
+  "reviewCount": 1,
+  "approvalCount": 1
+}

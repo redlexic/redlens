@@ -95,7 +95,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Update Scope Facilitator References",
+    "description": "Updates legacy Scope Facilitator role references to the Core Facilitator role when applicable."
   },
   {
     "date": "2026-04-30",

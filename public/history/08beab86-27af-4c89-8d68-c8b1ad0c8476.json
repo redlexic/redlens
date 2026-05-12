@@ -15,7 +15,9 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1
+    "commentCount": 1,
+    "summary": "Add Missing Grove ALM Controller Contract Versions",
+    "description": "Adds version numbers for the Grove ALM Controller contracts on Avalanche (1.6.0) and Plume (1.6.0), and corrects the Avalanche ALM Controller address."
   },
   {
     "date": "2026-05-05",

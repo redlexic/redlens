@@ -532,62 +532,164 @@ function tokenize(s) {
     .filter((w) => w.length > 2 && !STOP.has(w));
 }
 
-/** Score how well a bullet title matches a node title.
- *  Uses the shorter token set as the denominator so short node titles
- *  ("Emergency Response") can still match long bullet titles
- *  ("Update Emergency Response Article To Agent Framework"). */
-function matchScore(bulletTitle, nodeTitle, bulletDescription = "") {
-  const bTokens = tokenize(bulletTitle);
-  const nTokens = tokenize(nodeTitle);
-  if (bTokens.length === 0 || nTokens.length === 0) return 0;
+// Doc_no shape, e.g. "A.6.1.1.3.2.1" or "A.1.6". Matches the segments we
+// see across the atlas (single capital letter + dotted numeric path, with
+// optional trailing alphanumeric segments like ".var1" for variations).
+const DOC_NO_RE = /\b[A-Z](?:\.\w+)+/g;
+// UUIDs sometimes appear in PR bullets when authors link a specific doc.
+const UUID_RE = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/g;
 
-  const bSet = new Set(bTokens);
-  const nSet = new Set(nTokens);
+/** Strip the last dotted segment to get the parent doc_no.
+ *  Returns null for top-level (single-segment) doc_nos. */
+function parentDocNo(doc_no) {
+  const idx = doc_no.lastIndexOf(".");
+  return idx > 0 ? doc_no.slice(0, idx) : null;
+}
 
-  let hits = 0;
-  for (const t of nSet) {
-    if (bSet.has(t)) hits++;
-  }
+/** How many ancestors to walk for context tokens, indexed by the node's own
+ *  doc_no segment count. Two invariants:
+ *    - Never walk so deep that you hit doc_no depth ≤ 2 (those are Article /
+ *      Scope level — too generic, just noise).
+ *    - Cap at 6 walks (beyond that the marginal ancestor has no signal).
+ *  Shallow docs (depth ≤ 3) get no ancestor walk — they already carry their
+ *  own context. */
+function ancestorWalkFor(docNoDepth) {
+  if (docNoDepth <= 3) return 1;
+  if (docNoDepth === 4) return 2;
+  if (docNoDepth === 5) return 3;
+  if (docNoDepth === 6) return 3;
+  if (docNoDepth === 7) return 4;
+  if (docNoDepth === 8) return 5;
+  return 6; // 9+
+}
 
-  // Title-vs-title score: fraction of *node* tokens found in bullet title
-  const titleScore = hits / nSet.size;
-
-  // Bonus: check how many node title tokens appear in the bullet description
-  let descHits = 0;
-  if (bulletDescription) {
-    const dTokens = new Set(tokenize(bulletDescription));
-    for (const t of nSet) {
-      if (dTokens.has(t)) descHits++;
+/** Split a node's matchable identity into own-title tokens and an ancestor-
+ *  context bag. Generic sub-doc titles ("Custom Instance Parameters",
+ *  "Validators", "Failed Invocations") only share tokens with their bullet
+ *  via a doc several levels up — the walk depth adapts to how deep the node
+ *  sits so a 10-deep node can see "Multisig Security Enforcement" 6 levels
+ *  up, while a 4-deep node only walks 2. */
+function nodeTokenSets(node, snapshotByDocNo) {
+  const own = new Set(tokenize(node.title));
+  const ancestors = new Set();
+  const depth = node.doc_no.split(".").length;
+  const walk = ancestorWalkFor(depth);
+  let cur = node.doc_no;
+  for (let i = 0; i < walk; i++) {
+    cur = parentDocNo(cur);
+    if (!cur) break;
+    const ancestor = snapshotByDocNo.get(cur);
+    if (ancestor) {
+      for (const t of tokenize(ancestor.title)) {
+        if (!own.has(t)) ancestors.add(t);
+      }
     }
   }
-  const descScore = bulletDescription ? descHits / nSet.size : 0;
+  return { own, ancestors };
+}
 
-  // Combine: title match is primary, description adds up to 0.2 bonus
-  return titleScore + Math.min(descScore * 0.4, 0.2);
+/** Score: (own-title hits in bullet title+description) + (ancestor hits in
+ *  bullet TITLE only), divided by own-title count, capped at 1.0.
+ *
+ *  The asymmetry matters: bullet *titles* are short, specific phrases
+ *  ("Plasma SkyLink Bridge"); bullet *descriptions* are prose that liberally
+ *  uses common atlas vocab ("instance", "primitive", "agent"). If ancestor
+ *  tokens could match description tokens, generic ancestor words like
+ *  "Active Instances Directory" would attach unrelated agent subtrees to any
+ *  bullet whose description mentions "instances" — a major false-positive
+ *  vector observed in spot-checks. Own-title tokens still match against the
+ *  full bag so param docs ("Mainnet Mint Rate Limit") can find their bullet
+ *  via descriptive prose. */
+function matchScore(bullet, ownTokens, ancestorTokens) {
+  if (ownTokens.size === 0) return 0;
+  const titleTokens = new Set(tokenize(bullet.title));
+  const descTokens = new Set(tokenize(bullet.description ?? ""));
+  if (titleTokens.size === 0 && descTokens.size === 0) return 0;
+  let ownHits = 0;
+  for (const t of ownTokens) if (titleTokens.has(t) || descTokens.has(t)) ownHits++;
+  let ancHits = 0;
+  for (const t of ancestorTokens) if (titleTokens.has(t)) ancHits++;
+  return Math.min(1, (ownHits + ancHits) / ownTokens.size);
+}
+
+/** Pull doc_nos and UUIDs from a bullet's text. Used for deterministic
+ *  short-circuit matches that don't need fuzzy scoring. */
+function explicitRefs(bullet) {
+  const text = `${bullet.title}\n${bullet.description ?? ""}`;
+  return {
+    docNos: new Set(text.match(DOC_NO_RE) ?? []),
+    uuids: new Set(text.match(UUID_RE) ?? []),
+  };
 }
 
 /** For each changed node, find the best-matching bullet (if any).
- *  Returns Map<nodeId, { bulletTitle, bulletDescription }> */
-function matchBulletsToNodes(bullets, changedNodes) {
+ *  Returns Map<nodeId, { bulletTitle, bulletDescription, matchScore, via }>.
+ *
+ *  Two-pass:
+ *    1. Deterministic — a bullet's text contains the node's exact doc_no or UUID.
+ *    2. Fuzzy — token overlap of (node.title ∪ parent.title) vs (bullet.title ∪ description).
+ *    3. Fallback — if PR has exactly one bullet, attach it to every still-unmatched node.
+ */
+function matchBulletsToNodes(bullets, changedNodes, snapshot) {
   if (bullets.length === 0) return new Map();
   const matches = new Map();
 
+  // Build a doc_no → entry view of the snapshot once, for parent lookups.
+  const byDocNo = new Map();
+  for (const [id, entry] of snapshot) byDocNo.set(entry.doc_no, { ...entry, id });
+
+  // Pre-extract refs from each bullet so the inner loop is cheap.
+  const bulletRefs = bullets.map((b) => ({ bullet: b, refs: explicitRefs(b) }));
+
   for (const node of changedNodes) {
-    let bestScore = 0;
+    // Pass 1: deterministic doc_no / UUID hit.
     let bestBullet = null;
-    for (const bullet of bullets) {
-      const score = matchScore(bullet.title, node.title, bullet.description);
-      if (score > bestScore) {
-        bestScore = score;
+    let bestScore = 0;
+    let via = null;
+    for (const { bullet, refs } of bulletRefs) {
+      if (refs.docNos.has(node.doc_no) || refs.uuids.has(node.id)) {
         bestBullet = bullet;
+        bestScore = 1; // by definition
+        via = "ref";
+        break;
       }
     }
-    // Require at least 35% of node title tokens to match
-    if (bestScore >= 0.35 && bestBullet) {
+
+    // Pass 2: fuzzy on (own title) + (3-ancestor context).
+    if (!bestBullet) {
+      const { own, ancestors } = nodeTokenSets(node, byDocNo);
+      for (const { bullet } of bulletRefs) {
+        const score = matchScore(bullet, own, ancestors);
+        if (score > bestScore) {
+          bestScore = score;
+          bestBullet = bullet;
+        }
+      }
+      via = "fuzzy";
+    }
+
+    // Threshold: 35% of node tokens. With the wider node-side set (title +
+    // parent) this generally requires real content overlap, not noise.
+    if (bestBullet && (via === "ref" || bestScore >= 0.35)) {
       matches.set(node.id, {
         bulletTitle: bestBullet.title,
         bulletDescription: bestBullet.description,
         matchScore: Math.round(bestScore * 100),
+        via,
+      });
+    }
+  }
+
+  // Pass 3: 1-bullet PRs describe the whole change. Attach to anything left.
+  if (bullets.length === 1) {
+    const only = bullets[0];
+    for (const node of changedNodes) {
+      if (matches.has(node.id)) continue;
+      matches.set(node.id, {
+        bulletTitle: only.title,
+        bulletDescription: only.description,
+        matchScore: 0,
+        via: "sole-bullet",
       });
     }
   }
@@ -688,7 +790,11 @@ async function main() {
       const bullets = parsePrBullets(pr.body);
       if (bullets.length > 0) {
         const matchTargets = [...added, ...modified, ...removed];
-        bulletMatches = matchBulletsToNodes(bullets, matchTargets);
+        bulletMatches = matchBulletsToNodes(bullets, matchTargets, snapshot);
+        if (matchTargets.length > 0) {
+          const rate = ((bulletMatches.size / matchTargets.length) * 100).toFixed(0);
+          console.error(`    bullets: ${bulletMatches.size}/${matchTargets.length} matched (${rate}%)`);
+        }
       }
     }
 

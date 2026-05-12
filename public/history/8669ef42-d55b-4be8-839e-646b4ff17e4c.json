@@ -104,7 +104,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Clarify Deviation Percentage Calculation In Monthly Settlement Cycle",
+    "description": "Clarifies how the percentage deviation between the Initial Calculation and the Independent Calculation is calculated in the Agreed Amount definition within the Monthly Settlement Cycle."
   },
   {
     "date": "2026-05-05",

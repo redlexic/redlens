@@ -34,7 +34,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Add Authorized Forum Accounts Requirements",
+    "description": "Establishes registration, disclosure, and enforcement requirements for Sky Forum accounts used in a governance capacity, so the community can trust that posts made on behalf of an entity come from its authorized representatives."
   },
   {
     "date": "2026-05-05",

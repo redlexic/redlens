@@ -28,10 +28,10 @@ interface MergedEntry {
 }
 
 const CATEGORY_LABEL: Record<Category, string> = {
-  definition: "defines this agent",
-  instance: "instance invoked by this agent",
-  param: "parameter of an instance",
-  primitive: "primitive this agent uses",
+  definition: "agent definition",
+  instance: "agent instance",
+  param: "instance parameter",
+  primitive: "primitive agent owns",
   reward: "rewards primitive",
 };
 
@@ -179,11 +179,6 @@ function Entry({ entry }: { entry: MergedEntry }) {
       <ul className="space-y-1">
         {entry.docs.map((d) => (
           <li key={d.docId}>
-            {d.summary && (
-              <div className="text-[11px] italic leading-[17px]" style={{ color: "var(--tan-2)" }}>
-                {d.summary}
-              </div>
-            )}
             <div className="mono text-[10px] flex items-baseline gap-2 flex-wrap"
                  style={{ color: "var(--tan-3)" }}>
               {d.docNo && (
@@ -196,13 +191,21 @@ function Entry({ entry }: { entry: MergedEntry }) {
               <Link to={docHref(d.docId)} title={d.docId}
                     className="hover:underline focus-visible:underline"
                     style={{ color: "var(--accent)" }}>
-                {d.docId.slice(0, 8)}
+                {d.docId.split("-").slice(0, 2).join("-")}
               </Link>
               <span className="px-1 rounded"
                     style={{ background: "var(--hover)", color: "var(--tan-2)" }}>
                 {CATEGORY_LABEL[d.category]}
               </span>
             </div>
+            {d.summary && (
+              <div
+                className="text-[11px] italic leading-[14px] pl-2 ml-1 mt-0.5"
+                style={{ color: "var(--tan-2)", borderLeft: "2px solid var(--border)" }}
+              >
+                {d.summary}
+              </div>
+            )}
           </li>
         ))}
       </ul>
