@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -76,6 +76,7 @@
         "Funds from the Pre-Pioneer Incentive Pool wallet may be used to incentivize partners on Solana to promote USDS adoption as directed by Keel. Funds from the Pre-Pioneer Incentive Pool may not be transferred to Keel’s SubProxy Account, Keel Foundation, or Matariki Labs."
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
@@ -112,6 +113,7 @@
         "The Pre-Pioneer Incentive Pool is calculated on a monthly basis as (1) the Sky Savings Rate multiplied by all USDS balances on Solana, less (2) all Integration Boost payments made to partners on Solana."
       ]
     ],
+    "changeKind": "lint",
     "pr": 199,
     "prTitle": "Global linting - Remove extra spaces",
     "prAuthor": "blimpa",
@@ -120,7 +122,7 @@
     "approvalCount": 1,
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
-    "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+    "description": "Extra spaces have been removed. --- The following have been kept unchanged: - Code blocks/lines have been kept unchanged excepting the removal of: - Line-final spaces - Interlinear spaces - Table layouts excepting the removal of: - Line-final spaces Newlines have not been changed."
   },
   {
     "date": "2026-04-02",
@@ -1059,15 +1061,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1,
-    "summary": "Transition Keel To Pioneer Incentive Pool And Update Development Company",
-    "description": "Transitions Keel from the Pre-Pioneer to the Pioneer Incentive Pool. Specifies that Keel may retain one hundred percent of Pioneer Incentive funds. Replaces Matariki Labs with Elodin as development company for Keel."
+    "commentCount": 1
   },
   {
     "date": "2026-04-23",
@@ -1108,6 +1109,7 @@
         "The Pioneer Incentive Pool is calculated on a monthly basis as the Sky Savings Rate multiplied by all Unrewarded USDS on Solana. Payments are made on a monthly basis from the Demand Side Buffer (see [A.2.2.8.1.2.1.4 - Demand Side Buffer](862b6d83-f464-4125-8259-233b7de75ec4)) to a Pioneer Incentive Pool wallet controlled by the Pioneer Prime. The address of the Pioneer Incentive Pool wallet on Solana is `8JmDPG5BFQ6gpUPJV9xBixYJLqTKCSNotkXksTmNsQfj`."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",

@@ -58,6 +58,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 237,
     "prTitle": "Atlas Edit Proposal — 2026-05-04",
     "prAuthor": "adamgfraser",

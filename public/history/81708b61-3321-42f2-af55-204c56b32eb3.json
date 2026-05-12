@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -147,6 +147,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 133,
     "prTitle": "2025-12-01 AEW Proposal",
     "prAuthor": "0xldr",
@@ -181,6 +182,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",

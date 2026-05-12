@@ -47,8 +47,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2025-12-08",
@@ -93,6 +92,7 @@
         "The element \"proportional linear scale\" describes a method where the budget reduction is directly proportional to the decline in voting-communication activity between 95% and 75%. Here, the pertinent range of voting-communication activity spans from 95% to 75%, which is 20 percentage points. The budget decreases linearly across these 20 percentage points. In other words, the RD budget decreases by **5%** for every percentage point drop in voting-communication activity from 95% to 75% (since 100% divided by 20 percentage points = 5% per point)."
       ]
     ],
+    "changeKind": "typo",
     "pr": 139,
     "prTitle": "Fix delegate document numbering",
     "prAuthor": "0xldr",
@@ -143,6 +143,7 @@
         "The element \"proportional linear scale\" describes a method where the budget reduction is directly proportional to the decline in voting-communication activity between 95% and 75%. Here, the pertinent range of voting-communication activity spans from 95% to 75%, which is 20 percentage points. The budget decreases linearly across these 20 percentage points. In other words, the RD budget decreases by **5%** for every percentage point drop in voting-communication activity from 95% to 75% (since 100% divided by 20 percentage points = 5% per point)."
       ]
     ],
+    "changeKind": "typo",
     "pr": 186,
     "prTitle": "2026-02-16 AEW proposal",
     "prAuthor": "0xldr",
@@ -211,6 +212,7 @@
         "The element \"proportional linear scale\" describes a method where the budget reduction is directly proportional to the decline in voting-communication activity between 95% and 75%. Here, the pertinent range of voting-communication activity spans from 95% to 75%, which is 20 percentage points. The budget decreases linearly across these 20 percentage points. In other words, the RD budget decreases by **5%** for every percentage point drop in voting-communication activity from 95% to 75% (since 100% divided by 20 percentage points = 5% per point)."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",

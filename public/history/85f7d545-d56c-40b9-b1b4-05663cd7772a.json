@@ -23,8 +23,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "Add Grove Foundation Grant Authorization For Q2 2026",
-    "description": "Adds a grant authorization of 800,000 USDS per month to the Grove Foundation from Grove's Prime Treasury for Q2 2026."
+    "summary": "Clarify Genesis Capital Backstop Haircut And Settlement",
+    "description": "Clarifies the haircut cap as Aggregate Backstop Capital and removes the 24 billion SKY distribution to Genesis Agents when the haircut fully covers the loss."
   },
   {
     "date": "2026-05-05",

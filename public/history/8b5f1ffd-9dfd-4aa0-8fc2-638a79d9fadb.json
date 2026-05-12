@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -51,6 +51,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",
@@ -58,8 +59,8 @@
     "reviewCount": 2,
     "approvalCount": 1,
     "commentCount": 1,
-    "summary": "Establish Demand Side Buffer",
-    "description": "Establishes a standalone Demand Side Buffer account for Distribution Reward and Integration Boost payments, simplifies expense recognition in the Monthly Settlement Cycle, and removes references to legacy roles from Near-Term Process documents."
+    "summary": "Fix Punctuation In MaxAmount Document",
+    "description": "Corrects punctuation in the MaxAmount definition for clarity."
   },
   {
     "date": "2026-05-05",

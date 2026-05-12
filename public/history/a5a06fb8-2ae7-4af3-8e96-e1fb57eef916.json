@@ -101,6 +101,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 200,
     "prTitle": "2026-03-16 Weekly Edit Proposal",
     "prAuthor": "0xldr",

@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -51,6 +51,7 @@
         "A Facilitator's failure to act promptly in addressing credible evidence of AD misalignment or to mitigate the risk of misalignment spreading among ADs is considered an act of misalignment itself. Formal allegations of such failure must be adjudicated by the Core Facilitator pursuant to the same process referenced in the above-cited document."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 186,
     "prTitle": "2026-02-16 AEW proposal",
     "prAuthor": "0xldr",

@@ -24,6 +24,7 @@ import { fileURLToPath } from "node:url";
 import { execSync, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import { HEADING_RE } from "../lib/atlas-parser.mjs";
+import { extractForumBullets, findForumTopicIds } from "../lib/forum-parse.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
@@ -32,6 +33,7 @@ const ATLAS_FILE = "Sky Atlas/Sky Atlas.md";
 const CONTENT_DIR = "content";
 const OUT_DIR = path.join(ROOT, "public/history");
 const PR_CACHE_DIR = path.join(ROOT, ".cache/github-prs");
+const FORUM_CACHE_DIR = path.join(ROOT, ".cache/discourse");
 const REPO = "sky-ecosystem/next-gen-atlas";
 
 // ---------------------------------------------------------------------------
@@ -329,6 +331,57 @@ function wordDiff(prevLine, currLine) {
 // ops: "=" unchanged, "+" added, "-" removed, "~" intraline, "…" gap
 // ---------------------------------------------------------------------------
 
+/** Classify the size/kind of a content edit by walking the line/word diff:
+ *    lint     — added/removed text is entirely whitespace or punctuation
+ *    typo     — small letter-level edits (≤8 chars total, e.g. spelling fix)
+ *    semantic — everything else (real content change)
+ *  Returns null for entries with no diff (added/removed get "semantic" set
+ *  at the call site since their whole content is the change). */
+function classifyDiff(diff) {
+  if (!diff || diff.length === 0) return null;
+  let semChars = 0;
+  let wsChars = 0;
+  let maxRun = 0;
+  const addRun = (text) => {
+    const t = String(text ?? "");
+    for (const chunk of t.split(/[^a-zA-Z0-9]+/)) {
+      if (!chunk) continue;
+      semChars += chunk.length;
+      if (chunk.length > maxRun) maxRun = chunk.length;
+    }
+    wsChars += t.replace(/[a-zA-Z0-9]+/g, "").length;
+  };
+  for (const op of diff) {
+    const head = op[0];
+    if (head === "=" || head === "…") continue;
+    if (head === "+" || head === "-") {
+      addRun(op[1]);
+    } else if (head === "~") {
+      for (const inner of op[1] ?? []) {
+        if (inner[0] === "=") continue;
+        addRun(inner[1]);
+      }
+    }
+  }
+  if (semChars === 0) return wsChars > 0 ? "lint" : null;
+  // Strict typo: <=4 alphanumeric chars changed AND no contiguous letter/
+  // digit run > 2 chars. Short diffs in big PRs are often parameter tweaks,
+  // not spelling — when in doubt, semantic.
+  if (semChars <= 4 && maxRun <= 2) return "typo";
+  return "semantic";
+}
+
+const PR_LINT_RE =
+  /\b(?:whitespace|non[\s-]?breaking|formatt?ing|lint(?:er|ing)?|cleanup\s+formatting|remove\s+formatting)\b/i;
+const PR_TYPO_RE =
+  /\b(?:fix(?:es|ed|ing)?\s+(?:a\s+)?(?:typos?|spelling)|(?:typos?|spelling)\s+fix(?:es)?|correct\s+(?:typos?|spelling))\b/i;
+function classifyPrTitle(prTitle) {
+  if (!prTitle) return null;
+  if (PR_LINT_RE.test(prTitle)) return "lint";
+  if (PR_TYPO_RE.test(prTitle)) return "typo";
+  return null;
+}
+
 function lineDiff(prevText, currText) {
   const a = (prevText || "").split("\n");
   const b = (currText || "").split("\n");
@@ -454,6 +507,71 @@ function diffSnapshots(prev, curr) {
 function extractPrNumber(message) {
   const m = message.match(/\(#(\d+)\)\s*$/);
   return m ? parseInt(m[1], 10) : null;
+}
+
+/** Strip governance-boilerplate noise from a description / PR body. Returns
+ *  null if there's nothing meaningful left, so callers can skip setting the
+ *  field rather than carry forward a near-empty string. */
+// Patterns to scrub from PR bodies / bullet descriptions. Each pattern
+// matches one boilerplate sentence; cleanDescription drops the field
+// entirely if the residue is too short to be meaningful.
+const BOILERPLATE_RE = [
+  // Any sentence/line containing the merge- or post-gate phrasing — covers
+  // "Do not merge unless/until associated poll passes", "Do not post unless
+  // poll passes", and similar variants without enumerating every form.
+  /\*{0,2}[^.\n\r]*\b(?:poll passes|associated poll|merged until|cannot be merged|may only be merged|will not be merged)\b[^.\n\r]*[.!?]?\s*\*{0,2}/gi,
+  /\*{0,2}\s*Do not (?:merge|post)[^.\n\r]*\*{0,2}/gi,
+  // Forum-link header that adds no information.
+  /\*{0,2}\s*Originating forum post:?\s*<?\S*>?\s*\*{0,2}/gi,
+];
+function cleanDescription(s) {
+  if (!s) return null;
+  let out = s;
+  for (const re of BOILERPLATE_RE) out = out.replace(re, " ");
+  out = out
+    .replace(/\s+/g, " ")
+    .replace(/^[\s\-—*•·:]+|[\s\-—*•·:]+$/g, "")
+    .trim();
+  return out.length >= 10 ? out : null;
+}
+
+/** If the PR body links to a Sky forum post and we have it cached, parse the
+ *  post into bullets + extraRefs. Returns null if no forum link or cache miss.
+ *  See scripts/lib/forum-parse.mjs for the parse contract. */
+function loadForumExtras(pr) {
+  if (!pr?.body) return null;
+  const topicIds = findForumTopicIds(pr.body);
+  if (topicIds.length === 0) return null;
+
+  // If a PR references multiple topics (rare; happens when a Weekly Cycle is
+  // split across two posts), merge bullets and refs from all available ones.
+  const bullets = [];
+  const docNos = new Set();
+  const uuids = new Set();
+  let any = false;
+  for (const id of topicIds) {
+    const p = path.join(FORUM_CACHE_DIR, `${id}.json`);
+    if (!fs.existsSync(p)) {
+      console.error(`    forum cache miss for topic ${id} — run pnpm build:forum-cache`);
+      continue;
+    }
+    let entry;
+    try {
+      entry = JSON.parse(fs.readFileSync(p, "utf8"));
+    } catch {
+      continue;
+    }
+    if (!entry.post1Raw) continue;
+    const { bullets: bs, extraRefs } = extractForumBullets(entry.post1Raw, {
+      fallbackTitle: pr.title,
+    });
+    bullets.push(...bs);
+    for (const r of extraRefs.docNos) docNos.add(r);
+    for (const r of extraRefs.uuids) uuids.add(r);
+    any = true;
+  }
+  if (!any) return null;
+  return { bullets, extraRefs: { docNos, uuids } };
 }
 
 async function fetchPr(prNum) {
@@ -605,11 +723,55 @@ function matchScore(bullet, ownTokens, ancestorTokens) {
   const titleTokens = new Set(tokenize(bullet.title));
   const descTokens = new Set(tokenize(bullet.description ?? ""));
   if (titleTokens.size === 0 && descTokens.size === 0) return 0;
-  let ownHits = 0;
-  for (const t of ownTokens) if (titleTokens.has(t) || descTokens.has(t)) ownHits++;
+  let ownTitleHits = 0;
+  let ownTotalHits = 0;
+  for (const t of ownTokens) {
+    const inTitle = titleTokens.has(t);
+    if (inTitle) ownTitleHits++;
+    if (inTitle || descTokens.has(t)) ownTotalHits++;
+  }
   let ancHits = 0;
   for (const t of ancestorTokens) if (titleTokens.has(t)) ancHits++;
-  return Math.min(1, (ownHits + ancHits) / ownTokens.size);
+
+  // Reject single-token-in-description matches: e.g., the doc "Launch Agent 7"
+  // matching the bullet "Clarify References To Ozone" because the word "agent"
+  // appears in the bullet body. Require the match to come from at least one
+  // own-token in the bullet TITLE, OR ≥2 own-token total hits, OR ≥2 ancestor-
+  // token title hits (the deep-descendant case where the bullet title names
+  // the parent subtree).
+  if (ownTitleHits === 0 && ownTotalHits < 2 && ancHits < 2) return 0;
+
+  return Math.min(1, (ownTotalHits + ancHits) / ownTokens.size);
+}
+
+/** True if nodeDocNo is the same as or a descendant of any of `refs`. Used
+ *  to scope fuzzy attribution to bullets that explicitly reference the
+ *  node's subtree, blocking the cross-agent vocabulary-collision false
+ *  positives (e.g., LA7 doc fuzzy-matching a Skybase-scoped bullet because
+ *  both share generic atlas vocab). */
+function nodeInRefScope(nodeDocNo, refDocNos) {
+  for (const ref of refDocNos) {
+    if (nodeDocNo === ref || nodeDocNo.startsWith(ref + ".")) return true;
+  }
+  return false;
+}
+
+/** Detect prime-agent names mentioned in a bullet title and return their
+ *  doc_no prefixes. A bullet titled "Add Solana Pioneer Chain Instance To
+ *  Keel" should not fuzzy-attribute to Grove's `Pioneer Chain Primitive`
+ *  subtree even though it shares the "pioneer", "chain" ancestor tokens,
+ *  because "Keel" in the title is the target subject.
+ *
+ *  Word-boundary substring match on lowercased title. Title-only because
+ *  bullet descriptions often mention many agents in passing. */
+function detectAgentScope(bulletTitle, agentNamePrefixes) {
+  const lc = bulletTitle.toLowerCase();
+  const scopes = [];
+  for (const [name, prefix] of agentNamePrefixes) {
+    const re = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+    if (re.test(lc)) scopes.push(prefix);
+  }
+  return scopes;
 }
 
 /** Pull doc_nos and UUIDs from a bullet's text. Used for deterministic
@@ -627,22 +789,35 @@ function explicitRefs(bullet) {
  *
  *  Two-pass:
  *    1. Deterministic — a bullet's text contains the node's exact doc_no or UUID.
+ *       1a. Per-bullet refs (explicitRefs from each bullet body).
+ *       1b. Forum-level extraRefs — doc_nos / UUIDs harvested from anywhere in
+ *           a linked Discourse post. Hits attribute to refFallback (the SAEP
+ *           Summary bullet, for instance) so docs referenced outside the
+ *           Summary still get the bullet attached.
  *    2. Fuzzy — token overlap of (node.title ∪ parent.title) vs (bullet.title ∪ description).
  *    3. Fallback — if PR has exactly one bullet, attach it to every still-unmatched node.
  */
-function matchBulletsToNodes(bullets, changedNodes, snapshot) {
+function matchBulletsToNodes(bullets, changedNodes, snapshot, opts = {}) {
   if (bullets.length === 0) return new Map();
+  const { extraRefs, refFallback, agentNamePrefixes } = opts;
   const matches = new Map();
 
   // Build a doc_no → entry view of the snapshot once, for parent lookups.
   const byDocNo = new Map();
   for (const [id, entry] of snapshot) byDocNo.set(entry.doc_no, { ...entry, id });
 
-  // Pre-extract refs from each bullet so the inner loop is cheap.
-  const bulletRefs = bullets.map((b) => ({ bullet: b, refs: explicitRefs(b) }));
+  // Pre-extract refs and per-bullet agent-name scope. Agent scope catches
+  // the cross-agent vocab-collision cases where a bullet title names a
+  // specific prime (e.g. "...To Keel") but the body has no doc_no refs to
+  // anchor scope on.
+  const bulletRefs = bullets.map((b) => ({
+    bullet: b,
+    refs: explicitRefs(b),
+    agentScope: agentNamePrefixes ? detectAgentScope(b.title, agentNamePrefixes) : [],
+  }));
 
   for (const node of changedNodes) {
-    // Pass 1: deterministic doc_no / UUID hit.
+    // Pass 1a: deterministic doc_no / UUID hit on a specific bullet.
     let bestBullet = null;
     let bestScore = 0;
     let via = null;
@@ -655,10 +830,29 @@ function matchBulletsToNodes(bullets, changedNodes, snapshot) {
       }
     }
 
-    // Pass 2: fuzzy on (own title) + (3-ancestor context).
+    // Pass 1b: forum-level extra refs. Only used in SAEP-style flows where a
+    // single fallback bullet covers the whole PR; in Weekly Cycle posts each
+    // ### block's refs land on its own bullet via Pass 1a.
+    if (!bestBullet && extraRefs && refFallback) {
+      if (extraRefs.docNos.has(node.doc_no) || extraRefs.uuids.has(node.id)) {
+        bestBullet = refFallback;
+        bestScore = 1;
+        via = "ref";
+      }
+    }
+
+    // Pass 2: fuzzy on (own title) + (N-ancestor context). Scope restriction:
+    // if a bullet's body contains explicit doc_no refs, the bullet is "about"
+    // those subtrees — fuzzy-attributing to nodes outside that scope produces
+    // false positives like LA7 docs hitting a Skybase bullet because both
+    // mention "instance configuration document". A bullet with NO refs is
+    // treated as unrestricted (rare; almost every edit-instruction bullet
+    // names the affected doc_no).
     if (!bestBullet) {
       const { own, ancestors } = nodeTokenSets(node, byDocNo);
-      for (const { bullet } of bulletRefs) {
+      for (const { bullet, refs, agentScope } of bulletRefs) {
+        if (refs.docNos.size > 0 && !nodeInRefScope(node.doc_no, refs.docNos)) continue;
+        if (agentScope.length > 0 && !nodeInRefScope(node.doc_no, new Set(agentScope))) continue;
         const score = matchScore(bullet, own, ancestors);
         if (score > bestScore) {
           bestScore = score;
@@ -701,9 +895,32 @@ function matchBulletsToNodes(bullets, changedNodes, snapshot) {
 // Main
 // ---------------------------------------------------------------------------
 
+/** Build [name, doc_no-prefix] pairs for prime agents (and operational
+ *  executors when they map to atlas subtrees). Read once at startup from
+ *  public/relations.json + docs.json. */
+function loadAgentNamePrefixes() {
+  const relsPath = path.join(ROOT, "public/relations.json");
+  const docsPath = path.join(ROOT, "public/docs.json");
+  if (!fs.existsSync(relsPath) || !fs.existsSync(docsPath)) return [];
+  const rels = JSON.parse(fs.readFileSync(relsPath, "utf8"));
+  const docs = JSON.parse(fs.readFileSync(docsPath, "utf8"));
+  const out = [];
+  for (const e of rels.entities ?? []) {
+    if (e.et !== "agent" || !e.did) continue;
+    const doc = docs[e.did];
+    if (!doc?.doc_no) continue;
+    if (e.name) out.push([e.name, doc.doc_no]);
+  }
+  // Sort by name length DESC so "Launch Agent 7" matches before "Launch Agent"
+  // would (no such conflict today, but keeps multi-token names safe).
+  return out.sort((a, b) => b[0].length - a[0].length);
+}
+
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.mkdirSync(PR_CACHE_DIR, { recursive: true });
+  const agentNamePrefixes = loadAgentNamePrefixes();
+  console.error(`  ${agentNamePrefixes.length} agent name → doc_no scopes`);
 
   const lastCommitFile = path.join(OUT_DIR, "_last_commit.txt");
   const manifestFile = path.join(OUT_DIR, "_manifest.json");
@@ -773,6 +990,18 @@ async function main() {
       ...moved.map((n) => ({ node: n, changeType: "moved" })),
     ];
 
+    // The HTML→Markdown migration commit (PR #117, "Migrate To Markdown File")
+    // is the very first commit that touches Sky Atlas.md, so every doc shows
+    // up as "added" in the diff. Semantically these docs existed in the prior
+    // HTML era and were just translated to markdown — not new additions. Re-
+    // tag as "moved" so downstream views (ActorHistory etc.) treat the
+    // migration as renumbering noise rather than a wave of new creations.
+    const isMdMigration =
+      /migrate.*to.*markdown/i.test(commit.message) || extractPrNumber(commit.message) === 117;
+    if (isMdMigration) {
+      for (const ev of events) if (ev.changeType === "added") ev.changeType = "moved";
+    }
+
     if (events.length === 0) {
       prevSnapshot = snapshot;
       lastCommitHash = commit.hash;
@@ -782,18 +1011,48 @@ async function main() {
     // Fetch PR metadata
     const prNum = extractPrNumber(commit.message);
     const pr = prNum ? await fetchPr(prNum) : null;
+    // PR-title-derived kind hint — overrides per-diff classification below
+    // for the whole commit. "fix typos PR" stays typo even when individual
+    // entries have a cascade of >4-char letter edits.
+    const prKindHint = pr ? classifyPrTitle(pr.title) : null;
 
     // Try to match bullets to nodes for edit proposals. Pass the unique nodes
     // (modified ∪ added ∪ removed) so a moved-and-modified node isn't scored twice.
+    //
+    // PR bullets come from two sources:
+    //   - parsePrBullets(pr.body) — the canonical Atlas Edit Proposal bullets.
+    //   - loadForumExtras(pr)     — Weekly Cycle ### blocks or the SAEP Summary
+    //     section, when the PR links to a Sky forum post (some PRs put the real
+    //     proposal there and leave the GitHub body almost empty).
     let bulletMatches = new Map();
+    let prHasInlineBullets = false;
     if (pr?.body) {
-      const bullets = parsePrBullets(pr.body);
+      const prBullets = parsePrBullets(pr.body);
+      prHasInlineBullets = prBullets.length > 0;
+      const forumExtras = loadForumExtras(pr);
+      const bullets = [...prBullets, ...(forumExtras?.bullets ?? [])];
       if (bullets.length > 0) {
         const matchTargets = [...added, ...modified, ...removed];
-        bulletMatches = matchBulletsToNodes(bullets, matchTargets, snapshot);
+        // SAEP mode: single-bullet forum result + no inline PR bullets → that
+        // bullet is the PR-level summary; route forum extraRefs to it.
+        const refFallback =
+          prBullets.length === 0 && forumExtras?.bullets.length === 1
+            ? forumExtras.bullets[0]
+            : null;
+        bulletMatches = matchBulletsToNodes(bullets, matchTargets, snapshot, {
+          extraRefs: forumExtras?.extraRefs ?? null,
+          refFallback,
+          agentNamePrefixes,
+        });
         if (matchTargets.length > 0) {
           const rate = ((bulletMatches.size / matchTargets.length) * 100).toFixed(0);
-          console.error(`    bullets: ${bulletMatches.size}/${matchTargets.length} matched (${rate}%)`);
+          const src =
+            forumExtras?.bullets.length
+              ? ` (pr=${prBullets.length}+forum=${forumExtras.bullets.length})`
+              : "";
+          console.error(
+            `    bullets: ${bulletMatches.size}/${matchTargets.length} matched (${rate}%)${src}`,
+          );
         }
       }
     }
@@ -811,7 +1070,11 @@ async function main() {
         const prevContent = prevSnapshot.get(node.id)?.content ?? "";
         const currContent = snapshot.get(node.id)?.content ?? "";
         const diff = lineDiff(prevContent, currContent);
-        if (diff.length > 0) entry.diff = diff;
+        if (diff.length > 0) {
+          entry.diff = diff;
+          const kind = prKindHint ?? classifyDiff(diff);
+          if (kind) entry.changeKind = kind;
+        }
       } else if (changeType === "added" && startIndex + i > 0) {
         // Node newly introduced mid-history: show its full content as added lines
         const currContent = snapshot.get(node.id)?.content ?? "";
@@ -843,12 +1106,18 @@ async function main() {
       const bulletMatch = bulletMatches.get(node.id);
       if (bulletMatch) {
         entry.summary = bulletMatch.bulletTitle;
-        entry.description = bulletMatch.bulletDescription;
+        const cleaned = cleanDescription(bulletMatch.bulletDescription);
+        if (cleaned) entry.description = cleaned;
         // matchScore omitted from output — internal quality signal only
-      } else if (pr?.body && !parsePrBullets(pr.body).length) {
-        // Non-bulleted PR (Spark proposals, etc.) — use PR title as summary
+      } else if (pr?.body && !prHasInlineBullets && pr.body.length < 500) {
+        // No-bullet-match fallback. Only useful for plain non-bulleted PRs
+        // (Spark proposals, single-fix commits) where the whole body is the
+        // summary. Forum-linked PRs typically have a bare URL as the body and
+        // are deliberately left summary-less here — the matched-bullet rows
+        // carry the real information.
         entry.summary = pr.title;
-        if (pr.body.length < 500) entry.description = pr.body;
+        const cleaned = cleanDescription(pr.body);
+        if (cleaned) entry.description = cleaned;
       }
 
       if (!newHistory.has(node.id)) newHistory.set(node.id, []);

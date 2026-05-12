@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -47,6 +47,7 @@
         "Public Holders are unique wallet addresses, excluding any address reasonably believed to be controlled by the Prime Agent, its core contributors, or their affiliates. An entity is affiliated with another if it directly or indirectly controls, is controlled by, or is under common control with such other entity."
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",

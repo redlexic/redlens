@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -47,6 +47,7 @@
         "Transition. Delegates serving prior to approval are automatically rolled over into this structure and deemed approved through June 30, 2026. For the avoidance of doubt, there will be no re-approval on January 1, 2026; the first re-approval checkpoint is July 1, 2026 for all such Delegates."
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

@@ -7,6 +7,7 @@ import { ROUTES } from "../../lib/routes";
 import { useRadar } from "./RadarContext";
 
 type Category = "definition" | "instance" | "param" | "primitive" | "reward";
+type ChangeKind = "lint" | "typo" | "semantic";
 
 interface AffectedDoc {
   docId: string;
@@ -14,6 +15,8 @@ interface AffectedDoc {
   category: Category;
   /** matched-bullet summary for this doc, when distinct from prTitle */
   summary?: string;
+  /** Edit significance for modified entries — lets the UI mute trivial rows */
+  changeKind?: ChangeKind;
 }
 
 interface MergedEntry {
@@ -26,6 +29,11 @@ interface MergedEntry {
   prUrl?: string;
   docs: AffectedDoc[];
 }
+
+const SUMMARY_TOOLTIP =
+  "Best guess matching of PR bullets to modified docs using deterministic " +
+  "doc_no/UUID references and ancestor-aware token-overlap fuzzy matching. " +
+  "Might mismatch.";
 
 const CATEGORY_LABEL: Record<Category, string> = {
   definition: "agent definition",
@@ -81,13 +89,31 @@ function mergeByCommit(
     for (const entry of entries) {
       // "moved" events are renumbering noise (atomization, doc-no reshuffles).
       if (entry.changeType === "moved") continue;
+      // The build script writes summary=bullet.title and description=bullet
+      // body (or pr.title/pr.body for non-bulleted fallback). Display rules:
+      //   - matched bullets: show summary (concise per-edit title — e.g.
+      //     "Update Grove Artifact"). Skip description; it's typically dense
+      //     PR-instruction prose that doesn't read as a summary.
+      //   - SAEP/single-bullet fallback (summary collapses to prTitle): show
+      //     description if it's actually descriptive text — not a bare URL,
+      //     not just the PR title.
+      const summaryUseful =
+        entry.summary && entry.summary !== entry.prTitle ? entry.summary : null;
+      const descIsUrlOnly =
+        entry.description && /^\s*https?:\/\/\S+\s*$/.test(entry.description);
+      const descriptionUseful =
+        !summaryUseful &&
+        entry.description &&
+        entry.description !== entry.prTitle &&
+        !descIsUrlOnly
+          ? entry.description
+          : null;
       const affected: AffectedDoc = {
         docId,
         docNo: docs[docId]?.doc_no ?? null,
         category,
-        // The build script reuses summary=prTitle as a non-bulleted-PR fallback,
-        // so only keep summary when it carries new information.
-        summary: entry.summary && entry.summary !== entry.prTitle ? entry.summary : undefined,
+        summary: summaryUseful ?? descriptionUseful ?? undefined,
+        changeKind: entry.changeKind,
       };
       const existing = byCommit.get(entry.commitHash);
       if (existing) {
@@ -153,14 +179,29 @@ function docHref(docId: string): string {
   return `${ROUTES.ATLAS}?id=${docId}&view=history`;
 }
 
+/** Group docs by summary so a bullet attributed to N docs renders once
+ *  with N child rows instead of being repeated. Insertion order is
+ *  preserved; summary-less docs share a single trailing group. */
+function groupBySummary(docs: AffectedDoc[]): Array<{ summary?: string; docs: AffectedDoc[] }> {
+  const groups = new Map<string, { summary?: string; docs: AffectedDoc[] }>();
+  for (const d of docs) {
+    const key = d.summary ?? "\0";
+    const existing = groups.get(key);
+    if (existing) existing.docs.push(d);
+    else groups.set(key, { summary: d.summary, docs: [d] });
+  }
+  return [...groups.values()];
+}
+
 function Entry({ entry }: { entry: MergedEntry }) {
   const color = CHANGE_COLOR[entry.changeType] ?? "var(--tan-3)";
+  const groups = groupBySummary(entry.docs);
   return (
     <div className="border-b py-2" style={{ borderColor: "var(--border)" }}>
       <div className="text-sm leading-snug mb-1" style={{ color: "var(--tan)" }}>
         {entry.prTitle ?? "(no PR)"}
       </div>
-      <div className="flex items-baseline gap-2 flex-wrap mono text-[10px] mb-1">
+      <div className="flex items-baseline gap-2 flex-wrap mono text-[10px] mb-2">
         <span style={{ color: "var(--tan-3)" }}>{entry.date}</span>
         <span style={{ color }}>{CHANGE_LABEL[entry.changeType]}</span>
         {entry.pr && (
@@ -176,35 +217,59 @@ function Entry({ entry }: { entry: MergedEntry }) {
         </a>
         {entry.prAuthor && <span style={{ color: "var(--tan-3)" }}>{entry.prAuthor}</span>}
       </div>
-      <ul className="space-y-1">
-        {entry.docs.map((d) => (
-          <li key={d.docId}>
-            <div className="mono text-[10px] flex items-baseline gap-2 flex-wrap"
-                 style={{ color: "var(--tan-3)" }}>
-              {d.docNo && (
-                <Link to={docHref(d.docId)}
-                      className="hover:underline focus-visible:underline"
-                      style={{ color: "var(--accent)" }}>
-                  {d.docNo}
-                </Link>
-              )}
-              <Link to={docHref(d.docId)} title={d.docId}
+      <div className="space-y-2">
+        {groups.map((g, i) => (
+          <DocGroup key={g.summary ?? `__${i}`} summary={g.summary} docs={g.docs} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DocGroup({ summary, docs }: { summary?: string; docs: AffectedDoc[] }) {
+  return (
+    <div>
+      {summary && (
+        <div
+          className="text-[11px] italic leading-[14px] mb-1 cursor-help"
+          style={{ color: "var(--tan-2)" }}
+          title={SUMMARY_TOOLTIP}
+        >
+          {summary}
+        </div>
+      )}
+      <ul
+        className={summary ? "space-y-0.5 pl-2 ml-1" : "space-y-0.5"}
+        style={summary ? { borderLeft: "2px solid var(--border)" } : undefined}
+      >
+        {docs.map((d) => (
+          <li key={d.docId}
+              className="mono text-[10px] flex items-baseline gap-2 flex-wrap"
+              style={{ color: "var(--tan-3)" }}>
+            {d.docNo && (
+              <Link to={docHref(d.docId)}
                     className="hover:underline focus-visible:underline"
                     style={{ color: "var(--accent)" }}>
-                {d.docId.split("-").slice(0, 2).join("-")}
+                {d.docNo}
               </Link>
+            )}
+            <Link to={docHref(d.docId)} title={d.docId}
+                  className="hover:underline focus-visible:underline"
+                  style={{ color: "var(--accent)" }}>
+              {d.docId.split("-").slice(0, 2).join("-")}
+            </Link>
+            <span className="px-1 rounded"
+                  style={{ background: "var(--hover)", color: "var(--tan-2)" }}>
+              {CATEGORY_LABEL[d.category]}
+            </span>
+            {d.changeKind && d.changeKind !== "semantic" && (
               <span className="px-1 rounded"
-                    style={{ background: "var(--hover)", color: "var(--tan-2)" }}>
-                {CATEGORY_LABEL[d.category]}
+                    style={{ background: "transparent", color: "var(--tan-3)" }}
+                    title={d.changeKind === "lint"
+                      ? "Whitespace / formatting change only"
+                      : "Small letter-level edit (likely typo / spelling)"}>
+                {d.changeKind}
               </span>
-            </div>
-            {d.summary && (
-              <div
-                className="text-[11px] italic leading-[14px] pl-2 ml-1 mt-0.5"
-                style={{ color: "var(--tan-2)", borderLeft: "2px solid var(--border)" }}
-              >
-                {d.summary}
-              </div>
             )}
           </li>
         ))}

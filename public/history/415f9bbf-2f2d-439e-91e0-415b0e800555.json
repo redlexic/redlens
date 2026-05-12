@@ -16,8 +16,8 @@
     "reviewCount": 2,
     "approvalCount": 1,
     "commentCount": 1,
-    "summary": "Establish Demand Side Buffer",
-    "description": "Establishes a standalone Demand Side Buffer account for Distribution Reward and Integration Boost payments, simplifies expense recognition in the Monthly Settlement Cycle, and removes references to legacy roles from Near-Term Process documents."
+    "summary": "Add Missing Grove Instance On Plume",
+    "description": "Adds the Centrifuge ACRDX instance to the Grove artifact for Plume, including deposit and withdrawal parameters."
   },
   {
     "date": "2026-05-05",

@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -95,14 +95,13 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 222,
     "prTitle": "Atlas Edit Proposal — 2026-04-13",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
-    "approvalCount": 1,
-    "summary": "Update Grove Liquidity Layer For Future Spell Contents",
-    "description": "Updates the Grove Liquidity Layer: increases USDS mint rate limits to 500M, adds SkyLink transfer rate limits between Ethereum Mainnet and Avalanche, sets the USDC to Ethereum CCTP transfer to Unlimited, onboards the Avalanche Curve USDS/USDC pool, onboards the Centrifuge JTRSY USDS Vault, adds Grove Executor and Receiver addresses on Avalanche, and upgrades the Avalanche ForeignController to version 1.8.0 (LayerZero V2)."
+    "approvalCount": 1
   },
   {
     "date": "2026-05-05",

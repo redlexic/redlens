@@ -16,8 +16,8 @@
     "reviewCount": 2,
     "approvalCount": 1,
     "commentCount": 1,
-    "summary": "Add TechOps Services As Keeper Provider And Remove Deactivated Networks",
-    "description": "Adds TechOps Services as a keeper provider operating the SKY lane in dss-cron, removes the deactivated Gelato Network and Keep3r Network documents, and updates the Keepers parent document to better describe keeper responsibilities."
+    "summary": "Add Missing Grove Instance On Plume",
+    "description": "Adds the Centrifuge ACRDX instance to the Grove artifact for Plume, including deposit and withdrawal parameters."
   },
   {
     "date": "2026-05-05",

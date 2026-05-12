@@ -25,6 +25,10 @@ export interface HistoryEntry {
   description?: string;
   /** Per-node line diff */
   diff?: DiffLine[];
+  /** Significance of a modified edit: "lint" = whitespace-only, "typo" =
+   *  ≤8 chars letter-edit, "semantic" = real content change. Only set for
+   *  `changeType: "modified"`. */
+  changeKind?: "lint" | "typo" | "semantic";
   /** Source path for `changeType: "moved"` */
   movedFrom?: string;
   /** Destination path for `changeType: "moved"` */

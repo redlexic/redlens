@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -55,14 +55,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 121,
     "prTitle": "Nov 24 Atlas edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2025-12-11",
@@ -98,14 +98,14 @@
         "- Core Council Executor Agent 1 - 25,000,000 USDS"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 141,
     "prTitle": "Dec 8 edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/141",
     "reviewCount": 5,
     "approvalCount": 1,
-    "summary": "Dec 8 edit",
-    "description": "Do not merge until associated poll passes"
+    "summary": "Dec 8 edit"
   },
   {
     "date": "2026-01-22",
@@ -129,6 +129,7 @@
         "- Core Council Executor Agent 1 - 25,000,000 USDS"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
@@ -168,6 +169,7 @@
         "- Ozone - 25,000,000 USDS"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 200,
     "prTitle": "2026-03-16 Weekly Edit Proposal",
     "prAuthor": "0xldr",
@@ -203,6 +205,7 @@
         "- Skybase - 15,000,000 USDS"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 234,
     "prTitle": "add Grove Genesis Capital",
     "prAuthor": "0xldr",

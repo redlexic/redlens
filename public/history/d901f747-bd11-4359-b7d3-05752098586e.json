@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -47,6 +47,7 @@
         "Instance Configuration Document Location: [A.6.1.1.4.2.5.1.4.3 - Gnosis Protocol Instance Configuration Document](34cde6e0-89a1-44a4-9ce1-58873b83c63b)."
       ]
     ],
+    "changeKind": "lint",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",

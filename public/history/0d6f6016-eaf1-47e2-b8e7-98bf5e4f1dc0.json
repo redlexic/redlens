@@ -15,8 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/141",
     "reviewCount": 5,
     "approvalCount": 1,
-    "summary": "Dec 8 edit",
-    "description": "Do not merge until associated poll passes"
+    "summary": "Dec 8 edit"
   },
   {
     "date": "2026-01-22",
@@ -45,6 +44,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
@@ -145,6 +145,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",

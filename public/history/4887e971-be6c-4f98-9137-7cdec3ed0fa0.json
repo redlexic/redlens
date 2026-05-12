@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -118,6 +118,7 @@
         "◦ Dynamic Period Attestation and Disclosures: In addition to the end-of-period snapshot figures, the TRC Report must include an Attestation from the Prime Agent confirming it maintained TRC at or above its Aggregate RRC at all times throughout the entire reporting period. In addition, the TRC Report must include disclosure of any events, Prime-initiated off-chain contractual obligations, impairments to the value or redeemability of held assets (such as RWA backing or bridged asset viability), encumbrances, or other conditions that occurred at any point during the reporting period which materially affected its TRC, even if such conditions were temporary or not continuously visible to on-chain monitoring systems. This disclosure must include the nature of the event/condition, its precise timing and duration, and its quantified impact on the Prime Agent's TRC."
       ]
     ],
+    "changeKind": "lint",
     "pr": 199,
     "prTitle": "Global linting - Remove extra spaces",
     "prAuthor": "blimpa",
@@ -126,7 +127,7 @@
     "approvalCount": 1,
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
-    "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+    "description": "Extra spaces have been removed. --- The following have been kept unchanged: - Code blocks/lines have been kept unchanged excepting the removal of: - Line-final spaces - Interlinear spaces - Table layouts excepting the removal of: - Line-final spaces Newlines have not been changed."
   },
   {
     "date": "2026-03-26",
@@ -2883,6 +2884,7 @@
         "- Dynamic Period Attestation and Disclosures: In addition to the end-of-period snapshot figures, the TRC Report must include an Attestation from the Prime Agent confirming it maintained TRC at or above its Aggregate RRC at all times throughout the entire reporting period. In addition, the TRC Report must include disclosure of any events, Prime-initiated off-chain contractual obligations, impairments to the value or redeemability of held assets (such as RWA backing or bridged asset viability), encumbrances, or other conditions that occurred at any point during the reporting period which materially affected its TRC, even if such conditions were temporary or not continuously visible to on-chain monitoring systems. This disclosure must include the nature of the event/condition, its precise timing and duration, and its quantified impact on the Prime Agent's TRC."
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -2891,7 +2893,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-05-05",

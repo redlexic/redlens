@@ -133,6 +133,7 @@
         "The address of the Launch Agent 6 Foundation on the Ethereum Mainnet is `0xfDD055D3CCEE0D955031CF1FD76c8Db9317cCC58`."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",

@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -51,6 +51,7 @@
         "Each action executed by the Freezer Multisig, including any function calls and their parameters, must be reported to the Sky community within a reasonable time frame through a post on the Sky Forum."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 133,
     "prTitle": "2025-12-01 AEW Proposal",
     "prAuthor": "0xldr",

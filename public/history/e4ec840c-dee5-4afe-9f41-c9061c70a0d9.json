@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -39,14 +39,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 235,
     "prTitle": "Restructure ALCS Directory: move Blackrock + Centrifuge to Completed, align Active with ICD numbering",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/235",
     "reviewCount": 4,
     "approvalCount": 1,
-    "commentCount": 2,
-    "summary": "Restructure ALCS Directory: move Blackrock + Centrifuge to Completed, align Active with ICD numbering"
+    "commentCount": 2
   },
   {
     "date": "2026-05-05",

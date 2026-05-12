@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -79,14 +79,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 121,
     "prTitle": "Nov 24 Atlas edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2026-01-22",
@@ -115,6 +115,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
@@ -151,14 +152,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 186,
     "prTitle": "2026-02-16 AEW proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/186",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-16 AEW proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-16/27720/1"
+    "summary": "Update Names Of Obex Foundation And Development Company",
+    "description": "Replace `A.2.8.2.4.1.1.2 - Obex Details` to read as follows: Obex Details *(Core)* - The party 'Obex' comprises the Obex Prime Agent, Rubicon, and Treadstone. Add new subdocuments of `A.6.1.1.5.2.1.1.3.1.1.4 - Custom Instance Parameters` to read as follows: Rubicon *(Core)* - Rubicon is the Prime Foundation associated with Obex. Its mandate is to support the development, growth, and adoption of Obex. Treadstone *(Core)* - Treadstone is the development company that provides services to Rubicon. Replace subdocuments of `A.6.1.1.5.2.6.1.2.1.3 - Total Risk Capital (TRC) Management` to read as…"
   },
   {
     "date": "2026-05-05",

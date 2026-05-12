@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -63,6 +63,7 @@
         "Where an Emergency Response Group Member is a team, the two (2) team members responsible for incident response are required to join the Signal Group."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",

@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -79,6 +79,7 @@
         "The Governance Facilitators are responsible for actioning the usage of Protego and liaising with the Ranked Delegates (and other Aligned Delegates as needed) to gather the necessary support for it."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",

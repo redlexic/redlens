@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -30,6 +30,7 @@
         "All items of Income and Expense are recognized on a \"cash basis\" based on when USDS/DAI enter or leave the Sky Surplus Buffer, Core Council Buffer, or Aligned Delegates Buffer."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 133,
     "prTitle": "2025-12-01 AEW Proposal",
     "prAuthor": "0xldr",
@@ -152,6 +153,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",
@@ -219,6 +221,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",

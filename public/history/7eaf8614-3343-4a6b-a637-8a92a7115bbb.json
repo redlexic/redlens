@@ -16,7 +16,7 @@
     "reviewCount": 1,
     "approvalCount": 1,
     "summary": "Spark Proposal - SLL - Onboard Morpho v2 USDT Vault",
-    "description": "Originating forum post: https://forum.sky.money/t/february-26-2026-proposed-changes-to-spark-for-upcoming-spell/27719\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Treasury - Spark Foundation Grant for March (Exec) 2. [Ethereum] Spark Treasury - SPK Buybacks Transfer for February 2026 (Exec) 3. [Ethereum] SparkLend - Claim Reserves (Exec) 4. [Ethereum] Spark Liquidity Layer - Increase Rate Limit for SparkLend USDT 5. [Ethereum] Spark Liquidity Layer - Increase Rate Limit for Maple syrupUSDT 6. [Ethereum] Spark Liquidity Layer - Increase Rate Limit for Aave Core USDT 7. [Ethereum] Spark Liquidity Layer - Onboard with Paxos (Exec) 8. [Ethereum] Spark Liquidity Layer - Onboard Morpho v2 USDT Vault"
   },
   {
     "date": "2026-04-13",
@@ -81,6 +81,7 @@
         ]
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

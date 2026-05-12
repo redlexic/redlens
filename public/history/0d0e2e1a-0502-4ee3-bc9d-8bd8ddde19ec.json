@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -39,6 +39,7 @@
         "Where housekeeping items are proposed by the spell teams, the Core Facilitator must always conduct an independent assessment of the justification for, and security risks associated with, the housekeeping items. After the proposed housekeeping items have passed this independent assessment, the Core Facilitator may propose adding these items in an Executive Vote pursuant to the procedure defined in [A.1.10.1.6.1.2 - Process for Adding Housekeeping Item In Executive Vote](2d165c27-5daf-4a84-af8c-7c36f5de03d2)."
       ]
     ],
+    "changeKind": "lint",
     "pr": 199,
     "prTitle": "Global linting - Remove extra spaces",
     "prAuthor": "blimpa",
@@ -47,7 +48,7 @@
     "approvalCount": 1,
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
-    "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+    "description": "Extra spaces have been removed. --- The following have been kept unchanged: - Code blocks/lines have been kept unchanged excepting the removal of: - Line-final spaces - Interlinear spaces - Table layouts excepting the removal of: - Line-final spaces Newlines have not been changed."
   },
   {
     "date": "2026-03-27",
@@ -101,6 +102,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 208,
     "prTitle": "Atlas Edit Proposal — 2026-03-23",
     "prAuthor": "adamgfraser",

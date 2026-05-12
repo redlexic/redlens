@@ -76,6 +76,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
@@ -141,6 +142,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",

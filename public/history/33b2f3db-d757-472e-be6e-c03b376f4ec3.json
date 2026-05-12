@@ -43,6 +43,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
@@ -87,6 +88,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 176,
     "prTitle": "2026-02-02 Edit",
     "prAuthor": "0xldr",
@@ -123,6 +125,7 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",

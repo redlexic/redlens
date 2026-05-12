@@ -15,8 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/180",
     "reviewCount": 4,
     "approvalCount": 1,
-    "summary": "Feb 9 edit",
-    "description": "Do not merge until poll passes"
+    "summary": "Feb 9 edit"
   },
   {
     "date": "2026-04-30",
@@ -57,14 +56,13 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
-    "approvalCount": 1,
-    "summary": "Restructure Treasury Management Function",
-    "description": "Restructures the TMF waterfall across four steps (Security and Maintenance, Aggregate Backstop Capital growth, Smart Burn Engine with split between SKY rewards / USDS rewards / burn, and Staking Rewards). Retires the Net Revenue Ratio and activity-based staking reward tiers."
+    "approvalCount": 1
   },
   {
     "date": "2026-05-05",

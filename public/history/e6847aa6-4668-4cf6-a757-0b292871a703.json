@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "Add Avalanche SkyLink Bridge",
-    "description": "Adds documentation for the Avalanche SkyLink Bridge, specifying Freezer Multisig configuration, Rate Limits, and Validator parameters."
+    "summary": "Add Grove's Distribution Reward Instance",
+    "description": "Adds the Grove Finance Instance Configuration Document to the Distribution Reward Primitive, specifying its Reward Code and tracking methodology."
   },
   {
     "date": "2026-05-05",

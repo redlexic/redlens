@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -80,14 +80,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 121,
     "prTitle": "Nov 24 Atlas edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2026-01-07",
@@ -157,6 +157,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 143,
     "prTitle": "2025-12-15 Edit",
     "prAuthor": "0xldr",

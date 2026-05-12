@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -76,13 +76,12 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 237,
     "prTitle": "Atlas Edit Proposal — 2026-05-04",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
     "reviewCount": 1,
-    "approvalCount": 1,
-    "summary": "Update Governance Facilitator References And Remove Sky Ecosystem Liquidity Bootstrapping",
-    "description": "Updates \"Governance Facilitators\" references to Core Council or Core Facilitator across SparkLend's Security Access Multisig and Liquidity Layer Freezer documents; removes the A.5.5 Liquidity Bootstrapping section, as the bootstrapping program is no longer active."
+    "approvalCount": 1
   }
 ]

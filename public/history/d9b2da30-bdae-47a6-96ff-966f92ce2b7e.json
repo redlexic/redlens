@@ -53,15 +53,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1,
-    "summary": "Add Development Company To Launch Agent 6 Artifact",
-    "description": "Adds Stablewatch as the development company and Launch Agent 6 Foundation as the foundation for Launch Agent 6."
+    "commentCount": 1
   },
   {
     "date": "2026-05-05",

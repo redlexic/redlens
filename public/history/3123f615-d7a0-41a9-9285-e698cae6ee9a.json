@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/143",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "2025-12-15 Edit",
-    "description": "forum post: https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2025-12-15/27546"
+    "summary": "Expand StarGuard To Include All SubProxy Deployments",
+    "description": "Add a new subdocument of `A.1.9.2.3.2.2.3.1.1 - StarGuard`. This document should be located directly before `A.1.9.2.3.2.2.3.1.1.1 - StarGuard Functionality` and read as follows: StarGuard Deployment *(Core)* - For each new SubProxy, the StarGuard contract should be deployed and initialized in the same Spell and added to the keeper job, StarGuardJob. Move `A.1.9.2.3.2.2.3 - Execution Of Prime Spells` and its subdocuments to be subdocuments of `A.1.9.2.3.2 - Common Items`. The documents should be located directly after `A.1.9.2.3.2.2 - Prime Spells` Replace the term `Prime Spell` with the term…"
   },
   {
     "date": "2026-05-05",
