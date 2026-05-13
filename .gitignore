@@ -52,4 +52,5 @@ note.md
 .cache/atlas-rag/vectors.bin
 .cache/processes-audit.json
 .cache/processes-audit.md
+.cache/processes-heuristic.json
 .claude/scheduled_tasks.lock
