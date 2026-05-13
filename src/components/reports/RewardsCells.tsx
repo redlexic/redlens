@@ -31,6 +31,7 @@ const STATUS_STYLE: Record<string, string> = {
   Active: "bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-tan",
   Completed: "bg-[var(--hover)] text-tan-3",
   InProgress: "bg-[color-mix(in_srgb,var(--tan-3)_20%,transparent)] text-tan-2",
+  Inactive: "bg-transparent text-tan-3 opacity-60 border border-[var(--border)]",
 };
 
 export function StatusPill({ s }: { s: string }) {

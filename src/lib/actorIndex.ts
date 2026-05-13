@@ -1,4 +1,4 @@
-import type { AtlasNode, Participant, RelationEdge } from "../types";
+import type { AtlasNode, GraphEntity, RelationEdge } from "../types";
 import { ROUTES } from "./routes";
 import { parseMeta } from "./meta";
 import type { GraphData } from "./graph";
@@ -48,6 +48,17 @@ export interface RadarInstance {
   isUnknownPrimitive: boolean;
   signalParams: InstanceParam[];
 }
+export interface RadarPrimitive {
+  title: string;
+  docId: string | null;
+  st: string;
+  category: string | null;
+  categoryDocId: string | null;
+  categoryOrder: number;
+  status: string | null;
+  isUnknown: boolean;
+  instances: RadarInstance[];
+}
 export interface Recommendation {
   kind: "missing-rp" | "governance-edge" | "no-rewards";
   label: string;
@@ -56,13 +67,14 @@ export interface Recommendation {
   entityLink?: string;
 }
 export interface ActorProfile {
-  entity: Participant;
+  entity: GraphEntity;
   definingDoc: AtlasNode | null;
   chain: ActorChain;
   adRows: ActiveDataRow[];
   rewardsAgent: RewardsAgent | null;
   relations: ActorRelation[];
   instances: RadarInstance[];
+  primitives: RadarPrimitive[];
   recommendations: Recommendation[];
   comprisesMembers: { name: string; slug: string | null }[];
   partOfComposite: { name: string; slug: string | null } | null;
@@ -100,7 +112,7 @@ export function buildSidebarActors(
   graph: GraphData,
   docs: Record<string, AtlasNode>,
 ): SidebarGroup[] {
-  const by = (pred: (p: Participant) => boolean): SidebarActor[] =>
+  const by = (pred: (p: GraphEntity) => boolean): SidebarActor[] =>
     graph.participants
       .filter(pred)
       .sort((a, b) => {
@@ -138,7 +150,7 @@ export function buildActorProfile(
     (edgesFrom.get(e.f) ?? (edgesFrom.set(e.f, []), edgesFrom.get(e.f)!)).push(e);
     (edgesTo.get(e.t) ?? (edgesTo.set(e.t, []), edgesTo.get(e.t)!)).push(e);
   }
-  const cn = (p: Participant): ChainNode => ({
+  const cn = (p: GraphEntity): ChainNode => ({
     id: p.id,
     slug: p.slug,
     name: p.name,
@@ -147,7 +159,7 @@ export function buildActorProfile(
     docId: p.did,
   });
   const resolve = (ids: string[]) =>
-    ids.map((id) => entityById.get(id)).filter((p): p is Participant => !!p);
+    ids.map((id) => entityById.get(id)).filter((p): p is GraphEntity => !!p);
   const execsTo = (id: string) => (edgesTo.get(id) ?? []).filter((e) => EXEC_EDGES.has(e.e));
   const execsFrom = (id: string) => (edgesFrom.get(id) ?? []).filter((e) => EXEC_EDGES.has(e.e));
   const facsTo = (id: string) => (edgesTo.get(id) ?? []).filter((e) => FAC_EDGES.has(e.e));
@@ -157,7 +169,7 @@ export function buildActorProfile(
     const seen = new Set<string>();
     return nodes.filter((n) => (seen.has(n.id) ? false : (seen.add(n.id), true)));
   };
-  const primesOf = (execs: Participant[]) =>
+  const primesOf = (execs: GraphEntity[]) =>
     dedup(
       resolve(execs.flatMap((ex) => execsFrom(ex.id).map((e) => e.t))).map(cn),
     );
@@ -238,7 +250,7 @@ export function buildActorProfile(
     const dir = e.f === entity.id ? ("outbound" as const) : ("inbound" as const);
     const otherId = dir === "outbound" ? e.t : e.f;
     const other = entityById.get(otherId);
-    if (!other) continue; // instance or unresolvable entity — skip
+    if (!other || other.et === "primitive") continue; // instance / primitive / unresolvable — skip
     relations.push({
       edge: e,
       direction: dir,
@@ -287,6 +299,48 @@ export function buildActorProfile(
     }
   }
 
+  // Primitives — one row per primitive declared under the agent, regardless of
+  // whether it has instances. Instances (if any) are nested under each primitive.
+  const primitives: RadarPrimitive[] = [];
+  if (definingDoc) {
+    interface PrimitiveMeta {
+      agent_doc_id: string;
+      primitive_category_doc_id: string | null;
+      status: string | null;
+      is_unknown_primitive?: boolean;
+    }
+    const instancesBySt = new Map<string, RadarInstance[]>();
+    for (const inst of instances) {
+      (instancesBySt.get(inst.st) ?? (instancesBySt.set(inst.st, []), instancesBySt.get(inst.st)!)).push(inst);
+    }
+    for (const p of graph.primitives) {
+      if (!p.m || !p.st) continue;
+      const meta = parseMeta<PrimitiveMeta>(p.m);
+      if (!meta || meta.agent_doc_id !== definingDoc.id) continue;
+      const primDoc = p.did ? docs[p.did] : null;
+      const catDoc = meta.primitive_category_doc_id ? docs[meta.primitive_category_doc_id] : null;
+      const catDocNo = catDoc?.doc_no ?? "";
+      const lastSeg = catDocNo.split(".").pop() ?? "0";
+      primitives.push({
+        title: primDoc?.title ?? p.name,
+        docId: p.did,
+        st: p.st,
+        category: catDoc?.title ?? null,
+        categoryDocId: catDoc?.id ?? null,
+        categoryOrder: Number.parseInt(lastSeg, 10) || 0,
+        status: meta.status,
+        isUnknown: meta.is_unknown_primitive ?? false,
+        instances: instancesBySt.get(p.st) ?? [],
+      });
+    }
+    primitives.sort((a, b) => {
+      if (a.categoryOrder !== b.categoryOrder) return a.categoryOrder - b.categoryOrder;
+      const docA = a.docId ? docs[a.docId]?.doc_no ?? "" : "";
+      const docB = b.docId ? docs[b.docId]?.doc_no ?? "" : "";
+      return docA.localeCompare(docB, undefined, { numeric: true });
+    });
+  }
+
   const recommendations: Recommendation[] = [];
   const missingRP = adRows.filter((r) => !r.responsibleParty).length;
   if (missingRP > 0)
@@ -321,6 +375,7 @@ export function buildActorProfile(
     rewardsAgent,
     relations,
     instances,
+    primitives,
     recommendations,
     comprisesMembers,
     partOfComposite,

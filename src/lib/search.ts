@@ -1,11 +1,11 @@
-import type { Participant } from "../types";
+import type { GraphEntity } from "../types";
 
 interface EntityMatch {
-  participant: Participant;
+  participant: GraphEntity;
   score: number; // 3 exact, 2 prefix, 1 substring
 }
 
-export function matchParticipants(query: string, participants: Participant[]): EntityMatch[] {
+export function matchParticipants(query: string, participants: GraphEntity[]): EntityMatch[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   const hits: EntityMatch[] = [];

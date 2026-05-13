@@ -29,6 +29,20 @@ export function primitiveSlugFromTitle(title) {
     .replace(/^-|-$/g, "");
 }
 
+/**
+ * Read a primitive's Global Activation Status. Per the atlas convention,
+ * `${primRoot}.1.1` is the Primitive Hub Document → Global Activation Status
+ * leaf, whose content is a single backtick-wrapped token: `Active`, `Inactive`,
+ * or `Completed`. Returns the literal token, or null if unreadable.
+ */
+export function primitiveStatusFor(primRoot, docByDocNo) {
+  const statusDoc = docByDocNo.get(`${primRoot.doc_no}.1.1`);
+  if (!statusDoc?.content) return null;
+  const m = statusDoc.content.match(/`?(Active|Inactive|Completed)`?/i);
+  if (!m) return null;
+  return m[1][0].toUpperCase() + m[1].slice(1).toLowerCase();
+}
+
 export function instanceStatusFor(icd, primRoot, docByDocNo) {
   // Tier position varies (Allocation System interposes a Multi-Instance Coordinator
   // at .2), so read the tier doc's title directly rather than assuming .2=Active.

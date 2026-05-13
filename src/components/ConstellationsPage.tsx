@@ -13,7 +13,7 @@ import {
 import { EntityFlow } from "./constellations/EntityFlow";
 import { Loading } from "./Loading";
 import { ErrorBoundary, PanelError } from "./ErrorBoundary";
-import type { Participant } from "../types";
+import type { GraphEntity } from "../types";
 
 export function ConstellationsPage({
   onNavigate,
@@ -50,8 +50,9 @@ export function ConstellationsPage({
     () =>
       init
         ? {
-            participants: init.entities.filter((e) => e.et !== "instance"),
+            participants: init.entities.filter((e) => e.et !== "instance" && e.et !== "primitive"),
             instances: init.entities.filter((e) => e.et === "instance"),
+            primitives: init.entities.filter((e) => e.et === "primitive"),
             edges: init.entityEdges,
           }
         : null,
@@ -104,7 +105,7 @@ export function ConstellationsPage({
     () =>
       allEntities
         .filter((e) => e.et === "agent" && e.st === "prime")
-        .sort((a, b) => a.name.localeCompare(b.name)) as Participant[],
+        .sort((a, b) => a.name.localeCompare(b.name)) as GraphEntity[],
     [allEntities],
   );
 

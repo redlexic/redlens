@@ -1,7 +1,7 @@
 import { memo, useState, useEffect, useMemo } from "react";
 import { SearchResult } from "./SearchResult";
 import { SearchHints } from "./SearchHints";
-import type { SearchHit, Participant } from "../types";
+import type { SearchHit, GraphEntity } from "../types";
 import type { SearchState } from "../hooks/useSearch";
 import { loadGraph } from "../lib/graph";
 import { matchParticipants } from "../lib/search";
@@ -31,7 +31,7 @@ export const SearchResults = memo(function SearchResults({
     setVisible(PAGE_SIZE);
   }, [hits]);
 
-  const [participants, setParticipants] = useState<Participant[] | null>(null);
+  const [participants, setParticipants] = useState<GraphEntity[] | null>(null);
   useEffect(() => {
     loadGraph().then((g) => setParticipants(g.participants));
   }, []);

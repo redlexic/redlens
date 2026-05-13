@@ -5,7 +5,7 @@ import { parseMeta } from "./meta";
 
 const CURRENT_PRIMITIVES_UUID = "203b8c79-c7cf-4fcc-94e3-5bf42f791619";
 
-export interface PrimitiveTypeStat {
+export interface PrimitiveStat {
   title: string;
   st: string;
   docId: string | null;
@@ -18,7 +18,7 @@ export interface PrimitiveTypeStat {
 export interface CategoryStat {
   title: string;
   docId: string | null;
-  primitives: PrimitiveTypeStat[];
+  primitives: PrimitiveStat[];
 }
 
 export interface AgentPrimitiveStat {
@@ -75,7 +75,7 @@ export function buildPrimitiveStats(
   }
 
   const entityById = new Map(
-    [...graph.participants, ...graph.instances].map((e) => [e.id, e]),
+    [...graph.participants, ...graph.instances, ...graph.primitives].map((e) => [e.id, e]),
   );
   // executor slug/name per prime agent id
   const executorByPrimeId = new Map<string, { name: string; slug: string }>();
@@ -88,7 +88,7 @@ export function buildPrimitiveStats(
 
   type AgentBucket = {
     name: string; slug: string; docId: string;
-    catMap: Map<string, { docId: string | null; primMap: Map<string, PrimitiveTypeStat> }>;
+    catMap: Map<string, { docId: string | null; primMap: Map<string, PrimitiveStat> }>;
   };
   const agentMap = new Map<string, AgentBucket>();
   for (const p of graph.participants.filter((e) => e.et === "agent" && e.st === "prime")) {
