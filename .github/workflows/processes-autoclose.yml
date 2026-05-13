@@ -8,8 +8,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "data/processes.json"
-      - "data/processes-ignored.json"
+      - "public/processes.json"
+      - "public/processes-ignored.json"
       - "vendor/next-gen-atlas"
 
 permissions:
@@ -57,7 +57,7 @@ jobs:
 
           for n in $ISSUES; do
             gh issue close "$n" \
-              --comment "Reconciled — \`data/processes.json\` is back in sync with the atlas. Closing automatically." \
+              --comment "Reconciled — \`public/processes.json\` is back in sync with the atlas. Closing automatically." \
               --reason completed
             echo "Closed #$n"
           done

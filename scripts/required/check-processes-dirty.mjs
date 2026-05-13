@@ -2,19 +2,19 @@
 /**
  * Process inventory drift check.
  *
- * Compares data/processes.json (curated list of 55 process nodes) against the
+ * Compares public/processes.json (curated list of 55 process nodes) against the
  * current public/docs.json. Three outputs:
  *
  *   1. Auto-applied: title / doc_no snapshot updates. If a curated UUID still
  *      exists but its title or doc_no changed in the atlas, we silently update
- *      data/processes.json. This is a snapshot drift, not a structural change.
+ *      public/processes.json. This is a snapshot drift, not a structural change.
  *
  *   2. audit.missingUuids — curated entry whose UUID is gone from docs.json
  *      (deleted, restructured, or merged into another node).
  *
  *   3. audit.newCandidates — docs whose titles match the process keyword
- *      classifier but aren't in data/processes.json AND not in
- *      data/processes-ignored.json.
+ *      classifier but aren't in public/processes.json AND not in
+ *      public/processes-ignored.json.
  *
  * Exits 0 always — never blocks builds/deployments. Sets the GH Actions
  * outputs `dirty` and `summary` so the atlas-update workflow can decide
@@ -32,8 +32,8 @@ import { findCandidates } from "../lib/process-keywords.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
-const PROCESSES = path.join(ROOT, "data/processes.json");
-const IGNORED = path.join(ROOT, "data/processes-ignored.json");
+const PROCESSES = path.join(ROOT, "public/processes.json");
+const IGNORED = path.join(ROOT, "public/processes-ignored.json");
 const DOCS = path.join(ROOT, "public/docs.json");
 const AUDIT_OUT = path.join(ROOT, ".cache/processes-audit.json");
 const AUDIT_MD = path.join(ROOT, ".cache/processes-audit.md");
@@ -156,7 +156,7 @@ function renderMarkdown(audit, dirty) {
   if (audit.auto_applied.length > 0) {
     lines.push(`## Auto-applied snapshot updates (${audit.auto_applied.length})`);
     lines.push("");
-    lines.push("These were committed to `data/processes.json` automatically — no action needed.");
+    lines.push("These were committed to `public/processes.json` automatically — no action needed.");
     lines.push("");
     for (const d of audit.auto_applied) {
       lines.push(`- \`${d.uuid}\``);
@@ -173,7 +173,7 @@ function renderMarkdown(audit, dirty) {
   if (audit.missing_uuids.length > 0) {
     lines.push(`## Missing UUIDs (${audit.missing_uuids.length})`);
     lines.push("");
-    lines.push("These curated entries no longer exist in the atlas — deleted, merged, or restructured. Review and either remove from `data/processes.json` or replace the UUID.");
+    lines.push("These curated entries no longer exist in the atlas — deleted, merged, or restructured. Review and either remove from `public/processes.json` or replace the UUID.");
     lines.push("");
     for (const m of audit.missing_uuids) {
       lines.push(`- \`${m.uuid}\` — ${m.title_at_curation} (${m.doc_no_at_curation}, ${m.category})`);
@@ -184,7 +184,7 @@ function renderMarkdown(audit, dirty) {
   if (audit.new_candidates.length > 0) {
     lines.push(`## New candidates (${audit.new_candidates.length})`);
     lines.push("");
-    lines.push("Atlas nodes whose titles match the process keyword classifier but aren't in the curated list. For each: add to `data/processes.json` if it's a real process, or to `data/processes-ignored.json` to suppress permanently.");
+    lines.push("Atlas nodes whose titles match the process keyword classifier but aren't in the curated list. For each: add to `public/processes.json` if it's a real process, or to `public/processes-ignored.json` to suppress permanently.");
     lines.push("");
     for (const c of audit.new_candidates) {
       lines.push(`- ${c.doc_no} — **${c.title}** (\`${c.uuid}\`, ${c.type}) — keywords: ${c.keywords.join(", ")}`);

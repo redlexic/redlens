@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Apply a triage decisions file to data/processes.json + data/processes-ignored.json.
+ * Apply a triage decisions file to public/processes.json + public/processes-ignored.json.
  *
  * Separates the analytical step (the processes-triage skill writes decisions)
  * from the deterministic mutation step (this script applies them). Lets the
@@ -12,7 +12,8 @@
  *     { "uuid": "...", "verdict": "add",
  *       "category": "Settlement & Financial",
  *       "shape": "child" | "inline",
- *       "status": "active" | "deferred-stub" },
+ *       "status": "active" | "deferred-stub",
+ *       "stepCount": <actual integer count> },         // optional — overrides heuristic; NOT a placeholder
  *     { "uuid": "...", "verdict": "ignore",
  *       "reason": "schema template | category container | role definition | requirement spec | other (...)" }
  *   ]
@@ -25,8 +26,8 @@
  *   1. Validates every decision has a uuid that exists in the current audit's
  *      new_candidates (warns on orphans, errors on missing-from-audit).
  *   2. Looks up each uuid in public/docs.json for title/doc_no snapshot.
- *   3. Appends "add" entries to data/processes.json, "ignore" entries to
- *      data/processes-ignored.json.
+ *   3. Appends "add" entries to public/processes.json, "ignore" entries to
+ *      public/processes-ignored.json.
  *   4. Sorts processes.json by category, then doc_no_at_curation (numeric).
  *   5. Prints a per-category summary.
  */
@@ -37,8 +38,8 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
-const PROCESSES = path.join(ROOT, "data/processes.json");
-const IGNORED = path.join(ROOT, "data/processes-ignored.json");
+const PROCESSES = path.join(ROOT, "public/processes.json");
+const IGNORED = path.join(ROOT, "public/processes-ignored.json");
 const DOCS = path.join(ROOT, "public/docs.json");
 const AUDIT = path.join(ROOT, ".cache/processes-audit.json");
 
@@ -81,6 +82,10 @@ for (const d of decisions) {
         console.error(`Add decision for ${d.uuid} missing ${f}`);
         process.exit(1);
       }
+    }
+    if (d.stepCount !== undefined && (!Number.isInteger(d.stepCount) || d.stepCount < 1)) {
+      console.error(`Add decision for ${d.uuid}: stepCount must be a positive integer`);
+      process.exit(1);
     }
   } else if (d.verdict === "ignore") {
     if (!d.reason) {
@@ -129,6 +134,7 @@ for (const d of decisions) {
       status: d.status,
       title_at_curation: node.title,
       doc_no_at_curation: node.doc_no,
+      ...(d.stepCount !== undefined ? { stepCount: d.stepCount } : {}),
     });
     summary.add[d.category] = (summary.add[d.category] ?? 0) + 1;
     added++;

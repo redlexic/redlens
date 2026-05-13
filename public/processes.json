@@ -108,6 +108,7 @@
     "category": "Agent & Primitive Lifecycle",
     "shape": "inline",
     "status": "active",
+    "stepCount": 3,
     "title_at_curation": "Designation Process",
     "doc_no_at_curation": "A.2.2.9.1.1.1.1.1"
   },
@@ -124,6 +125,7 @@
     "category": "Agent & Primitive Lifecycle",
     "shape": "inline",
     "status": "active",
+    "stepCount": 4,
     "title_at_curation": "Governance Process for Instance Modification",
     "doc_no_at_curation": "A.2.2.9.1.1.3.3.1.3"
   },
@@ -140,6 +142,7 @@
     "category": "Artifact & Atlas Governance",
     "shape": "inline",
     "status": "deferred-stub",
+    "stepCount": 1,
     "title_at_curation": "Process For Carrying Out Changes",
     "doc_no_at_curation": "A.1.13.2.11.1"
   },
@@ -156,6 +159,7 @@
     "category": "Artifact & Atlas Governance",
     "shape": "inline",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Initiation Of Agent Termination Process",
     "doc_no_at_curation": "A.1.13.5.1"
   },
@@ -188,6 +192,7 @@
     "category": "Collateral & Asset Management",
     "shape": "child",
     "status": "active",
+    "stepCount": 1,
     "title_at_curation": "Collateral Offboarding Process",
     "doc_no_at_curation": "A.3.7.1.1.3.4"
   },
@@ -220,6 +225,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 5,
     "title_at_curation": "General Deposit to ERC-4626 Tokens Procedure",
     "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.2.1"
   },
@@ -228,6 +234,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 4,
     "title_at_curation": "General Withdraw from ERC-4626 Tokens Procedure",
     "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.2.2"
   },
@@ -236,6 +243,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 4,
     "title_at_curation": "General Redeem from ERC-4626 Tokens Procedure",
     "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.2.3"
   },
@@ -244,6 +252,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 6,
     "title_at_curation": "General Deposit to Aave ATokens Procedure",
     "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.3.1"
   },
@@ -252,6 +261,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 5,
     "title_at_curation": "General Withdraw from Aave ATokens Procedure",
     "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.3.2"
   },
@@ -276,6 +286,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 5,
     "title_at_curation": "General Deposit to ERC-4626 Tokens Procedure",
     "doc_no_at_curation": "A.6.1.1.2.2.6.1.2.2.1.2.1.2.2.1"
   },
@@ -284,6 +295,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 4,
     "title_at_curation": "General Withdraw from ERC-4626 Tokens Procedure",
     "doc_no_at_curation": "A.6.1.1.2.2.6.1.2.2.1.2.1.2.2.2"
   },
@@ -292,6 +304,7 @@
     "category": "Collateral & Asset Management",
     "shape": "inline",
     "status": "active",
+    "stepCount": 4,
     "title_at_curation": "General Redeem from ERC-4626 Tokens Procedure",
     "doc_no_at_curation": "A.6.1.1.2.2.6.1.2.2.1.2.1.2.2.3"
   },
@@ -324,6 +337,7 @@
     "category": "Dispute & Emergency",
     "shape": "inline",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Emergency Declaration Procedure",
     "doc_no_at_curation": "A.1.8.1.5.5"
   },
@@ -356,6 +370,7 @@
     "category": "Dispute & Emergency",
     "shape": "inline",
     "status": "active",
+    "stepCount": 3,
     "title_at_curation": "Resilience Fund Approval Process And Verifiability",
     "doc_no_at_curation": "A.2.9.1.1.1.4.1.6"
   },
@@ -388,6 +403,7 @@
     "category": "Dispute & Emergency",
     "shape": "inline",
     "status": "active",
+    "stepCount": 3,
     "title_at_curation": "Approval Process",
     "doc_no_at_curation": "A.2.10.1.5.3"
   },
@@ -396,6 +412,7 @@
     "category": "Dispute & Emergency",
     "shape": "inline",
     "status": "active",
+    "stepCount": 4,
     "title_at_curation": "Rewards Payout Process",
     "doc_no_at_curation": "A.2.11.1.1.3.3.2"
   },
@@ -420,6 +437,7 @@
     "category": "Dispute & Emergency",
     "shape": "inline",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Sky Governance Process",
     "doc_no_at_curation": "A.3.2.2.7.2.3.2"
   },
@@ -484,6 +502,7 @@
     "category": "Executive & Spell Processes",
     "shape": "child",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Spell Crafting Workflow",
     "doc_no_at_curation": "A.1.9.2.4.7.1"
   },
@@ -524,6 +543,7 @@
     "category": "Executive & Spell Processes",
     "shape": "inline",
     "status": "deferred-stub",
+    "stepCount": 1,
     "title_at_curation": "Linear Interpolation Module Usage Process Definition",
     "doc_no_at_curation": "A.1.9.3.2.13.2"
   },
@@ -580,6 +600,7 @@
     "category": "Governance & Voting Cycles",
     "shape": "inline",
     "status": "active",
+    "stepCount": 4,
     "title_at_curation": "Process Definition",
     "doc_no_at_curation": "A.1.11.2.5"
   },
@@ -612,6 +633,7 @@
     "category": "Personnel & Delegation",
     "shape": "child",
     "status": "deferred-stub",
+    "stepCount": 1,
     "title_at_curation": "Signer Offboarding Requirements",
     "doc_no_at_curation": "A.2.11.1.3.2.2.1.1.4"
   },
@@ -628,6 +650,7 @@
     "category": "Personnel & Delegation",
     "shape": "inline",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Signer Address Update Process If Original Key Is Accessible",
     "doc_no_at_curation": "A.2.11.1.3.2.2.2.1.1"
   },
@@ -636,6 +659,7 @@
     "category": "Personnel & Delegation",
     "shape": "inline",
     "status": "active",
+    "stepCount": 3,
     "title_at_curation": "Signer Address Update Process If Original Key Is Lost Or Inaccessible",
     "doc_no_at_curation": "A.2.11.1.3.2.2.2.1.2"
   },
@@ -668,6 +692,7 @@
     "category": "Personnel & Delegation",
     "shape": "inline",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Voluntary Offboarding",
     "doc_no_at_curation": "A.6.1.1.1.3.1.3.5.1"
   },
@@ -676,6 +701,7 @@
     "category": "Personnel & Delegation",
     "shape": "inline",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Term-End Automatic Offboarding",
     "doc_no_at_curation": "A.6.1.1.1.3.1.3.5.5"
   },
@@ -708,6 +734,7 @@
     "category": "Settlement & Financial",
     "shape": "inline",
     "status": "active",
+    "stepCount": 3,
     "title_at_curation": "Approval Process",
     "doc_no_at_curation": "A.2.2.8.1.2.1.3.1.1"
   },
@@ -716,6 +743,7 @@
     "category": "Settlement & Financial",
     "shape": "inline",
     "status": "active",
+    "stepCount": 2,
     "title_at_curation": "Near-Term Process",
     "doc_no_at_curation": "A.2.2.8.1.2.1.5.3.1"
   },
@@ -724,6 +752,7 @@
     "category": "Settlement & Financial",
     "shape": "inline",
     "status": "active",
+    "stepCount": 3,
     "title_at_curation": "Long Term Process",
     "doc_no_at_curation": "A.2.2.8.1.2.1.5.3.2"
   },
@@ -796,6 +825,7 @@
     "category": "Settlement & Financial",
     "shape": "child",
     "status": "deferred-stub",
+    "stepCount": 1,
     "title_at_curation": "Process Definition For Settlement Cycle And Core GovOps Review",
     "doc_no_at_curation": "A.2.2.8.1.2.4.1.3"
   },
@@ -812,6 +842,7 @@
     "category": "Settlement & Financial",
     "shape": "inline",
     "status": "active",
+    "stepCount": 3,
     "title_at_curation": "Long Term Process",
     "doc_no_at_curation": "A.2.2.8.2.2.1.3.2.2"
   },
@@ -900,6 +931,7 @@
     "category": "Settlement & Financial",
     "shape": "inline",
     "status": "active",
+    "stepCount": 5,
     "title_at_curation": "Core GovOps TRC Report Validation Process",
     "doc_no_at_curation": "A.2.2.9.1.1.3.2.1.3.2.1"
   },
@@ -1028,7 +1060,7 @@
     "category": "Settlement & Financial",
     "shape": "child",
     "status": "active",
-    "title_at_curation": "\u201cFailed SRC Review\u201d Authority and Procedure",
+    "title_at_curation": "“Failed SRC Review” Authority and Procedure",
     "doc_no_at_curation": "A.6.1.1.1.3.1.4.4"
   },
   {
@@ -1036,6 +1068,7 @@
     "category": "Settlement & Financial",
     "shape": "inline",
     "status": "active",
+    "stepCount": 5,
     "title_at_curation": "Operational Process",
     "doc_no_at_curation": "A.6.1.1.1.3.4.2.3.2"
   },

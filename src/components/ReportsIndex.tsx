@@ -19,6 +19,12 @@ const REPORTS: { id: ReportId; title: string; description: string }[] = [
     description:
       "Every Distribution Reward and Integration Boost instance each Prime Agent has invoked — reward codes, partner names, and on-chain reward addresses.",
   },
+  {
+    id: "processes",
+    title: "Atlas Processes",
+    description:
+      "The curated inventory of governance, settlement, lifecycle, and operational processes — title, doc number, step count, status, responsible party.",
+  },
 ];
 
 export function ReportsIndex({

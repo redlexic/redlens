@@ -1,13 +1,13 @@
 ---
 name: processes-triage
 description: >
-  Runbook for reconciling the curated process inventory (data/processes.json)
+  Runbook for reconciling the curated process inventory (public/processes.json)
   against atlas drift. Triggered when a GitHub issue with the
   "processes-review" label is open, or by phrases like "triage the processes
   issue", "review process candidates", "reconcile process inventory",
   "process inventory drift". Covers running the dirty check, applying the
   research-doc methodology to each candidate using atlas MCP tools, and
-  editing data/processes.json + data/processes-ignored.json in place.
+  editing public/processes.json + public/processes-ignored.json in place.
 license: MIT
 metadata:
   author: anscharo
@@ -16,18 +16,18 @@ metadata:
 
 # processes-triage
 
-The curated process inventory lives in `data/processes.json` (55 hand-validated process nodes from `docs/process-inventory.md`). When the atlas changes, `scripts/required/check-processes-dirty.mjs` surfaces three categories of drift; this skill is the runbook for reconciling them locally.
+The curated process inventory lives in `public/processes.json` (55 hand-validated process nodes from `docs/process-inventory.md`). When the atlas changes, `scripts/required/check-processes-dirty.mjs` surfaces three categories of drift; this skill is the runbook for reconciling them locally.
 
 ## Inputs
 
-- `data/processes.json` — curated list (source of truth)
-- `data/processes-ignored.json` — UUIDs that matched the keyword classifier but are explicitly not processes
+- `public/processes.json` — curated list (source of truth)
+- `public/processes-ignored.json` — UUIDs that matched the keyword classifier but are explicitly not processes
 - `.cache/processes-audit.json` + `.cache/processes-audit.md` — written by the dirty check
 - `public/docs.json` — current atlas state (used by atlas MCP tools)
 
 ## Drift categories
 
-1. **Auto-applied snapshot updates** — title / doc_no changed for a UUID that still exists. The dirty check already wrote these to `data/processes.json`. No action needed; skim them for sanity.
+1. **Auto-applied snapshot updates** — title / doc_no changed for a UUID that still exists. The dirty check already wrote these to `public/processes.json`. No action needed; skim them for sanity.
 2. **Missing UUIDs** — curated entry's UUID is gone. Likely renamed, merged, or deleted. Decide rename vs. delete.
 3. **New candidates** — keyword classifier hits that aren't in the curated or ignored lists. Decide add vs. ignore.
 
@@ -54,7 +54,7 @@ Use `atlas_get` for content and `atlas_neighbors` (or `atlas_traverse` with `par
 
 ### 3. Classify
 
-For a small number of candidates (≤ ~10), edit `data/processes.json` and `data/processes-ignored.json` directly.
+For a small number of candidates (≤ ~10), edit `public/processes.json` and `public/processes-ignored.json` directly.
 
 For a larger batch (the typical first-run case, dozens of candidates), write your verdicts to `.cache/processes-decisions.json` and apply them with:
 
@@ -71,13 +71,22 @@ Decisions file format:
   { "uuid": "...", "verdict": "add",
     "category": "Settlement & Financial",
     "shape": "child",
-    "status": "active" },
+    "status": "active",
+    "stepCount": <integer — count the actual steps in this process, do NOT default> },
   { "uuid": "...", "verdict": "ignore",
     "reason": "category container" }
 ]
 ```
 
-Schema for `data/processes.json` (what gets written for "add"):
+**Always include `stepCount`** when the verdict is "add" — and **count the actual steps in that specific process**. Do not use a placeholder value. To count: open the node via `atlas_get`, read its content and (for `shape: child`) list its children via `atlas_neighbors` or doc_no prefix lookup, then identify each distinct ordered step:
+
+- For `shape: child`: count step-shaped children (numbered sub-docs like `.1`, `.2`, `.3` — NOT `.0.*` annotations).
+- For `shape: inline`: count headings (`Step N`, `Stage N`, `Phase N`), numbered list items, parenthesized enumerations `(1) (2) (3)`, or distinct sentences/clauses if the prose enumerates phases.
+- For `status: deferred-stub`: use `1` (the process itself, content forthcoming).
+
+Different processes have different step counts — `3`, `5`, `13`, `16`. The number you write must reflect the actual process.
+
+Schema for `public/processes.json` (what gets written for "add"):
 
 **`processes.json` entry:**
 ```json
@@ -86,6 +95,7 @@ Schema for `data/processes.json` (what gets written for "add"):
   "category": "Governance & Voting Cycles | Executive & Spell Processes | Settlement & Financial | Agent & Primitive Lifecycle | Personnel & Delegation | Collateral & Asset Management | Dispute & Emergency | Artifact & Atlas Governance | <or a new one>",
   "shape": "child | inline",
   "status": "active | deferred-stub",
+  "stepCount": <integer — actual step count for THIS process>,
   "title_at_curation": "<current atlas title>",
   "doc_no_at_curation": "<current atlas doc_no>"
 }
@@ -104,6 +114,22 @@ Schema for `data/processes.json` (what gets written for "add"):
 }
 ```
 
+### 3a. Backfill missing `stepCount` on existing entries
+
+Existing entries in `processes.json` may not have a `stepCount` yet. To find which ones the frontend heuristic can't count, run:
+
+```bash
+node -e "
+const fs = require('fs');
+const docs = JSON.parse(fs.readFileSync('public/docs.json','utf8'));
+const ps = JSON.parse(fs.readFileSync('public/processes.json','utf8'));
+const need = ps.filter(p => p.stepCount === undefined).map(p => ({uuid: p.uuid, doc_no: docs[p.uuid]?.doc_no, title: docs[p.uuid]?.title, shape: p.shape}));
+console.log(JSON.stringify(need, null, 2));
+"
+```
+
+For each one returned, read its content + children via atlas MCP, count the distinct steps, then edit `processes.json` to add the `stepCount` field. (The heuristic may still cover most of these at render time, but storing the manual count guarantees correctness.)
+
 ### 4. Resolve missing UUIDs
 
 For each `missing_uuids` entry:
@@ -118,7 +144,7 @@ The dirty check sorts `processes.json` on auto-update, but if you added entries 
 
 ```bash
 pnpm processes:check    # verify clean (no new candidates, no missing UUIDs)
-git diff data/
+git diff public/processes*.json
 ```
 
 **Never run `git commit`, `git push`, or `gh pr create`** — these are blocked at the tool layer and the wrapper script (`pnpm processes:triage`) handles them.
@@ -127,7 +153,7 @@ Print a short summary of what changed. If invoked from the `pnpm processes:triag
 
 > Triage complete. **Type `/exit` (or press Ctrl-D) to hand control back to the wrapper script** — it will commit `data/`, push the branch, and open a PR. The `processes-autoclose.yml` workflow will close the review issue when the PR merges.
 
-If invoked outside the wrapper (no branch was created), end instead with: "Review `git diff data/`, commit + push, then close issue #N."
+If invoked outside the wrapper (no branch was created), end instead with: "Review `git diff public/processes*.json`, commit + push, then close issue #N."
 
 ## Constraints
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * One-shot bootstrap for data/processes.json.
+ * One-shot bootstrap for public/processes.json.
  *
  * Parses docs/process-inventory.md (the research doc that catalogued 55
  * processes by hand) and resolves the 8-char UUID prefixes to full UUIDs by
- * looking them up in public/docs.json. Emits data/processes.json.
+ * looking them up in public/docs.json. Emits public/processes.json.
  *
  * Re-run only if the research doc is updated; normal updates go through the
  * check-processes-dirty.mjs flow.
@@ -20,7 +20,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const RESEARCH = path.join(ROOT, "docs/process-inventory.md");
 const DOCS = path.join(ROOT, "public/docs.json");
-const OUT = path.join(ROOT, "data/processes.json");
+const OUT = path.join(ROOT, "public/processes.json");
 
 // ---------------------------------------------------------------------------
 // Parse the research doc tables.

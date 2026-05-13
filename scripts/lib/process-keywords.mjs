@@ -1,7 +1,7 @@
 /**
  * Process keyword classifier.
  *
- * Candidate generator for the curated processes list (data/processes.json).
+ * Candidate generator for the curated processes list (public/processes.json).
  * Returns docs whose titles contain one of the process-shaped keyword families.
  *
  * Used by:
@@ -10,7 +10,7 @@
  *
  * Recall is ~85%: authors consistently use "Process Definition" / "Cycle" /
  * "Workflow" in titles, but generic containers ("Implementation", "Stages")
- * will be missed and must be added to data/processes.json by hand.
+ * will be missed and must be added to public/processes.json by hand.
  */
 
 // Word-boundary matches on the title, case-insensitive.
@@ -59,7 +59,7 @@ export const NEVER_PROCESS_TITLES = new Set([
   "Deployment",
   // Schema-instantiated sub-sections that repeat per entity / per primitive.
   // Tracking each instance separately would balloon the inventory; if a
-  // specific one matters, add the UUID to data/processes.json by hand.
+  // specific one matters, add the UUID to public/processes.json by hand.
   "Operational Process Definition",
   "Instance Lifecycle Management",
   "Process Definition For Upkeep Fee Payment",

@@ -91,7 +91,7 @@ jobs:
         id: processes
         if: steps.atlas.outputs.proceed == 'true'
         # Never fails the build. Sets dirty/missing/candidates outputs and
-        # auto-applies title/doc_no snapshot updates to data/processes.json.
+        # auto-applies title/doc_no snapshot updates to public/processes.json.
         run: pnpm processes:check
 
       - name: Open PR
@@ -107,7 +107,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
 
-          git add vendor/next-gen-atlas public/ graph-snapshots/ data/
+          git add vendor/next-gen-atlas public/ graph-snapshots/
 
           if git diff --cached --quiet; then
             echo "No artifact changes — skipping PR."
