@@ -91,7 +91,7 @@ export function ActorDashboard({ profile }: Props) {
     adRows,
     rewardsAgent,
     relations,
-    instances,
+    primitives,
     recommendations,
     comprisesMembers,
     partOfComposite,
@@ -181,9 +181,9 @@ export function ActorDashboard({ profile }: Props) {
               <ActorResponsibilities rows={adRows} />
             </Section>
           )}
-          {instances.length > 0 && (
-            <Section title="Instances">
-              <ActorInstances instances={instances} />
+          {primitives.length > 0 && (
+            <Section title="Primitives">
+              <ActorInstances primitives={primitives} />
             </Section>
           )}
           {relations.length > 0 && (

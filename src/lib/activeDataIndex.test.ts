@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import type { AtlasNode, Participant, RelationEdge } from "../types";
+import type { AtlasNode, GraphEntity, RelationEdge } from "../types";
 import {
   agentFromDocNo,
   agentsFromGraph,
@@ -17,7 +17,7 @@ import {
 const ROOT = path.resolve(__dirname, "../..");
 const PUBLIC = path.join(ROOT, "public");
 
-type Relations = { meta: unknown; entities: Participant[]; edges: RelationEdge[] };
+type Relations = { meta: unknown; entities: GraphEntity[]; edges: RelationEdge[] };
 
 const relations: Relations = JSON.parse(
   fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"),

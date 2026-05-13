@@ -38,6 +38,7 @@ import {
   buildKnownPrimitives,
   primitiveSlugFromTitle,
   instanceStatusFor,
+  primitiveStatusFor,
   buildChildrenIndex,
   extractInstanceParams,
 } from "./graph-instances.mjs";
@@ -406,6 +407,36 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
       params,
     });
     ent.id = icd.id;
+  }
+
+  // --- 1j. Primitive entities (per-agent primitive root → entity) ---
+  // One entity per (agent, primitive) — emitted whether or not the primitive
+  // has instances. Status comes from the Primitive Hub Document's Global
+  // Activation Status leaf.
+  const PRIMITIVE_ROOT_RE = /^A\.6\.1\.1\.\d+\.2\.\d+\.\d+$/;
+  for (const primRoot of allDocs) {
+    if (!PRIMITIVE_ROOT_RE.test(primRoot.doc_no)) continue;
+    if (!/Primitive$/i.test(primRoot.title)) continue;
+
+    const agentMatch = primRoot.doc_no.match(/^(A\.6\.1\.1\.\d+)\./);
+    const agentDoc = agentMatch ? docByDocNo.get(agentMatch[1]) : null;
+    if (!agentDoc) continue;
+    const agentSlug = slugify(agentDoc.title);
+
+    const primitiveSlug = primitiveSlugFromTitle(primRoot.title);
+    const slug = `${agentSlug}-${primitiveSlug}`;
+    const status = primitiveStatusFor(primRoot, docByDocNo);
+
+    const categoryDocNo = primRoot.doc_no.slice(0, primRoot.doc_no.lastIndexOf("."));
+    const categoryDoc = docByDocNo.get(categoryDocNo) ?? null;
+    const isUnknown = !knownPrimitives.has(primRoot.title);
+
+    addEntity(slug, primRoot.title, "primitive", primitiveSlug, primRoot.id, {
+      agent_doc_id: agentDoc.id,
+      primitive_category_doc_id: categoryDoc?.id ?? null,
+      status,
+      is_unknown_primitive: isUnknown || undefined,
+    });
   }
 
   const entityByDocId = new Map();

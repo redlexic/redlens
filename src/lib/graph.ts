@@ -1,19 +1,20 @@
 import type {
   ResolvedEdge,
-  Participant,
+  GraphEntity,
   RelationEdge,
   GraphWorkerOutMessage,
 } from "../types";
 import { fetchJsonVerified } from "./verify";
 
 export interface GraphData {
-  participants: Participant[];
-  instances: Participant[];
+  participants: GraphEntity[];
+  instances: GraphEntity[];
+  primitives: GraphEntity[];
   edges: RelationEdge[];
 }
 
 export interface ConstellationInit {
-  entities: Participant[];
+  entities: GraphEntity[];
   entityEdges: RelationEdge[];
 }
 
@@ -22,12 +23,13 @@ let graphCache: Promise<GraphData> | null = null;
 
 export function loadGraph(): Promise<GraphData> {
   if (!graphCache) {
-    graphCache = fetchJsonVerified<{ entities: Participant[]; edges: RelationEdge[] }>(
+    graphCache = fetchJsonVerified<{ entities: GraphEntity[]; edges: RelationEdge[] }>(
       `${import.meta.env.BASE_URL}relations.json`,
       "relations.json",
     ).then((data) => ({
-      participants: data.entities.filter((e) => e.et !== "instance"),
+      participants: data.entities.filter((e) => e.et !== "instance" && e.et !== "primitive"),
       instances: data.entities.filter((e) => e.et === "instance"),
+      primitives: data.entities.filter((e) => e.et === "primitive"),
       edges: data.edges,
     })).catch((err) => {
       graphCache = null;

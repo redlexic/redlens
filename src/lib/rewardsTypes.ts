@@ -45,7 +45,7 @@ export interface RewardsInstance {
 /** [formattedValue, srcUuid, srcDocNo] — tuple shipped on entity meta params. */
 export type ParamTuple = [string, string, string];
 
-/** Parsed meta block on `et="instance"` Participant.m. */
+/** Parsed meta block on `et="instance"` GraphEntity.m. */
 export interface InstanceMeta {
   agent_doc_id: string | null;
   primitive_category_doc_id: string | null;

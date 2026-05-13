@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { prepareWithSegments, measureNaturalWidth } from "@chenglou/pretext";
-import type { RadarInstance, InstanceParam } from "../../lib/actorIndex";
+import type { RadarInstance, RadarPrimitive, InstanceParam } from "../../lib/actorIndex";
 import { toAnchorId } from "../../lib/anchorId";
 import { StatusPill } from "../reports/RewardsCells";
 import { useRadar } from "./RadarContext";
@@ -100,51 +100,34 @@ function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (
 }
 
 interface Props {
-  instances: RadarInstance[];
-}
-
-interface PrimitiveGroup {
-  st: string;
-  primitiveTitle: string | null;
-  primitiveDocId: string | null;
-  isUnknown: boolean;
-  instances: RadarInstance[];
+  primitives: RadarPrimitive[];
 }
 
 interface CategoryGroup {
   category: string;
   categoryDocId: string | null;
-  primitives: PrimitiveGroup[];
+  primitives: RadarPrimitive[];
 }
 
-function buildCategoryGroups(instances: RadarInstance[]): CategoryGroup[] {
-  const catMap = new Map<string, { docId: string | null; primMap: Map<string, PrimitiveGroup> }>();
-  for (const inst of instances) {
-    const cat = inst.primitiveCategory ?? "Other";
-    const catDocId = inst.primitiveCategoryDocId ?? null;
-    if (!catMap.has(cat)) catMap.set(cat, { docId: catDocId, primMap: new Map() });
-    const { primMap } = catMap.get(cat)!;
-    if (!primMap.has(inst.st)) {
-      primMap.set(inst.st, {
-        st: inst.st,
-        primitiveTitle: inst.primitiveTitle,
-        primitiveDocId: inst.primitiveDocId,
-        isUnknown: inst.isUnknownPrimitive,
-        instances: [],
-      });
+function buildCategoryGroups(primitives: RadarPrimitive[]): CategoryGroup[] {
+  // primitives arrive pre-sorted by category order, so a single linear pass
+  // preserves the canonical Genesis → Operational → … sequence.
+  const groups: CategoryGroup[] = [];
+  for (const prim of primitives) {
+    const cat = prim.category ?? "Other";
+    const last = groups[groups.length - 1];
+    if (last && last.category === cat) {
+      last.primitives.push(prim);
+    } else {
+      groups.push({ category: cat, categoryDocId: prim.categoryDocId, primitives: [prim] });
     }
-    primMap.get(inst.st)!.instances.push(inst);
   }
-  return [...catMap.entries()].map(([category, { docId, primMap }]) => ({
-    category,
-    categoryDocId: docId,
-    primitives: [...primMap.values()],
-  }));
+  return groups;
 }
 
-export function ActorInstances({ instances }: Props) {
+export function ActorInstances({ primitives }: Props) {
   const { onNavigate } = useRadar();
-  const groups = buildCategoryGroups(instances);
+  const groups = buildCategoryGroups(primitives);
 
   return (
     <div className="space-y-6">
@@ -162,26 +145,31 @@ export function ActorInstances({ instances }: Props) {
           <div className="space-y-4 pl-3" style={{ borderLeft: "1px solid var(--border)" }}>
             {cat.primitives.map((prim) => (
               <div key={prim.st} id={prim.st}>
-                <div className="flex items-center gap-2 mb-2">
-                  {prim.primitiveDocId ? (
-                    <button onClick={() => onNavigate(prim.primitiveDocId!)} className="mono text-[11px] hover:underline" style={{ color: "var(--accent)" }}>
-                      {prim.primitiveTitle ?? prim.st}
+                <div className="flex items-baseline gap-2 mb-2 flex-wrap">
+                  {prim.docId ? (
+                    <button onClick={() => onNavigate(prim.docId!)} className="mono text-[11px] hover:underline" style={{ color: "var(--accent)" }}>
+                      {prim.title}
                     </button>
                   ) : (
-                    <span className="mono text-[11px]" style={{ color: "var(--accent)" }}>{prim.primitiveTitle ?? prim.st}</span>
+                    <span className="mono text-[11px]" style={{ color: "var(--accent)" }}>{prim.title}</span>
                   )}
-                  <span className="mono text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.6 }}>({prim.instances.length})</span>
+                  {prim.status && <StatusPill s={prim.status} />}
+                  {prim.instances.length > 0 && (
+                    <span className="mono text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.6 }}>({prim.instances.length})</span>
+                  )}
                   {prim.isUnknown && (
                     <span className="mono text-[10px] px-1 rounded" style={{ color: "var(--red)", border: "1px solid var(--red)" }} title="Not listed in Current Primitives (A.2.2.1.5.1)">unknown</span>
                   )}
                 </div>
-                <div style={{ columns: "520px", columnGap: "0.75rem" }}>
-                  {prim.instances.map((inst) => (
-                    <div key={inst.id} className="mb-2">
-                      <InstanceCard inst={inst} onNavigate={onNavigate} />
-                    </div>
-                  ))}
-                </div>
+                {prim.instances.length > 0 && (
+                  <div style={{ columns: "520px", columnGap: "0.75rem" }}>
+                    {prim.instances.map((inst) => (
+                      <div key={inst.id} className="mb-2">
+                        <InstanceCard inst={inst} onNavigate={onNavigate} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

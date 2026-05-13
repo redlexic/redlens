@@ -4,7 +4,7 @@
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import type { AtlasNode, RelationEdge, Participant } from "../types";
+import type { AtlasNode, RelationEdge, GraphEntity } from "../types";
 import { deriveResponsibilities, CATEGORY_LABELS } from "./facilitatorResponsibilities";
 
 const ROOT = path.resolve(__dirname, "../..");
@@ -13,7 +13,7 @@ const PUBLIC = path.join(ROOT, "public");
 const docs: Record<string, AtlasNode> = JSON.parse(
   fs.readFileSync(path.join(PUBLIC, "docs.json"), "utf8"),
 );
-const relations: { entities: Participant[]; edges: RelationEdge[] } = JSON.parse(
+const relations: { entities: GraphEntity[]; edges: RelationEdge[] } = JSON.parse(
   fs.readFileSync(path.join(PUBLIC, "relations.json"), "utf8"),
 );
 
@@ -27,12 +27,13 @@ for (const node of Object.values(docs)) {
   }
 }
 
-const participants = relations.entities.filter((e) => e.et !== "instance");
+const participants = relations.entities.filter((e) => e.et !== "instance" && e.et !== "primitive");
 const instances = relations.entities.filter((e) => e.et === "instance");
+const primitives = relations.entities.filter((e) => e.et === "primitive");
 
 const results = deriveResponsibilities(
   { docs, byParent, docNoToId },
-  { participants, instances, edges: relations.edges },
+  { participants, instances, primitives, edges: relations.edges },
 );
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_LABELS));

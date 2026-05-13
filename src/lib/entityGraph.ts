@@ -1,4 +1,4 @@
-import type { Participant, RelationEdge } from "../types";
+import type { GraphEntity, RelationEdge } from "../types";
 import type { GraphData } from "./graph";
 
 export const ENTITY_TYPE_LABEL: Record<string, string> = {
@@ -87,7 +87,7 @@ export const ENTITY_TYPE_COLOR: Record<string, string> = {
 export interface EntityNodeData {
   id: string;
   label: string;
-  entity: Participant;
+  entity: GraphEntity;
   color: string;
   degree: number;
   size: number;
@@ -110,7 +110,7 @@ export interface EntityRelation {
 }
 
 /** Visual importance: primes are the focal point, executors are the hubs they report to. */
-function nodeSize(ent: Participant, degree: number): number {
+function nodeSize(ent: GraphEntity, degree: number): number {
   if (ent.et === "agent" && ent.st === "prime") return 14;
   if (ent.et === "agent" && ent.st === "executor") return 10;
   return 4 + Math.min(degree, 8) * 0.8;
@@ -138,7 +138,7 @@ export function buildEntityNodes(data: GraphData): EntityNodeData[] {
   });
 }
 
-/** Participant types that participate in direct entity↔entity edges. */
+/** GraphEntity types that participate in direct entity↔entity edges. */
 export const CONNECTED_ENTITY_TYPES: ReadonlySet<string> = new Set([
   "agent",
   "facilitator_org",
@@ -175,7 +175,7 @@ export function buildEntityEdges(data: GraphData): EntityEdgeData[] {
 export function getEntityRelations(
   entityId: string,
   data: GraphData,
-  entityById: Map<string, Participant>,
+  entityById: Map<string, GraphEntity>,
 ): EntityRelation[] {
   const rels: EntityRelation[] = [];
   for (const e of data.edges) {
@@ -200,14 +200,14 @@ export function getEntityRelations(
   return rels;
 }
 
-function labelFor(id: string, type: string, entityById: Map<string, Participant>): string {
+function labelFor(id: string, type: string, entityById: Map<string, GraphEntity>): string {
   if (type === "entity") return entityById.get(id)?.name ?? id.slice(0, 8);
   if (type === "address") return id.startsWith("addr:") ? id.slice(5, 17) + "…" : id.slice(0, 10);
   return id;
 }
 
-export function buildEntityIndex(participants: Participant[]): Map<string, Participant> {
-  const m = new Map<string, Participant>();
+export function buildEntityIndex(participants: GraphEntity[]): Map<string, GraphEntity> {
+  const m = new Map<string, GraphEntity>();
   for (const e of participants) m.set(e.id, e);
   return m;
 }

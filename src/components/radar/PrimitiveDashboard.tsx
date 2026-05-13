@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AgentPrimitiveStat, CategoryStat, PrimitiveTypeStat } from "../../lib/primitiveStats";
+import type { AgentPrimitiveStat, CategoryStat, PrimitiveStat } from "../../lib/primitiveStats";
 import { toAnchorId } from "../../lib/anchorId";
 import { useRadar } from "./RadarContext";
 
@@ -41,7 +41,7 @@ const TD_DIM: React.CSSProperties = { ...TD, opacity: 0.5 };
 
 const ROW_COLORS = ["#221614", "#261916"] as const;
 
-function PrimitiveRow({ p, rowIndex, agentSlug, onActor }: { p: PrimitiveTypeStat; rowIndex: number; agentSlug: string; onActor: (slug: string, fragment?: string) => void }) {
+function PrimitiveRow({ p, rowIndex, agentSlug, onActor }: { p: PrimitiveStat; rowIndex: number; agentSlug: string; onActor: (slug: string, fragment?: string) => void }) {
   return (
     <tr style={{ background: ROW_COLORS[rowIndex % 2] }}>
       <td className="py-0.5" style={{ maxWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

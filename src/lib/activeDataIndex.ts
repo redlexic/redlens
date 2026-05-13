@@ -2,7 +2,7 @@
 // from the React component so it's trivially testable against docs.json +
 // relations.json.
 
-import type { AtlasNode, Participant, RelationEdge } from "../types";
+import type { AtlasNode, GraphEntity, RelationEdge } from "../types";
 import { parseMeta } from "./meta";
 
 export interface AgentRef {
@@ -17,7 +17,7 @@ export interface AgentRef {
 // (A.6.1.1.1 < A.6.1.1.2 < …). An agent without a resolvable defining doc is
 // dropped — every prime in the atlas is expected to have one.
 export function agentsFromGraph(
-  participants: Participant[],
+  participants: GraphEntity[],
   docs: Record<string, AtlasNode>,
 ): AgentRef[] {
   return participants
@@ -106,7 +106,7 @@ export function extractProcess(content: string): ProcessKind {
 // Each slot carries the source doc_no of the edge that established it — this
 // is what drives the Evidence column in the Active Data Index.
 export function buildChainMap(
-  participants: Participant[],
+  participants: GraphEntity[],
   edges: RelationEdge[],
   docs?: Record<string, AtlasNode>,
 ): Map<string, AgentChain> {
@@ -150,7 +150,7 @@ export function buildChainMap(
 }
 
 interface GraphInput {
-  participants: Participant[];
+  participants: GraphEntity[];
   edges: RelationEdge[];
 }
 

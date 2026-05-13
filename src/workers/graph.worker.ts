@@ -4,7 +4,7 @@ import { bfsFromNode } from "graphology-traversal";
 import type {
   RelationEdge,
   ResolvedEdge,
-  Participant,
+  GraphEntity,
   GraphWorkerInMessage,
   GraphWorkerOutMessage,
   SerializedSubgraph,
@@ -15,8 +15,8 @@ import { matchParticipants } from "../lib/search";
 declare const self: DedicatedWorkerGlobalScope;
 
 let graph: MultiDirectedGraph | null = null;
-const entityBySlug = new Map<string, Participant>();
-const entityById = new Map<string, Participant>();
+const entityBySlug = new Map<string, GraphEntity>();
+const entityById = new Map<string, GraphEntity>();
 const agentClusters = new Map<string, Set<string>>();
 
 const EXECUTOR_ROLE_EDGES = new Set([
@@ -31,7 +31,7 @@ const EXECUTOR_ROLE_EDGES = new Set([
 async function init() {
   const base = import.meta.env.BASE_URL;
   const data = await fetchJsonVerified<{
-    entities: Participant[];
+    entities: GraphEntity[];
     edges: RelationEdge[];
   }>(`${base}relations.json`, "relations.json");
 

@@ -56,17 +56,18 @@ export type WorkerOutMessage =
 // Graph types (relations.json — compact keys to minimise payload)
 // ---------------------------------------------------------------------------
 
-/** A named real-world actor in the Sky ecosystem — Prime Agents, Executor Agents,
- *  Facilitators, GovOps orgs, Aligned Delegates, Governance Parties, and similar.
- *  Also covers Instances (et="instance") which are stored separately in GraphData.instances. */
-export interface Participant {
+/** Row shape for every entity in relations.json — actors (Prime/Executor Agents,
+ *  Facilitators, GovOps orgs, Aligned Delegates, Governance Parties), Instances
+ *  (et="instance"), and Primitives (et="primitive"). Discriminated by `et` and
+ *  partitioned across GraphData buckets. */
+export interface GraphEntity {
   id: string;
   slug: string;
   name: string;
-  et: string; // agent | facilitator_org | govops_org | delegate_org | development_company | foundation | composite_party | governance_body | operational_party | ecosystem_actor | instance
-  st: string | null; // agent subtypes: prime | operational_executor | core_executor; instance: <primitive-slug>
-  did: string | null; // defining_doc_id — UUID of the Atlas doc that defines this participant
-  m?: string; // meta JSON, non-null only. For et=instance: { primitive_doc_no, agent_doc_no, status, params }.
+  et: string; // agent | facilitator_org | govops_org | delegate_org | development_company | foundation | composite_party | governance_body | operational_party | ecosystem_actor | instance | primitive
+  st: string | null; // agent subtypes: prime | operational_executor | core_executor; instance: <primitive-slug>; primitive: <primitive-slug>
+  did: string | null; // defining_doc_id — UUID of the Atlas doc that defines this entity
+  m?: string; // meta JSON, non-null only. For et=instance: { primitive_doc_no, agent_doc_no, status, params }. For et=primitive: { agent_doc_id, primitive_category_doc_id, status }.
 }
 
 export interface RelationEdge {
@@ -104,9 +105,9 @@ export type GraphWorkerInMessage =
   | { type: "constellation-cluster"; agentId: string };
 
 export type GraphWorkerOutMessage =
-  | { type: "ready"; entities: Participant[]; entityEdges: RelationEdge[] }
+  | { type: "ready"; entities: GraphEntity[]; entityEdges: RelationEdge[] }
   | { type: "edges"; id: string; inbound: ResolvedEdge[]; outbound: ResolvedEdge[] }
-  | { type: "entity"; slug: string; entity: Participant | null; edges: ResolvedEdge[] }
+  | { type: "entity"; slug: string; entity: GraphEntity | null; edges: ResolvedEdge[] }
   | ({ type: "neighbors"; id: string } & SerializedSubgraph)
   | ({ type: "subgraph"; rootId: string } & SerializedSubgraph)
   | { type: "constellation-query"; id: number; neighborIds: string[]; topId: string | null }

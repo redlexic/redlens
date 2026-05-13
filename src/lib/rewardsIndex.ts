@@ -1,4 +1,4 @@
-import type { AtlasNode, RelationEdge, Participant } from "../types";
+import type { AtlasNode, RelationEdge, GraphEntity } from "../types";
 import { agentsFromGraph, type AgentRef } from "./activeDataIndex";
 import type { GraphData } from "./graph";
 import type {
@@ -24,9 +24,9 @@ const UUID_LINK_RE = /\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 interface GraphCtx {
   paymentControllerByInstance: Map<string, AtlasNode>; // keyed by ICD doc_no
   rpByDocId: Map<string, EntityRef>;
-  entityById: Map<string, Participant>;
+  entityById: Map<string, GraphEntity>;
   edges: RelationEdge[];
-  instanceEntities: Participant[];
+  instanceEntities: GraphEntity[];
   instanceMetaById: Map<string, InstanceMeta>;
 }
 
@@ -48,14 +48,14 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
     if (parts.length > 2) paymentControllerByInstance.set(parts.slice(0, -2).join("."), controller);
   }
   const allEntities = [...(graph?.participants ?? []), ...(graph?.instances ?? [])];
-  const entityById = new Map<string, Participant>(allEntities.map((e) => [e.id, e]));
+  const entityById = new Map<string, GraphEntity>(allEntities.map((e) => [e.id, e]));
   const rpByDocId = new Map<string, EntityRef>();
   for (const e of graph?.edges ?? []) {
     if (e.e !== "responsible_party_for") continue;
     const ent = entityById.get(e.f);
     if (ent) rpByDocId.set(e.t, { id: ent.id, name: ent.name, slug: ent.slug });
   }
-  const instanceEntities: Participant[] = [];
+  const instanceEntities: GraphEntity[] = [];
   const instanceMetaById = new Map<string, InstanceMeta>();
   for (const ent of graph?.instances ?? []) {
     if (!ent.m) continue;
@@ -145,7 +145,7 @@ function applyParamTuples(
 }
 
 function extractInstanceFromEntity(
-  ent: Participant,
+  ent: GraphEntity,
   meta: InstanceMeta,
   status: InstanceStatus,
   kind: PrimitiveKind,

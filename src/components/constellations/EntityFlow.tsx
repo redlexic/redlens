@@ -22,7 +22,7 @@ import { parseMeta } from "../../lib/meta";
 import type { EntityNodeData, EntityEdgeData, EntityRelation } from "../../lib/entityGraph";
 import { edgeLabel, ENTITY_TYPE_LABEL, SUBTYPE_LABEL } from "../../lib/entityGraph";
 import { getEdges, type EdgeResult } from "../../lib/graph";
-import type { Participant } from "../../types";
+import type { GraphEntity } from "../../types";
 
 const EDGE_COLOR = "#5a3a32";
 const EDGE_HIGHLIGHT = "#c67267";
@@ -33,7 +33,7 @@ type CardData = {
   entityType: string;
   subtype: string | null;
   degree: number;
-  entity: Participant;
+  entity: GraphEntity;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 };
@@ -101,7 +101,7 @@ function edgeResultToRelations(result: EdgeResult): EntityRelation[] {
 }
 
 function CardBody({ entity, onSelect, onNavigateDoc }: {
-  entity: Participant;
+  entity: GraphEntity;
   onSelect: (id: string) => void;
   onNavigateDoc: (id: string) => void;
 }) {

@@ -100,6 +100,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   "src_member",
   "ecosystem_actor",
   "instance",
+  "primitive",
 ]);
 
 const KNOWN_EDGE_TYPES = new Set([

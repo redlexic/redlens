@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { loadGraph } from "../../lib/graph";
 import { loadAtlas } from "../../lib/docs";
 import { useLoaded } from "../../hooks/useAtlasData";
-import type { Participant } from "../../types";
+import type { GraphEntity } from "../../types";
 import {
   CATEGORY_LABELS,
   type OFResponsibility,
@@ -112,7 +112,7 @@ export function OFReport({ onNavigate }: { onNavigate: (id: string) => void }) {
   const chains = useMemo<Map<string, AgentChain>>(() => {
     if (!graphData) return new Map();
     const { participants, edges } = graphData;
-    const entityById = new Map<string, Participant>(participants.map((e) => [e.id, e]));
+    const entityById = new Map<string, GraphEntity>(participants.map((e) => [e.id, e]));
     const execAgentEdges = edges.filter((e) => e.e === "operational_executor_agent_for");
     const facEdges = edges.filter((e) => e.e === "operational_facilitator_for");
     const govEdges = edges.filter((e) => e.e === "operational_govops_for");
