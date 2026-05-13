@@ -3,14 +3,22 @@
  * Process inventory drift check.
  *
  * Compares public/processes.json (curated process nodes, identified by UUID)
- * against the current public/docs.json. Two outputs:
+ * against the current public/docs.json. Three outputs:
  *
  *   1. audit.missingUuids — curated entry whose UUID is gone from docs.json
  *      (deleted, restructured, or merged into another node).
  *
  *   2. audit.newCandidates — docs whose titles match the process keyword
  *      classifier but aren't in public/processes.json AND not in
- *      public/processes-ignored.json.
+ *      public/processes-ignored.json. Each is flagged `recently_added: true`
+ *      when its UUID is also in the atlas-history diff (see #3) — those are
+ *      the high-signal targets in a typical post-atlas-update triage cycle.
+ *
+ *   3. audit.atlas_diff — UUIDs added to the atlas since the last commit that
+ *      touched public/processes.json (= our last triage). This is the precise
+ *      delta of new work that needs human attention; candidates outside this
+ *      delta are "always-there" docs that the keyword classifier just missed
+ *      in earlier passes.
  *
  * Title / doc_no are resolved from docs.json on every read — no snapshot
  * fields are stored on the entries, so there's no drift to auto-apply.
@@ -25,6 +33,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { findCandidates } from "../lib/process-keywords.mjs";
@@ -36,6 +45,14 @@ const IGNORED = path.join(ROOT, "public/processes-ignored.json");
 const DOCS = path.join(ROOT, "public/docs.json");
 const AUDIT_OUT = path.join(ROOT, ".cache/processes-audit.json");
 const AUDIT_MD = path.join(ROOT, ".cache/processes-audit.md");
+const ATLAS_SUBMODULE = "vendor/next-gen-atlas";
+// Atlas content lives at content/**/document.md after PR #236 decomposed the
+// single Sky Atlas.md into one folder per doc. Each document.md has YAML
+// frontmatter with `id: <uuid>`. We grep that line directly inside the
+// submodule's git tree, no checkout needed.
+const ATLAS_CONTENT_PATH = "content/";
+const ATLAS_ID_PATTERN = "^id: [0-9a-f-]{36}$";
+const UUID_RE = /^id: ([0-9a-f-]{36})$/m;
 
 // ---------------------------------------------------------------------------
 
@@ -56,7 +73,11 @@ for (const entry of processes) {
   }
 }
 
-// 2. New candidates from the keyword classifier. Descendants of already-curated
+// 2. Atlas-history diff: UUIDs added since the last triage commit.
+const atlasDiff = computeAtlasDiff();
+const recentlyAddedSet = new Set(atlasDiff.added_uuids);
+
+// 3. New candidates from the keyword classifier. Descendants of already-curated
 // processes are skipped — they're step nodes, not standalone processes.
 const candidates = findCandidates(docs, curatedUuids);
 const newCandidates = candidates
@@ -67,15 +88,21 @@ const newCandidates = candidates
     doc_no: docs[c.id].doc_no,
     type: docs[c.id].type,
     keywords: c.keywords,
+    recently_added: recentlyAddedSet.has(c.id),
   }))
-  .sort((a, b) => a.doc_no.localeCompare(b.doc_no, undefined, { numeric: true }));
+  .sort((a, b) => {
+    // Recently-added first, then by doc_no.
+    if (a.recently_added !== b.recently_added) return a.recently_added ? -1 : 1;
+    return a.doc_no.localeCompare(b.doc_no, undefined, { numeric: true });
+  });
 
-// 3. Write audit + markdown summary.
+// 4. Write audit + markdown summary.
 const audit = {
   generated_at: new Date().toISOString().split("T")[0],
   total_curated: processes.length,
   total_candidates: candidates.length,
   total_ignored: ignored.length,
+  atlas_diff: atlasDiff,
   missing_uuids: missingUuids,
   new_candidates: newCandidates,
 };
@@ -94,10 +121,16 @@ if (missingUuids.length > 0) {
     console.log(`  ${m.uuid}  (${m.category})`);
   }
 }
+if (atlasDiff.since_atlas_sha && atlasDiff.since_atlas_sha !== atlasDiff.current_atlas_sha) {
+  console.log(
+    `\nAtlas diff since last triage (${atlasDiff.since_atlas_sha.slice(0, 8)} → ${atlasDiff.current_atlas_sha.slice(0, 8)}): ${atlasDiff.added_uuids.length} new UUIDs`,
+  );
+}
 if (newCandidates.length > 0) {
-  console.log(`\n⚠ New candidates (${newCandidates.length}):`);
+  const recent = newCandidates.filter((c) => c.recently_added).length;
+  console.log(`\n⚠ New candidates (${newCandidates.length}${recent ? `, ${recent} added since last triage` : ""}):`);
   for (const c of newCandidates) {
-    console.log(`  ${c.doc_no}  ${c.title}  [${c.keywords.join(", ")}]`);
+    console.log(`  ${c.recently_added ? "★" : " "} ${c.doc_no}  ${c.title}  [${c.keywords.join(", ")}]`);
   }
 }
 if (!dirty) {
@@ -123,6 +156,15 @@ function renderMarkdown(audit, dirty) {
   lines.push(`Curated: ${audit.total_curated} · Candidates: ${audit.total_candidates} · Ignored: ${audit.total_ignored}`);
   lines.push("");
 
+  const diff = audit.atlas_diff;
+  if (diff && diff.since_atlas_sha && diff.since_atlas_sha !== diff.current_atlas_sha) {
+    lines.push(`**Atlas diff since last triage:** \`${diff.since_atlas_sha.slice(0, 8)}\` → \`${diff.current_atlas_sha.slice(0, 8)}\` · ${diff.added_uuids.length} new UUIDs added.`);
+    lines.push("");
+  } else if (diff && diff.error) {
+    lines.push(`_(Atlas diff unavailable: ${diff.error})_`);
+    lines.push("");
+  }
+
   if (audit.missing_uuids.length > 0) {
     lines.push(`## Missing UUIDs (${audit.missing_uuids.length})`);
     lines.push("");
@@ -135,12 +177,14 @@ function renderMarkdown(audit, dirty) {
   }
 
   if (audit.new_candidates.length > 0) {
-    lines.push(`## New candidates (${audit.new_candidates.length})`);
+    const recent = audit.new_candidates.filter((c) => c.recently_added).length;
+    lines.push(`## New candidates (${audit.new_candidates.length}${recent ? `, ${recent} ★ added since last triage` : ""})`);
     lines.push("");
-    lines.push("Atlas nodes whose titles match the process keyword classifier but aren't in the curated list. For each: add to `public/processes.json` if it's a real process, or to `public/processes-ignored.json` to suppress permanently.");
+    lines.push("Atlas nodes whose titles match the process keyword classifier but aren't in the curated list. Entries marked ★ were added to the atlas since the last commit to `public/processes.json` — those are the high-signal review targets. Unmarked entries are \"always-there\" docs that earlier passes missed. For each: add to `public/processes.json` if it's a real process, or to `public/processes-ignored.json` to suppress permanently.");
     lines.push("");
     for (const c of audit.new_candidates) {
-      lines.push(`- ${c.doc_no} — **${c.title}** (\`${c.uuid}\`, ${c.type}) — keywords: ${c.keywords.join(", ")}`);
+      const star = c.recently_added ? "★ " : "";
+      lines.push(`- ${star}${c.doc_no} — **${c.title}** (\`${c.uuid}\`, ${c.type}) — keywords: ${c.keywords.join(", ")}`);
     }
     lines.push("");
   }
@@ -150,4 +194,68 @@ function renderMarkdown(audit, dirty) {
   }
 
   return lines.join("\n");
+}
+
+// Find UUIDs added to the atlas between the submodule SHA at the last commit
+// that touched public/processes.json (= our last triage) and current HEAD of
+// the atlas submodule. Returns { since_atlas_sha, current_atlas_sha,
+// added_uuids, error }. Errors are swallowed and surfaced via the `error`
+// field so a missing submodule or shallow clone never breaks the check.
+function computeAtlasDiff() {
+  try {
+    const lastCommit = execFileSync("git", ["log", "-1", "--format=%H", "--", "public/processes.json"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    }).trim();
+    if (!lastCommit) return { since_atlas_sha: null, current_atlas_sha: null, added_uuids: [] };
+
+    // Atlas submodule SHA at that commit. `git ls-tree` outputs:
+    //   160000 commit <sha>\tvendor/next-gen-atlas
+    const lsTree = execFileSync("git", ["ls-tree", lastCommit, ATLAS_SUBMODULE], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    const m = lsTree.match(/^160000 commit ([0-9a-f]+)/);
+    if (!m) return { since_atlas_sha: null, current_atlas_sha: null, added_uuids: [] };
+    const sinceSha = m[1];
+
+    const submodulePath = path.join(ROOT, ATLAS_SUBMODULE);
+    const currentSha = execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: submodulePath,
+      encoding: "utf8",
+    }).trim();
+
+    if (sinceSha === currentSha) {
+      return { since_atlas_sha: sinceSha, current_atlas_sha: currentSha, added_uuids: [] };
+    }
+
+    const sinceUuids = grepAtlasUuids(submodulePath, sinceSha);
+    const currentUuids = grepAtlasUuids(submodulePath, currentSha);
+    const added = [...currentUuids].filter((u) => !sinceUuids.has(u));
+
+    return { since_atlas_sha: sinceSha, current_atlas_sha: currentSha, added_uuids: added };
+  } catch (err) {
+    return {
+      since_atlas_sha: null,
+      current_atlas_sha: null,
+      added_uuids: [],
+      error: String(err?.message ?? err),
+    };
+  }
+}
+
+// Collect every UUID from frontmatter `id:` lines in content/**/document.md at
+// the given commit. `git grep` scans the tree-ish directly — no checkout.
+function grepAtlasUuids(submodulePath, sha) {
+  const out = execFileSync(
+    "git",
+    ["grep", "-h", "-E", ATLAS_ID_PATTERN, sha, "--", ATLAS_CONTENT_PATH],
+    { cwd: submodulePath, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+  );
+  const set = new Set();
+  for (const line of out.split("\n")) {
+    const m = line.match(UUID_RE);
+    if (m) set.add(m[1]);
+  }
+  return set;
 }

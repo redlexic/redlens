@@ -28,7 +28,7 @@ The curated process inventory lives in `public/processes.json` (55 hand-validate
 ## Drift categories
 
 1. **Missing UUIDs** — curated entry's UUID is gone from `docs.json`. Likely renamed, merged, or deleted. Decide rename vs. delete. Title/doc_no are not snapshotted on entries — to see what the missing entry was, run `git log -S <uuid> -- public/processes.json`.
-2. **New candidates** — keyword classifier hits that aren't in the curated or ignored lists. Decide add vs. ignore.
+2. **New candidates** — keyword classifier hits that aren't in the curated or ignored lists. Decide add vs. ignore. The audit also marks each candidate with `recently_added: true` (rendered as ★ in the markdown) when its UUID was added to the atlas since the last commit to `public/processes.json`. **Triage the ★ entries first** — those are the genuine new docs from this atlas update. Unmarked candidates are docs that already existed but the classifier missed in earlier passes (lower urgency, completeness backlog).
 
 ## Runbook
 
