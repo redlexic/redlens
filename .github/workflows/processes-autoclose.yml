@@ -1,0 +1,63 @@
+name: Processes Autoclose
+
+# Closes any open "processes-review" issue once the curated inventory is back
+# in sync with the atlas. Fires on every push to main that touches the
+# curated data files or the atlas submodule.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/processes.json"
+      - "data/processes-ignored.json"
+      - "vendor/next-gen-atlas"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  autoclose:
+    runs-on: ubuntu-latest
+    environment: CI
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # docs.json is gitignored — rebuild it to feed the dirty check.
+      - run: pnpm build:index
+
+      - id: check
+        run: pnpm processes:check
+
+      - name: Close open review issues
+        if: steps.check.outputs.dirty == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUES=$(gh issue list \
+            --state open \
+            --label processes-review \
+            --json number \
+            --jq '.[].number')
+
+          if [ -z "$ISSUES" ]; then
+            echo "No open processes-review issues."
+            exit 0
+          fi
+
+          for n in $ISSUES; do
+            gh issue close "$n" \
+              --comment "Reconciled — \`data/processes.json\` is back in sync with the atlas. Closing automatically." \
+              --reason completed
+            echo "Closed #$n"
+          done

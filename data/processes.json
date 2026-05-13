@@ -1,0 +1,442 @@
+[
+  {
+    "uuid": "73eb0d53-2746-4db8-8b61-608f7439d560",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Initial Stages Of Artifact Evolution",
+    "doc_no_at_curation": "A.2.2.1.1"
+  },
+  {
+    "uuid": "2f5ff5c8-bcd1-44a4-ba56-2075ac8e9c61",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Agent Launch And Sequence of Primitive Global Activation",
+    "doc_no_at_curation": "A.2.2.1.2.4.1"
+  },
+  {
+    "uuid": "e9422783-6196-4117-9099-b5ec0c338c05",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Sequential Stages",
+    "doc_no_at_curation": "A.2.2.2.3.1"
+  },
+  {
+    "uuid": "754e1599-28d7-499a-b68f-e2155e87105a",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Agent Creation Instance Setup Process",
+    "doc_no_at_curation": "A.2.2.4.1.1.1"
+  },
+  {
+    "uuid": "3f1824b6-5325-43ac-b3d5-151fb0f55dec",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Prime Transformation Primitive Setup Process",
+    "doc_no_at_curation": "A.2.2.4.2.1.1"
+  },
+  {
+    "uuid": "3e49628d-1f82-4980-9855-75ad5e86aa54",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Agent Token Primitive Setup Process",
+    "doc_no_at_curation": "A.2.2.4.4.1.1"
+  },
+  {
+    "uuid": "af7c2593-b397-4fff-9b81-3d640508a163",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Executor Accord Primitive Setup Process",
+    "doc_no_at_curation": "A.2.2.5.1.1.1"
+  },
+  {
+    "uuid": "1fbca4e2-e89f-4819-afba-e58702ca2ed9",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Root Edit Primitive Setup Process",
+    "doc_no_at_curation": "A.2.2.5.2.1.1"
+  },
+  {
+    "uuid": "dc7fd889-80dd-4ac0-b807-f01ab440ba8a",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Artifact Edit Process",
+    "doc_no_at_curation": "A.2.2.5.2.2.2"
+  },
+  {
+    "uuid": "18386a64-1f20-4495-99a0-2271c7d607b0",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Token SkyLink Process Definition",
+    "doc_no_at_curation": "A.2.2.7.1.1"
+  },
+  {
+    "uuid": "408400c0-db9d-41d8-b657-de59ac18a288",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Token SkyLink Setup Process Definition",
+    "doc_no_at_curation": "A.2.2.7.1.1.1"
+  },
+  {
+    "uuid": "ecb0b102-fe9a-41b0-9fab-ba229764fa2b",
+    "category": "Artifact & Atlas Governance",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Conflict Protocol Between Agent Artifacts And The Sky Core Atlas",
+    "doc_no_at_curation": "A.1.13.1.5"
+  },
+  {
+    "uuid": "fe833d0e-8451-45e0-84a5-229d6ec964a8",
+    "category": "Artifact & Atlas Governance",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Agent Termination Protocol",
+    "doc_no_at_curation": "A.1.13.5"
+  },
+  {
+    "uuid": "023540ad-3b1b-429b-bfa7-9d740bf6ea77",
+    "category": "Artifact & Atlas Governance",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Initiation Of Agent Termination Process",
+    "doc_no_at_curation": "A.1.13.5.1"
+  },
+  {
+    "uuid": "769c492c-2282-4466-8d24-0a530f724a0c",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Onboarding And Offboarding of Arrangers",
+    "doc_no_at_curation": "A.3.4.3.2"
+  },
+  {
+    "uuid": "05f29c65-4d92-43b3-aacb-3dd75b9f6794",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Collateral Offboarding",
+    "doc_no_at_curation": "A.3.7.1.1.3"
+  },
+  {
+    "uuid": "9f87ff7a-d3a8-4999-ae20-b4c0773c732c",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Collateral Offboarding Process",
+    "doc_no_at_curation": "A.3.7.1.1.3.4"
+  },
+  {
+    "uuid": "3da8a0fd-952c-4f80-b674-f60c9a293cb9",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Offboarding Process",
+    "doc_no_at_curation": "A.3.7.1.5"
+  },
+  {
+    "uuid": "305e2bd6-a594-4aec-8713-adbe7bc87120",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Technical Process",
+    "doc_no_at_curation": "A.3.7.1.5.2"
+  },
+  {
+    "uuid": "f9894690-fb43-431c-84ae-c6f5886745e9",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Expedited Offboarding",
+    "doc_no_at_curation": "A.3.7.1.5.4"
+  },
+  {
+    "uuid": "560e1024-0897-4f1e-ae71-3ba31e29ed57",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Adjudication Process",
+    "doc_no_at_curation": "A.1.4.9"
+  },
+  {
+    "uuid": "1d940c6d-02ce-4c17-8057-cef13c1cc7ad",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Emergency Response System",
+    "doc_no_at_curation": "A.1.8"
+  },
+  {
+    "uuid": "498e151e-5096-4d0f-b9a9-665897b0b861",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Emergency Response Process Definition",
+    "doc_no_at_curation": "A.1.8.1.5"
+  },
+  {
+    "uuid": "8ce1adeb-ec38-40ba-9a0d-bc0e0db4fece",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Emergency Declaration Procedure",
+    "doc_no_at_curation": "A.1.8.1.5.5"
+  },
+  {
+    "uuid": "6151ee33-ff22-4bda-955b-f3731ab9b522",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition",
+    "doc_no_at_curation": "A.2.8.1.1.2"
+  },
+  {
+    "uuid": "262a79a0-c5be-4721-ab27-ba7ba45776c5",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Decision",
+    "doc_no_at_curation": "A.2.8.1.1.2.3"
+  },
+  {
+    "uuid": "9ab8fdf3-939c-4096-a0b9-9d9486d5a339",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Resilience Fund Claim Management Process",
+    "doc_no_at_curation": "A.2.9.1.1.1.4.2"
+  },
+  {
+    "uuid": "98298ab3-8d08-4c4f-b47b-81242a3e3903",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Executive Process Breakdown",
+    "doc_no_at_curation": "A.1.9.2.4"
+  },
+  {
+    "uuid": "0f0f7021-f753-4c8b-8b80-46abce259aa9",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Governance Point Determines Preliminary Content For Executive Sheet (Step 1)",
+    "doc_no_at_curation": "A.1.9.2.4.1"
+  },
+  {
+    "uuid": "9f291bda-cace-4787-b31b-24b8b42bdd27",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Governance Point Finalizes Executive Sheet Week 1 Friday (Step 6)",
+    "doc_no_at_curation": "A.1.9.2.4.6"
+  },
+  {
+    "uuid": "510651ca-5a9a-4ac1-ba69-f3c160e185d2",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Spell Crafting Workflow",
+    "doc_no_at_curation": "A.1.9.2.4.7.1"
+  },
+  {
+    "uuid": "4a26e84d-6b1c-4ccf-b829-5ee665d8c813",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Governance Point Reviews Spell And Publishes To Voting Portal On Target Date (Step 11)",
+    "doc_no_at_curation": "A.1.9.2.4.11"
+  },
+  {
+    "uuid": "84d31eb0-fbbc-4783-a7cf-ef7dddfa8271",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Ecosystem Validators Validates Spell During Validation Window (Step 12)",
+    "doc_no_at_curation": "A.1.9.2.4.12"
+  },
+  {
+    "uuid": "761cd866-17a9-47f5-8ae6-ab1788371be1",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Spell Execution Process And Retro (Step 13)",
+    "doc_no_at_curation": "A.1.9.2.4.13"
+  },
+  {
+    "uuid": "3aa5bc98-91ce-4588-b345-a96af8ba2366",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Voting Process For Executive Votes",
+    "doc_no_at_curation": "A.1.9.2.5"
+  },
+  {
+    "uuid": "2de4d031-e079-415e-b982-66a4efa78c05",
+    "category": "Executive & Spell Processes",
+    "shape": "inline",
+    "status": "deferred-stub",
+    "title_at_curation": "Linear Interpolation Module Usage Process Definition",
+    "doc_no_at_curation": "A.1.9.3.2.13.2"
+  },
+  {
+    "uuid": "eeaaa751-cc77-475c-a60f-13a3dcc5e3bb",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Emergency Spells - Standby Spell Process Definition",
+    "doc_no_at_curation": "A.1.9.5.2.3"
+  },
+  {
+    "uuid": "69da8af1-ecc0-4fd3-9268-33fff87d5253",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Protego Usage Process Definition",
+    "doc_no_at_curation": "A.1.9.5.3.2"
+  },
+  {
+    "uuid": "83edd4e1-692e-4566-a415-b8f272c33c5e",
+    "category": "Governance & Voting Cycles",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Weekly Governance Cycle",
+    "doc_no_at_curation": "A.1.10"
+  },
+  {
+    "uuid": "999e4aff-e61b-4097-87a8-153afae5098b",
+    "category": "Governance & Voting Cycles",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Operational Weekly Cycle",
+    "doc_no_at_curation": "A.1.10.1"
+  },
+  {
+    "uuid": "14e99d92-71fc-44d9-9dbf-933bce2e1b32",
+    "category": "Governance & Voting Cycles",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Atlas Edit Weekly Cycle",
+    "doc_no_at_curation": "A.1.10.2"
+  },
+  {
+    "uuid": "7f2ba62c-9b3b-4df6-aa16-189a749cffa3",
+    "category": "Governance & Voting Cycles",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Monthly Governance Cycle",
+    "doc_no_at_curation": "A.1.11"
+  },
+  {
+    "uuid": "8eea2827-4d10-4893-92d3-9083be7e9267",
+    "category": "Governance & Voting Cycles",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Process Definition",
+    "doc_no_at_curation": "A.1.11.2.5"
+  },
+  {
+    "uuid": "07e63bc3-7ec9-499b-9e5e-2c5acf47cc11",
+    "category": "Personnel & Delegation",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "AD Recognition Process",
+    "doc_no_at_curation": "A.1.5.1.3"
+  },
+  {
+    "uuid": "361e2e68-b2ab-4b1e-93ce-030cf25e509e",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Integrator Onboarding",
+    "doc_no_at_curation": "A.2.2.8.1.2.1.1.3"
+  },
+  {
+    "uuid": "fcf62ce5-910a-4357-a3d5-959b3be37021",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Delegate Onboarding",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.3.4"
+  },
+  {
+    "uuid": "b49d9086-cb8a-43f7-a024-0d3320eae317",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Delegate Offboarding",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.3.5"
+  },
+  {
+    "uuid": "dfd65786-e4be-4dad-9e34-cd6235a30a4f",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "deferred-stub",
+    "title_at_curation": "Process Definition For Settlement Cycle And Core GovOps Review",
+    "doc_no_at_curation": "A.2.2.8.1.2.4.1.3"
+  },
+  {
+    "uuid": "7932c8f3-ce44-49ea-adc4-f6391c621c6e",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Allocation Steps",
+    "doc_no_at_curation": "A.2.3.1.2"
+  },
+  {
+    "uuid": "6f8d5065-d6ff-4add-9a28-eadeffa7ed1a",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Sky Core Monthly Settlement Cycle",
+    "doc_no_at_curation": "A.2.4"
+  },
+  {
+    "uuid": "75473c4b-69ba-4e6b-bbf6-2c926732364c",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Implementation",
+    "doc_no_at_curation": "A.2.4.1.2"
+  },
+  {
+    "uuid": "dd25aba4-7b77-469e-beb2-feaaedbbf143",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition",
+    "doc_no_at_curation": "A.2.4.1.2.1"
+  },
+  {
+    "uuid": "cf1d76c1-fc9f-499d-866f-265276e421f0",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Implementation Stages",
+    "doc_no_at_curation": "A.2.4.1.2.2"
+  },
+  {
+    "uuid": "b74e61f5-3793-406d-a0e5-f8f0e4d3ac2f",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Senior Risk Capital (SRC) Origination Process",
+    "doc_no_at_curation": "A.3.2.2.4.3"
+  },
+  {
+    "uuid": "d92f0d3b-e6d5-47d4-b6f1-203ef9326ea6",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Risk Capital Update Process",
+    "doc_no_at_curation": "A.3.2.2.5"
+  }
+]
