@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -272,14 +272,13 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
-    "approvalCount": 1,
-    "summary": "Clarify Deviation Percentage Calculation In Monthly Settlement Cycle",
-    "description": "Clarifies how the percentage deviation between the Initial Calculation and the Independent Calculation is calculated in the Agreed Amount definition within the Monthly Settlement Cycle."
+    "approvalCount": 1
   },
   {
     "date": "2026-04-30",
@@ -568,6 +567,7 @@
         "If, after the haircut, losses still exceed the combined capacity of the Prime Agent’s capital, the Sky Surplus Buffer, and Genesis Capital, the SKY Backstop (see [A.3.6 - SKY Backstop](4d8b0d82-97da-4041-b185-4b98c2779cbe)) is activated. The SKY mint must be sized to cover the remaining loss. If losses still exceed what the SKY Backstop can absorb, Sky will adjust the USDS target price below $1 to the extent necessary to settle the remaining deficit; Sky will then distribute 24 billion SKY to USDS holders via an airdrop."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",

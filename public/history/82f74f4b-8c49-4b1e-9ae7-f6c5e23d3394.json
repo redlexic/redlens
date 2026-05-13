@@ -15,8 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2026-03-05",
@@ -81,14 +80,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-05-05",

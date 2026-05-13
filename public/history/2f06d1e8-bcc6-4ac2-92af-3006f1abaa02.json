@@ -17,7 +17,7 @@
     "approvalCount": 1,
     "commentCount": 3,
     "summary": "Spark proposal - Launch Spark Savings spPYUSD",
-    "description": "Originating forum post: https://forum.sky.money/t/december-11-2025-proposed-changes-to-spark-for-upcoming-spell/27481\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Treasury - Spark Foundation Grant 2. [Ethereum] SparkLend - Withdraw Reserves (Exec) 3. [Ethereum] Spark Liquidity Layer - Onboarding with Anchorage (Exec) 4. [Ethereum] Spark Liquidity Layer - Onboard Spark Prime / Arkis 5. [Ethereum] Spark Savings - Launch Spark Savings spPYUSD 6. [Ethereum] Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC, spUSDT, spETH 7. [Avalanche] Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC 8. [Ethereum] Spark USDC Morpho Vault - Update Allocator Role to ALM Proxy Freezable 9. [Ethereum] Spark USDS Morpho…"
   },
   {
     "date": "2026-04-13",
@@ -46,6 +46,7 @@
         ]
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

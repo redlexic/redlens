@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -39,14 +39,14 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-04-30",
@@ -295,12 +295,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Restructure Treasury Management Function",
+    "description": "Restructures the TMF waterfall across four steps (Security and Maintenance, Aggregate Backstop Capital growth, Smart Burn Engine with split between SKY rewards / USDS rewards / burn, and Staking Rewards). Retires the Net Revenue Ratio and activity-based staking reward tiers."
   },
   {
     "date": "2026-05-05",

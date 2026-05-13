@@ -15,8 +15,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/186",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-16 AEW proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-16/27720/1"
+    "summary": "Add Launch Agent 7 Artifact",
+    "description": "Adds a new Artifact for Launch Agent 7."
   },
   {
     "date": "2026-04-23",
@@ -57,14 +57,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "Clarify Prime Agent Data Production Responsibilities",
-    "description": "Clarifies that Prime Agents are responsible for data production and Risk Capital inputs."
+    "summary": "Collapse Ecosystem Upkeep To Uniform 50 bps",
+    "description": "Replaces the Market Cap Fee and Distribution Requirement Primitives with a single Ecosystem Upkeep Fee Primitive at a uniform 50 bps of market capitalization in USDS, and removes the Ecosystem Accord's special upkeep logic."
   },
   {
     "date": "2026-05-05",

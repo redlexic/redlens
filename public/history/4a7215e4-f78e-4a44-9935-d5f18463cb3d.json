@@ -23,8 +23,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-03-05",
@@ -73,14 +72,14 @@
         "Modifications to the base operational logic automatically propagate to this Instance. In future iterations of the Skybase Artifact, a version of the full process definition customized to Skybase will be included herein."
       ]
     ],
+    "changeKind": "lint",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-04-02",
@@ -117,13 +116,16 @@
         "Modifications to the base operational logic automatically propagate to this Instance. In future iterations of the Skybase Artifact, a version of the full process definition customized to Skybase will be included herein."
       ]
     ],
+    "changeKind": "typo",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/217",
     "reviewCount": 2,
     "approvalCount": 1,
-    "commentCount": 1
+    "commentCount": 1,
+    "summary": "Establish Demand Side Buffer",
+    "description": "Establishes a standalone Demand Side Buffer account for Distribution Reward and Integration Boost payments, simplifies expense recognition in the Monthly Settlement Cycle, and removes references to legacy roles from Near-Term Process documents."
   },
   {
     "date": "2026-05-05",

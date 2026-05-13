@@ -23,8 +23,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2026-01-22",
@@ -50,7 +49,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "Remove Atlas Core Development Payments",
+    "description": "Delete `A.1.4.5.1 - Exception for ADs Contributing To Atlas Core Development`. Delete `A.1.5.3.5.2 - Atlas Workstreams`. Delete `A.2.2 - Atlas Core Development` and its subdocuments and supporting documents."
   }
 ]

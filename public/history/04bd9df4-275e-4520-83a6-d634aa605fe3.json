@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -59,14 +59,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 219,
     "prTitle": "Atlas Edit Proposal — 2026-04-06",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "Raise Aggregate Backstop Capital Target And Introduce Genesis Capital Phase-Out",
-    "description": "Raises the Target Aggregate Backstop Capital to 150 million USDS and introduces a Genesis Capital Phase-Out mechanism that progressively reduces the backstop capital contribution required of Genesis Agents as the Aggregate Backstop Capital grows."
+    "summary": "Introduce Three-Stage Staking Rewards Framework",
+    "description": "Introduces a three-stage framework governing the allocation of Step 4 Capital to SKY staking rewards, SKY buybacks, and the Surplus Buffer."
   },
   {
     "date": "2026-04-30",
@@ -84,7 +85,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "Clarify Genesis Capital Backstop Haircut And Settlement",
-    "description": "Clarifies the haircut cap as Aggregate Backstop Capital and removes the 24 billion SKY distribution to Genesis Agents when the haircut fully covers the loss."
+    "summary": "Restructure Treasury Management Function",
+    "description": "Restructures the TMF waterfall across four steps (Security and Maintenance, Aggregate Backstop Capital growth, Smart Burn Engine with split between SKY rewards / USDS rewards / burn, and Staking Rewards). Retires the Net Revenue Ratio and activity-based staking reward tiers."
   }
 ]

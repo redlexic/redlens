@@ -49,6 +49,7 @@
         "Launch Agent 6 will use 150,000,000 AGENT6 tokens for incentives."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",

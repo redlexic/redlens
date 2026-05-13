@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -67,14 +67,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-02-05",
@@ -171,14 +171,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 176,
     "prTitle": "2026-02-02 Edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/176",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-02 Edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-02/27675"
+    "summary": "Expand Technical Documentation In Skybase Artifact",
+    "description": "Replace `A.6.1.1.4.2.1.1.3.1.1.2 - SubProxy Account` to read as follows: SubProxy Account *(Core)* - The address of Skybase's SubProxy Account on the Ethereum Mainnet is `0x08978E3700859E476201c1D7438B3427e3C81140`. Add new subdocuments of `A.6.1.1.4.2.1.1.3.1.1 - Parameters`. These documents should be located directly after `A.6.1.1.4.2.1.1.3.1.1.2 - SubProxy Account` and before `A.6.1.1.4.2.1.1.3.1.1.3 - Genesis Account` to read as follows: StarGuard Contract *(Core)* - The address of Skybase's StarGuard contract on the Ethereum Mainnet is `0xA170086AeF9b3b81dD73897A0dF56B55e4C2a1F7`.…"
   },
   {
     "date": "2026-03-05",
@@ -207,14 +208,14 @@
         ]
       ]
     ],
+    "changeKind": "lint",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-05-05",

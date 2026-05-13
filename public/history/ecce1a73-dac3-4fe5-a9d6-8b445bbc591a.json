@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -164,14 +164,14 @@
         "It is permissible for an Active Data Controller to specify unique requirements in addition to the general \"Direct Edit\" Update Process described above. These additional requirements, if any, must be specified directly in the Active Data Controller Document; this can be done through a reference or citation to the pertinent Atlas document containing the additional requirements. The additional requirements may supplement, but cannot conflict with, any aspect of the \"Direct Edit\" Update Process defined herein."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 180,
     "prTitle": "Feb 9 edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/180",
     "reviewCount": 4,
     "approvalCount": 1,
-    "summary": "Feb 9 edit",
-    "description": "Do not merge until poll passes"
+    "summary": "Feb 9 edit"
   },
   {
     "date": "2026-05-05",

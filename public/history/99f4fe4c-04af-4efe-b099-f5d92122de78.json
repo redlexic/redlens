@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -115,6 +115,15 @@
           ]
         ]
       ]
-    ]
+    ],
+    "changeKind": "semantic",
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Document How To Query The Sky Savings Rate Current Value",
+    "description": "Specifies the sUSDS contract address, the `ssr()` function, and the formula to convert the per-second rate into an annualized rate."
   }
 ]

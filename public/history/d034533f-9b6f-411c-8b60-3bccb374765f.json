@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -87,14 +87,14 @@
         "4. Prime Agents’ internal TRC management systems should define a RRC-incident (e.g., TRC shortfall) response protocol. The system should enable internal alerting mechanisms that detect when a Prime Agent’s TRC approaches predefined internal buffer thresholds relative to its Aggregate RRC. See [A.3.2.2.7.2.1.1.1 - Encumbrance Ratio](5435f680-aaaa-461a-bcae-4056bb8964d9). The system should also detect an actual shortfall where the Prime Agent’s held TRC falls below its Aggregate RRC."
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-03-12",
@@ -326,6 +326,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 196,
     "prTitle": "March 9 edit",
     "prAuthor": "MakerJanSky",
@@ -404,6 +405,7 @@
         "Prime Agent teams' internal decision-making framework may consider the economic trade-offs of various actions, including the strategic acceptance of penalties for a TRC shortfall where such an approach is determined to be economically advantageous compared to immediate rebalancing (e.g., avoiding excessive transaction costs or market impact)."
       ]
     ],
+    "changeKind": "lint",
     "pr": 199,
     "prTitle": "Global linting - Remove extra spaces",
     "prAuthor": "blimpa",
@@ -412,7 +414,7 @@
     "approvalCount": 1,
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
-    "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+    "description": "Extra spaces have been removed. --- The following have been kept unchanged: - Code blocks/lines have been kept unchanged excepting the removal of: - Line-final spaces - Interlinear spaces - Table layouts excepting the removal of: - Line-final spaces Newlines have not been changed."
   },
   {
     "date": "2026-03-26",
@@ -608,6 +610,7 @@
         "Prime Agent teams' internal decision-making framework may consider the economic trade-offs of various actions, including the strategic acceptance of penalties for a TRC shortfall where such an approach is determined to be economically advantageous compared to immediate rebalancing (e.g., avoiding excessive transaction costs or market impact)."
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -616,7 +619,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-05-05",

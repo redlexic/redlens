@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -35,14 +35,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 121,
     "prTitle": "Nov 24 Atlas edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2026-04-23",
@@ -131,12 +131,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Collapse Ecosystem Upkeep To Uniform 50 bps",
+    "description": "Replaces the Market Cap Fee and Distribution Requirement Primitives with a single Ecosystem Upkeep Fee Primitive at a uniform 50 bps of market capitalization in USDS, and removes the Ecosystem Accord's special upkeep logic."
   },
   {
     "date": "2026-05-05",

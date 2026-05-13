@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -50,6 +50,7 @@
         "- The address field contains the Ethereum address of the deployed Mainnet spell on the blockchain, allowing stakeholders to verify its contents and execution status. When the Executive Vote is published on the Voting Portal the spell address is a hyperlink that links to Etherscan."
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -58,7 +59,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-04-13",
@@ -107,6 +108,7 @@
         "- The title field provides a concise and descriptive summary of the Executive Document, making it easy for stakeholders to identify the proposal."
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

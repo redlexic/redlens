@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -47,6 +47,7 @@
         "- Curve Pools - Investments by Spark in USDT in sUSDS/USDT Curve pools"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",
@@ -80,6 +81,7 @@
         "- Curve Pools - Investments by Spark in USDT in sUSDS/USDT Curve pools"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 196,
     "prTitle": "March 9 edit",
     "prAuthor": "MakerJanSky",
@@ -113,6 +115,7 @@
         "- Peg Stability Modules - Investments by Spark or Grove in USDC in Peg Stability Modules on blockchains other than Ethereum Mainnet"
       ]
     ],
+    "changeKind": "lint",
     "pr": 199,
     "prTitle": "Global linting - Remove extra spaces",
     "prAuthor": "blimpa",
@@ -121,7 +124,7 @@
     "approvalCount": 1,
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
-    "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+    "description": "Extra spaces have been removed. --- The following have been kept unchanged: - Code blocks/lines have been kept unchanged excepting the removal of: - Line-final spaces - Interlinear spaces - Table layouts excepting the removal of: - Line-final spaces Newlines have not been changed."
   },
   {
     "date": "2026-05-05",

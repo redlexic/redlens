@@ -19,8 +19,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-01-29",
@@ -48,6 +47,7 @@
         "- Skybase Foundation: 1 signer"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",

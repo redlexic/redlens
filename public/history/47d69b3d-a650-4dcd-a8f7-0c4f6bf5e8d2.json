@@ -43,8 +43,8 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/176",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-02 Edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-02/27675"
+    "summary": "Clarify Governance Process For Allocator Vaults",
+    "description": "Add new subdocuments of `A.3.7.1 - Measures For Endgame Transition`. These documents should be located directly after `A.3.7.1.1 - Native Vault Engine` and its subdocuments and before `A.3.7.1.2 - Stability Parameter Bounded External Access Module` and its subdocuments to read as follows: Prime Allocator Vaults *(Core)* - The subdocuments herein govern the Allocator Vaults utilized by Prime Agents to access Sky Ecosystem liquidity. These documents define the specific risk parameters for each vault and the governance process for updating them. Prime Allocator Vault Risk Parameters *(Core)* -…"
   },
   {
     "date": "2026-03-26",
@@ -111,6 +111,7 @@
         ]
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -119,7 +120,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-05-05",

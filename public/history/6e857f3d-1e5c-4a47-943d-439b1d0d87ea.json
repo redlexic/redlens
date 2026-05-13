@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -39,6 +39,7 @@
         "In periods of high profitability, funds build up in the High Activity Staking Rewards Buffer. Then in periods of low profitability these funds are paid out from the High Activity Staking Rewards Buffer, ensuring that there is a continued incentive for active involvement in governance even in periods of low profitability to maintain security."
       ]
     ],
+    "changeKind": "lint",
     "pr": 199,
     "prTitle": "Global linting - Remove extra spaces",
     "prAuthor": "blimpa",
@@ -47,7 +48,7 @@
     "approvalCount": 1,
     "commentCount": 1,
     "summary": "Global linting - Remove extra spaces",
-    "description": "Extra spaces have been removed.\r\n\r\n---\r\n\r\nThe following have been kept unchanged:\r\n\r\n- Code blocks/lines have been kept unchanged excepting the removal of:\r\n  - Line-final spaces\r\n  - Interlinear spaces\r\n- Table layouts excepting the removal of:\r\n  - Line-final spaces\r\n\r\nNewlines have not been changed."
+    "description": "Extra spaces have been removed. --- The following have been kept unchanged: - Code blocks/lines have been kept unchanged excepting the removal of: - Line-final spaces - Interlinear spaces - Table layouts excepting the removal of: - Line-final spaces Newlines have not been changed."
   },
   {
     "date": "2026-04-30",
@@ -72,6 +73,8 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Restructure Treasury Management Function",
+    "description": "Restructures the TMF waterfall across four steps (Security and Maintenance, Aggregate Backstop Capital growth, Smart Burn Engine with split between SKY rewards / USDS rewards / burn, and Staking Rewards). Retires the Net Revenue Ratio and activity-based staking reward tiers."
   }
 ]

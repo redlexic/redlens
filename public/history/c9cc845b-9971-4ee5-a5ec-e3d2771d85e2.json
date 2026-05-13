@@ -17,7 +17,7 @@
     "approvalCount": 2,
     "commentCount": 2,
     "summary": "Spark proposal - Onboard Spark Prime / Arkis",
-    "description": "Originating forum post: https://forum.sky.money/t/december-11-2025-proposed-changes-to-spark-for-upcoming-spell/27481\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Treasury - Spark Foundation Grant 2. [Ethereum] SparkLend - Withdraw Reserves (Exec) 3. [Ethereum] Spark Liquidity Layer - Onboarding with Anchorage (Exec) 4. [Ethereum] Spark Liquidity Layer - Onboard Spark Prime / Arkis 5. [Ethereum] Spark Savings - Launch Spark Savings spPYUSD 6. [Ethereum] Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC, spUSDT, spETH 7. [Avalanche] Spark Savings - Update Setter Role to ALM Proxy Freezable for spUSDC 8. [Ethereum] Spark USDC Morpho Vault - Update Allocator Role to ALM Proxy Freezable 9. [Ethereum] Spark USDS Morpho…"
   },
   {
     "date": "2026-03-27",
@@ -78,6 +78,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 208,
     "prTitle": "Atlas Edit Proposal — 2026-03-23",
     "prAuthor": "adamgfraser",
@@ -85,8 +86,8 @@
     "reviewCount": 1,
     "approvalCount": 1,
     "commentCount": 2,
-    "summary": "Remove Governance Poll Requirement For SparkLend Parameter Changes",
-    "description": "Removes the requirement for a Governance Poll before modifying SparkLend Liquidation Threshold and Liquidation Bonus parameters, allowing these changes to proceed directly to an Executive Vote via the Operational Weekly Cycle."
+    "summary": "Update Spark Prime Arkis Deployment Parameters",
+    "description": "Removes Interim Deployment status from Arkis, raises Maximum Exposure from $20M to $50M, and reduces Instance Capital Requirement Ratio from 100% to 50%."
   },
   {
     "date": "2026-05-05",

@@ -16,7 +16,7 @@
     "reviewCount": 3,
     "approvalCount": 1,
     "summary": "Spark proposal - Add USAT and USDT transferAsset Rate Limits to Ancho…",
-    "description": "Originating forum post: https://forum.skyeco.com/t/march-26-2026-proposed-changes-to-spark-for-upcoming-spell/27770\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] Spark Treasury - Spark Foundation and Spark Assets Foundation Grants for Q2 2026 2. [Ethereum] SparkLend - Reactivate WBTC 3. [Ethereum] Spark Liquidity Layer - Add USAT transferAsset Rate Limit to Anchorage 4. [Ethereum] Spark Liquidity Layer - Add USDT transferAsset Rate Limit to Anchorage ~~5. [Ethereum] Spark Liquidity Layer - Onboard Uniswap v4 USAT/USDS Pool~~ Recurring Items 6. [Ethereum] SparkLend - Claim SparkLend Reserves (Exec) 7. [Ethereum] Spark Treasury - Transfer Excess USDS from SubDAO Proxy for SPK Buybacks"
   },
   {
     "date": "2026-04-09",
@@ -27,7 +27,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Expand SLL And GLL Abbreviations",
+    "description": "Expands \"SLL\" and \"GLL\" abbreviations to \"Spark Liquidity Layer\" and \"Grove Liquidity Layer.\""
   },
   {
     "date": "2026-05-05",

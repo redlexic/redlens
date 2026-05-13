@@ -15,8 +15,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/141",
     "reviewCount": 5,
     "approvalCount": 1,
-    "summary": "Dec 8 edit",
-    "description": "Do not merge until associated poll passes"
+    "summary": "Dec 8 edit"
   },
   {
     "date": "2026-03-05",
@@ -49,14 +48,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-04-23",
@@ -73,6 +72,8 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Activate Launch Agent 6 Pioneer Primitive On Plasma",
+    "description": "Activates the Pioneer Chain Primitive for Launch Agent 6 on Plasma, establishing the Pioneer Incentive Pool address and applicable terms."
   }
 ]

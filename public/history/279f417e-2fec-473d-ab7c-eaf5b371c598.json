@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -3599,14 +3599,14 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 180,
     "prTitle": "Feb 9 edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/180",
     "reviewCount": 4,
     "approvalCount": 1,
-    "summary": "Feb 9 edit",
-    "description": "Do not merge until poll passes"
+    "summary": "Feb 9 edit"
   },
   {
     "date": "2026-02-22",
@@ -4282,14 +4282,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 186,
     "prTitle": "2026-02-16 AEW proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/186",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-16 AEW proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-16/27720/1"
+    "summary": "Restore NR Document Formatting",
+    "description": "Replace `NR-1 - Systematic Basis Of Adjudication, Fact-Finding And Evidence` to read as follows: Systematic Basis Of Adjudication, Fact-Finding And Evidence *(Needed Research)* - Content: This need is an extensive Research Track. The central research need that grows out of the Facilitator role has to do with developing systematic principles and protocols to serve as the foundation for adjudicating disputes and controversies, including processes for fact-finding, evidence validation and evaluation, mechanisms for ensuring impartiality and objectivity, an appeals process, etc. The Atlas has…"
   },
   {
     "date": "2026-05-05",

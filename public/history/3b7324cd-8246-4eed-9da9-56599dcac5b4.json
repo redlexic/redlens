@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -155,12 +155,15 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Reorder Loss Absorption Sequence",
+    "description": "Reorders the loss absorption sequence so the Genesis Capital Backstop is applied before the SKY Backstop, and revises the Genesis Capital Backstop trigger conditions accordingly."
   },
   {
     "date": "2026-05-05",

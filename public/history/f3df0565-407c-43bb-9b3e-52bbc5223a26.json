@@ -62,8 +62,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-03-26",
@@ -159,6 +158,7 @@
         ]
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -167,7 +167,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-05-05",

@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -199,14 +199,14 @@
         "In all instances, Sky Governance must consent to the transfer of funds via an Atlas Edit."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 156,
     "prTitle": "January 12 edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/156",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "January 12 edit",
-    "description": "Do not merge unless poll passes"
+    "summary": "January 12 edit"
   },
   {
     "date": "2026-01-22",
@@ -268,14 +268,14 @@
         "In all instances, Sky Governance must consent to the transfer of funds via an Atlas Edit."
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-04-23",
@@ -312,6 +312,7 @@
         "The authorization of grant requests is subject to the governance requirements and limitations specified in [A.2.2.5.2.3.1 - Limitations On Usage Of Root Edit Primitive Prior To Tokens Being Publicly Held](8c15762a-ea7e-4c6d-9089-60d30c219c0f)."
       ]
     ],
+    "changeKind": "typo",
     "pr": 224,
     "prTitle": "Atlas Edit Proposal — 2026-04-20",
     "prAuthor": "adamgfraser",

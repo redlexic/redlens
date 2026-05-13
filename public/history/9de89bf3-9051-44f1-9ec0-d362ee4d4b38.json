@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -47,14 +47,14 @@
         "Core GovOps makes the final decision in resolving differences between the Initial Calculation and the Independent Calculation. The Final Calculation must specify the Final Amount and contain reasonable supporting detail. The required contents of the Final Calculation will be further specified in a future iteration of the Atlas."
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-01-29",
@@ -87,6 +87,7 @@
         "Core GovOps makes the final decision in resolving differences between the Initial Calculation and the Independent Calculation. The Final Calculation must specify the Final Amount and contain reasonable supporting detail. The required contents of the Final Calculation will be further specified in a future iteration of the Atlas."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",
@@ -229,6 +230,7 @@
         "Core GovOps makes the final decision in resolving differences between the Initial Calculation and the Independent Calculation. The Final Calculation must specify the Final Amount and contain reasonable supporting detail. The required contents of the Final Calculation will be further specified in a future iteration of the Atlas."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 227,
     "prTitle": "Atlas Edit Proposal — 2026-04-27",
     "prAuthor": "adamgfraser",

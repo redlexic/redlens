@@ -11,6 +11,7 @@ import { ActorDashboard } from "./ActorDashboard";
 import { PrimitiveDashboard } from "./PrimitiveDashboard";
 import { Drawer, DrawerToggle } from "../Drawer";
 import { Loading } from "../Loading";
+import { RadarProvider } from "./RadarContext";
 
 interface Props {
   onNavigate: (id: string) => void;
@@ -46,18 +47,18 @@ function RadarLoaded({ onNavigate, query, actorSlug, drawerOpen, onDrawerClose, 
   }, [actorSlug, graph, docs, rewardsIndex, allActiveDataRows]);
 
   return (
-    <>
+    <RadarProvider value={{ docs, onNavigate, onActor }}>
       <Drawer open={drawerOpen} onClose={onDrawerClose} breakpoint={850}>
         <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} onSelect={onActor} />
       </Drawer>
       {!actorSlug ? (
-        <PrimitiveDashboard agents={primitiveStats} onActor={onActor} />
+        <PrimitiveDashboard agents={primitiveStats} />
       ) : !profile ? (
         <Loading>actor not found</Loading>
       ) : (
-        <ActorDashboard profile={profile} onNavigate={onNavigate} onActor={onActor} />
+        <ActorDashboard profile={profile} />
       )}
-    </>
+    </RadarProvider>
   );
 }
 

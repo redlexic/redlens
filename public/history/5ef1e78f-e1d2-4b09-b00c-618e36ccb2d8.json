@@ -40,7 +40,7 @@
     "reviewCount": 3,
     "approvalCount": 1,
     "summary": "SAEP-13: Risk Curation Framework",
-    "description": "Originating forum post: https://forum.skyeco.com/t/saep-13-risk-curation-framework/27796/1\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "This proposal is submitted by Phoenix Labs in its role as a nested contributor, as defined in section A.6.1.1.1.2.2.2.2.1.2.1.1.1 of the Spark Artifact. The proposal recommends that Spark governance adopt a Risk Curation Framework, under which certain on-chain activities may be executed by approved external contributors (“Curators”) subject to explicit governance approval, timelock protections, and defined cancellation authorities. The proposed framework is intended to improve operational efficiency and responsiveness in Spark’s risk management processes, while maintaining Spark governance’s…"
   },
   {
     "date": "2026-05-05",

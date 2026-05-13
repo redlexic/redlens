@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -126,6 +126,7 @@
         "- The spell items must be listed in order of importance for an average SKY voter except when there are order of operations concerns."
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -134,7 +135,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-04-09",
@@ -162,6 +163,7 @@
         "    - No approved items from the discussions can be omitted without a valid reason."
       ]
     ],
+    "changeKind": "lint",
     "pr": 218,
     "prTitle": "remove whitespace in lists",
     "prAuthor": "0xldr",
@@ -224,6 +226,7 @@
         "    - No approved items from the discussions can be omitted without a valid reason."
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

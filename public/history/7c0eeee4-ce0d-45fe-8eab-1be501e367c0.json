@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -47,12 +47,15 @@
         "Net accounting means that the rate limit applies to the net amount of tokens transferred from one side of the bridge to the other. For example, if 25,000,000 USDS were transferred from Ethereum Mainnet to Solana and 15,000,000 USDS were transferred from Solana to Ethereum Mainnet, the net amount transferred would be 10,000,000 USDS."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 219,
     "prTitle": "Atlas Edit Proposal — 2026-04-06",
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/219",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Add Avalanche SkyLink Bridge",
+    "description": "Adds documentation for the Avalanche SkyLink Bridge, specifying Freezer Multisig configuration, Rate Limits, and Validator parameters."
   },
   {
     "date": "2026-05-05",

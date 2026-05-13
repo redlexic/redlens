@@ -14,7 +14,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/222",
     "reviewCount": 1,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Add Pattern Liquidity Layer Documentation",
+    "description": "Adds documentation for the Pattern Liquidity Layer, including ALM contract addresses, rate limits, Relayer and Freezer Multisigs, and the Maple syrupUSDC Active Instance."
   },
   {
     "date": "2026-05-05",
@@ -55,6 +57,15 @@
           ]
         ]
       ]
-    ]
+    ],
+    "changeKind": "semantic",
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Document How To Query The Sky Savings Rate Current Value",
+    "description": "Specifies the sUSDS contract address, the `ssr()` function, and the formula to convert the per-second rate into an annualized rate."
   }
 ]

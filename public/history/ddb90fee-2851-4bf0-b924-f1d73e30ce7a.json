@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -151,6 +151,7 @@
         "The rewardsDuration for the LSEV2-SKY-A USDS rewards contract must be set such that it is equal to the splitter.hop parameter."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 196,
     "prTitle": "March 9 edit",
     "prAuthor": "MakerJanSky",

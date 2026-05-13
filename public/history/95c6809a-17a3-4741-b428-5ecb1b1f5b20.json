@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -67,6 +67,7 @@
         "The validation tool provides a preview of how the Executive Vote will appear on the voting platform, allowing the Core Facilitator to confirm the document's formatting and content."
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -39,14 +39,14 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-01-29",
@@ -83,6 +83,7 @@
         ]
       ]
     ],
+    "changeKind": "semantic",
     "pr": 172,
     "prTitle": "Jan 26 Edit",
     "prAuthor": "MakerJanSky",
@@ -106,7 +107,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/224",
     "reviewCount": 1,
     "approvalCount": 1,
-    "summary": "Activate Launch Agent 6 Pioneer Primitive On Plasma",
-    "description": "Activates the Pioneer Chain Primitive for Launch Agent 6 on Plasma, establishing the Pioneer Incentive Pool address and applicable terms."
+    "summary": "Collapse Ecosystem Upkeep To Uniform 50 bps",
+    "description": "Replaces the Market Cap Fee and Distribution Requirement Primitives with a single Ecosystem Upkeep Fee Primitive at a uniform 50 bps of market capitalization in USDS, and removes the Ecosystem Accord's special upkeep logic."
   }
 ]

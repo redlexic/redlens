@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -28,7 +28,7 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/186",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-16 AEW proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-16/27720/1"
+    "summary": "Revise Aligned Delegate Requirements",
+    "description": "Delete `A.1.4.9.2.1 - Warnings Appropriate For Mild Breach` and its subdocuments and supporting documents. Add a new subdocument of `A.1.4.9.2 - Imposing Appropriate Penalty`. This document should be located directly before `A.1.4.9.2.2 - Mandated Derecognition For Severe Breaches` and its supporting documents to read as follows: Graduated Response Framework For Breaches By Aligned Delegates *(Core)* - In cases of breaches of the Alignment Conserver requirements by Aligned Delegates, the Graduated Response Framework specified in Graduated Response Framework should be applied. Add a new…"
   }
 ]

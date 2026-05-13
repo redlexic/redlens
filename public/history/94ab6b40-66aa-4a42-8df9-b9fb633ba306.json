@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -55,6 +55,7 @@
         "- Current yield (at launch): 0%"
       ]
     ],
+    "changeKind": "semantic",
     "pr": 147,
     "prTitle": "Spark proposal - Increasing Savings Capacity",
     "prAuthor": "blimpa",
@@ -62,7 +63,7 @@
     "reviewCount": 1,
     "approvalCount": 1,
     "summary": "Spark proposal - Increasing Savings Capacity",
-    "description": "Originating forum post: https://forum.sky.money/t/january-15-2026-proposed-changes-to-spark-for-upcoming-spell/27585\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "Risk Mitigation 1. [Ethereum] SparkLend - Add LBTC to Oracle Kill Switch Morpho Vault Configuration 2. [Ethereum] Spark USDS Morpho Vault - Update Vault Roles 3. [Ethereum] Spark Blue Chip USDC Morpho Vault - Update Vault Roles 4. [Base] Spark USDC Morpho Vault - Update Vault Roles Increasing Savings Capacity 5. [Ethereum] Spark Savings - Increase spUSDC Deposit Cap 6. [Ethereum] Spark Savings - Increase spETH Deposit Cap 7. [Avalanche] Spark Savings - Increase spUSDC Deposit Cap 8. [Arbitrum] Spark Liquidity Layer - Mint sUSDS to Arbitrum PSM3 9. [OP Mainnet] Spark Liquidity Layer - Mint…"
   },
   {
     "date": "2026-05-05",

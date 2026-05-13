@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -75,6 +75,7 @@
         "To the extent possible, the selected team members should be in different timezones and jurisdictions for maximum operational and regulatory resilience."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 217,
     "prTitle": "Atlas Edit Proposal — 2026-03-30",
     "prAuthor": "adamgfraser",

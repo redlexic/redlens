@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -527,14 +527,14 @@
         "The recommended values for each of the stUSDS parameters should be based on the methodology specified in [A.4.4.1.3.8.3.3 - Update Methodology](e37d1045-215d-4f85-bbc3-70aa2c1b818b) but the Core Council Risk Advisor may deviate from this methodology if they determine that another methodology is advisable to support the growth of USDS and the interests of the Sky Protocol."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 141,
     "prTitle": "Dec 8 edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/141",
     "reviewCount": 5,
     "approvalCount": 1,
-    "summary": "Dec 8 edit",
-    "description": "Do not merge until associated poll passes"
+    "summary": "Dec 8 edit"
   },
   {
     "date": "2026-02-22",
@@ -579,14 +579,14 @@
         ]
       ]
     ],
+    "changeKind": "typo",
     "pr": 186,
     "prTitle": "2026-02-16 AEW proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/186",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-02-16 AEW proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-16/27720/1"
+    "summary": "2026-02-16 AEW proposal"
   },
   {
     "date": "2026-05-05",

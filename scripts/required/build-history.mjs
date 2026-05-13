@@ -24,6 +24,14 @@ import { fileURLToPath } from "node:url";
 import { execSync, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import { HEADING_RE } from "../lib/atlas-parser.mjs";
+import { extractForumBullets, findForumTopicIds } from "../lib/forum-parse.mjs";
+import {
+  classifyDiff,
+  classifyPrTitle,
+  cleanDescription,
+  matchBulletsToNodes,
+  parsePrBullets,
+} from "../lib/history-classify.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
@@ -32,6 +40,7 @@ const ATLAS_FILE = "Sky Atlas/Sky Atlas.md";
 const CONTENT_DIR = "content";
 const OUT_DIR = path.join(ROOT, "public/history");
 const PR_CACHE_DIR = path.join(ROOT, ".cache/github-prs");
+const FORUM_CACHE_DIR = path.join(ROOT, ".cache/discourse");
 const REPO = "sky-ecosystem/next-gen-atlas";
 
 // ---------------------------------------------------------------------------
@@ -329,6 +338,7 @@ function wordDiff(prevLine, currLine) {
 // ops: "=" unchanged, "+" added, "-" removed, "~" intraline, "…" gap
 // ---------------------------------------------------------------------------
 
+
 function lineDiff(prevText, currText) {
   const a = (prevText || "").split("\n");
   const b = (currText || "").split("\n");
@@ -456,6 +466,49 @@ function extractPrNumber(message) {
   return m ? parseInt(m[1], 10) : null;
 }
 
+/** Strip governance-boilerplate noise from a description / PR body. Returns
+ *  null if there's nothing meaningful left, so callers can skip setting the
+ *  field rather than carry forward a near-empty string. */
+
+/** If the PR body links to a Sky forum post and we have it cached, parse the
+ *  post into bullets + extraRefs. Returns null if no forum link or cache miss.
+ *  See scripts/lib/forum-parse.mjs for the parse contract. */
+function loadForumExtras(pr) {
+  if (!pr?.body) return null;
+  const topicIds = findForumTopicIds(pr.body);
+  if (topicIds.length === 0) return null;
+
+  // If a PR references multiple topics (rare; happens when a Weekly Cycle is
+  // split across two posts), merge bullets and refs from all available ones.
+  const bullets = [];
+  const docNos = new Set();
+  const uuids = new Set();
+  let any = false;
+  for (const id of topicIds) {
+    const p = path.join(FORUM_CACHE_DIR, `${id}.json`);
+    if (!fs.existsSync(p)) {
+      console.error(`    forum cache miss for topic ${id} — run pnpm build:forum-cache`);
+      continue;
+    }
+    let entry;
+    try {
+      entry = JSON.parse(fs.readFileSync(p, "utf8"));
+    } catch {
+      continue;
+    }
+    if (!entry.post1Raw) continue;
+    const { bullets: bs, extraRefs } = extractForumBullets(entry.post1Raw, {
+      fallbackTitle: pr.title,
+    });
+    bullets.push(...bs);
+    for (const r of extraRefs.docNos) docNos.add(r);
+    for (const r of extraRefs.uuids) uuids.add(r);
+    any = true;
+  }
+  if (!any) return null;
+  return { bullets, extraRefs: { docNos, uuids } };
+}
+
 async function fetchPr(prNum) {
   const cacheFile = path.join(PR_CACHE_DIR, `${prNum}.json`);
   if (fs.existsSync(cacheFile)) {
@@ -487,121 +540,37 @@ async function fetchPr(prNum) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// PR body bullet parsing + node matching
-// ---------------------------------------------------------------------------
-
-/** Parse bullets from an Atlas Edit Proposal PR body.
- *  Format: `- **Bold Title** — description text` or `- **Bold Title** - description`
- */
-function parsePrBullets(body) {
-  const bullets = [];
-  const re = /^[-*]\s+\*\*(.+?)\*\*\s*[—–-]\s*(.+)/gm;
-  let m;
-  while ((m = re.exec(body)) !== null) {
-    bullets.push({ title: m[1].trim(), description: m[2].trim() });
-  }
-  return bullets;
-}
-
-/** Tokenize a string into lowercase words, dropping stop words */
-function tokenize(s) {
-  const STOP = new Set([
-    "the",
-    "a",
-    "an",
-    "and",
-    "or",
-    "for",
-    "in",
-    "on",
-    "to",
-    "at",
-    "by",
-    "with",
-    "from",
-    "of",
-    "is",
-    "as",
-  ]);
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !STOP.has(w));
-}
-
-/** Score how well a bullet title matches a node title.
- *  Uses the shorter token set as the denominator so short node titles
- *  ("Emergency Response") can still match long bullet titles
- *  ("Update Emergency Response Article To Agent Framework"). */
-function matchScore(bulletTitle, nodeTitle, bulletDescription = "") {
-  const bTokens = tokenize(bulletTitle);
-  const nTokens = tokenize(nodeTitle);
-  if (bTokens.length === 0 || nTokens.length === 0) return 0;
-
-  const bSet = new Set(bTokens);
-  const nSet = new Set(nTokens);
-
-  let hits = 0;
-  for (const t of nSet) {
-    if (bSet.has(t)) hits++;
-  }
-
-  // Title-vs-title score: fraction of *node* tokens found in bullet title
-  const titleScore = hits / nSet.size;
-
-  // Bonus: check how many node title tokens appear in the bullet description
-  let descHits = 0;
-  if (bulletDescription) {
-    const dTokens = new Set(tokenize(bulletDescription));
-    for (const t of nSet) {
-      if (dTokens.has(t)) descHits++;
-    }
-  }
-  const descScore = bulletDescription ? descHits / nSet.size : 0;
-
-  // Combine: title match is primary, description adds up to 0.2 bonus
-  return titleScore + Math.min(descScore * 0.4, 0.2);
-}
-
-/** For each changed node, find the best-matching bullet (if any).
- *  Returns Map<nodeId, { bulletTitle, bulletDescription }> */
-function matchBulletsToNodes(bullets, changedNodes) {
-  if (bullets.length === 0) return new Map();
-  const matches = new Map();
-
-  for (const node of changedNodes) {
-    let bestScore = 0;
-    let bestBullet = null;
-    for (const bullet of bullets) {
-      const score = matchScore(bullet.title, node.title, bullet.description);
-      if (score > bestScore) {
-        bestScore = score;
-        bestBullet = bullet;
-      }
-    }
-    // Require at least 35% of node title tokens to match
-    if (bestScore >= 0.35 && bestBullet) {
-      matches.set(node.id, {
-        bulletTitle: bestBullet.title,
-        bulletDescription: bestBullet.description,
-        matchScore: Math.round(bestScore * 100),
-      });
-    }
-  }
-
-  return matches;
-}
 
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
+/** Build [name, doc_no-prefix] pairs for prime agents (and operational
+ *  executors when they map to atlas subtrees). Read once at startup from
+ *  public/relations.json + docs.json. */
+function loadAgentNamePrefixes() {
+  const relsPath = path.join(ROOT, "public/relations.json");
+  const docsPath = path.join(ROOT, "public/docs.json");
+  if (!fs.existsSync(relsPath) || !fs.existsSync(docsPath)) return [];
+  const rels = JSON.parse(fs.readFileSync(relsPath, "utf8"));
+  const docs = JSON.parse(fs.readFileSync(docsPath, "utf8"));
+  const out = [];
+  for (const e of rels.entities ?? []) {
+    if (e.et !== "agent" || !e.did) continue;
+    const doc = docs[e.did];
+    if (!doc?.doc_no) continue;
+    if (e.name) out.push([e.name, doc.doc_no]);
+  }
+  // Sort by name length DESC so "Launch Agent 7" matches before "Launch Agent"
+  // would (no such conflict today, but keeps multi-token names safe).
+  return out.sort((a, b) => b[0].length - a[0].length);
+}
+
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.mkdirSync(PR_CACHE_DIR, { recursive: true });
+  const agentNamePrefixes = loadAgentNamePrefixes();
+  console.error(`  ${agentNamePrefixes.length} agent name → doc_no scopes`);
 
   const lastCommitFile = path.join(OUT_DIR, "_last_commit.txt");
   const manifestFile = path.join(OUT_DIR, "_manifest.json");
@@ -671,6 +640,18 @@ async function main() {
       ...moved.map((n) => ({ node: n, changeType: "moved" })),
     ];
 
+    // The HTML→Markdown migration commit (PR #117, "Migrate To Markdown File")
+    // is the very first commit that touches Sky Atlas.md, so every doc shows
+    // up as "added" in the diff. Semantically these docs existed in the prior
+    // HTML era and were just translated to markdown — not new additions. Re-
+    // tag as "moved" so downstream views (ActorHistory etc.) treat the
+    // migration as renumbering noise rather than a wave of new creations.
+    const isMdMigration =
+      /migrate.*to.*markdown/i.test(commit.message) || extractPrNumber(commit.message) === 117;
+    if (isMdMigration) {
+      for (const ev of events) if (ev.changeType === "added") ev.changeType = "moved";
+    }
+
     if (events.length === 0) {
       prevSnapshot = snapshot;
       lastCommitHash = commit.hash;
@@ -680,15 +661,49 @@ async function main() {
     // Fetch PR metadata
     const prNum = extractPrNumber(commit.message);
     const pr = prNum ? await fetchPr(prNum) : null;
+    // PR-title-derived kind hint — overrides per-diff classification below
+    // for the whole commit. "fix typos PR" stays typo even when individual
+    // entries have a cascade of >4-char letter edits.
+    const prKindHint = pr ? classifyPrTitle(pr.title) : null;
 
     // Try to match bullets to nodes for edit proposals. Pass the unique nodes
     // (modified ∪ added ∪ removed) so a moved-and-modified node isn't scored twice.
+    //
+    // PR bullets come from two sources:
+    //   - parsePrBullets(pr.body) — the canonical Atlas Edit Proposal bullets.
+    //   - loadForumExtras(pr)     — Weekly Cycle ### blocks or the SAEP Summary
+    //     section, when the PR links to a Sky forum post (some PRs put the real
+    //     proposal there and leave the GitHub body almost empty).
     let bulletMatches = new Map();
+    let prHasInlineBullets = false;
     if (pr?.body) {
-      const bullets = parsePrBullets(pr.body);
+      const prBullets = parsePrBullets(pr.body);
+      prHasInlineBullets = prBullets.length > 0;
+      const forumExtras = loadForumExtras(pr);
+      const bullets = [...prBullets, ...(forumExtras?.bullets ?? [])];
       if (bullets.length > 0) {
         const matchTargets = [...added, ...modified, ...removed];
-        bulletMatches = matchBulletsToNodes(bullets, matchTargets);
+        // SAEP mode: single-bullet forum result + no inline PR bullets → that
+        // bullet is the PR-level summary; route forum extraRefs to it.
+        const refFallback =
+          prBullets.length === 0 && forumExtras?.bullets.length === 1
+            ? forumExtras.bullets[0]
+            : null;
+        bulletMatches = matchBulletsToNodes(bullets, matchTargets, snapshot, {
+          extraRefs: forumExtras?.extraRefs ?? null,
+          refFallback,
+          agentNamePrefixes,
+        });
+        if (matchTargets.length > 0) {
+          const rate = ((bulletMatches.size / matchTargets.length) * 100).toFixed(0);
+          const src =
+            forumExtras?.bullets.length
+              ? ` (pr=${prBullets.length}+forum=${forumExtras.bullets.length})`
+              : "";
+          console.error(
+            `    bullets: ${bulletMatches.size}/${matchTargets.length} matched (${rate}%)${src}`,
+          );
+        }
       }
     }
 
@@ -705,7 +720,11 @@ async function main() {
         const prevContent = prevSnapshot.get(node.id)?.content ?? "";
         const currContent = snapshot.get(node.id)?.content ?? "";
         const diff = lineDiff(prevContent, currContent);
-        if (diff.length > 0) entry.diff = diff;
+        if (diff.length > 0) {
+          entry.diff = diff;
+          const kind = prKindHint ?? classifyDiff(diff);
+          if (kind) entry.changeKind = kind;
+        }
       } else if (changeType === "added" && startIndex + i > 0) {
         // Node newly introduced mid-history: show its full content as added lines
         const currContent = snapshot.get(node.id)?.content ?? "";
@@ -737,12 +756,18 @@ async function main() {
       const bulletMatch = bulletMatches.get(node.id);
       if (bulletMatch) {
         entry.summary = bulletMatch.bulletTitle;
-        entry.description = bulletMatch.bulletDescription;
+        const cleaned = cleanDescription(bulletMatch.bulletDescription);
+        if (cleaned) entry.description = cleaned;
         // matchScore omitted from output — internal quality signal only
-      } else if (pr?.body && !parsePrBullets(pr.body).length) {
-        // Non-bulleted PR (Spark proposals, etc.) — use PR title as summary
+      } else if (pr?.body && !prHasInlineBullets && pr.body.length < 500) {
+        // No-bullet-match fallback. Only useful for plain non-bulleted PRs
+        // (Spark proposals, single-fix commits) where the whole body is the
+        // summary. Forum-linked PRs typically have a bare URL as the body and
+        // are deliberately left summary-less here — the matched-bullet rows
+        // carry the real information.
         entry.summary = pr.title;
-        if (pr.body.length < 500) entry.description = pr.body;
+        const cleaned = cleanDescription(pr.body);
+        if (cleaned) entry.description = cleaned;
       }
 
       if (!newHistory.has(node.id)) newHistory.set(node.id, []);

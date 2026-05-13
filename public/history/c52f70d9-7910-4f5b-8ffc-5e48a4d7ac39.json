@@ -43,14 +43,14 @@
         "`0x1fd0baaf4707a3525f15888ddf89e29b1a008d0f3cf7fb75171233c72003a588`."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-05-05",

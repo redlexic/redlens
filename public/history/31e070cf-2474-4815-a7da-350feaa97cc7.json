@@ -32,6 +32,12 @@
         "+",
         "where sub-periods are defined by any change to the USDS deposited in the Chronicle Point Reward Instance or the Base Rate during the settlement month, per the accrual method in [A.2.8.2.10.2.3 - Accrual Method](4bed0292-a720-4306-b528-5d583fd4ead5)."
       ]
-    ]
+    ],
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1
   }
 ]

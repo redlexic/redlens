@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -123,14 +123,14 @@
         "Launch Agent 3 Frontend is a non-custodial web application serving as a gateway to the Sky Protocol. Through its AI-powered interface, Launch Agent 3 Frontend makes digital asset interactions intuitive and accessible for users of all experience levels—all while ensuring users maintain complete control of their assets. Launch Agent 3 Frontend never takes custody of users' private keys or assets; users retain full responsibility for managing their private keys and digital wallet access."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 167,
     "prTitle": "2026-01-19 edit",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/167",
     "reviewCount": 2,
     "approvalCount": 1,
-    "summary": "2026-01-19 edit",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-01-19/27627"
+    "summary": "2026-01-19 edit"
   },
   {
     "date": "2026-05-05",

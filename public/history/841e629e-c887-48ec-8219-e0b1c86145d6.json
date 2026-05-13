@@ -51,6 +51,15 @@
           ]
         ]
       ]
-    ]
+    ],
+    "changeKind": "semantic",
+    "pr": 237,
+    "prTitle": "Atlas Edit Proposal — 2026-05-04",
+    "prAuthor": "adamgfraser",
+    "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/237",
+    "reviewCount": 1,
+    "approvalCount": 1,
+    "summary": "Simplify Pattern Freezer Multisig Description",
+    "description": "Removes the controlling-party clause from the introduction; the controlling parties are already identified in the Signers subsection."
   }
 ]

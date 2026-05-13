@@ -2,7 +2,7 @@
   {
     "date": "2025-11-21",
     "commitHash": "22cc27b",
-    "changeType": "added",
+    "changeType": "moved",
     "pr": 117,
     "prTitle": "Migrate To Markdown File",
     "prAuthor": "adamgfraser",
@@ -67,14 +67,14 @@
         "This structured approach ensures that the document is both easy to navigate and comprehensive."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 121,
     "prTitle": "Nov 24 Atlas edit",
     "prAuthor": "MakerJanSky",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/121",
     "reviewCount": 6,
     "approvalCount": 1,
-    "summary": "Nov 24 Atlas edit",
-    "description": "Do not merge unless associated poll passes"
+    "summary": "Nov 24 Atlas edit"
   },
   {
     "date": "2026-03-05",
@@ -131,14 +131,14 @@
         "This structured approach ensures that the document is both easy to navigate and comprehensive."
       ]
     ],
+    "changeKind": "semantic",
     "pr": 187,
     "prTitle": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
     "prAuthor": "0xldr",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/187",
     "reviewCount": 3,
     "approvalCount": 1,
-    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal",
-    "description": "https://forum.sky.money/t/atlas-edit-weekly-cycle-proposal-week-of-2026-02-23/27728"
+    "summary": "2026-02-23 Atlas Edit Weekly Cycle Proposal"
   },
   {
     "date": "2026-03-26",
@@ -182,6 +182,7 @@
         ""
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -190,7 +191,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-04-13",
@@ -304,6 +305,7 @@
         ""
       ]
     ],
+    "changeKind": "lint",
     "pr": 223,
     "prTitle": "remove non breaking space characters",
     "prAuthor": "0xldr",

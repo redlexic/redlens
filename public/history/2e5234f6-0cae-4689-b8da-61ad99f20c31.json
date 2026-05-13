@@ -26,7 +26,9 @@
     "prAuthor": "adamgfraser",
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/227",
     "reviewCount": 2,
-    "approvalCount": 1
+    "approvalCount": 1,
+    "summary": "Add Tokenized Treasury Shared Infrastructure And JTRSY Instance",
+    "description": "Adds shared Tokenized Treasury contract addresses and role definitions at the Grove Liquidity Layer level, onboards the Tokenized Treasury JTRSY instance, and adds the Grove x Steakhouse RLUSD Morpho Vault V2 instance."
   },
   {
     "date": "2026-05-05",

@@ -64,7 +64,7 @@
     "reviewCount": 5,
     "approvalCount": 1,
     "summary": "Spark proposal - Initiate DssVest for SPK Contributor Vesting",
-    "description": "Originating forum post: https://forum.sky.money/t/february-12-2026-proposed-changes-to-spark-for-upcoming-spell/27674\r\n\r\n**Do not merge unless associated poll passes**"
+    "description": "1. [Ethereum] SparkLend - Recurring Claim of SparkLend Reserves (Exec) 2. [Ethereum] Spark Treasury - Transfer Remaining Share of Ethena Net Revenue to Grove 3. [Ethereum] Spark Treasury - Initiate DssVest for SPK Contributor Vesting"
   },
   {
     "date": "2026-03-26",
@@ -237,6 +237,7 @@
         ]
       ]
     ],
+    "changeKind": "lint",
     "pr": 206,
     "prTitle": "Lint Lists",
     "prAuthor": "0xldr",
@@ -245,7 +246,7 @@
     "approvalCount": 1,
     "commentCount": 2,
     "summary": "Lint Lists",
-    "description": "@blimpa @Coolcatcatio\r\n\r\nThis PR updates all lists within the Atlas to follow the markdown specification.\r\n\r\nIt also adds a markdownlint config file to start the process of fixing formatting across editors."
+    "description": "@blimpa @Coolcatcatio This PR updates all lists within the Atlas to follow the markdown specification. It also adds a markdownlint config file to start the process of fixing formatting across editors."
   },
   {
     "date": "2026-05-05",
