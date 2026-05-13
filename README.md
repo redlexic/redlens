@@ -172,5 +172,5 @@ See [`redlens-mcp/AGENTS.md`](redlens-mcp/AGENTS.md) for the full tool reference
 | `walk-timeline.sh` | Walks the atlas commit timeline running builds |
 | `test-addresses.mjs` | Ad-hoc dumps from address metadata |
 | `unlabeled-addresses.mjs` | Lists addresses with no resolved label for triage |
-| `processes-triage.sh` | Reconcile the curated process inventory against atlas drift (`pnpm processes:triage`): syncs `main`, creates a branch, runs the `processes-triage` Claude skill interactively, then commits + pushes + opens a PR. Add `--dry-run` to skip git ops |
+| `processes-triage.sh` | Reconcile the curated process inventory against atlas drift (`pnpm processes:triage`): syncs `main`, creates a branch, runs the `processes-triage` Claude skill interactively, then commits + pushes + opens a PR. Add `--dry-run` to skip git ops. Add `--issue N` to link the PR (`Closes #N`) to the `processes-review` issue opened by atlas-update.yml |
 | `processes-apply-decisions.mjs` | Apply a `[{ uuid, verdict: "add" \| "ignore", ... }]` decisions file to `public/processes.json` + `public/processes-ignored.json` (`pnpm processes:apply-decisions <file>`). Consumed by the curation UI on `/reports/processes` (its "Download JSON" output drops in directly) and by the triage skill's batch path |

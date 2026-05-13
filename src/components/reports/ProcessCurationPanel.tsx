@@ -14,15 +14,13 @@ const PILL =
 
 export function ProcessCurationPanel({
   uuid,
-  title,
   existing,
   onMark,
   onUnmark,
 }: {
   uuid: string;
-  title: string;
   existing: LocalIgnore | undefined;
-  onMark: (uuid: string, reason: string, title: string) => void;
+  onMark: (uuid: string, reason: string) => void;
   onUnmark: (uuid: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -93,7 +91,7 @@ export function ProcessCurationPanel({
               return;
             }
             if (!canConfirm) return;
-            onMark(uuid, finalReason, title);
+            onMark(uuid, finalReason);
             reset();
           }}
           disabled={editing && !canConfirm}

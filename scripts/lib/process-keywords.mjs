@@ -14,8 +14,15 @@
  */
 
 // Word-boundary matches on the title, case-insensitive.
-// "protocol" is intentionally omitted — too noisy (matches Protocol Scope,
-// Protocol Security Workstream Lead, etc. — none of which are processes).
+//
+// Excluded — too noisy (each tested against the current atlas; novel-hit
+// counts in parens are non-curated matches that would flood the audit):
+//   "protocol" (Protocol Scope, Protocol Security Workstream Lead, …)
+//   "mint" (24) / "burn" (20) — token operation primitives, mostly config
+//   "routine" (116) — generic ("Routine Maintenance" everywhere)
+//   "cadence" (14) — schema-instantiated sub-cells, not the process itself
+//   "emergency response" (29) — broad phrase, mostly sub-docs under the
+//     already-curated Emergency Response System
 export const PROCESS_KEYWORDS = [
   "process",
   "cycle",
@@ -26,6 +33,20 @@ export const PROCESS_KEYWORDS = [
   "offboarding",
   "ratification",
   "reconciliation",
+  // Structural / sequence vocabulary
+  "stages",
+  "steps",
+  "sequence",
+  // Recurring-action / handoff vocabulary
+  "rotation",
+  "handover",
+  "escalation",
+  // Domain-specific procedural words
+  "adjudication",
+  "issuance",
+  "redemption",
+  "renewal",
+  "termination",
   // Multi-word — checked as substring (no \b around them)
   "review period",
 ];

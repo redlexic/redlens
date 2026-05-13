@@ -43,7 +43,7 @@ The curated process inventory (`public/processes.json` + `public/processes-ignor
 
 **For humans to run:**
 
-- **`pnpm processes:triage [--dry-run]`** — the canonical human entry point. Wrapper around `scripts/aux/processes-triage.sh`: clean-tree preflight → sync `main` → new branch `processes-triage/YYYY-MM-DD` → launch interactive Claude with the `processes-triage` skill (git/gh write tools blocked) → on exit, commit only `public/processes*.json`, push, open PR. `--dry-run` skips git ops + allows running from any branch.
+- **`pnpm processes:triage [--dry-run] [--issue N]`** — the canonical human entry point. Wrapper around `scripts/aux/processes-triage.sh`: clean-tree preflight → sync `main` → new branch `processes-triage/YYYY-MM-DD` → launch interactive Claude with the `processes-triage` skill (git/gh write tools blocked) → on exit, commit only `public/processes*.json`, push, open PR. `--dry-run` skips git ops + allows running from any branch. `--issue N` appends `Closes #N` to the PR body (issue body/comments are deliberately not read — the skill regenerates the authoritative audit locally).
 - **`pnpm processes:apply-decisions <decisions.json>`** — apply a `[{ uuid, verdict: "add"|"ignore", ... }]` decisions file to the inventory. Consumed by the `processes-triage` skill (large-batch path) and by the curation UI on `/reports/processes` (which exports this exact shape).
 
 **For workflows / CI to call (humans rarely run directly):**

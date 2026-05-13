@@ -23,13 +23,13 @@
  *   pnpm processes:apply-decisions .cache/processes-decisions.json
  *
  * The script:
- *   1. Validates every decision has a uuid that exists in the current audit's
- *      new_candidates (warns on orphans, errors on missing-from-audit).
- *   2. Looks up each uuid in public/docs.json for title/doc_no snapshot.
- *   3. Appends "add" entries to public/processes.json, "ignore" entries to
+ *   1. Validates every decision has a uuid that exists in public/docs.json
+ *      (warns on UUIDs not in current audit's new_candidates list — these are
+ *      usually manual additions).
+ *   2. Appends "add" entries to public/processes.json, "ignore" entries to
  *      public/processes-ignored.json.
- *   4. Sorts processes.json by category, then doc_no_at_curation (numeric).
- *   5. Prints a per-category summary.
+ *   3. Sorts processes.json by category, then doc_no from current docs.json.
+ *   4. Prints a per-category summary.
  */
 
 import fs from "node:fs";
@@ -121,7 +121,6 @@ let ignoredCount = 0;
 let skipped = 0;
 
 for (const d of decisions) {
-  const node = docs[d.uuid];
   if (d.verdict === "add") {
     if (processesByUuid.has(d.uuid)) {
       skipped++;
@@ -132,8 +131,6 @@ for (const d of decisions) {
       category: d.category,
       shape: d.shape,
       status: d.status,
-      title_at_curation: node.title,
-      doc_no_at_curation: node.doc_no,
       ...(d.stepCount !== undefined ? { stepCount: d.stepCount } : {}),
     });
     summary.add[d.category] = (summary.add[d.category] ?? 0) + 1;
@@ -146,19 +143,18 @@ for (const d of decisions) {
     ignored.push({
       uuid: d.uuid,
       reason: d.reason,
-      title_when_ignored: node.title,
     });
     summary.ignore[d.reason] = (summary.ignore[d.reason] ?? 0) + 1;
     ignoredCount++;
   }
 }
 
-// Stable sort: category, then doc_no_at_curation (numeric).
+// Stable sort: category, then doc_no from current docs (numeric).
 processes.sort((a, b) => {
   if (a.category !== b.category) return (a.category ?? "").localeCompare(b.category ?? "");
-  return (a.doc_no_at_curation ?? "").localeCompare(b.doc_no_at_curation ?? "", undefined, {
-    numeric: true,
-  });
+  const docNoA = docs[a.uuid]?.doc_no ?? "";
+  const docNoB = docs[b.uuid]?.doc_no ?? "";
+  return docNoA.localeCompare(docNoB, undefined, { numeric: true });
 });
 
 // Sort ignored by uuid for stable diffs.

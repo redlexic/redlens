@@ -56,7 +56,7 @@ function ExpandedBody({
   steps: AtlasNode[];
   onNavigate: (id: string) => void;
   existing: LocalIgnore | undefined;
-  onMark: (uuid: string, reason: string, title: string) => void;
+  onMark: (uuid: string, reason: string) => void;
   onUnmark: (uuid: string) => void;
 }) {
   const hasSteps = steps.length > 0;
@@ -95,7 +95,6 @@ function ExpandedBody({
         <aside className="w-full lg:w-56 lg:shrink-0">
           <ProcessCurationPanel
             uuid={node.id}
-            title={node.title}
             existing={existing}
             onMark={onMark}
             onUnmark={onUnmark}
@@ -124,7 +123,7 @@ function Row({
   onToggle: () => void;
   onNavigate: (id: string) => void;
   existing: LocalIgnore | undefined;
-  onMark: (uuid: string, reason: string, title: string) => void;
+  onMark: (uuid: string, reason: string) => void;
   onUnmark: (uuid: string) => void;
 }) {
   const stop = (e: React.MouseEvent) => e.stopPropagation();

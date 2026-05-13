@@ -2,25 +2,24 @@
 /**
  * Process inventory drift check.
  *
- * Compares public/processes.json (curated list of 55 process nodes) against the
- * current public/docs.json. Three outputs:
+ * Compares public/processes.json (curated process nodes, identified by UUID)
+ * against the current public/docs.json. Two outputs:
  *
- *   1. Auto-applied: title / doc_no snapshot updates. If a curated UUID still
- *      exists but its title or doc_no changed in the atlas, we silently update
- *      public/processes.json. This is a snapshot drift, not a structural change.
- *
- *   2. audit.missingUuids — curated entry whose UUID is gone from docs.json
+ *   1. audit.missingUuids — curated entry whose UUID is gone from docs.json
  *      (deleted, restructured, or merged into another node).
  *
- *   3. audit.newCandidates — docs whose titles match the process keyword
+ *   2. audit.newCandidates — docs whose titles match the process keyword
  *      classifier but aren't in public/processes.json AND not in
  *      public/processes-ignored.json.
  *
- * Exits 0 always — never blocks builds/deployments. Sets the GH Actions
- * outputs `dirty` and `summary` so the atlas-update workflow can decide
- * whether to open / update a tracking issue.
+ * Title / doc_no are resolved from docs.json on every read — no snapshot
+ * fields are stored on the entries, so there's no drift to auto-apply.
  *
- * Run: node scripts/required/check-processes-dirty.mjs [--no-write]
+ * Exits 0 always — never blocks builds/deployments. Sets the GH Actions
+ * outputs `dirty`, `missing`, `candidates` so the atlas-update workflow can
+ * decide whether to open / update a tracking issue.
+ *
+ * Run: node scripts/required/check-processes-dirty.mjs
  *      pnpm processes:check
  */
 
@@ -38,8 +37,6 @@ const DOCS = path.join(ROOT, "public/docs.json");
 const AUDIT_OUT = path.join(ROOT, ".cache/processes-audit.json");
 const AUDIT_MD = path.join(ROOT, ".cache/processes-audit.md");
 
-const NO_WRITE = process.argv.includes("--no-write");
-
 // ---------------------------------------------------------------------------
 
 const docs = JSON.parse(fs.readFileSync(DOCS, "utf8"));
@@ -49,31 +46,13 @@ const ignored = JSON.parse(fs.readFileSync(IGNORED, "utf8"));
 const curatedUuids = new Set(processes.map((p) => p.uuid));
 const ignoredUuids = new Set(ignored.map((i) => i.uuid));
 
-// 1. Auto-update title/doc_no snapshots; collect missing UUIDs.
+// 1. Curated entries whose UUID is gone from docs.json. We only know the
+// uuid + category from the local entry; the human can `git log -S <uuid> --
+// public/processes.json` to recover what it was previously titled.
 const missingUuids = [];
-const driftedSnapshots = [];
-
 for (const entry of processes) {
-  const node = docs[entry.uuid];
-  if (!node) {
-    missingUuids.push({
-      uuid: entry.uuid,
-      title_at_curation: entry.title_at_curation,
-      doc_no_at_curation: entry.doc_no_at_curation,
-      category: entry.category,
-    });
-    continue;
-  }
-  if (node.title !== entry.title_at_curation || node.doc_no !== entry.doc_no_at_curation) {
-    driftedSnapshots.push({
-      uuid: entry.uuid,
-      title_before: entry.title_at_curation,
-      title_after: node.title,
-      doc_no_before: entry.doc_no_at_curation,
-      doc_no_after: node.doc_no,
-    });
-    entry.title_at_curation = node.title;
-    entry.doc_no_at_curation = node.doc_no;
+  if (!docs[entry.uuid]) {
+    missingUuids.push({ uuid: entry.uuid, category: entry.category });
   }
 }
 
@@ -91,18 +70,12 @@ const newCandidates = candidates
   }))
   .sort((a, b) => a.doc_no.localeCompare(b.doc_no, undefined, { numeric: true }));
 
-// 3. Persist snapshot updates back to processes.json.
-if (driftedSnapshots.length > 0 && !NO_WRITE) {
-  fs.writeFileSync(PROCESSES, JSON.stringify(processes, null, 2) + "\n");
-}
-
-// 4. Write audit + markdown summary.
+// 3. Write audit + markdown summary.
 const audit = {
   generated_at: new Date().toISOString().split("T")[0],
   total_curated: processes.length,
   total_candidates: candidates.length,
   total_ignored: ignored.length,
-  auto_applied: driftedSnapshots,
   missing_uuids: missingUuids,
   new_candidates: newCandidates,
 };
@@ -113,15 +86,12 @@ fs.mkdirSync(path.dirname(AUDIT_OUT), { recursive: true });
 fs.writeFileSync(AUDIT_OUT, JSON.stringify(audit, null, 2) + "\n");
 fs.writeFileSync(AUDIT_MD, renderMarkdown(audit, dirty));
 
-// 5. Human-readable summary.
+// 4. Human-readable summary.
 console.log(`Curated: ${processes.length}  Candidates: ${candidates.length}  Ignored: ${ignored.length}`);
-if (driftedSnapshots.length > 0) {
-  console.log(`Auto-applied snapshot updates: ${driftedSnapshots.length}${NO_WRITE ? " (--no-write, not persisted)" : ""}`);
-}
 if (missingUuids.length > 0) {
   console.log(`\n⚠ Missing UUIDs (${missingUuids.length}):`);
   for (const m of missingUuids) {
-    console.log(`  ${m.uuid}  ${m.title_at_curation} (${m.doc_no_at_curation})`);
+    console.log(`  ${m.uuid}  (${m.category})`);
   }
 }
 if (newCandidates.length > 0) {
@@ -153,30 +123,13 @@ function renderMarkdown(audit, dirty) {
   lines.push(`Curated: ${audit.total_curated} · Candidates: ${audit.total_candidates} · Ignored: ${audit.total_ignored}`);
   lines.push("");
 
-  if (audit.auto_applied.length > 0) {
-    lines.push(`## Auto-applied snapshot updates (${audit.auto_applied.length})`);
-    lines.push("");
-    lines.push("These were committed to `public/processes.json` automatically — no action needed.");
-    lines.push("");
-    for (const d of audit.auto_applied) {
-      lines.push(`- \`${d.uuid}\``);
-      if (d.title_before !== d.title_after) {
-        lines.push(`  - title: \`${d.title_before}\` → \`${d.title_after}\``);
-      }
-      if (d.doc_no_before !== d.doc_no_after) {
-        lines.push(`  - doc_no: \`${d.doc_no_before}\` → \`${d.doc_no_after}\``);
-      }
-    }
-    lines.push("");
-  }
-
   if (audit.missing_uuids.length > 0) {
     lines.push(`## Missing UUIDs (${audit.missing_uuids.length})`);
     lines.push("");
-    lines.push("These curated entries no longer exist in the atlas — deleted, merged, or restructured. Review and either remove from `public/processes.json` or replace the UUID.");
+    lines.push("These curated entries no longer exist in the atlas — deleted, merged, or restructured. Review and either remove from `public/processes.json` or replace the UUID. To see what each was, run `git log -S <uuid> -- public/processes.json`.");
     lines.push("");
     for (const m of audit.missing_uuids) {
-      lines.push(`- \`${m.uuid}\` — ${m.title_at_curation} (${m.doc_no_at_curation}, ${m.category})`);
+      lines.push(`- \`${m.uuid}\` (${m.category})`);
     }
     lines.push("");
   }
@@ -192,7 +145,7 @@ function renderMarkdown(audit, dirty) {
     lines.push("");
   }
 
-  if (!dirty && audit.auto_applied.length === 0) {
+  if (!dirty) {
     lines.push("Nothing to review.");
   }
 

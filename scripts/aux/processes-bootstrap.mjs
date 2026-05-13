@@ -102,9 +102,8 @@ for (const row of rows) {
     category: row.category,
     shape: inferShape(row.steps_note),
     status: inferStatus(row.steps_note),
-    // Snapshot fields — updated automatically when atlas drifts.
-    title_at_curation: node.title,
-    doc_no_at_curation: node.doc_no,
+    // Title/doc_no are resolved from docs.json at read time — not stored here.
+    _node: node,
     // For human reference / cross-check vs. the research doc.
     research_title: row.title,
     research_doc_no: row.doc_no,
@@ -120,29 +119,29 @@ if (errors.length > 0) {
 
 // Sanity check: title/doc_no in atlas should match research doc.
 const mismatches = entries.filter(
-  (e) => e.title_at_curation !== e.research_title || e.doc_no_at_curation !== e.research_doc_no,
+  (e) => e._node.title !== e.research_title || e._node.doc_no !== e.research_doc_no,
 );
 if (mismatches.length > 0) {
   console.warn(`\n${mismatches.length} entries where current atlas differs from research doc snapshot:`);
   for (const m of mismatches) {
-    if (m.title_at_curation !== m.research_title) {
-      console.warn(`  ${m.uuid}  title: "${m.research_title}" → "${m.title_at_curation}"`);
+    if (m._node.title !== m.research_title) {
+      console.warn(`  ${m.uuid}  title: "${m.research_title}" → "${m._node.title}"`);
     }
-    if (m.doc_no_at_curation !== m.research_doc_no) {
-      console.warn(`  ${m.uuid}  doc_no: ${m.research_doc_no} → ${m.doc_no_at_curation}`);
+    if (m._node.doc_no !== m.research_doc_no) {
+      console.warn(`  ${m.uuid}  doc_no: ${m.research_doc_no} → ${m._node.doc_no}`);
     }
   }
 }
 
-// Sort by category, then doc_no for stable diffs.
+// Sort by category, then current doc_no for stable diffs.
 entries.sort((a, b) => {
   if (a.category !== b.category) return a.category.localeCompare(b.category);
-  return a.doc_no_at_curation.localeCompare(b.doc_no_at_curation, undefined, { numeric: true });
+  return a._node.doc_no.localeCompare(b._node.doc_no, undefined, { numeric: true });
 });
 
-// Strip the research_* fields from the final output — those were verification
-// only. The shipped file holds UUID + snapshot + classification.
-const final = entries.map(({ research_title, research_doc_no, ...rest }) => {
+// Strip the helper fields from the final output — they were verification only.
+const final = entries.map(({ _node, research_title, research_doc_no, ...rest }) => {
+  void _node;
   void research_title;
   void research_doc_no;
   return rest;

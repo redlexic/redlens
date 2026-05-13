@@ -27,9 +27,8 @@ The curated process inventory lives in `public/processes.json` (55 hand-validate
 
 ## Drift categories
 
-1. **Auto-applied snapshot updates** — title / doc_no changed for a UUID that still exists. The dirty check already wrote these to `public/processes.json`. No action needed; skim them for sanity.
-2. **Missing UUIDs** — curated entry's UUID is gone. Likely renamed, merged, or deleted. Decide rename vs. delete.
-3. **New candidates** — keyword classifier hits that aren't in the curated or ignored lists. Decide add vs. ignore.
+1. **Missing UUIDs** — curated entry's UUID is gone from `docs.json`. Likely renamed, merged, or deleted. Decide rename vs. delete. Title/doc_no are not snapshotted on entries — to see what the missing entry was, run `git log -S <uuid> -- public/processes.json`.
+2. **New candidates** — keyword classifier hits that aren't in the curated or ignored lists. Decide add vs. ignore.
 
 ## Runbook
 
@@ -39,7 +38,7 @@ The curated process inventory lives in `public/processes.json` (55 hand-validate
 pnpm processes:check
 ```
 
-This rewrites `.cache/processes-audit.{json,md}` and auto-applies title/doc_no snapshot updates. Read the markdown for the candidate list.
+This rewrites `.cache/processes-audit.{json,md}`. Read the markdown for the candidate list.
 
 ### 2. Apply the research-doc methodology
 
@@ -62,7 +61,7 @@ For a larger batch (the typical first-run case, dozens of candidates), write you
 pnpm processes:apply-decisions .cache/processes-decisions.json
 ```
 
-The script validates each decision, snapshots title/doc_no from the current atlas, sorts, and writes both data files. Keeps the analytical step (your thinking) separate from the deterministic file mutation.
+The script validates each decision, sorts (by category, then current doc_no), and writes both data files. Keeps the analytical step (your thinking) separate from the deterministic file mutation.
 
 Decisions file format:
 
@@ -95,11 +94,11 @@ Schema for `public/processes.json` (what gets written for "add"):
   "category": "Governance & Voting Cycles | Executive & Spell Processes | Settlement & Financial | Agent & Primitive Lifecycle | Personnel & Delegation | Collateral & Asset Management | Dispute & Emergency | Artifact & Atlas Governance | <or a new one>",
   "shape": "child | inline",
   "status": "active | deferred-stub",
-  "stepCount": <integer — actual step count for THIS process>,
-  "title_at_curation": "<current atlas title>",
-  "doc_no_at_curation": "<current atlas doc_no>"
+  "stepCount": <integer — actual step count for THIS process>
 }
 ```
+
+Title and doc_no are NOT stored on the entry — they're resolved from `public/docs.json` via `uuid` at read time.
 
 - `shape: "child"` — steps are atlas children of this node (most common)
 - `shape: "inline"` — steps are described in this node's own content, not as children
@@ -109,8 +108,7 @@ Schema for `public/processes.json` (what gets written for "add"):
 ```json
 {
   "uuid": "...",
-  "reason": "schema template | category container | role definition | requirement spec | other (specify)",
-  "title_when_ignored": "<current atlas title>"
+  "reason": "schema template | category container | role definition | requirement spec | other (specify)"
 }
 ```
 
@@ -134,13 +132,14 @@ For each one returned, read its content + children via atlas MCP, count the dist
 
 For each `missing_uuids` entry:
 
-- Use `atlas_search` with the entry's old title to find a likely replacement. Compare doc_no, parent chain, and content.
-- If a clear successor exists → **rename**: update the `uuid` field on the existing entry in `processes.json`. The snapshot fields will auto-update on the next dirty check.
+- Recover the old title via `git log -S <uuid> -p -- public/processes.json | head -50` and the old position via the surrounding entries.
+- Use `atlas_search` with that old title to find a likely replacement. Compare doc_no, parent chain, and content.
+- If a clear successor exists → **rename**: update the `uuid` field on the existing entry in `processes.json`. Title/doc_no resolve from `docs.json` automatically.
 - If no successor → **delete**: remove the entry entirely.
 
 ### 5. Sort + diff + handoff
 
-The dirty check sorts `processes.json` on auto-update, but if you added entries by hand they may be out of order. Sort by category, then `doc_no_at_curation` (numeric). Then:
+`apply-decisions` sorts on write. If you added entries by hand they may be out of order — re-running `apply-decisions` with no decisions is fine, or sort by category then current `docs[uuid].doc_no` (numeric). Then:
 
 ```bash
 pnpm processes:check    # verify clean (no new candidates, no missing UUIDs)

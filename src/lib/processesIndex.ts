@@ -2,13 +2,12 @@ import type { AtlasNode } from "../types";
 import { fetchJsonVerified } from "./verify";
 
 // One curated entry from public/processes.json — the hand-validated inventory.
+// Title + doc_no are resolved from docs.json at read time via the entry's uuid.
 export interface ProcessEntry {
   uuid: string;
   category: string;
   shape: "child" | "inline";
   status: "active" | "deferred-stub";
-  title_at_curation: string;
-  doc_no_at_curation: string;
   /**
    * Manual step count set by the processes-triage skill. Overrides the heuristic.
    * Used primarily for prose-only inline processes where automatic counting fails.

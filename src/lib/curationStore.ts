@@ -7,7 +7,6 @@ const KEY = "processes:local-ignores";
 export interface LocalIgnore {
   uuid: string;
   reason: string;
-  title_when_ignored: string;
   marked_at: string;
 }
 

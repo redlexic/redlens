@@ -24,15 +24,10 @@ export function useLocalIgnores() {
   const byUuid = useMemo(() => new Map(marks.map((m) => [m.uuid, m])), [marks]);
 
   const mark = useCallback(
-    (uuid: string, reason: string, title: string) =>
+    (uuid: string, reason: string) =>
       setMarks((prev) => [
         ...prev.filter((m) => m.uuid !== uuid),
-        {
-          uuid,
-          reason,
-          title_when_ignored: title,
-          marked_at: new Date().toISOString(),
-        },
+        { uuid, reason, marked_at: new Date().toISOString() },
       ]),
     [],
   );

@@ -42,10 +42,10 @@ describe("buildProcessRows", () => {
   };
 
   const entries: ProcessEntry[] = [
-    { uuid: "p1", category: "X", shape: "child", status: "active", title_at_curation: "Stages", doc_no_at_curation: "A.2.2.1.2.4.1" },
-    { uuid: "p2", category: "X", shape: "inline", status: "active", title_at_curation: "Artifact Edit Process", doc_no_at_curation: "A.2.2.5.2.2.2" },
-    { uuid: "p3", category: "X", shape: "inline", status: "active", title_at_curation: "Designation Process", doc_no_at_curation: "A.2.2.9.1.1.1.1.1" },
-    { uuid: "missing", category: "X", shape: "child", status: "active", title_at_curation: "Gone", doc_no_at_curation: "A.0" },
+    { uuid: "p1", category: "X", shape: "child", status: "active" },
+    { uuid: "p2", category: "X", shape: "inline", status: "active" },
+    { uuid: "p3", category: "X", shape: "inline", status: "active" },
+    { uuid: "missing", category: "X", shape: "child", status: "active" },
   ];
 
   const rows = buildProcessRows(docs, entries);
@@ -79,13 +79,9 @@ describe("buildProcessRows", () => {
   it("manual stepCount on the entry overrides the heuristic", () => {
     const overridden: ProcessEntry[] = [
       // p3 has no step signal in content; manual override gives it one.
-      { uuid: "p3", category: "X", shape: "inline", status: "active",
-        title_at_curation: "Designation Process", doc_no_at_curation: "A.2.2.9.1.1.1.1.1",
-        stepCount: 4 },
+      { uuid: "p3", category: "X", shape: "inline", status: "active", stepCount: 4 },
       // p1 has 3 doc_no children but we override to 5 (e.g. manual count includes prose steps).
-      { uuid: "p1", category: "X", shape: "child", status: "active",
-        title_at_curation: "Stages", doc_no_at_curation: "A.2.2.1.2.4.1",
-        stepCount: 5 },
+      { uuid: "p1", category: "X", shape: "child", status: "active", stepCount: 5 },
     ];
     const out = buildProcessRows(docs, overridden);
     expect(out.find((r) => r.uuid === "p3")!.stepCount).toBe(4);

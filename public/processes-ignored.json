@@ -1,212 +1,210 @@
-  [
+[
   {
     "uuid": "03d32549-1da5-4a9c-902f-196641370eaf",
-    "reason": "category container",
-    "title_when_ignored": "Executive Process Definition"
+    "reason": "category container"
   },
   {
     "uuid": "07d1ed44-c457-49b9-a054-50e26aa70acc",
-    "reason": "other (individual step under A.2.2.5.2.3.2)",
-    "title_when_ignored": "Core GovOps Submits Atlas Edit Weekly Cycle Proposal"
+    "reason": "other (individual step under A.2.2.5.2.3.2)"
   },
   {
     "uuid": "1a1f4bef-d19d-42ff-8ac4-746498df9fbc",
-    "reason": "requirement spec",
-    "title_when_ignored": "Collateral Onboarding/Offboarding"
+    "reason": "requirement spec"
   },
   {
     "uuid": "26ec6b08-8187-44b4-abb3-aee3868161a4",
-    "reason": "other (concept definition, not a workflow)",
-    "title_when_ignored": "Omni Document Process"
+    "reason": "other (concept definition, not a workflow)"
+  },
+  {
+    "uuid": "2e1a8489-5849-4030-9ed8-8b9a0b09d483",
+    "reason": "requirement spec"
   },
   {
     "uuid": "313d72e5-62db-4dd4-b125-97467508f44c",
-    "reason": "requirement spec",
-    "title_when_ignored": "Resilience Fund Claim Approval Technical Committee Review Process"
+    "reason": "requirement spec"
+  },
+  {
+    "uuid": "34e632af-1fd9-4dbe-be28-633837cdfe67",
+    "reason": "other (parameter config)"
+  },
+  {
+    "uuid": "36978109-324d-40da-be44-f05809c1544a",
+    "reason": "requirement spec"
+  },
+  {
+    "uuid": "38a99586-4a13-4ce3-8b2f-cee025e0c390",
+    "reason": "other (mechanism description, not a process — actual process is the Monthly Settlement Cycle)"
   },
   {
     "uuid": "3a075a4b-4071-4993-8210-5a87d13203b2",
-    "reason": "requirement spec",
-    "title_when_ignored": "Governance Process For Linear Interpolation Module"
+    "reason": "requirement spec"
   },
   {
     "uuid": "3fa1e746-ea64-49f0-92e3-f914e8b92b16",
-    "reason": "requirement spec",
-    "title_when_ignored": "Monitoring As Part Of Settlement Cycle"
+    "reason": "requirement spec"
   },
   {
     "uuid": "41a1ae38-4f5c-468f-b6ba-47e16ecc5aec",
-    "reason": "requirement spec",
-    "title_when_ignored": "Update Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "4287ecd9-5ba6-4646-b949-306b494a108c",
-    "reason": "requirement spec",
-    "title_when_ignored": "Onboarding Integrators Active Data Update"
+    "reason": "requirement spec"
   },
   {
     "uuid": "46e64020-f283-48a6-b327-75ea15927ee4",
-    "reason": "category container",
-    "title_when_ignored": "Agent Creation Primitive Process Definition"
+    "reason": "category container"
   },
   {
     "uuid": "4ab621b4-ef8e-4b01-a6aa-9296601033c5",
-    "reason": "requirement spec",
-    "title_when_ignored": "Near Term Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "4fe3409f-468b-42d5-8ba1-cc03e4e1563d",
-    "reason": "requirement spec",
-    "title_when_ignored": "Appeals Process"
+    "reason": "requirement spec"
+  },
+  {
+    "uuid": "5d0649b9-c4ce-4a8a-bd2c-c6c0cc3de322",
+    "reason": "other (parameter config)"
   },
   {
     "uuid": "6283379c-d871-40a9-a915-d716d7df5642",
-    "reason": "requirement spec",
-    "title_when_ignored": "Long Term Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "64d7e377-9870-4563-a073-768bb7d259a4",
-    "reason": "requirement spec",
-    "title_when_ignored": "Operator Update Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "6857396f-f0ce-4471-8e48-ed5f06b86830",
-    "reason": "requirement spec",
-    "title_when_ignored": "Onboarding Integrators Active Data Update"
+    "reason": "requirement spec"
+  },
+  {
+    "uuid": "6a420118-a76a-4e8f-bd70-e30fca5cf703",
+    "reason": "requirement spec"
   },
   {
     "uuid": "6c7a4964-485f-4edf-a05f-61fa65c9871c",
-    "reason": "requirement spec",
-    "title_when_ignored": "Operational Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "6e187fc0-6e5a-4384-b0b6-cdfd87a7d400",
-    "reason": "requirement spec",
-    "title_when_ignored": "Integration With Monthly Settlement Cycle"
+    "reason": "requirement spec"
   },
   {
     "uuid": "7bc96051-ce11-4e29-aa30-b535183aeaa7",
-    "reason": "requirement spec",
-    "title_when_ignored": "Operational Process"
+    "reason": "requirement spec"
+  },
+  {
+    "uuid": "7ff23236-91c4-4c5c-b462-d4427b03bfd4",
+    "reason": "category container"
   },
   {
     "uuid": "847092ba-eb97-47ee-a121-6c8e505bc480",
-    "reason": "requirement spec",
-    "title_when_ignored": "Onboarding Integrators Active Data Update"
+    "reason": "requirement spec"
   },
   {
     "uuid": "92dcb95c-5a3d-45a4-a1e6-865686909c64",
-    "reason": "requirement spec",
-    "title_when_ignored": "Audit Procedure for Atlas Amendments"
+    "reason": "requirement spec"
   },
   {
     "uuid": "9cc660e9-4ce5-4358-9195-5b4b82eb769d",
-    "reason": "category container",
-    "title_when_ignored": "Update Process"
+    "reason": "category container"
+  },
+  {
+    "uuid": "9dce58c1-0c6d-44f4-8145-c4243e8c02a9",
+    "reason": "other (parameter config)"
   },
   {
     "uuid": "a227491c-903f-4571-aad0-b76422a5ea7f",
-    "reason": "requirement spec",
-    "title_when_ignored": "Onboarding Integrators Active Data Update"
+    "reason": "requirement spec"
   },
   {
     "uuid": "ae2b5d27-b666-4796-8791-b59d151daf41",
-    "reason": "requirement spec",
-    "title_when_ignored": "Operator Update Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "afeaa98f-b8f5-48d9-adb2-8ceed287667d",
-    "reason": "other (individual step under A.2.2.5.2.3.2)",
-    "title_when_ignored": "Atlas Edit Weekly Cycle Proposal Is Approved Or Rejected"
+    "reason": "other (individual step under A.2.2.5.2.3.2)"
   },
   {
     "uuid": "b2b42304-f715-4cc2-8fbf-68c794876386",
-    "reason": "category container",
-    "title_when_ignored": "Executor Accord Primitive Process Definition"
+    "reason": "category container"
   },
   {
     "uuid": "b349277c-4e61-474a-85bd-18802324a3a6",
-    "reason": "requirement spec",
-    "title_when_ignored": "Long Term Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "bdbb8ac9-d87e-4052-9e69-8267f38a54cf",
-    "reason": "schema template",
-    "title_when_ignored": "Primitive Process Definition Schema"
+    "reason": "schema template"
   },
   {
     "uuid": "c1304ded-6912-472a-b836-cd7092262434",
-    "reason": "requirement spec",
-    "title_when_ignored": "Process Requirements"
+    "reason": "requirement spec"
   },
   {
     "uuid": "c296a253-f737-4d17-bea0-4b1dab903096",
-    "reason": "requirement spec",
-    "title_when_ignored": "Short Term Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "ca876157-5518-4bf3-9e87-7c4a07a13d36",
-    "reason": "requirement spec",
-    "title_when_ignored": "Other RWA Offboarding"
+    "reason": "requirement spec"
+  },
+  {
+    "uuid": "cb4d28ac-6d54-4d57-99b2-ed80cea73139",
+    "reason": "requirement spec"
   },
   {
     "uuid": "d537c3df-287c-45a5-aa69-2b4242b2259f",
-    "reason": "role definition",
-    "title_when_ignored": "Designation Of Governance Process Support Ecosystem Actors"
+    "reason": "role definition"
+  },
+  {
+    "uuid": "d81db018-bce7-44b9-a354-667f128a4db3",
+    "reason": "category container"
   },
   {
     "uuid": "dcdc71b3-0afc-471d-8e7c-cb0b81ba34d9",
-    "reason": "category container",
-    "title_when_ignored": "Root Edit Process"
+    "reason": "category container"
   },
   {
     "uuid": "ddfbb811-94f5-43bb-bf5e-a9bab2be046d",
-    "reason": "category container",
-    "title_when_ignored": "Prime Transformation Primitive Process Definition"
+    "reason": "category container"
   },
   {
     "uuid": "e3ddbd39-ee57-4b17-b66e-8bc823a03098",
-    "reason": "requirement spec",
-    "title_when_ignored": "Governance Approval Process"
+    "reason": "requirement spec"
   },
   {
     "uuid": "e5117ac9-caef-4273-9c8a-fc815fa9b192",
-    "reason": "role definition",
-    "title_when_ignored": "Mandate to Maintain Application Process"
+    "reason": "role definition"
   },
   {
     "uuid": "ef1ad0bf-069c-4199-8620-a508b34c2348",
-    "reason": "category container",
-    "title_when_ignored": "Governance Process Support"
+    "reason": "category container"
   },
   {
     "uuid": "f3952cc5-cde2-46b9-b575-034dda83570b",
-    "reason": "other (registry/list, not process)",
-    "title_when_ignored": "Current And Onboarding Integrators"
+    "reason": "other (registry/list, not process)"
   },
   {
     "uuid": "f543db65-dac7-494d-bd0d-a24bf600157d",
-    "reason": "category container",
-    "title_when_ignored": "Root Edit Primitive Process Definition"
+    "reason": "category container"
   },
   {
     "uuid": "f7a81be7-057c-4a05-97ab-78a37c674010",
-    "reason": "category container",
-    "title_when_ignored": "Agent Token Primitive Process Definition"
+    "reason": "category container"
   },
   {
     "uuid": "f88d568e-bf5b-46f4-9adf-5299854de709",
-    "reason": "requirement spec",
-    "title_when_ignored": "Governance Process And Interaction Documentation"
+    "reason": "requirement spec"
   },
   {
     "uuid": "fb57a48c-5c33-45a4-a49b-2547234129c0",
-    "reason": "role definition",
-    "title_when_ignored": "Roles in the Executive Process"
+    "reason": "role definition"
   },
   {
     "uuid": "fe8e5e31-fc3a-4631-894c-890cb6c82d81",
-    "reason": "requirement spec",
-    "title_when_ignored": "Inclusion Of Interim Deployment In Sky Core Executive Cycle"
+    "reason": "requirement spec"
   }
 ]
