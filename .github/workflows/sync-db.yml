@@ -8,12 +8,18 @@ on:
       # sha256 covers every shipping file, so any docs/graph/address/chain/
       # vectors change updates manifest.json and fires this workflow.
       - "public/manifest.json"
+      # History is excluded from manifest.json (too many files), so trigger
+      # directly on per-doc history changes — otherwise atlas-update PRs that
+      # only touch history wouldn't refresh node_history in D1.
+      - "public/history/**"
       # Sync scripts + schema — re-run when the recipe changes, not just data.
       - "redlens-mcp/schema.sql"
       - "redlens-mcp/sync-d1.mjs"
       - "redlens-mcp/sync-vectors.mjs"
       - "scripts/required/build-rag.mjs"
       - "scripts/required/build-graph.mjs"
+      - "scripts/required/build-history.mjs"
+      - "scripts/required/sync-history.mjs"
       - ".github/workflows/sync-db.yml"
   workflow_dispatch:
 
@@ -76,6 +82,14 @@ jobs:
       - name: Sync vectors to Vectorize
         run: pnpm vectors:remote
         working-directory: redlens-mcp
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      # node_history is populated from the committed public/history/ tree —
+      # atlas-update.yml runs build:history and commits the artifacts, so we
+      # sync straight from the checked-in files rather than rebuilding here.
+      - name: Sync history to D1
+        run: pnpm sync:history:remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
