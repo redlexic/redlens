@@ -1,62 +1,88 @@
 #!/usr/bin/env bash
 #
-# pnpm processes:triage
+# pnpm processes:triage [--dry-run]
 #
 # Runs the processes-triage skill end-to-end:
 #   1. Ensures clean working tree on main, pulls latest
 #   2. Creates a branch
-#   3. Invokes Claude Code headlessly to run the skill
+#   3. Launches Claude Code interactively with the triage prompt — you see it
+#      work and can redirect mid-session. Exit with /exit or Ctrl-D when done.
 #   4. If anything in data/ changed → commits, pushes, opens PR
 #   5. If nothing changed → deletes the branch and returns to main
 #
-# Requires `claude` and `gh` on PATH.
+# --dry-run:
+#   Skips the main sync, branch creation, commit, push, and PR steps.
+#   Runs the skill in place on the current branch and shows the diff. Useful
+#   for iterating on the skill prompt or testing locally.
+#
+# Requires `claude` and `gh` on PATH (gh only when not --dry-run).
 
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
+
+DRY_RUN=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    *) echo "Unknown arg: $arg"; exit 1 ;;
+  esac
+done
 
 # ---------------------------------------------------------------------------
 # Preflight
 # ---------------------------------------------------------------------------
 
 command -v claude >/dev/null || { echo "Error: 'claude' CLI not on PATH"; exit 1; }
-command -v gh >/dev/null     || { echo "Error: 'gh' CLI not on PATH"; exit 1; }
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "Error: working tree not clean. Commit or stash first."
-  git status --short
-  exit 1
+if [ "$DRY_RUN" -eq 0 ]; then
+  command -v gh >/dev/null || { echo "Error: 'gh' CLI not on PATH"; exit 1; }
+
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Error: working tree not clean. Commit or stash first."
+    git status --short
+    exit 1
+  fi
 fi
-
-# ---------------------------------------------------------------------------
-# Sync main + new branch
-# ---------------------------------------------------------------------------
-
-echo "→ Syncing main…"
-git fetch origin main --quiet
-git checkout main --quiet
-git pull --ff-only origin main --quiet
 
 DATE=$(date -u +%Y-%m-%d)
-BRANCH="processes-triage/${DATE}"
-# If branch already exists (re-running same day), append a suffix.
-if git show-ref --verify --quiet "refs/heads/${BRANCH}"; then
-  BRANCH="${BRANCH}-$(date -u +%H%M)"
-fi
 
-echo "→ Creating branch ${BRANCH}"
-git checkout -b "${BRANCH}" --quiet
+# ---------------------------------------------------------------------------
+# Sync main + new branch (skipped in --dry-run)
+# ---------------------------------------------------------------------------
+
+if [ "$DRY_RUN" -eq 0 ]; then
+  echo "→ Syncing main…"
+  git fetch origin main --quiet
+  git checkout main --quiet
+  git pull --ff-only origin main --quiet
+
+  BRANCH="processes-triage/${DATE}"
+  # If branch already exists (re-running same day), append a suffix.
+  if git show-ref --verify --quiet "refs/heads/${BRANCH}"; then
+    BRANCH="${BRANCH}-$(date -u +%H%M)"
+  fi
+
+  echo "→ Creating branch ${BRANCH}"
+  git checkout -b "${BRANCH}" --quiet
+else
+  echo "→ Dry run on $(git rev-parse --abbrev-ref HEAD) — skipping main sync and branch creation."
+fi
 
 # ---------------------------------------------------------------------------
 # Run the skill via headless Claude
 # ---------------------------------------------------------------------------
 
-PROMPT="Run the processes-triage skill. Read .cache/processes-audit.md (regenerate it first with pnpm processes:check). For each candidate, use atlas MCP tools to apply the research-doc methodology. Edit data/processes.json and data/processes-ignored.json directly. Do not commit or push — the wrapper script handles git."
+PROMPT="Run the processes-triage skill. Read .cache/processes-audit.md (regenerate it first with pnpm processes:check). For each candidate, use atlas MCP tools to apply the research-doc methodology. Edit data/processes.json and data/processes-ignored.json directly. Do not commit or push — the wrapper script handles git. When the triage is complete, summarize what changed and stop."
 
-echo "→ Invoking Claude Code…"
-echo "  Prompt: ${PROMPT}"
+echo "→ Launching Claude Code (interactive)…"
+echo "  Exit with /exit or Ctrl-D when triage is complete."
 echo ""
-claude -p "${PROMPT}"
+# Belt-and-suspenders: even though the prompt says "don't commit", block the
+# git/gh write commands at the tool layer so the wrapper retains exclusive
+# control over branch / commit / push / PR.
+claude "${PROMPT}" \
+  --disallowed-tools "Bash(git commit *)" "Bash(git push *)" "Bash(gh pr create *)" "Bash(gh issue close *)"
 
 # ---------------------------------------------------------------------------
 # Commit, push, PR
@@ -65,14 +91,22 @@ claude -p "${PROMPT}"
 if git diff --quiet -- data/; then
   echo ""
   echo "→ No changes in data/ — nothing to triage."
-  git checkout main --quiet
-  git branch -D "${BRANCH}" --quiet
+  if [ "$DRY_RUN" -eq 0 ]; then
+    git checkout main --quiet
+    git branch -D "${BRANCH}" --quiet
+  fi
   exit 0
 fi
 
 echo ""
 echo "→ Changes in data/:"
 git diff --stat -- data/
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo ""
+  echo "→ Dry run — leaving changes uncommitted. Inspect with: git diff -- data/"
+  exit 0
+fi
 
 git add data/processes.json data/processes-ignored.json
 git commit -m "chore: triage process inventory (${DATE})" --quiet

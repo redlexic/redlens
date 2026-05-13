@@ -88,12 +88,60 @@
     "doc_no_at_curation": "A.2.2.7.1.1.1"
   },
   {
+    "uuid": "d6d16076-da22-43f1-a303-627af41b486c",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Pioneer Prime Designation Process",
+    "doc_no_at_curation": "A.2.2.8.3.1.2"
+  },
+  {
+    "uuid": "823a12c3-45d2-438a-b061-46ecd09cdca8",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Allocation System Process Definition",
+    "doc_no_at_curation": "A.2.2.9.1.1"
+  },
+  {
+    "uuid": "3161489a-11bd-4dea-b676-09d0cce45ae9",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Designation Process",
+    "doc_no_at_curation": "A.2.2.9.1.1.1.1.1"
+  },
+  {
+    "uuid": "f47513f6-34e4-40a4-b7ff-8d68d75070be",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Allocation Instance Setup Process Definition",
+    "doc_no_at_curation": "A.2.2.9.1.1.2"
+  },
+  {
+    "uuid": "aee1d848-eee8-4590-a596-1884efcb474a",
+    "category": "Agent & Primitive Lifecycle",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Governance Process for Instance Modification",
+    "doc_no_at_curation": "A.2.2.9.1.1.3.3.1.3"
+  },
+  {
     "uuid": "ecb0b102-fe9a-41b0-9fab-ba229764fa2b",
     "category": "Artifact & Atlas Governance",
     "shape": "child",
     "status": "active",
     "title_at_curation": "Conflict Protocol Between Agent Artifacts And The Sky Core Atlas",
     "doc_no_at_curation": "A.1.13.1.5"
+  },
+  {
+    "uuid": "b1684804-9bd9-47a7-a080-d260609e023f",
+    "category": "Artifact & Atlas Governance",
+    "shape": "inline",
+    "status": "deferred-stub",
+    "title_at_curation": "Process For Carrying Out Changes",
+    "doc_no_at_curation": "A.1.13.2.11.1"
   },
   {
     "uuid": "fe833d0e-8451-45e0-84a5-229d6ec964a8",
@@ -110,6 +158,14 @@
     "status": "active",
     "title_at_curation": "Initiation Of Agent Termination Process",
     "doc_no_at_curation": "A.1.13.5.1"
+  },
+  {
+    "uuid": "364e52eb-4529-46a9-9852-edaaab88baeb",
+    "category": "Artifact & Atlas Governance",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Atlas Edit Proposal Process For Prime Agents",
+    "doc_no_at_curation": "A.2.2.5.2.3.2"
   },
   {
     "uuid": "769c492c-2282-4466-8d24-0a530f724a0c",
@@ -160,6 +216,86 @@
     "doc_no_at_curation": "A.3.7.1.5.4"
   },
   {
+    "uuid": "862f4064-47e5-4f76-908d-64edfcfe0ddd",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Deposit to ERC-4626 Tokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.2.1"
+  },
+  {
+    "uuid": "e797d1cc-9161-4b7a-8c16-db20a026d001",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Withdraw from ERC-4626 Tokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.2.2"
+  },
+  {
+    "uuid": "ed774ab7-c761-444b-963d-7407bf91e243",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Redeem from ERC-4626 Tokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.2.3"
+  },
+  {
+    "uuid": "316008c1-0c1f-487a-a5bf-1966e86fb946",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Deposit to Aave ATokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.3.1"
+  },
+  {
+    "uuid": "6e75a2bd-70b7-4081-bb9f-39cf6b321066",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Withdraw from Aave ATokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.2.2.1.2.1.2.3.2"
+  },
+  {
+    "uuid": "fa2520ac-4779-4aeb-abe4-2c1b89e7ca51",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Depositing",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.3.1.2.1.3.1"
+  },
+  {
+    "uuid": "35e32620-a28c-4101-a881-2b7c2b9e42f2",
+    "category": "Collateral & Asset Management",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Withdrawing",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.3.1.2.1.3.2"
+  },
+  {
+    "uuid": "4876005c-31a8-4be8-8133-e239bd0ac53b",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Deposit to ERC-4626 Tokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.2.2.6.1.2.2.1.2.1.2.2.1"
+  },
+  {
+    "uuid": "7b560160-e427-45a2-a3ac-3c23cf6fe943",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Withdraw from ERC-4626 Tokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.2.2.6.1.2.2.1.2.1.2.2.2"
+  },
+  {
+    "uuid": "7e90e505-42b9-474d-9cc5-9b4da6af7375",
+    "category": "Collateral & Asset Management",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "General Redeem from ERC-4626 Tokens Procedure",
+    "doc_no_at_curation": "A.6.1.1.2.2.6.1.2.2.1.2.1.2.2.3"
+  },
+  {
     "uuid": "560e1024-0897-4f1e-ae71-3ba31e29ed57",
     "category": "Dispute & Emergency",
     "shape": "child",
@@ -208,12 +344,116 @@
     "doc_no_at_curation": "A.2.8.1.1.2.3"
   },
   {
+    "uuid": "7ee909ce-ae6d-4886-a0ea-c3017eb00bcd",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Resilience Fund Application Process",
+    "doc_no_at_curation": "A.2.9.1.1.1.4.1"
+  },
+  {
+    "uuid": "980b1bb1-3282-48ec-aff7-54107a580bf5",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Resilience Fund Approval Process And Verifiability",
+    "doc_no_at_curation": "A.2.9.1.1.1.4.1.6"
+  },
+  {
     "uuid": "9ab8fdf3-939c-4096-a0b9-9d9486d5a339",
     "category": "Dispute & Emergency",
     "shape": "inline",
     "status": "active",
     "title_at_curation": "Resilience Fund Claim Management Process",
     "doc_no_at_curation": "A.2.9.1.1.1.4.2"
+  },
+  {
+    "uuid": "f6af14d7-e62d-44c5-aa65-35c9ec979f4c",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Application Process",
+    "doc_no_at_curation": "A.2.10.1.4"
+  },
+  {
+    "uuid": "35aec115-f27c-42f2-9812-644a2df8f38f",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Review Process",
+    "doc_no_at_curation": "A.2.10.1.5"
+  },
+  {
+    "uuid": "cbf70252-fde5-4df7-8552-c778ecc3506a",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Approval Process",
+    "doc_no_at_curation": "A.2.10.1.5.3"
+  },
+  {
+    "uuid": "07f4faa6-f900-46e6-87d4-137fe2e5cb99",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Rewards Payout Process",
+    "doc_no_at_curation": "A.2.11.1.1.3.3.2"
+  },
+  {
+    "uuid": "56e44cdc-1ba5-4254-9308-c4cfe189394a",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Emergency Incident Reporting Process",
+    "doc_no_at_curation": "A.2.11.1.3.2.2.1.2.2"
+  },
+  {
+    "uuid": "ec4cd423-74ba-4e74-82d9-46ba5f6cf526",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Standard Incident Reporting Process",
+    "doc_no_at_curation": "A.2.11.1.3.2.2.1.2.3"
+  },
+  {
+    "uuid": "1ccb4063-facc-42d6-a71e-21fe29e84519",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Sky Governance Process",
+    "doc_no_at_curation": "A.3.2.2.7.2.3.2"
+  },
+  {
+    "uuid": "037dc4f2-0b55-42a9-851c-8769b60b7122",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Emergency Procedure To Withdraw Ethena Balances",
+    "doc_no_at_curation": "A.6.1.1.1.2.6.1.3.1.4.2.3.4"
+  },
+  {
+    "uuid": "8ab7950c-c347-41a1-bf53-ef4d77000af5",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Security Requirements & Compromise Procedure",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.3.7"
+  },
+  {
+    "uuid": "8d926497-9fe7-4189-83c8-10f649ff0b1d",
+    "category": "Dispute & Emergency",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Emergency Procedure To Withdraw Ethena Balances",
+    "doc_no_at_curation": "A.6.1.1.2.2.6.1.3.1.4.2.3.4"
+  },
+  {
+    "uuid": "0ed7559c-5877-4968-8bcc-9d47207cc904",
+    "category": "Executive & Spell Processes",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Novel Items Process Definition",
+    "doc_no_at_curation": "A.1.9.2.3.3.2"
   },
   {
     "uuid": "98298ab3-8d08-4c4f-b47b-81242a3e3903",
@@ -360,12 +600,60 @@
     "doc_no_at_curation": "A.2.2.8.1.2.1.1.3"
   },
   {
+    "uuid": "002821ab-c67c-4eb1-987c-69e759ab7b3c",
+    "category": "Personnel & Delegation",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Signer Verification Process",
+    "doc_no_at_curation": "A.2.11.1.3.2.1.2.1"
+  },
+  {
+    "uuid": "6bf116c0-657d-454f-8181-cc2677844513",
+    "category": "Personnel & Delegation",
+    "shape": "child",
+    "status": "deferred-stub",
+    "title_at_curation": "Signer Offboarding Requirements",
+    "doc_no_at_curation": "A.2.11.1.3.2.2.1.1.4"
+  },
+  {
+    "uuid": "79b5daf4-5c02-4aa8-89a7-879a6d594758",
+    "category": "Personnel & Delegation",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Signer Address Update Process",
+    "doc_no_at_curation": "A.2.11.1.3.2.2.2.1"
+  },
+  {
+    "uuid": "c6bcbd5f-7450-4c6e-9aa6-82c49a678bd3",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Signer Address Update Process If Original Key Is Accessible",
+    "doc_no_at_curation": "A.2.11.1.3.2.2.2.1.1"
+  },
+  {
+    "uuid": "a2f65561-ba6d-4ef0-b1c0-31da659306f3",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Signer Address Update Process If Original Key Is Lost Or Inaccessible",
+    "doc_no_at_curation": "A.2.11.1.3.2.2.2.1.2"
+  },
+  {
     "uuid": "fcf62ce5-910a-4357-a3d5-959b3be37021",
     "category": "Personnel & Delegation",
     "shape": "inline",
     "status": "active",
     "title_at_curation": "Delegate Onboarding",
     "doc_no_at_curation": "A.6.1.1.1.3.1.3.4"
+  },
+  {
+    "uuid": "d08b9b32-bce9-45f4-b8db-9301556ac8db",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Delegate Onboarding Process",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.3.4.1"
   },
   {
     "uuid": "b49d9086-cb8a-43f7-a024-0d3320eae317",
@@ -376,12 +664,244 @@
     "doc_no_at_curation": "A.6.1.1.1.3.1.3.5"
   },
   {
+    "uuid": "8606cdec-f7c2-44af-befb-c702d2ed4735",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Voluntary Offboarding",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.3.5.1"
+  },
+  {
+    "uuid": "02deeacc-5305-4a08-a5aa-2aabeb5591be",
+    "category": "Personnel & Delegation",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Term-End Automatic Offboarding",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.3.5.5"
+  },
+  {
+    "uuid": "dc208bb2-ffb4-4a2a-b561-d563bc52eb14",
+    "category": "Personnel & Delegation",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "SRC Membership Registry Process",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.4.11"
+  },
+  {
+    "uuid": "688247c6-c4ed-49e3-96f3-c6a7475d89eb",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "AD Monthly Compensation Cycle",
+    "doc_no_at_curation": "A.1.5.4.4.1"
+  },
+  {
+    "uuid": "7fe5dbb2-a07d-4ef9-94de-f54a2d568c57",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Near Term Process",
+    "doc_no_at_curation": "A.2.2.8.1.2.1.1.2.1"
+  },
+  {
+    "uuid": "3f3162cc-c83c-471d-9dfa-1e0ccada4261",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Approval Process",
+    "doc_no_at_curation": "A.2.2.8.1.2.1.3.1.1"
+  },
+  {
+    "uuid": "05fb732b-de55-4886-81a7-7c5d4c13d2d2",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Near-Term Process",
+    "doc_no_at_curation": "A.2.2.8.1.2.1.5.3.1"
+  },
+  {
+    "uuid": "07953e87-c201-4ad5-9c1e-b32efc5fba94",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Long Term Process",
+    "doc_no_at_curation": "A.2.2.8.1.2.1.5.3.2"
+  },
+  {
+    "uuid": "f07b1cca-5db2-4b1b-b760-ea738d2776f3",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Initial Opportunity Identification And Planning",
+    "doc_no_at_curation": "A.2.2.8.1.2.3.1"
+  },
+  {
+    "uuid": "5fd265ef-17f0-4400-b06c-a6ce9fa87636",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Operational GovOps Review",
+    "doc_no_at_curation": "A.2.2.8.1.2.3.2"
+  },
+  {
+    "uuid": "240e0e2c-64b6-4290-aa23-ec19eb2f6e59",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Artifact Update Draft",
+    "doc_no_at_curation": "A.2.2.8.1.2.3.3"
+  },
+  {
+    "uuid": "fd9aac63-00a0-4fc5-ad7c-8bb131322bd7",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Operational Facilitator Review",
+    "doc_no_at_curation": "A.2.2.8.1.2.3.4"
+  },
+  {
+    "uuid": "3170b9a1-d074-4cbd-bb81-ae1661bc0ed8",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Offchain Vote",
+    "doc_no_at_curation": "A.2.2.8.1.2.3.5"
+  },
+  {
+    "uuid": "b3ed1e74-7ec2-4537-8e1d-2098dc17d984",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Artifact Update",
+    "doc_no_at_curation": "A.2.2.8.1.2.3.6"
+  },
+  {
+    "uuid": "27229032-ddb6-41a5-a5d5-6168ccc3142f",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Reward Calculation By Operational Govops",
+    "doc_no_at_curation": "A.2.2.8.1.2.4.1.1"
+  },
+  {
+    "uuid": "ddd65b02-3a2b-4478-a435-989324c2f1b8",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Reward Issuance From Operational Executor Agent Buffer",
+    "doc_no_at_curation": "A.2.2.8.1.2.4.1.2"
+  },
+  {
     "uuid": "dfd65786-e4be-4dad-9e34-cd6235a30a4f",
     "category": "Settlement & Financial",
     "shape": "child",
     "status": "deferred-stub",
     "title_at_curation": "Process Definition For Settlement Cycle And Core GovOps Review",
     "doc_no_at_curation": "A.2.2.8.1.2.4.1.3"
+  },
+  {
+    "uuid": "59259360-a288-4412-a39a-da3991c60f8f",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Executive Vote Reimbursement",
+    "doc_no_at_curation": "A.2.2.8.1.2.4.1.4"
+  },
+  {
+    "uuid": "787276c9-728b-491f-84d6-c1303fe72986",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Long Term Process",
+    "doc_no_at_curation": "A.2.2.8.2.2.1.3.2.2"
+  },
+  {
+    "uuid": "a14cea92-f114-4cc8-abfe-77b202e3c1f7",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Initial Opportunity Identification And Planning",
+    "doc_no_at_curation": "A.2.2.8.2.2.3.1"
+  },
+  {
+    "uuid": "38c54d2b-715b-433d-a9ff-af5cbecc89a2",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition for Operational GovOps Review",
+    "doc_no_at_curation": "A.2.2.8.2.2.3.2"
+  },
+  {
+    "uuid": "6a8b5e8b-cca6-48be-b543-6db468f83ebb",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition for Artifact Update Draft",
+    "doc_no_at_curation": "A.2.2.8.2.2.3.3"
+  },
+  {
+    "uuid": "2d1d83ea-2a90-4c34-93ea-5bea390f3f62",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition for Operational Facilitator Review",
+    "doc_no_at_curation": "A.2.2.8.2.2.3.4"
+  },
+  {
+    "uuid": "24fa76f6-4728-4f1d-97ff-fd7e72dac2ac",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition for Offchain Vote",
+    "doc_no_at_curation": "A.2.2.8.2.2.3.5"
+  },
+  {
+    "uuid": "182ca3dc-108f-4941-ae2e-eb01c345125b",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition for Artifact Update",
+    "doc_no_at_curation": "A.2.2.8.2.2.3.6"
+  },
+  {
+    "uuid": "780719e8-ea6d-4ae1-b519-34d03be483df",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Integration Boost Calculation By Operational GovOps",
+    "doc_no_at_curation": "A.2.2.8.2.2.4.1.1"
+  },
+  {
+    "uuid": "16474cb5-8af4-4f11-b0c1-2c00f292cc2b",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Integration Boost Payment Issuance From Operational Executor Agent Buffer",
+    "doc_no_at_curation": "A.2.2.8.2.2.4.1.2"
+  },
+  {
+    "uuid": "d9c13a1a-aa81-483a-bc72-453d27980717",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Settlement Cycle And Core GovOps Review",
+    "doc_no_at_curation": "A.2.2.8.2.2.4.1.3"
+  },
+  {
+    "uuid": "c40a0708-12e4-46da-89d7-0e5a3a839455",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process Definition For Executive Vote Reimbursement",
+    "doc_no_at_curation": "A.2.2.8.2.2.4.1.4"
+  },
+  {
+    "uuid": "1ac3e606-f1c7-4a20-a9b6-a425920e98d3",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Core GovOps TRC Report Validation Process",
+    "doc_no_at_curation": "A.2.2.9.1.1.3.2.1.3.2.1"
   },
   {
     "uuid": "7932c8f3-ce44-49ea-adc4-f6391c621c6e",
@@ -424,6 +944,30 @@
     "doc_no_at_curation": "A.2.4.1.2.2"
   },
   {
+    "uuid": "e152c03d-5891-4962-867d-a0c42fa7539f",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Adjustment Process",
+    "doc_no_at_curation": "A.3.1.1.1.1"
+  },
+  {
+    "uuid": "0442fb55-5abb-4fa8-8f50-9a6f0bf6b86f",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process For Calculating Instance Financial RRC",
+    "doc_no_at_curation": "A.3.2.2.1.1.1.1.1"
+  },
+  {
+    "uuid": "58cc9f0b-0d88-4027-bae4-a33cb839e748",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process For Calculating Instance Financial RRC",
+    "doc_no_at_curation": "A.3.2.2.1.1.1.5.2"
+  },
+  {
     "uuid": "b74e61f5-3793-406d-a0e5-f8f0e4d3ac2f",
     "category": "Settlement & Financial",
     "shape": "child",
@@ -438,5 +982,69 @@
     "status": "active",
     "title_at_curation": "Risk Capital Update Process",
     "doc_no_at_curation": "A.3.2.2.5"
+  },
+  {
+    "uuid": "b24ee088-0096-47b0-9e27-4c9e9aeb2d9b",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process For Adjusting Risk Capital",
+    "doc_no_at_curation": "A.3.2.2.6"
+  },
+  {
+    "uuid": "823aa477-5400-40e5-881f-acb9cf724c21",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Update Process",
+    "doc_no_at_curation": "A.3.7.1.3.6"
+  },
+  {
+    "uuid": "7e58f5eb-c339-4f04-aca8-681e9acd0752",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Update Process",
+    "doc_no_at_curation": "A.4.4.1.3.8.5"
+  },
+  {
+    "uuid": "e6807f67-0d3c-4b6a-a3df-6da987147b72",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "Process for Returning Tokens To Sky When No Specific Process Exists",
+    "doc_no_at_curation": "A.4.6.1.1"
+  },
+  {
+    "uuid": "c586a7cc-a4d0-4c9b-9578-cbfe1f99a20e",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "SRC Risk Review Process",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.4.3"
+  },
+  {
+    "uuid": "ac9d89b5-7a07-4b95-8597-6644bc4029ab",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active",
+    "title_at_curation": "\u201cFailed SRC Review\u201d Authority and Procedure",
+    "doc_no_at_curation": "A.6.1.1.1.3.1.4.4"
+  },
+  {
+    "uuid": "dfa483c7-5adb-480e-9f82-c97cf4d0f74e",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Operational Process",
+    "doc_no_at_curation": "A.6.1.1.1.3.4.2.3.2"
+  },
+  {
+    "uuid": "33a7389c-c8a3-46ab-96a4-17d6b9ee2b4f",
+    "category": "Settlement & Financial",
+    "shape": "inline",
+    "status": "active",
+    "title_at_curation": "Operational Process",
+    "doc_no_at_curation": "A.6.1.1.1.3.5.3.1.2"
   }
 ]

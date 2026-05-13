@@ -18,6 +18,7 @@
     "build:manifest": "node scripts/required/build-manifest.mjs",
     "processes:check": "node scripts/required/check-processes-dirty.mjs",
     "processes:triage": "bash scripts/aux/processes-triage.sh",
+    "processes:apply-decisions": "node scripts/aux/processes-apply-decisions.mjs",
     "processes:bootstrap": "node scripts/aux/processes-bootstrap.mjs",
     "build:at": "node --env-file-if-exists=.env.local scripts/required/build-at.mjs",
     "build:ts": "tsc -b",

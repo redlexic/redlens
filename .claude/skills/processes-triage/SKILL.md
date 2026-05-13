@@ -54,7 +54,30 @@ Use `atlas_get` for content and `atlas_neighbors` (or `atlas_traverse` with `par
 
 ### 3. Classify
 
-For each candidate, write either an **add** entry into `data/processes.json` or an **ignore** entry into `data/processes-ignored.json`. Schema:
+For a small number of candidates (≤ ~10), edit `data/processes.json` and `data/processes-ignored.json` directly.
+
+For a larger batch (the typical first-run case, dozens of candidates), write your verdicts to `.cache/processes-decisions.json` and apply them with:
+
+```bash
+pnpm processes:apply-decisions .cache/processes-decisions.json
+```
+
+The script validates each decision, snapshots title/doc_no from the current atlas, sorts, and writes both data files. Keeps the analytical step (your thinking) separate from the deterministic file mutation.
+
+Decisions file format:
+
+```json
+[
+  { "uuid": "...", "verdict": "add",
+    "category": "Settlement & Financial",
+    "shape": "child",
+    "status": "active" },
+  { "uuid": "...", "verdict": "ignore",
+    "reason": "category container" }
+]
+```
+
+Schema for `data/processes.json` (what gets written for "add"):
 
 **`processes.json` entry:**
 ```json
@@ -98,7 +121,13 @@ pnpm processes:check    # verify clean (no new candidates, no missing UUIDs)
 git diff data/
 ```
 
-Show the diff and a short summary to the user. **Don't commit** — let them sign off. End with: "Review `git diff data/`, commit + push, then close issue #N."
+**Never run `git commit`, `git push`, or `gh pr create`** — these are blocked at the tool layer and the wrapper script (`pnpm processes:triage`) handles them.
+
+Print a short summary of what changed. If invoked from the `pnpm processes:triage` wrapper (interactive Claude session), end with exactly this handoff message:
+
+> Triage complete. **Type `/exit` (or press Ctrl-D) to hand control back to the wrapper script** — it will commit `data/`, push the branch, and open a PR. The `processes-autoclose.yml` workflow will close the review issue when the PR merges.
+
+If invoked outside the wrapper (no branch was created), end instead with: "Review `git diff data/`, commit + push, then close issue #N."
 
 ## Constraints
 
