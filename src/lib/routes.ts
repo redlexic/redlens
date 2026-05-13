@@ -10,6 +10,7 @@ export const ROUTES = {
   REPORTS_OF_RESPONSIBILITIES: "/reports/of-responsibilities",
   REPORTS_ACTIVE_DATA: "/reports/active-data",
   REPORTS_REWARDS: "/reports/rewards",
+  REPORTS_PROCESSES: "/reports/processes",
 } as const;
 
 export type NavPage = "atlas" | "constellations" | "radar" | "reports";

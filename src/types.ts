@@ -1,4 +1,4 @@
-export type ReportId = "of-responsibilities" | "active-data" | "rewards";
+export type ReportId = "of-responsibilities" | "active-data" | "rewards" | "processes";
 
 export interface AtlasNode {
   id: string;

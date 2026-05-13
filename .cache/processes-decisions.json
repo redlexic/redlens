@@ -1,0 +1,20 @@
+[
+  {
+    "uuid": "782d49c6-e4db-4d4a-be29-3f005cd654c1",
+    "verdict": "add",
+    "category": "Dispute & Emergency",
+    "shape": "inline",
+    "status": "active",
+    "stepCount": 6
+  },
+  { "uuid": "d81db018-bce7-44b9-a354-667f128a4db3", "verdict": "ignore", "reason": "category container" },
+  { "uuid": "cb4d28ac-6d54-4d57-99b2-ed80cea73139", "verdict": "ignore", "reason": "requirement spec" },
+  { "uuid": "6a420118-a76a-4e8f-bd70-e30fca5cf703", "verdict": "ignore", "reason": "requirement spec" },
+  { "uuid": "38a99586-4a13-4ce3-8b2f-cee025e0c390", "verdict": "ignore", "reason": "other (mechanism description, not a process — actual process is the Monthly Settlement Cycle)" },
+  { "uuid": "2e1a8489-5849-4030-9ed8-8b9a0b09d483", "verdict": "ignore", "reason": "requirement spec" },
+  { "uuid": "7ff23236-91c4-4c5c-b462-d4427b03bfd4", "verdict": "ignore", "reason": "category container" },
+  { "uuid": "36978109-324d-40da-be44-f05809c1544a", "verdict": "ignore", "reason": "requirement spec" },
+  { "uuid": "34e632af-1fd9-4dbe-be28-633837cdfe67", "verdict": "ignore", "reason": "other (parameter config)" },
+  { "uuid": "9dce58c1-0c6d-44f4-8145-c4243e8c02a9", "verdict": "ignore", "reason": "other (parameter config)" },
+  { "uuid": "5d0649b9-c4ce-4a8a-bd2c-c6c0cc3de322", "verdict": "ignore", "reason": "other (parameter config)" }
+]

@@ -15,6 +15,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 jobs:
   update:
@@ -86,6 +87,13 @@ jobs:
       - run: pnpm test:snap:update
         if: steps.atlas.outputs.proceed == 'true'
 
+      - name: Check process inventory drift
+        id: processes
+        if: steps.atlas.outputs.proceed == 'true'
+        # Never fails the build. Sets dirty/missing/candidates outputs and
+        # auto-applies title/doc_no snapshot updates to public/processes.json.
+        run: pnpm processes:check
+
       - name: Open PR
         if: steps.atlas.outputs.proceed == 'true'
         env:
@@ -137,3 +145,37 @@ jobs:
           )" \
             --base main \
             --head "$BRANCH"
+
+      - name: Open / update process review issue
+        if: steps.atlas.outputs.proceed == 'true' && steps.processes.outputs.dirty == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHORT="${{ steps.atlas.outputs.short }}"
+          TITLE="Process inventory review needed (atlas ${SHORT})"
+
+          # Find an existing open issue with the processes-review label; reuse
+          # it across atlas updates so we don't pile up stale issues.
+          EXISTING=$(gh issue list \
+            --state open \
+            --label processes-review \
+            --json number \
+            --jq '.[0].number' || echo "")
+
+          # Ensure the label exists (idempotent — ignore "already exists" error).
+          gh label create processes-review \
+            --color FBCA04 \
+            --description "Curated process inventory needs reconciliation with atlas" \
+            2>/dev/null || true
+
+          if [ -n "$EXISTING" ]; then
+            gh issue edit "$EXISTING" \
+              --title "$TITLE" \
+              --body-file .cache/processes-audit.md
+            echo "Updated issue #$EXISTING"
+          else
+            gh issue create \
+              --title "$TITLE" \
+              --label processes-review \
+              --body-file .cache/processes-audit.md
+          fi

@@ -35,6 +35,9 @@ const ActiveDataReport = lazy(() =>
 const RewardsReport = lazy(() =>
   lazyRetry(() => import("./components/reports/RewardsReport")).then((m) => ({ default: m.RewardsReport })),
 );
+const ProcessesReport = lazy(() =>
+  lazyRetry(() => import("./components/reports/ProcessesReport")).then((m) => ({ default: m.ProcessesReport })),
+);
 const ReportsIndex = lazy(() =>
   lazyRetry(() => import("./components/ReportsIndex")).then((m) => ({ default: m.ReportsIndex })),
 );
@@ -184,6 +187,11 @@ export default function App() {
             <Route path={ROUTES.REPORTS_REWARDS}>
               <Suspense fallback={<Loading />}>
                 <RewardsReport onNavigate={navigateToNode} onEntity={navigateToEntity} />
+              </Suspense>
+            </Route>
+            <Route path={ROUTES.REPORTS_PROCESSES}>
+              <Suspense fallback={<Loading />}>
+                <ProcessesReport onNavigate={navigateToNode} />
               </Suspense>
             </Route>
             <Route path={ROUTES.CONSTELLATIONS}>
