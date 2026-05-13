@@ -7,9 +7,13 @@ const BTN =
 export function ProcessCurationBar({
   marks,
   onClear,
+  showIgnored,
+  onToggleShowIgnored,
 }: {
   marks: LocalIgnore[];
   onClear: () => void;
+  showIgnored: boolean;
+  onToggleShowIgnored: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   if (marks.length === 0) return null;
@@ -46,6 +50,9 @@ export function ProcessCurationBar({
       </button>
       <button onClick={copy} className={BTN}>
         {copied ? "Copied!" : "Copy JSON"}
+      </button>
+      <button onClick={onToggleShowIgnored} className={BTN}>
+        {showIgnored ? "Hide ignored" : "Show ignored"}
       </button>
       <button
         onClick={onClear}

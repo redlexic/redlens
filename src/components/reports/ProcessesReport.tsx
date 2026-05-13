@@ -207,6 +207,7 @@ export function ProcessesReport({ onNavigate }: { onNavigate: (id: string) => vo
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [shapeFilter, setShapeFilter] = useState<ShapeFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [showIgnored, setShowIgnored] = useState(false);
 
   // URL is the source of truth for the expanded row. Bookmarkable + back/forward
   // navigation drives expansion via useSearchParams. The post-render useEffect
@@ -234,9 +235,10 @@ export function ProcessesReport({ onNavigate }: { onNavigate: (id: string) => vo
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (shapeFilter !== "all" && r.shape !== shapeFilter) return false;
       if (categoryFilter && r.category !== categoryFilter) return false;
+      if (!showIgnored && ignoresByUuid.has(r.uuid)) return false;
       return true;
     });
-  }, [rows, statusFilter, shapeFilter, categoryFilter]);
+  }, [rows, statusFilter, shapeFilter, categoryFilter, showIgnored, ignoresByUuid]);
 
   const byCategory = useMemo(() => {
     const map = new Map<string, ProcessRow[]>();
@@ -283,7 +285,12 @@ export function ProcessesReport({ onNavigate }: { onNavigate: (id: string) => vo
           <code className="mono text-xs">processes-triage</code> skill on each atlas update. Click a row to expand.
         </p>
 
-        <ProcessCurationBar marks={marks} onClear={clear} />
+        <ProcessCurationBar
+          marks={marks}
+          onClear={clear}
+          showIgnored={showIgnored}
+          onToggleShowIgnored={() => setShowIgnored((v) => !v)}
+        />
 
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="flex flex-wrap gap-1.5 items-center">
