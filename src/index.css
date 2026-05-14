@@ -220,8 +220,10 @@ mark {
 
 /* Atlas tree view */
 .atlas-node {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 40px;
+  /* content-visibility: auto + contain-intrinsic-size caches off-screen sizes;
+     the cached size can go stale as nodes expand/collapse during navigation,
+     causing layout to shift unexpectedly when clicking — re-enable only with a
+     proper virtualizer if scroll perf becomes a problem. */
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background-color 0.1s;
