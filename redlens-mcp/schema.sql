@@ -54,7 +54,13 @@ END;
 --   agent | composite_party | foundation | development_company | ecosystem
 --   operational_party | governance_body | facilitator_org | govops_org
 --   delegate_org | ecosystem_actor
+--   primitive | instance | invocation
 -- agent subtypes: proto | prime | operational_executor | core_executor
+-- instance vs invocation: per atlas A.2.2.1.3 / A.2.2.1.4, an instance is an
+--   operational deployment (status Active/Suspended/Completed); an invocation
+--   is the in-progress act of enabling a primitive (status InProgress). They
+--   carry the same param shape but are distinct entity types so queries can
+--   filter on operational vs in-progress without inspecting meta.status.
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS entities (
   id               TEXT PRIMARY KEY,

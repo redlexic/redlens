@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation, useSearchParams } from "wouter";
-import { Link } from "../Link";
+import { AtlasLink } from "../AtlasLink";
 import { ROUTES, atlasHref } from "../../lib/routes";
+import { HEADER_OFFSET } from "../../lib/layout";
 import { useUrlState, urlBool, urlEnum, urlString } from "../../hooks/useUrlState";
-import { useScrollRestore } from "../../hooks/useScrollRestore";
 import { loadAtlas } from "../../lib/docs";
 import {
   loadProcesses,
@@ -85,9 +85,9 @@ function ExpandedBody({
                   <li key={s.id}>
                     <h3 className="text-base font-medium mb-3" style={{ color: "var(--tan)" }}>
                       <span className="mono text-tan-3 mr-2">{i + 1}.</span>
-                      <Link to={atlasHref(s.id)} className="hover:underline text-left">
+                      <AtlasLink to={atlasHref(s.id)} className="hover:underline text-left">
                         {s.title}
-                      </Link>
+                      </AtlasLink>
                       <span className="ml-2 mono text-[10px] text-tan-3 font-normal" title={s.id}>
                         ({s.id.slice(0, 8)})
                       </span>
@@ -140,29 +140,29 @@ function Row({
         id={r.uuid}
         onClick={onToggle}
         aria-expanded={expanded}
-        style={{ scrollMarginTop: "64px" }}
+        style={{ scrollMarginTop: HEADER_OFFSET }}
         className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors cursor-pointer"
       >
         <td className="py-2 px-3 align-top w-6 text-tan-3 mono text-[10px]" aria-hidden>
           {expanded ? "▾" : "▸"}
         </td>
         <td className="py-2 px-3 align-top">
-          <Link
+          <AtlasLink
             to={atlasHref(r.uuid)}
             onClick={stop}
             className="mono text-xs text-accent hover:underline text-left"
           >
             {r.docNo}
-          </Link>
+          </AtlasLink>
         </td>
         <td className="py-2 px-3 align-top">
-          <Link
+          <AtlasLink
             to={atlasHref(r.uuid)}
             onClick={stop}
             className="text-sm text-tan hover:underline text-left"
           >
             {r.title}
-          </Link>
+          </AtlasLink>
         </td>
         <td className="py-2 px-3 align-top">
           <StepsCell count={r.stepCount} shape={r.shape} />
@@ -274,11 +274,8 @@ export function ProcessesReport({ onNavigate }: { onNavigate: (id: string) => vo
     navigate(next ? `${ROUTES.REPORTS_PROCESSES}?expanded=${next}` : ROUTES.REPORTS_PROCESSES);
   };
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useScrollRestore(scrollRef, !loading);
-
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="px-6 py-6">
       <div className="max-w-6xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
         <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>

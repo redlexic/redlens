@@ -1,7 +1,6 @@
-import { useState, useMemo, useEffect, useRef } from "react";
-import { Link } from "../Link";
+import { useState, useMemo, useEffect } from "react";
+import { AtlasLink } from "../AtlasLink";
 import { useUrlState, urlString } from "../../hooks/useUrlState";
-import { useScrollRestore } from "../../hooks/useScrollRestore";
 import { atlasHref } from "../../lib/routes";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
@@ -37,13 +36,13 @@ function EvidenceChain({ title, steps }: { title: string; steps: EvidenceStep[] 
         <span key={i}>
           {i > 0 && <span className="text-tan-3 text-[10px]"> → </span>}
           {s.docId ? (
-            <Link
+            <AtlasLink
               to={atlasHref(s.docId)}
               title={s.label}
               className="mono text-[10px] text-accent hover:underline"
             >
               {s.docNo}
-            </Link>
+            </AtlasLink>
           ) : (
             <span className="mono text-[10px] text-tan-3" title={s.label}>
               {s.docNo}
@@ -139,11 +138,8 @@ export function ActiveDataReport() {
     [rows, agentFilter, entityFilter],
   );
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useScrollRestore(scrollRef, rows.length > 0);
-
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="px-6 py-6">
       <div className="max-w-7xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
         <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>
@@ -151,12 +147,12 @@ export function ActiveDataReport() {
         </h1>
         <p className="text-sm text-tan-3 mb-5">
           All Active Data sections with full responsibility chain — sourced from the Atlas graph.{" "}
-          <Link
+          <AtlasLink
             to={atlasHref("75e8fd51-a540-4c3a-aaa9-1a38502f89b2")}
             className="text-accent hover:underline"
           >
             A.1.12 ↗
-          </Link>
+          </AtlasLink>
         </p>
 
         <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -218,22 +214,22 @@ export function ActiveDataReport() {
                   className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
                 >
                   <td className="py-2 px-3 align-top">
-                    <Link
+                    <AtlasLink
                       to={atlasHref(r.activeDataId)}
                       className="text-sm text-tan hover:underline text-left block"
                     >
                       {r.activeDataTitle}
-                    </Link>
+                    </AtlasLink>
                     <span className="mono text-[10px] text-accent">{r.activeDataDocNo}</span>
                   </td>
                   <td className="py-2 px-3 align-top">
                     {r.controllerId && r.controllerDocNo ? (
-                      <Link
+                      <AtlasLink
                         to={atlasHref(r.controllerId)}
                         className="mono text-xs text-tan-2 hover:underline text-left"
                       >
                         {r.controllerDocNo}
-                      </Link>
+                      </AtlasLink>
                     ) : (
                       <span className="mono text-[10px] text-tan-3">—</span>
                     )}
@@ -244,13 +240,13 @@ export function ActiveDataReport() {
                   <td className="py-2 px-3 align-top">
                     {r.responsibleParty ? (
                       r.responsibleParty.docId ? (
-                        <Link
+                        <AtlasLink
                           to={atlasHref(r.responsibleParty.docId)}
                           className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
                           title={r.responsibleParty.declared ?? undefined}
                         >
                           {r.responsibleParty.name}
-                        </Link>
+                        </AtlasLink>
                       ) : (
                         <span
                           className="text-xs text-tan-2"
@@ -266,13 +262,13 @@ export function ActiveDataReport() {
                   <td className="py-2 px-3 align-top">
                     {r.facilitator ? (
                       r.facilitator.docId ? (
-                        <Link
+                        <AtlasLink
                           to={atlasHref(r.facilitator.docId)}
                           className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
                           title={r.facilitator.role}
                         >
                           {r.facilitator.name}
-                        </Link>
+                        </AtlasLink>
                       ) : (
                         <span className="text-xs text-tan-2" title={r.facilitator.role}>
                           {r.facilitator.name}

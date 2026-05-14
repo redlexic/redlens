@@ -28,7 +28,10 @@ export function SearchBar({
   const placeholder = disabled ? "Loading index…" : cfg.placeholder;
 
   return (
-    <header className="search-header shrink-0 px-4 pt-3 pb-2 border-b">
+    <header
+      className="search-header shrink-0 px-4 pt-3 pb-2 border-b sticky top-0 z-20"
+      style={{ background: "var(--bg)" }}
+    >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <Link to="/" className="order-1 shrink-0" title="Home">
           <img

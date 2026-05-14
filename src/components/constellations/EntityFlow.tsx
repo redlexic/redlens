@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useCallback, memo, useState } from "react";
-import { Link } from "../Link";
+import { AtlasLink } from "../AtlasLink";
 import {
   ReactFlow,
   Background,
@@ -130,10 +130,10 @@ function CardBody({ entity, onSelect }: {
   return (
     <div className="mt-3 pt-3 border-t" style={{ borderColor: "var(--border)" }}>
       {entity.did && (
-        <Link to={atlasHref(entity.did)} onClick={stopPropagation}
+        <AtlasLink to={atlasHref(entity.did)} onClick={stopPropagation}
           className="mono text-[11px] hover:underline mb-3 inline-block" style={{ color: "var(--accent)" }}>
           → defining document
-        </Link>
+        </AtlasLink>
       )}
       {params && (
         <div className="mb-3">
@@ -143,8 +143,8 @@ function CardBody({ entity, onSelect }: {
           <div className="space-y-1">
             {Object.entries(params).map(([key, [value, srcId, srcDocNo]]) => (
               <div key={key} className="text-[10px] leading-tight">
-                <Link to={atlasHref(srcId)} onClick={stopPropagation}
-                  className="mono hover:underline" style={{ color: "var(--tan-3)" }} title={srcDocNo}>{key}</Link>
+                <AtlasLink to={atlasHref(srcId)} onClick={stopPropagation}
+                  className="mono hover:underline" style={{ color: "var(--tan-3)" }} title={srcDocNo}>{key}</AtlasLink>
                 <span className="mx-1" style={{ color: "var(--tan-3)" }}>:</span>
                 <span style={{ color: "var(--tan-2)" }}>{value.length > 90 ? value.slice(0, 90) + "…" : value}</span>
               </div>
@@ -187,7 +187,7 @@ function RelationChip({ rel, onSelect }: {
 
   if (otherType === "doc") {
     return (
-      <Link
+      <AtlasLink
         to={atlasHref(otherId)}
         onClick={stopPropagation}
         className={`${className} hover:bg-hover`}
@@ -196,7 +196,7 @@ function RelationChip({ rel, onSelect }: {
       >
         <span style={{ color: "var(--tan-3)" }}>{arrow}</span>
         <span>{otherLabel}</span>
-      </Link>
+      </AtlasLink>
     );
   }
   if (otherType === "entity") {

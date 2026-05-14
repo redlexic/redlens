@@ -1,4 +1,5 @@
 import { Link } from "../Link";
+import { AtlasLink } from "../AtlasLink";
 import type { ActiveDataRow } from "../../lib/activeDataIndex";
 import { ROUTES, atlasHref } from "../../lib/routes";
 
@@ -10,19 +11,19 @@ function Row({ r }: { r: ActiveDataRow }) {
   return (
     <tr className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
       <td className="py-2 px-3 align-top">
-        <Link
+        <AtlasLink
           to={atlasHref(r.activeDataId)}
           className="text-sm text-tan hover:underline text-left"
         >
           {r.activeDataTitle}
-        </Link>
+        </AtlasLink>
         <div className="mono text-[10px] text-tan-3 mt-0.5">{r.activeDataDocNo}</div>
       </td>
       <td className="py-2 px-3 align-top mono text-xs">
         {r.controllerId ? (
-          <Link to={atlasHref(r.controllerId)} className="text-accent hover:underline">
+          <AtlasLink to={atlasHref(r.controllerId)} className="text-accent hover:underline">
             {r.controllerDocNo}
-          </Link>
+          </AtlasLink>
         ) : (
           <span className="text-tan-3">—</span>
         )}

@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useRef, useMemo } from "react";
-import { Link } from "./Link";
+import { AtlasLink } from "./AtlasLink";
 import { depthColor, realDepth } from "../lib/depth";
 import { atlasHref } from "../lib/routes";
 import type { AtlasNode } from "../types";
@@ -54,14 +54,14 @@ export const Breadcrumbs = memo(function Breadcrumbs({ ancestors }: BreadcrumbsP
       {ancestors.map((a, i) => (
         <span key={a.id} className="flex items-center gap-x-1">
           {i > 0 && <span style={SEPARATOR_STYLE}>/</span>}
-          <Link
+          <AtlasLink
             to={atlasHref(a.id)}
             className="breadcrumb-link"
             style={{ "--crumb-color": depthColor(realDepth(a.doc_no)) } as React.CSSProperties}
           >
             <span className="short">{fittedTitles[i] ?? a.title}</span>
             <span className="full">{a.title}</span>
-          </Link>
+          </AtlasLink>
         </span>
       ))}
     </nav>

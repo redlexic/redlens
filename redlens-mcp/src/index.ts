@@ -610,7 +610,7 @@ function createMcpServer(env: Env): McpServer {
   // ---- atlas_entity_params ----
   server.tool(
     "atlas_entity_params",
-    "Return the immediate Core children of a doc as a parameter map. Useful for ICD instances (Reward, Primitive, etc.) whose params are encoded as child Cores. Pass either a doc id (UUID/doc_no) or an entity slug — for an entity, returns params for every instance doc under its defining subtree.",
+    "Return the immediate Core children of a doc as a parameter map. Useful for any ICD (operational Instances and in-progress Invocations alike) whose params are encoded as child Cores. Pass either a doc id (UUID/doc_no) or an entity slug — for an entity, returns params for every ICD doc under its defining subtree.",
     {
       id: z.string().optional().describe("Doc UUID or doc_no (typically an instance doc)."),
       entity: z.string().optional().describe("Entity slug — fetch params for all instance docs under entity."),

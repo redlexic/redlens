@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { depthColor } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
+import { HEADER_OFFSET } from "../../lib/layout";
 import { NodeContent } from "../NodeContent";
 
 export const ViewChildrenFill = ({
@@ -82,7 +83,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
         padding: 4,
         boxShadow: isSelected ? `inset ${BORDER_WIDTH}px 0 0 ${color}` : undefined,
         borderTop: isSelected ? `${BORDER_WIDTH}px solid ${color}` : undefined,
-        scrollMarginTop: "64px",
+        scrollMarginTop: HEADER_OFFSET,
       }}
     >
       {depth > 1 && (

@@ -1,4 +1,4 @@
-import { Link } from "./components/Link";
+import { AtlasLink } from "./components/AtlasLink";
 import { atlasHref } from "./lib/routes";
 
 // ---------------------------------------------------------------------------
@@ -35,7 +35,7 @@ export function DevPanel({ query }: { query: string }) {
       <p className="mono text-[10px] mb-4 text-tan-3">dev shortcuts</p>
       <div className="space-y-1">
         {matches.map((s) => (
-          <Link
+          <AtlasLink
             key={s.cmd}
             to={atlasHref(s.id)}
             className="hint-row w-full text-left px-3 py-2 rounded flex items-baseline gap-4"
@@ -43,7 +43,7 @@ export function DevPanel({ query }: { query: string }) {
             <span className="mono text-xs shrink-0 w-20 text-accent">__{s.cmd}</span>
             <span className="text-xs font-medium shrink-0 text-tan">{s.label}</span>
             <span className="mono text-[10px] truncate text-tan-3">{s.hint}</span>
-          </Link>
+          </AtlasLink>
         ))}
       </div>
     </div>

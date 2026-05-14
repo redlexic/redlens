@@ -54,8 +54,11 @@ export function ConstellationsPage({ query }: { query: string }) {
     () =>
       init
         ? {
-            participants: init.entities.filter((e) => e.et !== "instance" && e.et !== "primitive"),
+            participants: init.entities.filter(
+              (e) => e.et !== "instance" && e.et !== "invocation" && e.et !== "primitive",
+            ),
             instances: init.entities.filter((e) => e.et === "instance"),
+            invocations: init.entities.filter((e) => e.et === "invocation"),
             primitives: init.entities.filter((e) => e.et === "primitive"),
             edges: init.entityEdges,
           }

@@ -38,7 +38,7 @@ export function ReportsIndex({ query }: { query: string }) {
     : REPORTS;
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-8">
+    <div className="px-6 py-8">
       <div className="max-w-2xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">reports</p>
         <h1 className="text-xl font-semibold mb-6" style={{ color: "var(--tan)" }}>

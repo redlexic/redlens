@@ -9,6 +9,7 @@ import { fetchJsonVerified } from "./verify";
 export interface GraphData {
   participants: GraphEntity[];
   instances: GraphEntity[];
+  invocations: GraphEntity[];
   primitives: GraphEntity[];
   edges: RelationEdge[];
 }
@@ -27,8 +28,11 @@ export function loadGraph(): Promise<GraphData> {
       `${import.meta.env.BASE_URL}relations.json`,
       "relations.json",
     ).then((data) => ({
-      participants: data.entities.filter((e) => e.et !== "instance" && e.et !== "primitive"),
+      participants: data.entities.filter(
+        (e) => e.et !== "instance" && e.et !== "invocation" && e.et !== "primitive",
+      ),
       instances: data.entities.filter((e) => e.et === "instance"),
+      invocations: data.entities.filter((e) => e.et === "invocation"),
       primitives: data.entities.filter((e) => e.et === "primitive"),
       edges: data.edges,
     })).catch((err) => {

@@ -1,10 +1,9 @@
-import { useMemo, useRef } from "react";
-import { Link } from "../Link";
+import { useMemo } from "react";
+import { AtlasLink } from "../AtlasLink";
 import { loadGraph } from "../../lib/graph";
 import { loadAtlas } from "../../lib/docs";
 import { useLoaded } from "../../hooks/useAtlasData";
 import { useUrlState, type UrlCodec } from "../../hooks/useUrlState";
-import { useScrollRestore } from "../../hooks/useScrollRestore";
 import { atlasHref } from "../../lib/routes";
 import { toAnchorId } from "../../lib/anchorId";
 import type { GraphEntity } from "../../types";
@@ -81,12 +80,12 @@ function Row({ r, chains }: { r: OFResponsibility; chains: Map<string, AgentChai
     <tr className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
       <td className="py-2 px-3 align-top">
         {r.uuid ? (
-          <Link
+          <AtlasLink
             to={atlasHref(r.uuid)}
             className="mono text-xs text-accent hover:underline text-left"
           >
             {r.docNo}
-          </Link>
+          </AtlasLink>
         ) : (
           <span className="mono text-xs text-tan-3 text-left">{r.docNo}</span>
         )}
@@ -100,13 +99,13 @@ function Row({ r, chains }: { r: OFResponsibility; chains: Map<string, AgentChai
               const c = chains.get(a);
               if (!c) return null;
               return (
-                <Link
+                <AtlasLink
                   key={a}
                   to={atlasHref(c.agentId)}
                   className="mono text-xs px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-tan-3 hover:text-tan hover:border-[var(--accent)] transition-colors"
                 >
                   {a}
-                </Link>
+                </AtlasLink>
               );
             })}
           </div>
@@ -115,19 +114,19 @@ function Row({ r, chains }: { r: OFResponsibility; chains: Map<string, AgentChai
       <td className="py-2 px-3 align-top">
         {facilitators.map((c) => (
           <div key={c.facilitatorId} className="flex items-center gap-1.5 mb-0.5">
-            <Link
+            <AtlasLink
               to={atlasHref(c.executorId)}
               className="mono text-[10px] text-tan-3 hover:text-tan hover:underline"
             >
               {c.executorName}
-            </Link>
+            </AtlasLink>
             <span className="text-tan-3 text-[10px]">/</span>
-            <Link
+            <AtlasLink
               to={atlasHref(c.facilitatorId)}
               className="text-xs text-accent hover:underline"
             >
               {c.facilitatorName}
-            </Link>
+            </AtlasLink>
           </div>
         ))}
       </td>
@@ -237,11 +236,8 @@ export function OFReport() {
     OFResponsibility[]
   >;
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useScrollRestore(scrollRef, responsibilities.length > 0);
-
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="px-6 py-6">
       <div className="max-w-5xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
         <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>
@@ -249,12 +245,12 @@ export function OFReport() {
         </h1>
         <p className="text-sm text-tan-3 mb-5">
           Every Atlas section mandating action from an Operational Facilitator.{" "}
-          <Link
+          <AtlasLink
             to={atlasHref("1ce24b08-84ff-4524-9710-49bba429c6ef")}
             className="text-accent hover:underline"
           >
             A.1.6 Facilitators ↗
-          </Link>
+          </AtlasLink>
         </p>
 
         <div className="flex flex-wrap gap-4 mb-6">
@@ -334,9 +330,9 @@ export function OFReport() {
                   <div className="flex items-center gap-3 mb-3 pb-1 border-b border-[var(--border)]">
                     <h2 className="text-xs mono text-tan-3 uppercase tracking-wider flex-1">{label}</h2>
                     {cat === "core-facilitator" && coreFacilitator?.did && (
-                      <Link to={atlasHref(coreFacilitator.did)} className="text-xs text-accent hover:underline">
+                      <AtlasLink to={atlasHref(coreFacilitator.did)} className="text-xs text-accent hover:underline">
                         {coreFacilitator.name} ↗
-                      </Link>
+                      </AtlasLink>
                     )}
                   </div>
                   <table className="w-full text-left">
@@ -352,9 +348,9 @@ export function OFReport() {
                         <tr key={r.docNo} className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
                           <td className="py-2 px-3 align-top">
                             {r.uuid ? (
-                              <Link to={atlasHref(r.uuid)} className="mono text-xs text-accent hover:underline text-left">
+                              <AtlasLink to={atlasHref(r.uuid)} className="mono text-xs text-accent hover:underline text-left">
                                 {r.docNo}
-                              </Link>
+                              </AtlasLink>
                             ) : (
                               <span className="mono text-xs text-tan-3 text-left">{r.docNo}</span>
                             )}

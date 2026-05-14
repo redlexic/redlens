@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Link } from "./Link";
+import { AtlasLink } from "./AtlasLink";
 import { realDepth, depthColor } from "../lib/depth";
 import { atlasHref } from "../lib/routes";
 import type { SearchHit } from "../types";
@@ -33,7 +33,7 @@ export const SearchResult = memo(function SearchResult({ hit }: Props) {
           </>
         )}
       </div>
-      <Link
+      <AtlasLink
         to={atlasHref(hit.id)}
         className="search-result-link px-4 py-3"
       >
@@ -60,7 +60,7 @@ export const SearchResult = memo(function SearchResult({ hit }: Props) {
             dangerouslySetInnerHTML={{ __html: hit.snippet }}
           />
         )}
-      </Link>
+      </AtlasLink>
     </div>
   );
 });

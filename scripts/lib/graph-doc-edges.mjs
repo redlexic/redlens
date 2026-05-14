@@ -14,7 +14,7 @@ import {
   isGlobalActivationStatus,
   ancestorByStripping,
 } from "./graph-patterns.mjs";
-import { buildKnownPrimitives, instanceStatusFor } from "./graph-instances.mjs";
+import { buildKnownPrimitives, classifyIcd } from "./graph-instances.mjs";
 
 export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
   const edges = [];
@@ -75,10 +75,13 @@ export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
     }
   }
 
-  // --- 2f. instance_of (ICD → primitive root). Meta carries the derived status
-  // for in-scope primitives; out-of-scope ICDs still get the edge but no status.
-  // Also emit entity→entity `invoked_by` from the Instance to its Prime Agent
-  // so instances surface in the entity graph clustered around their agent. ---
+  // --- 2f. instance_of / invocation_of (ICD → primitive root). The atlas
+  // distinguishes operational Instances (Active/Suspended/Completed) from
+  // in-progress Invocations (InProgress); we emit distinct edge types so
+  // consumers can filter without inspecting meta. Meta still carries the status
+  // for in-scope primitives. Out-of-scope ICDs default to instance_of with no
+  // status. Also emit entity→entity `invoked_by` from the Instance/Invocation
+  // to its Prime Agent so they surface clustered around their agent. ---
   const knownPrimitives = buildKnownPrimitives(docById);
   for (const d of allDocs.filter((d) => isICD(d) && d.doc_no.startsWith("A.6.1.1."))) {
     // Inline primitiveRootFor so we don't need to re-import it here.
@@ -86,14 +89,15 @@ export function extractDocEdges(allDocs, docById, docByDocNo, entityByDocId) {
     if (!m) continue;
     const primRoot = docByDocNo.get(m[1]);
     if (!primRoot || !/Primitive$/i.test(primRoot.title)) continue;
-    const status = instanceStatusFor(d, primRoot, docByDocNo);
+    const { kind, status } = classifyIcd(d, primRoot, docByDocNo);
     const isUnknownPrimitive = !knownPrimitives.has(primRoot.title);
     const metaObj = {
       ...(status ? { status } : {}),
       ...(isUnknownPrimitive ? { is_unknown_primitive: true } : {}),
     };
     const meta = Object.keys(metaObj).length > 0 ? JSON.stringify(metaObj) : null;
-    addEdge(d.id, "doc", primRoot.id, "doc", "instance_of", [d.doc_no], meta);
+    const edgeType = kind === "invocation" ? "invocation_of" : "instance_of";
+    addEdge(d.id, "doc", primRoot.id, "doc", edgeType, [d.doc_no], meta);
 
     const agentDocNo = d.doc_no.match(/^(A\.6\.1\.1\.\d+)(?:\.|$)/)?.[1];
     const agentDoc = agentDocNo ? docByDocNo.get(agentDocNo) : null;

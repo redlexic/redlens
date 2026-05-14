@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Link } from "../Link";
+import { AtlasLink } from "../AtlasLink";
 import type { ActorProfile, ActorRelation, Recommendation } from "../../lib/actorIndex";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, edgeLabel } from "../../lib/entityGraph";
 import { atlasHref, actorHref } from "../../lib/routes";
-import { useScrollRestore } from "../../hooks/useScrollRestore";
 import { ActorChain } from "./ActorChain";
 import { ActorResponsibilities } from "./ActorResponsibilities";
 import { ActorRewards } from "./ActorRewards";
@@ -102,11 +102,8 @@ export function ActorDashboard({ profile }: Props) {
         : "Executor Agent"
       : (ENTITY_TYPE_LABEL[entity.et] ?? entity.et);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useScrollRestore(scrollRef, true);
-
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="flex-1 px-6 py-6 min-w-0">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-8">
         <div className="min-w-0">
           {/* Header */}
@@ -126,12 +123,12 @@ export function ActorDashboard({ profile }: Props) {
                   {typeLabel}
                 </span>
                 {definingDoc && (
-                  <Link
+                  <AtlasLink
                     to={atlasHref(definingDoc.id)}
                     className="mono text-[10px] text-accent hover:underline"
                   >
                     {definingDoc.doc_no} →
-                  </Link>
+                  </AtlasLink>
                 )}
                 {partOfComposite?.slug && (
                   <Link
@@ -154,9 +151,9 @@ export function ActorDashboard({ profile }: Props) {
             <Section title="Composite Party">
               <p className="text-sm mb-3" style={{ color: "var(--tan-2)" }}>
                 A composite party is the named legal counterparty in a Sky{" "}
-                <Link to={atlasHref("104c3543-ce94-4a2f-9968-57f1ee858085")} className="text-accent hover:underline">
+                <AtlasLink to={atlasHref("104c3543-ce94-4a2f-9968-57f1ee858085")} className="text-accent hover:underline">
                   Ecosystem Accord
-                </Link>
+                </AtlasLink>
                 {" "}— an agreement between Sky Ecosystem actors that is enforceable by Sky Governance. It may comprise the Prime Agent and associated legal entities (foundation, development company) acting together as a single party to the accord.
               </p>
               {comprisesMembers.length > 0 && (

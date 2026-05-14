@@ -233,6 +233,47 @@ describe("instances", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Invocations — atlas-distinct from Instances (A.2.2.1.4). One snapshot per
+// type plus an aggregate count, mirroring the Instances structure.
+// ---------------------------------------------------------------------------
+
+describe("invocations", () => {
+  it("invocation counts by type", () => {
+    const counts: Record<string, number> = {};
+    for (const e of relations.entities.filter((e) => e.et === "invocation")) {
+      counts[e.st ?? "unknown"] = (counts[e.st ?? "unknown"] ?? 0) + 1;
+    }
+    expect(Object.fromEntries(Object.entries(counts).sort())).toMatchSnapshot();
+  });
+
+  it("invocations", () => {
+    const invocations = relations.entities
+      .filter((e) => e.et === "invocation" && e.m)
+      .map((e) => {
+        const meta = JSON.parse(e.m!);
+        const params = Object.fromEntries(
+          Object.entries(meta.params ?? {}).map(([k, v]) => [k, (v as string[])[0]])
+        );
+        return {
+          name: e.name,
+          slug: e.slug,
+          subtype: e.st,
+          agent: meta.agent_doc_id ? (docs[meta.agent_doc_id]?.doc_no ?? null) : null,
+          status: meta.status ?? null,
+          params,
+        };
+      })
+      .sort(
+        (a, b) =>
+          (a.subtype ?? "").localeCompare(b.subtype ?? "") ||
+          (a.agent ?? "").localeCompare(b.agent ?? "") ||
+          a.name.localeCompare(b.name),
+      );
+    expect(invocations).toMatchSnapshot();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Allocation-system sub-doc content
 //
 // ICD params (above) capture structured `**Label**: value` fields extracted by

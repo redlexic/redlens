@@ -9,7 +9,7 @@ description: >
   depth cap (parentId unreliability), primitive hub structure, entity
   extraction patterns, Active Data table parsing, the role-as-edge vocabulary,
   composite accord parties, and auditable provenance requirements.
-  Keywords: graph, atlas, doc_no, edge, entity, primitive, instance, role, facilitator, govops, prime agent, executor agent, composite party, build-graph, relations.json, table-parser, delegate, src_member, derecognized, active data
+  Keywords: graph, atlas, doc_no, edge, entity, primitive, instance, invocation, role, facilitator, govops, prime agent, executor agent, composite party, build-graph, relations.json, table-parser, delegate, src_member, derecognized, active data
 license: MIT
 metadata:
   author: anscharo
@@ -142,7 +142,8 @@ Every entity type below either has a defining Atlas doc number pattern, or is bo
 | `delegate_org`        | —                      | Active Delegates: Current Aligned Delegates Active Data (`5f584db8`, `is_active=1`). Derecognized: Derecognized Delegates Active Data (`e7aec672`, `is_active=0`). Ranked: `A.1.5.4.1.{L}.3.1`. Fallback: `addresses.json` entries with `roles: ["delegate"]`. If an entity already exists as `ecosystem_actor` and appears in the active delegates table, it is **upgraded to `delegate_org`** (Pattern 16). |
 | `src_member`          | —                      | Named in the SRC Membership Registry Active Data (`d9c6ed16`). Institutional risk advisors (currently Blockworks Advisory, L2 Beat, Aragon). Meta carries `domain_expertise`, `start_date`, `term_status`, `standing`.                           |
 | `ecosystem_actor`     | —                      | Catch-all: named actors surfaced by patterns that don't fit a more specific kind (ERG members, role-binding holders, etc.)                                                                                                                        |
-| `instance`            | `<primitive-slug>`     | Primitive Instance Configuration Document. Entity id = ICD doc UUID. Emitted for every in-scope primitive (see Pattern 14 for the allowlist). `st` is the primitive slug (`distribution-reward`, `integration-boost`, `allocation-system`, etc.). |
+| `instance`            | `<primitive-slug>`     | Primitive Instance Configuration Document under the **Active/Suspended/Completed Instances** tier. Operational deployment per atlas A.2.2.1.3. Entity id = ICD doc UUID. Emitted for every in-scope primitive (see Pattern 14 for the allowlist). `st` is the primitive slug (`distribution-reward`, `integration-boost`, `allocation-system`, etc.). Status (Active/Suspended/Completed) lives in `meta.status`. |
+| `invocation`          | `<primitive-slug>`     | ICD under the **In Progress Invocations** tier. The in-progress act of enabling a primitive per atlas A.2.2.1.4 — distinct from an Instance. Same param shape and same entity id derivation as `instance`; the only difference is lifecycle stage. `meta.status = "InProgress"`. |
 
 **Halo Agents** are mentioned in `A.6.1.1.5.1` as a future category but have no structural pattern yet — do not classify.
 
@@ -211,7 +212,8 @@ function primitiveRootFor(doc) {
 **Extraction rules:**
 
 - `implements`: The primitive root always opens with `"... See [Global Name](uuid)."` — match the literal `"See [text](uuid)"` pattern where the target is under `A.2.2`. Only for `A.6.1.1.*` docs. Do not derive from `cites` edges (too broad).
-- `instance_of`: ICD → primitive root via `primitiveRootFor(icd)`. Only for `A.6.1.1.*` ICDs — not global `A.2.2.*` docs whose titles mention "Instance Configuration Document". Edge meta carries `{status: "Active"|"Completed"|"Pending"}` for in-scope primitives (see Pattern 14).
+- `instance_of`: Instance ICD → primitive root via `primitiveRootFor(icd)`. Only for `A.6.1.1.*` ICDs under the Active/Suspended/Completed Instances tier. Edge meta carries `{status: "Active"|"Suspended"|"Completed"}` for in-scope primitives (see Pattern 14).
+- `invocation_of`: Invocation ICD → primitive root. Mirror of `instance_of` but for the In Progress Invocations tier. Edge meta carries `{status: "InProgress"}`. Per atlas A.2.2.1.3 / A.2.2.1.4 Instances and Invocations are distinct concepts; the edge split lets consumers filter operational vs in-progress without inspecting meta.
 - `located_at`: ICD Location doc always contains a UUID link to the actual ICD in its content. Extract UUID from content — do not guess from doc_no (directory position varies). **A handful of ICD Location docs in the atlas are misnamed** (title lacks the "Location" suffix, reading just "X Instance Configuration Document" instead of "X Instance Configuration Document Location"). Detect by content too, not title alone:
   ```javascript
   const isICDLocation = (d) =>
@@ -456,23 +458,26 @@ const INSTANCE_SCOPED_PRIMITIVES = {
 
 **Instance display name for "Single" ICDs.** Some ICDs are titled `"Single Instance Configuration Document"` — stripping "Instance Configuration Document" yields the useless name `"Single"`. For these, extract the display name from `primRoot.content` instead: match `/for (.+?)\. See/i` to get the full actor-scoped phrase (e.g. `"Spark's Instance of the Agent Token Primitive"`). Normalize `instance`/`instances` → `Instance` to paper over atlas casing inconsistencies. Implemented in `scripts/lib/graph-entities.mjs`.
 
-**Status derivation.** `{status}` lives on both the entity meta and the `instance_of` edge meta. Derive by **reading the tier doc's title**, not its position — Allocation System inserts a Multi-Instance Coordinator Document that shifts every tier down by one:
+**Kind + status derivation.** Each ICD resolves to either an Instance (`entity_type=instance`, status Active/Suspended/Completed) or an Invocation (`entity_type=invocation`, status InProgress). `{status}` lives on both the entity meta and the corresponding `instance_of`/`invocation_of` edge meta. Derive by **reading the tier doc's title**, not its position — Allocation System inserts a Multi-Instance Coordinator Document that shifts every tier down by one. Walk up the ancestor chain (`classifyIcd` in `graph-instances.mjs`) since tier docs sit at variable depth (flat `.2`/`.3` layouts vs nested `.1.5.1.2` Suspended):
 
 ```javascript
-function instanceStatusFor(icd, primRoot) {
-  const rest = icd.doc_no.slice(primRoot.doc_no.length + 1);
-  if (!rest) return null;
-  const tierSeg = rest.split(".")[0];
-  const tierDoc = docByDocNo.get(`${primRoot.doc_no}.${tierSeg}`);
-  const title = tierDoc?.title.toLowerCase() ?? "";
-  if (title === "active instances") return "Active";
-  if (title === "completed instances") return "Completed";
-  if (title === "in progress invocations") return "Pending";
-  return null;
+export function classifyIcd(icd, primRoot, docByDocNo) {
+  let cur = icd;
+  while (cur && cur.doc_no.startsWith(`${primRoot.doc_no}.`)) {
+    const title = cur.title.toLowerCase();
+    if (title.startsWith("active instances"))      return { kind: "instance",   status: "Active" };
+    if (title.startsWith("completed instances"))   return { kind: "instance",   status: "Completed" };
+    if (title.startsWith("suspended instances"))   return { kind: "instance",   status: "Suspended" };
+    if (title.startsWith("in progress invocations")) return { kind: "invocation", status: "InProgress" };
+    const lastDot = cur.doc_no.lastIndexOf(".");
+    if (lastDot < 0) break;
+    cur = docByDocNo.get(cur.doc_no.slice(0, lastDot));
+  }
+  return { kind: null, status: null };
 }
 ```
 
-`scripts/lib/graph-instances.mjs:21`.
+`scripts/lib/graph-instances.mjs`.
 
 **Walk by title, not by doc_no position.** The ICD sub-structure is inconsistent across primitives:
 

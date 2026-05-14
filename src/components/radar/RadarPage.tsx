@@ -46,7 +46,12 @@ function RadarLoaded({ query, actorSlug, drawerOpen, onDrawerClose }: InnerProps
 
   return (
     <RadarProvider value={{ docs }}>
-      <Drawer open={drawerOpen} onClose={onDrawerClose} breakpoint={850}>
+      <Drawer
+        open={drawerOpen}
+        onClose={onDrawerClose}
+        breakpoint={850}
+        desktopMode="sticky"
+      >
         <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} />
       </Drawer>
       {!actorSlug ? (
@@ -72,9 +77,9 @@ export function RadarPage({ query, actorSlug }: Props) {
   }, [location]);
 
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex">
       <Suspense fallback={
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col">
           <DrawerToggle label="Actors" onClick={() => setDrawerOpen(true)} breakpoint={850} />
           <Loading />
         </div>

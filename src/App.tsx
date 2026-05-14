@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useLocation, useSearchParams, Switch, Route } from "wouter";
 import { useSearchInput } from "./hooks/useSearchInput";
 import { useNavigation } from "./hooks/useNavigation";
+import { useUrlState, urlString } from "./hooks/useUrlState";
 import { ROUTES, type NavPage, type SearchScope } from "./lib/routes";
 import { SearchBar } from "./components/SearchBar";
 import { SearchResults } from "./components/SearchResults";
@@ -48,12 +49,16 @@ const RadarPage = lazy(() =>
   lazyRetry(() => import("./components/radar/RadarPage")).then((m) => ({ default: m.RadarPage })),
 );
 
+const splitCodec = urlString(null);
+
 prefetchNodeContent();
 
 export default function App() {
   const [location, navigate] = useLocation();
   const [searchParams] = useSearchParams();
-  const [splitId, setSplitId] = useState<string | null>(null);
+  // Atlas comparison pane lives in ?split=<uuid> so shift-click + back/forward
+  // restore the same side-by-side view, and the URL is shareable.
+  const [splitId, setSplitId] = useUrlState("split", splitCodec);
   const [treeOpen, setTreeOpen] = useState(false);
 
   const nodeId = location === ROUTES.ATLAS ? searchParams.get("id") : null;
@@ -93,12 +98,21 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (location !== ROUTES.ATLAS) setSplitId(null);
     setTreeOpen(false);
   }, [location]);
 
+  // Window-scroll mode: routes that don't need the "fixed shell, inner scroll"
+  // layout opt in here. The root grows with content (min-h-dvh) and the
+  // overflow-hidden wrappers are dropped, so the browser's native
+  // history.scrollRestoration handles back/forward for free.
+  const windowScroll =
+    location.startsWith(ROUTES.REPORTS) || location.startsWith(ROUTES.RADAR);
+
   return (
-    <div className="flex flex-col h-dvh" style={{ background: "var(--bg)" }}>
+    <div
+      className={`flex flex-col ${windowScroll ? "min-h-dvh" : "h-dvh"}`}
+      style={{ background: "var(--bg)" }}
+    >
       <SearchBar
         inputRef={inputRef}
         query={query}
@@ -108,7 +122,7 @@ export default function App() {
         activePage={activeNavPage}
         scope={scope}
       />
-      <div className="flex-1 flex overflow-hidden">
+      <div className={`flex-1 flex ${windowScroll ? "" : "overflow-hidden"}`}>
         {showTree && (
           <ErrorBoundary fallback={<PanelError />}>
             <Drawer open={treeOpen} onClose={() => setTreeOpen(false)}>
@@ -120,7 +134,7 @@ export default function App() {
             </Drawer>
           </ErrorBoundary>
         )}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className={`flex-1 flex flex-col ${windowScroll ? "" : "overflow-hidden"}`}>
           <ErrorBoundary
             resetKey={location}
             fallback={(error) => (
@@ -199,9 +213,13 @@ export default function App() {
             </Route>
             <Route path={ROUTES.SEARCH_HINTS}>
               <SearchHintsPage
-                onHintClick={(q) =>
-                  navigate(q ? `${ROUTES.HOME}?q=${encodeURIComponent(q)}` : ROUTES.HOME)
-                }
+                onHintClick={(q) => {
+                  const np = new URLSearchParams();
+                  if (q) np.set("q", q);
+                  if (splitId) np.set("split", splitId);
+                  const qs = np.toString();
+                  navigate(qs ? `${ROUTES.HOME}?${qs}` : ROUTES.HOME);
+                }}
               />
             </Route>
             <Route path={ROUTES.PROVENANCE}>

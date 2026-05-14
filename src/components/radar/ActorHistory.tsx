@@ -57,20 +57,23 @@ const CHANGE_LABEL: Record<string, string> = {
 
 function buildDocCategoryMap(profile: ActorProfile): Map<string, Category> {
   const map = new Map<string, Category>();
+  // Invocation ICDs feed into history alongside instance ICDs — they're the
+  // same kind of governance doc, just at a different lifecycle stage.
+  const icds = [...profile.instances, ...profile.invocations];
   // Lowest priority first; later writes override.
-  for (const inst of profile.instances) {
+  for (const inst of icds) {
     if (inst.primitiveDocId) map.set(inst.primitiveDocId, "primitive");
   }
   if (profile.rewardsAgent?.dr?.primitiveId) map.set(profile.rewardsAgent.dr.primitiveId, "reward");
   if (profile.rewardsAgent?.ib?.primitiveId) map.set(profile.rewardsAgent.ib.primitiveId, "reward");
   // Param-source docs first so the instance-root override wins if a param
   // points at its own config root (rare but possible).
-  for (const inst of profile.instances) {
+  for (const inst of icds) {
     for (const p of inst.signalParams) {
       if (p.srcDocId) map.set(p.srcDocId, "param");
     }
   }
-  for (const inst of profile.instances) {
+  for (const inst of icds) {
     if (inst.docId) map.set(inst.docId, "instance");
   }
   if (profile.definingDoc) map.set(profile.definingDoc.id, "definition");

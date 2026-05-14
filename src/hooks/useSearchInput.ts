@@ -46,9 +46,15 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
         return;
       }
       // Typing on a non-home atlas-scope page should jump to home WITH the
-      // query, so we don't pollute the source URL with ?q first.
+      // query, so we don't pollute the source URL with ?q first. Carry ?split
+      // along so a comparison pane opened in atlas survives the search detour.
       if (scope === "atlas" && location !== ROUTES.HOME) {
-        navigate(q ? `${ROUTES.HOME}?q=${encodeURIComponent(q)}` : ROUTES.HOME);
+        const np = new URLSearchParams();
+        if (q) np.set("q", q);
+        const split = new URLSearchParams(window.location.search).get("split");
+        if (split) np.set("split", split);
+        const qs = np.toString();
+        navigate(qs ? `${ROUTES.HOME}?${qs}` : ROUTES.HOME);
         return;
       }
       setQueryParam(q || null);
