@@ -1,9 +1,10 @@
 import { useMemo } from "react";
+import { Link } from "../Link";
 import { prepareWithSegments, measureNaturalWidth } from "@chenglou/pretext";
 import type { RadarInstance, RadarPrimitive, InstanceParam } from "../../lib/actorIndex";
 import { toAnchorId } from "../../lib/anchorId";
+import { atlasHref } from "../../lib/routes";
 import { StatusPill } from "../reports/RewardsCells";
-import { useRadar } from "./RadarContext";
 
 const EVM_RE = /^0x[0-9a-fA-F]{40}$/;
 const SOL_RE = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
@@ -24,7 +25,7 @@ function explorerUrl(val: string): string {
   return `https://etherscan.io/address/${val}`;
 }
 
-function renderValue(value: string, onNavigate: (id: string) => void): React.ReactNode {
+function renderValue(value: string): React.ReactNode {
   if (EVM_RE.test(value) || SOL_RE.test(value)) {
     const short = `${value.slice(0, 6)}…${value.slice(-4)}`;
     return <a href={explorerUrl(value)} target="_blank" rel="noopener" title={value} className="text-accent hover:underline">{short}</a>;
@@ -44,7 +45,7 @@ function renderValue(value: string, onNavigate: (id: string) => void): React.Rea
       if (idx > last) parts.push(value.slice(last, idx));
       const [, text, href] = m;
       parts.push(UUID_RE.test(href)
-        ? <button key={idx} onClick={() => onNavigate(href)} className="text-accent hover:underline">{text}</button>
+        ? <Link key={idx} to={atlasHref(href)} className="text-accent hover:underline">{text}</Link>
         : <a key={idx} href={href} target="_blank" rel="noopener" className="text-accent hover:underline">{text}</a>
       );
       last = idx + m[0].length;
@@ -55,7 +56,7 @@ function renderValue(value: string, onNavigate: (id: string) => void): React.Rea
   return value;
 }
 
-function ParamLine({ p, colWidth, onNavigate }: { p: InstanceParam; colWidth: number; onNavigate: (id: string) => void }) {
+function ParamLine({ p, colWidth }: { p: InstanceParam; colWidth: number }) {
   return (
     <div className="flex py-0.5 w-full items-baseline">
       <span className="mono text-[10px] shrink-0" style={{ color: "var(--tan-3)" }}>
@@ -66,13 +67,13 @@ function ParamLine({ p, colWidth, onNavigate }: { p: InstanceParam; colWidth: nu
         className="mono text-[10px] shrink-0 text-right leading-relaxed"
         style={{ maxWidth: `calc(100% - ${colWidth}px)`, wordBreak: "break-word", color: "var(--tan-2)" }}
       >
-        {renderValue(p.value, onNavigate)}
+        {renderValue(p.value)}
       </span>
     </div>
   );
 }
 
-function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (id: string) => void }) {
+function InstanceCard({ inst }: { inst: RadarInstance }) {
   const colWidth = useMemo(() => {
     if (inst.signalParams.length === 0) return MIN_DOTS_PX;
     return Math.max(...inst.signalParams.map((p) => measureKeyPx(p.key))) + MIN_DOTS_PX;
@@ -82,9 +83,9 @@ function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (
     <div className="rounded p-3 break-inside-avoid" style={{ background: "#0f0a08", border: "1px solid var(--border)", maxWidth: "600px" }}>
       <div className="flex items-center gap-2 flex-wrap mb-2">
         {inst.docId ? (
-          <button onClick={() => onNavigate(inst.docId!)} className="text-sm hover:underline" style={{ color: "var(--tan)" }}>
+          <Link to={atlasHref(inst.docId)} className="text-sm hover:underline" style={{ color: "var(--tan)" }}>
             {inst.displayName}
-          </button>
+          </Link>
         ) : (
           <span className="text-sm" style={{ color: "var(--tan)" }}>{inst.displayName}</span>
         )}
@@ -92,7 +93,7 @@ function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (
       </div>
       {inst.signalParams.length > 0 && (
         <div>
-          {inst.signalParams.map((p) => <ParamLine key={p.key} p={p} colWidth={colWidth} onNavigate={onNavigate} />)}
+          {inst.signalParams.map((p) => <ParamLine key={p.key} p={p} colWidth={colWidth} />)}
         </div>
       )}
     </div>
@@ -126,7 +127,6 @@ function buildCategoryGroups(primitives: RadarPrimitive[]): CategoryGroup[] {
 }
 
 export function ActorInstances({ primitives }: Props) {
-  const { onNavigate } = useRadar();
   const groups = buildCategoryGroups(primitives);
 
   return (
@@ -135,9 +135,9 @@ export function ActorInstances({ primitives }: Props) {
         <div key={cat.category} id={toAnchorId(cat.category)}>
           <div className="flex items-center gap-2 mb-3">
             {cat.categoryDocId ? (
-              <button onClick={() => onNavigate(cat.categoryDocId!)} className="mono text-[11px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-3)" }}>
+              <Link to={atlasHref(cat.categoryDocId)} className="mono text-[11px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-3)" }}>
                 {cat.category}
-              </button>
+              </Link>
             ) : (
               <span className="mono text-[11px] uppercase tracking-wider" style={{ color: "var(--tan-3)" }}>{cat.category}</span>
             )}
@@ -147,9 +147,9 @@ export function ActorInstances({ primitives }: Props) {
               <div key={prim.st} id={prim.st}>
                 <div className="flex items-baseline gap-2 mb-2 flex-wrap">
                   {prim.docId ? (
-                    <button onClick={() => onNavigate(prim.docId!)} className="mono text-[11px] hover:underline" style={{ color: "var(--accent)" }}>
+                    <Link to={atlasHref(prim.docId)} className="mono text-[11px] hover:underline" style={{ color: "var(--accent)" }}>
                       {prim.title}
-                    </button>
+                    </Link>
                   ) : (
                     <span className="mono text-[11px]" style={{ color: "var(--accent)" }}>{prim.title}</span>
                   )}
@@ -165,7 +165,7 @@ export function ActorInstances({ primitives }: Props) {
                   <div style={{ columns: "520px", columnGap: "0.75rem" }}>
                     {prim.instances.map((inst) => (
                       <div key={inst.id} className="mb-2">
-                        <InstanceCard inst={inst} onNavigate={onNavigate} />
+                        <InstanceCard inst={inst} />
                       </div>
                     ))}
                   </div>

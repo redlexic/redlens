@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useRef } from "react";
+import { Link } from "../Link";
 import type { AgentPrimitiveStat, CategoryStat, PrimitiveStat } from "../../lib/primitiveStats";
 import { toAnchorId } from "../../lib/anchorId";
-import { useRadar } from "./RadarContext";
+import { actorHref } from "../../lib/routes";
+import { useUrlState, urlString } from "../../hooks/useUrlState";
+import { useScrollRestore } from "../../hooks/useScrollRestore";
+
+const execCodec = urlString(null);
 
 function shortenCategoryTitle(title: string): string {
   return title.replace(/\s*Primitives\s*/i, "").trim();
@@ -41,13 +46,13 @@ const TD_DIM: React.CSSProperties = { ...TD, opacity: 0.5 };
 
 const ROW_COLORS = ["#221614", "#261916"] as const;
 
-function PrimitiveRow({ p, rowIndex, agentSlug, onActor }: { p: PrimitiveStat; rowIndex: number; agentSlug: string; onActor: (slug: string, fragment?: string) => void }) {
+function PrimitiveRow({ p, rowIndex, agentSlug }: { p: PrimitiveStat; rowIndex: number; agentSlug: string }) {
   return (
     <tr style={{ background: ROW_COLORS[rowIndex % 2] }}>
       <td className="py-0.5" style={{ maxWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        <button onClick={() => onActor(agentSlug, p.st)} className="mono text-[11px] hover:underline w-full text-left truncate" style={{ color: "var(--tan-3)" }} title={p.title}>
+        <Link to={actorHref(agentSlug, p.st)} className="mono text-[11px] hover:underline w-full text-left truncate block" style={{ color: "var(--tan-3)" }} title={p.title}>
           {p.title}
-        </button>
+        </Link>
       </td>
       {[p.pending, p.active, p.suspended, p.completed].map((n, i) => (
         <td key={i} className="mono text-[10px] py-0.5" style={n === 0 ? TD_DIM : TD} title={`${n} ${p.title} ${n === 1 ? "Primitive" : "Primitives"} ${HEADERS[i].full}`}>{n}</td>
@@ -56,15 +61,15 @@ function PrimitiveRow({ p, rowIndex, agentSlug, onActor }: { p: PrimitiveStat; r
   );
 }
 
-function CategoryRows({ cat, startIndex, agentSlug, onActor }: { cat: CategoryStat; startIndex: number; agentSlug: string; onActor: (slug: string, fragment?: string) => void }) {
+function CategoryRows({ cat, startIndex, agentSlug }: { cat: CategoryStat; startIndex: number; agentSlug: string }) {
   const title = shortenCategoryTitle(cat.title);
   return (
     <>
       <tr>
         <td colSpan={5} className="pt-3 pb-0.5" style={{ borderBottom: BORDER }}>
-          <button onClick={() => onActor(agentSlug, toAnchorId(cat.title))} className="mono text-[10px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-2)" }}>
+          <Link to={actorHref(agentSlug, toAnchorId(cat.title))} className="mono text-[10px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-2)" }}>
             {title}
-          </button>
+          </Link>
         </td>
       </tr>
       {cat.primitives.length === 0 ? (
@@ -76,14 +81,14 @@ function CategoryRows({ cat, startIndex, agentSlug, onActor }: { cat: CategorySt
         </tr>
       ) : (
         cat.primitives.map((p, i) => (
-          <PrimitiveRow key={p.st} p={p} rowIndex={startIndex + i} agentSlug={agentSlug} onActor={onActor} />
+          <PrimitiveRow key={p.st} p={p} rowIndex={startIndex + i} agentSlug={agentSlug} />
         ))
       )}
     </>
   );
 }
 
-function AgentPanel({ agent, onActor }: { agent: AgentPrimitiveStat; onActor: (slug: string, fragment?: string) => void }) {
+function AgentPanel({ agent }: { agent: AgentPrimitiveStat }) {
   let rowCounter = 0;
   return (
     <article className="rounded p-4 break-inside-avoid" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
@@ -95,7 +100,7 @@ function AgentPanel({ agent, onActor }: { agent: AgentPrimitiveStat; onActor: (s
         <thead>
           <tr>
             <th className="text-left pb-2" style={{ fontWeight: "600", fontSize: "0.875rem", color: "var(--tan)" }}>
-              <button onClick={() => onActor(agent.slug)} className="hover:underline">{agent.name}</button>
+              <Link to={actorHref(agent.slug)} className="hover:underline">{agent.name}</Link>
             </th>
             {HEADERS.map((h) => (
               <th key={h.key} className="mono text-[10px] pb-2" title={h.full} style={TH}>{h.key}</th>
@@ -106,7 +111,7 @@ function AgentPanel({ agent, onActor }: { agent: AgentPrimitiveStat; onActor: (s
           {agent.categories.map((cat) => {
             const startIndex = rowCounter;
             rowCounter += cat.primitives.length || 1;
-            return <CategoryRows key={cat.title} cat={cat} startIndex={startIndex} agentSlug={agent.slug} onActor={onActor} />;
+            return <CategoryRows key={cat.title} cat={cat} startIndex={startIndex} agentSlug={agent.slug} />;
           })}
         </tbody>
       </table>
@@ -119,8 +124,7 @@ interface Props {
 }
 
 export function PrimitiveDashboard({ agents }: Props) {
-  const { onActor } = useRadar();
-  const [executorFilter, setExecutorFilter] = useState<string | null>(null);
+  const [executorFilter, setExecutorFilter] = useUrlState("exec", execCodec);
 
   const executors = [...new Map(
     agents.filter(a => a.executorSlug).map(a => [a.executorSlug!, a.executorName!])
@@ -130,8 +134,11 @@ export function PrimitiveDashboard({ agents }: Props) {
     ? agents.filter(a => a.executorSlug === executorFilter)
     : agents;
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useScrollRestore(scrollRef, agents.length > 0);
+
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
       <div className="flex items-baseline justify-between mb-5">
         <h2 className="text-xl" style={{ fontFamily: "Lora, serif", color: "var(--tan)" }}>
           Prime Agent Primitive Stats
@@ -167,7 +174,7 @@ export function PrimitiveDashboard({ agents }: Props) {
       <div style={{ columns: "280px", columnGap: "1rem" }}>
         {visible.map((agent) => (
           <div key={agent.slug} className="mb-4">
-            <AgentPanel agent={agent} onActor={onActor} />
+            <AgentPanel agent={agent} />
           </div>
         ))}
       </div>

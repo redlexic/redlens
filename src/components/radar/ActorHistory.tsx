@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
+import { Link } from "../Link";
 import { loadHistory, type HistoryEntry } from "../../lib/history";
 import type { ActorProfile } from "../../lib/actorIndex";
 import type { AtlasNode } from "../../types";

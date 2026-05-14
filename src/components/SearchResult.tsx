@@ -1,13 +1,14 @@
 import { memo } from "react";
+import { Link } from "./Link";
 import { realDepth, depthColor } from "../lib/depth";
+import { atlasHref } from "../lib/routes";
 import type { SearchHit } from "../types";
 
 interface Props {
   hit: SearchHit;
-  onNavigate: (id: string) => void;
 }
 
-export const SearchResult = memo(function SearchResult({ hit, onNavigate }: Props) {
+export const SearchResult = memo(function SearchResult({ hit }: Props) {
   const color = depthColor(realDepth(hit.doc_no));
   const shortAddr = hit.chainlogAddress
     ? `${hit.chainlogAddress.slice(0, 6)}…${hit.chainlogAddress.slice(-4)}`
@@ -32,12 +33,8 @@ export const SearchResult = memo(function SearchResult({ hit, onNavigate }: Prop
           </>
         )}
       </div>
-      <a
-        href={`/atlas?id=${hit.id}`}
-        onClick={(e) => {
-          e.preventDefault();
-          onNavigate(hit.id);
-        }}
+      <Link
+        to={atlasHref(hit.id)}
         className="search-result-link px-4 py-3"
       >
         <h3
@@ -63,7 +60,7 @@ export const SearchResult = memo(function SearchResult({ hit, onNavigate }: Prop
             dangerouslySetInnerHTML={{ __html: hit.snippet }}
           />
         )}
-      </a>
+      </Link>
     </div>
   );
 });

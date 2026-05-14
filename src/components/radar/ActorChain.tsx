@@ -1,6 +1,7 @@
+import { Link } from "../Link";
 import { ENTITY_TYPE_COLOR } from "../../lib/entityGraph";
+import { actorHref } from "../../lib/routes";
 import type { ActorChain, ChainNode } from "../../lib/actorIndex";
-import { useRadar } from "./RadarContext";
 
 interface Props {
   chain: ActorChain;
@@ -13,7 +14,6 @@ interface ChainGroup {
 }
 
 export function ActorChain({ chain, currentSlug }: Props) {
-  const { onActor } = useRadar();
   const { primes, executors, facilitators, govops } = chain;
   const others = (nodes: ChainNode[]) => nodes.filter((n) => n.slug !== currentSlug);
 
@@ -46,14 +46,14 @@ export function ActorChain({ chain, currentSlug }: Props) {
               </td>
               <td className="py-1.5 flex flex-wrap gap-x-3 gap-y-1">
                 {nodes.map((node) => (
-                  <button
+                  <Link
                     key={node.id}
-                    onClick={() => onActor(node.slug)}
+                    to={actorHref(node.slug)}
                     className="hover:underline"
                     style={{ color: ENTITY_TYPE_COLOR[node.et] ?? "#888" }}
                   >
                     {node.name}
-                  </button>
+                  </Link>
                 ))}
               </td>
             </tr>

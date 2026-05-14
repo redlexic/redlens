@@ -1,42 +1,18 @@
-import { useCallback, startTransition } from "react";
-import type { ReportId } from "../types";
+import { useCallback } from "react";
 import { ROUTES } from "../lib/routes";
 
 export function useNavigation({
   navigate,
-  clearSearch,
   nodeId,
 }: {
   navigate: (to: string) => void;
-  clearSearch: () => void;
   nodeId: string | null;
 }) {
   const navigateToNode = useCallback(
     (id: string) => {
       navigate(`${ROUTES.ATLAS}?id=${id}`);
-      clearSearch();
     },
-    [navigate, clearSearch],
-  );
-
-  const navigateToEntity = useCallback(
-    (id: string) => {
-      clearSearch();
-      startTransition(() => {
-        navigate(`${ROUTES.CONSTELLATIONS}?id=${id}`);
-      });
-    },
-    [navigate, clearSearch],
-  );
-
-  const navigateToReport = useCallback(
-    (id: ReportId) => {
-      clearSearch();
-      startTransition(() => {
-        navigate(`${ROUTES.REPORTS}/${id}`);
-      });
-    },
-    [navigate, clearSearch],
+    [navigate],
   );
 
   const handleViewChange = useCallback(
@@ -49,5 +25,5 @@ export function useNavigation({
     [navigate, nodeId],
   );
 
-  return { navigateToNode, navigateToEntity, navigateToReport, handleViewChange };
+  return { navigateToNode, handleViewChange };
 }

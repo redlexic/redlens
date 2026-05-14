@@ -1,35 +1,42 @@
-import { memo, useState, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "./Link";
 import { SearchResult } from "./SearchResult";
 import { SearchHints } from "./SearchHints";
 import type { SearchHit, GraphEntity } from "../types";
 import type { SearchState } from "../hooks/useSearch";
+import { useUrlState, urlInt } from "../hooks/useUrlState";
+import { useScrollRestore } from "../hooks/useScrollRestore";
 import { loadGraph } from "../lib/graph";
 import { matchParticipants } from "../lib/search";
+import { entityHref } from "../lib/routes";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, SUBTYPE_LABEL } from "../lib/entityGraph";
 
 interface Props {
   state: SearchState;
   query: string;
-  onNavigate: (id: string) => void;
-  onNavigateEntity: (id: string) => void;
   onHintClick: (query: string) => void;
 }
 const PAGE_SIZE = 500;
 const ENTITY_CAP = 6;
 const empty: SearchHit[] = [];
+const visibleCodec = urlInt(PAGE_SIZE);
 
 export const SearchResults = memo(function SearchResults({
   state,
   query,
-  onNavigate,
-  onNavigateEntity,
   onHintClick,
 }: Props) {
   const hits = state.status === "done" ? state.hits : empty;
-  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [visible, setVisible] = useUrlState("n", visibleCodec);
+  // Reset pagination only when the query actually changes. On mount with a restored
+  // URL like `/?n=1000` (back-button after "show more"), keep the saved page count.
+  const lastQuery = useRef(query);
   useEffect(() => {
-    setVisible(PAGE_SIZE);
-  }, [hits]);
+    if (lastQuery.current !== query) {
+      lastQuery.current = query;
+      setVisible(PAGE_SIZE);
+    }
+  }, [query, setVisible]);
 
   const [participants, setParticipants] = useState<GraphEntity[] | null>(null);
   useEffect(() => {
@@ -44,8 +51,13 @@ export const SearchResults = memo(function SearchResults({
   const displayed = hits.slice(0, visible);
   const remaining = hits.length - displayed.length;
 
+  const scrollRef = useRef<HTMLElement>(null);
+  // Wait until results are rendered before restoring — otherwise we'd scroll
+  // an empty container and clobber the saved offset.
+  useScrollRestore(scrollRef, state.status === "done" && displayed.length > 0);
+
   return (
-    <main className="flex-1 overflow-y-auto">
+    <main ref={scrollRef} className="flex-1 overflow-y-auto">
       <div className="max-w-2xl mx-auto w-full">
         {entityHits.length > 0 && (
           <>
@@ -55,12 +67,8 @@ export const SearchResults = memo(function SearchResults({
             <ul>
               {entityHits.map(({ participant }) => (
                 <li key={participant.id}>
-                  <a
-                    href={`/constellations?id=${participant.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onNavigateEntity(participant.id);
-                    }}
+                  <Link
+                    to={entityHref(participant.id)}
                     className="search-result-link px-4 py-3 flex items-center gap-3"
                   >
                     <span
@@ -74,7 +82,7 @@ export const SearchResults = memo(function SearchResults({
                         ? ` · ${SUBTYPE_LABEL[participant.st] ?? participant.st}`
                         : ""}
                     </span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -91,7 +99,7 @@ export const SearchResults = memo(function SearchResults({
           <ul>
             {displayed.map((hit) => (
               <li key={hit.id}>
-                <SearchResult hit={hit} onNavigate={onNavigate} />
+                <SearchResult hit={hit} />
               </li>
             ))}
           </ul>

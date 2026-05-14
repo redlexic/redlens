@@ -1,33 +1,28 @@
+import { Link } from "../Link";
 import type { ActiveDataRow } from "../../lib/activeDataIndex";
-import { Link } from "wouter";
-import { ROUTES } from "../../lib/routes";
-import { useRadar } from "./RadarContext";
+import { ROUTES, atlasHref } from "../../lib/routes";
 
 interface Props {
   rows: ActiveDataRow[];
 }
 
 function Row({ r }: { r: ActiveDataRow }) {
-  const { onNavigate } = useRadar();
   return (
     <tr className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors">
       <td className="py-2 px-3 align-top">
-        <button
-          onClick={() => onNavigate(r.activeDataId)}
+        <Link
+          to={atlasHref(r.activeDataId)}
           className="text-sm text-tan hover:underline text-left"
         >
           {r.activeDataTitle}
-        </button>
+        </Link>
         <div className="mono text-[10px] text-tan-3 mt-0.5">{r.activeDataDocNo}</div>
       </td>
       <td className="py-2 px-3 align-top mono text-xs">
         {r.controllerId ? (
-          <button
-            onClick={() => onNavigate(r.controllerId!)}
-            className="text-accent hover:underline"
-          >
+          <Link to={atlasHref(r.controllerId)} className="text-accent hover:underline">
             {r.controllerDocNo}
-          </button>
+          </Link>
         ) : (
           <span className="text-tan-3">—</span>
         )}

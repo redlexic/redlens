@@ -1,4 +1,5 @@
-import type { NavPage } from "../lib/routes";
+import { Link } from "./Link";
+import { NAV_PAGE_ROUTES, type NavPage } from "../lib/routes";
 
 const SKY_URL = "https://sky.money";
 const ATLAS_URL = "https://github.com/sky-ecosystem/next-gen-atlas";
@@ -21,7 +22,7 @@ const CARDS: { page: NavPage; name: string; desc: string }[] = [
   },
 ];
 
-export function HomePage({ onNavPage }: { onNavPage: (page: NavPage) => void }) {
+export function HomePage() {
   return (
     <main className="flex-1 overflow-y-auto px-6 py-16">
       <div className="max-w-2xl mx-auto">
@@ -48,14 +49,14 @@ export function HomePage({ onNavPage }: { onNavPage: (page: NavPage) => void }) 
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {CARDS.map((c) => (
-            <button
+            <Link
               key={c.page}
-              onClick={() => onNavPage(c.page)}
+              to={NAV_PAGE_ROUTES[c.page]}
               className="home-card flex flex-col items-start text-left w-full"
             >
               <p className="text-sm font-semibold text-tan mb-2">{c.name}</p>
               <p className="text-xs text-tan-3 leading-relaxed">{c.desc}</p>
-            </button>
+            </Link>
           ))}
         </div>
       </div>

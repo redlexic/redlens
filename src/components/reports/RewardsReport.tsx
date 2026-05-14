@@ -1,7 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Link } from "../Link";
 import { loadDocs } from "../../lib/docs";
 import { loadAddresses } from "../../lib/addresses";
 import { loadGraph } from "../../lib/graph";
+import { atlasHref } from "../../lib/routes";
+import { useScrollRestore } from "../../hooks/useScrollRestore";
 import type { AddressInfo } from "../../types";
 import { buildRewardsIndex, type RewardsIndex, type RewardsAgent } from "../../lib/rewardsIndex";
 import { AddressLink, EntityChip } from "./RewardsCells";
@@ -9,11 +12,9 @@ import { PrimitiveTable } from "./RewardsPrimitiveTable";
 
 function EcosystemHeader({
   idx,
-  onNavigate,
   addrMap,
 }: {
   idx: RewardsIndex;
-  onNavigate: (id: string) => void;
   addrMap: Record<string, AddressInfo>;
 }) {
   const cards = (["drPrimitive", "ibPrimitive", "stUsdsDr", "srUsdsDr"] as const)
@@ -22,17 +23,17 @@ function EcosystemHeader({
   return (
     <div className="mb-8 grid md:grid-cols-2 gap-4">
       {cards.map((n) => (
-        <button
+        <Link
           key={n.id}
-          onClick={() => onNavigate(n.id)}
-          className="text-left p-3 rounded border border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
+          to={atlasHref(n.id)}
+          className="text-left p-3 rounded border border-[var(--border)] hover:bg-[var(--hover)] transition-colors block no-underline"
         >
           <div className="flex items-baseline justify-between mb-1">
             <span className="text-sm font-medium text-tan">{n.title}</span>
             <span className="mono text-[10px] text-accent">{n.docNo}</span>
           </div>
           <p className="text-[11px] text-tan-3 line-clamp-2">{n.description}</p>
-        </button>
+        </Link>
       ))}
       <div className="md:col-span-2 text-[11px] text-tan-3 flex items-center gap-2 pt-2">
         <span>Demand Side Buffer Multisig:</span>
@@ -45,13 +46,9 @@ function EcosystemHeader({
 
 function AgentSection({
   agent,
-  onNavigate,
-  onEntity,
   addrMap,
 }: {
   agent: RewardsAgent;
-  onNavigate: (id: string) => void;
-  onEntity: (slug: string) => void;
   addrMap: Record<string, AddressInfo>;
 }) {
   const drCount = agent.dr
@@ -75,46 +72,24 @@ function AgentSection({
         <p className="text-[11px] text-tan-3 mb-4 flex items-center gap-2 flex-wrap">
           {chain.executor && (
             <>
-              calculated by <EntityChip e={chain.executor} onEntity={onEntity} />
+              calculated by <EntityChip e={chain.executor} />
             </>
           )}
           {chain.executor && chain.govops && <span className="opacity-50">·</span>}
           {chain.govops && (
             <>
-              disbursed by <EntityChip e={chain.govops} onEntity={onEntity} />
+              disbursed by <EntityChip e={chain.govops} />
             </>
           )}
         </p>
       )}
-      {agent.dr && (
-        <PrimitiveTable
-          agent={agent}
-          prim={agent.dr}
-          onNavigate={onNavigate}
-          onEntity={onEntity}
-          addrMap={addrMap}
-        />
-      )}
-      {agent.ib && (
-        <PrimitiveTable
-          agent={agent}
-          prim={agent.ib}
-          onNavigate={onNavigate}
-          onEntity={onEntity}
-          addrMap={addrMap}
-        />
-      )}
+      {agent.dr && <PrimitiveTable agent={agent} prim={agent.dr} addrMap={addrMap} />}
+      {agent.ib && <PrimitiveTable agent={agent} prim={agent.ib} addrMap={addrMap} />}
     </section>
   );
 }
 
-export function RewardsReport({
-  onNavigate,
-  onEntity,
-}: {
-  onNavigate: (id: string) => void;
-  onEntity: (slug: string) => void;
-}) {
+export function RewardsReport() {
   const [idx, setIdx] = useState<RewardsIndex | null>(null);
   const [addrMap, setAddrMap] = useState<Record<string, AddressInfo>>({});
   const [error, setError] = useState<string | null>(null);
@@ -148,8 +123,11 @@ export function RewardsReport({
     return agg;
   }, [idx]);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useScrollRestore(scrollRef, !!idx);
+
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
       <div className="max-w-6xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
         <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>
@@ -179,15 +157,9 @@ export function RewardsReport({
           <p className="text-sm text-tan-3">Loading…</p>
         ) : (
           <>
-            <EcosystemHeader idx={idx} onNavigate={onNavigate} addrMap={addrMap} />
+            <EcosystemHeader idx={idx} addrMap={addrMap} />
             {idx.agents.map((a) => (
-              <AgentSection
-                key={a.name}
-                agent={a}
-                onNavigate={onNavigate}
-                onEntity={onEntity}
-                addrMap={addrMap}
-              />
+              <AgentSection key={a.name} agent={a} addrMap={addrMap} />
             ))}
           </>
         )}

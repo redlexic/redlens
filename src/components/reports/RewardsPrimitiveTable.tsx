@@ -1,18 +1,16 @@
+import { Link } from "../Link";
 import type { AddressInfo } from "../../types";
 import type { AgentPrimitive, RewardsAgent, RewardsInstance } from "../../lib/rewardsIndex";
+import { atlasHref, actorHref } from "../../lib/routes";
 import { AddressLink, StatusPill } from "./RewardsCells";
 
 function InstanceRow({
   inst,
   kind,
-  onNavigate,
-  onEntity,
   addrMap,
 }: {
   inst: RewardsInstance;
   kind: "DR" | "IB";
-  onNavigate: (id: string) => void;
-  onEntity: (slug: string) => void;
   addrMap: Record<string, AddressInfo>;
 }) {
   return (
@@ -21,12 +19,12 @@ function InstanceRow({
         <StatusPill s={inst.status} />
       </td>
       <td className="py-2 px-3 align-top">
-        <button
-          onClick={() => onNavigate(inst.id)}
+        <Link
+          to={atlasHref(inst.id)}
           className="text-sm text-tan hover:underline text-left"
         >
           {inst.name}
-        </button>
+        </Link>
         <div className="mono text-[10px] text-tan-3 mt-0.5 flex items-center gap-2">
           <span>{inst.docNo}</span>
           {inst.params && Object.keys(inst.params).length > 0 && (
@@ -40,32 +38,32 @@ function InstanceRow({
         <>
           <td className="py-2 px-3 align-top w-24 mono text-xs text-tan-2">
             {inst.rewardCode ? (
-              <button
-                onClick={() => onNavigate(inst.rewardCodeDocId ?? inst.id)}
+              <Link
+                to={atlasHref(inst.rewardCodeDocId ?? inst.id)}
                 className="px-1.5 py-0.5 rounded bg-[var(--hover)] text-tan hover:underline"
               >
                 {inst.rewardCode}
-              </button>
+              </Link>
             ) : (
               <span className="text-tan-3">—</span>
             )}
           </td>
           <td className="py-2 px-3 align-top text-xs text-tan-2">
             {inst.trackingDocId && inst.trackingDocNo ? (
-              <button
-                onClick={() => onNavigate(inst.trackingDocId!)}
+              <Link
+                to={atlasHref(inst.trackingDocId)}
                 className="mono text-[11px] text-accent hover:underline"
               >
                 {inst.trackingDocNo}
-              </button>
+              </Link>
             ) : (
               <span className="text-tan-3">—</span>
             )}
           </td>
           <td className="py-2 px-3 align-top w-32 text-[11px]">
             {inst.paymentsResponsibleParty ? (
-              <button
-                onClick={() => onEntity(inst.paymentsResponsibleParty!.slug)}
+              <Link
+                to={actorHref(inst.paymentsResponsibleParty.slug)}
                 className="text-accent hover:underline mono"
                 title={
                   inst.paymentsControllerDocNo
@@ -74,7 +72,7 @@ function InstanceRow({
                 }
               >
                 {inst.paymentsResponsibleParty.name}
-              </button>
+              </Link>
             ) : (
               <span className="text-tan-3">—</span>
             )}
@@ -84,12 +82,12 @@ function InstanceRow({
         <>
           <td className="py-2 px-3 align-top text-xs text-tan-2">
             {inst.partnerName ? (
-              <button
-                onClick={() => onNavigate(inst.partnerNameDocId ?? inst.id)}
+              <Link
+                to={atlasHref(inst.partnerNameDocId ?? inst.id)}
                 className="text-tan-2 hover:underline text-left"
               >
                 {inst.partnerName}
-              </button>
+              </Link>
             ) : (
               <span className="text-tan-3">—</span>
             )}
@@ -103,24 +101,24 @@ function InstanceRow({
           </td>
           <td className="py-2 px-3 align-top mono text-[11px] w-28">
             {inst.rewardChain ? (
-              <button
-                onClick={() => onNavigate(inst.rewardChainDocId ?? inst.id)}
+              <Link
+                to={atlasHref(inst.rewardChainDocId ?? inst.id)}
                 className="text-tan-3 hover:underline"
               >
                 {inst.rewardChain}
-              </button>
+              </Link>
             ) : (
               <span className="text-tan-3">—</span>
             )}
           </td>
           <td className="py-2 px-3 align-top mono text-[11px] w-20">
             {inst.cadence ? (
-              <button
-                onClick={() => onNavigate(inst.cadenceDocId ?? inst.id)}
+              <Link
+                to={atlasHref(inst.cadenceDocId ?? inst.id)}
                 className="text-tan-3 hover:underline"
               >
                 {inst.cadence}
-              </button>
+              </Link>
             ) : (
               <span className="text-tan-3">—</span>
             )}
@@ -134,14 +132,10 @@ function InstanceRow({
 export function PrimitiveTable({
   agent,
   prim,
-  onNavigate,
-  onEntity,
   addrMap,
 }: {
   agent: RewardsAgent;
   prim: AgentPrimitive;
-  onNavigate: (id: string) => void;
-  onEntity: (slug: string) => void;
   addrMap: Record<string, AddressInfo>;
 }) {
   const all = [...prim.active, ...prim.completed, ...prim.inProgress];
@@ -153,12 +147,12 @@ export function PrimitiveTable({
         <h3 className="text-sm font-medium" style={{ color: "var(--tan)" }}>
           {title}
         </h3>
-        <button
-          onClick={() => onNavigate(prim.primitiveId)}
+        <Link
+          to={atlasHref(prim.primitiveId)}
           className="mono text-[10px] text-accent hover:underline"
         >
           {prim.primitiveDocNo}
-        </button>
+        </Link>
         <span className="mono text-[10px] text-tan-3">global: {prim.globalActivation ?? "—"}</span>
         <span className="mono text-[10px] text-tan-3">
           {prim.active.length} active · {prim.completed.length} completed · {prim.inProgress.length}{" "}
@@ -199,8 +193,6 @@ export function PrimitiveTable({
                   key={inst.id || inst.docNo}
                   inst={inst}
                   kind={kind}
-                  onNavigate={onNavigate}
-                  onEntity={onEntity}
                   addrMap={addrMap}
                 />
               ))}

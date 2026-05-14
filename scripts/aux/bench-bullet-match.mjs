@@ -152,7 +152,7 @@ function newMatchRate(bullets, changedNodes, byDocNo, opts = {}) {
 
   for (const node of changedNodes) {
     let hit = null;
-    for (const { bullet, refs } of bulletRefs) {
+    for (const { refs } of bulletRefs) {
       if (refs.docNos.has(node.doc_no) || refs.uuids.has(node.id)) {
         hit = { via: "ref" }; break;
       }

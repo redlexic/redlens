@@ -1,3 +1,5 @@
+import { Link } from "./Link";
+import { reportHref } from "../lib/routes";
 import type { ReportId } from "../types";
 
 const REPORTS: { id: ReportId; title: string; description: string }[] = [
@@ -27,13 +29,7 @@ const REPORTS: { id: ReportId; title: string; description: string }[] = [
   },
 ];
 
-export function ReportsIndex({
-  onNavigate,
-  query,
-}: {
-  onNavigate: (id: ReportId) => void;
-  query: string;
-}) {
+export function ReportsIndex({ query }: { query: string }) {
   const q = query.trim().toLowerCase();
   const visible = q
     ? REPORTS.filter(
@@ -50,10 +46,10 @@ export function ReportsIndex({
         </h1>
         <div className="space-y-3">
           {visible.map((r) => (
-            <button
+            <Link
               key={r.id}
-              onClick={() => onNavigate(r.id)}
-              className="w-full text-left px-4 py-4 rounded border transition-colors hover:bg-[var(--hover)]"
+              to={reportHref(r.id)}
+              className="w-full text-left px-4 py-4 rounded border transition-colors hover:bg-[var(--hover)] block no-underline"
               style={{ borderColor: "var(--border)" }}
             >
               <p className="text-sm font-medium mb-1" style={{ color: "var(--tan)" }}>
@@ -62,7 +58,7 @@ export function ReportsIndex({
               <p className="text-xs" style={{ color: "var(--tan-3)" }}>
                 {r.description}
               </p>
-            </button>
+            </Link>
           ))}
           {visible.length === 0 && (
             <p className="mono text-xs" style={{ color: "var(--tan-3)" }}>

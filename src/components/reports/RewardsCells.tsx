@@ -1,14 +1,16 @@
+import { Link } from "../Link";
+import { actorHref } from "../../lib/routes";
 import type { AddressInfo } from "../../types";
 import type { EntityRef } from "../../lib/rewardsIndex";
 
-export function EntityChip({ e, onEntity }: { e: EntityRef; onEntity: (slug: string) => void }) {
+export function EntityChip({ e }: { e: EntityRef }) {
   return (
-    <button
-      onClick={() => onEntity(e.slug)}
+    <Link
+      to={actorHref(e.slug)}
       className="text-[11px] text-accent hover:underline mono"
     >
       {e.name}
-    </button>
+    </Link>
   );
 }
 

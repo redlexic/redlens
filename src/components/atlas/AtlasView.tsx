@@ -241,7 +241,7 @@ export function AtlasView({
           borderBottom: "1px solid var(--border)",
       }}>
         <DrawerToggle label="Atlas" onClick={onOpenTree} breakpoint={1050} />
-        {id && <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />}
+        {id && <Breadcrumbs ancestors={ancestors} />}
       </div>
       <div
         className="flex-1 min-[750px]:grid min-[750px]:grid-cols-[3fr_2fr]"
