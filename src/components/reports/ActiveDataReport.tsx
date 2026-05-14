@@ -1,4 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
+import { AtlasLink } from "../AtlasLink";
+import { useUrlState, urlString } from "../../hooks/useUrlState";
+import { atlasHref } from "../../lib/routes";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
 import { loadHistory } from "../../lib/history";
@@ -9,6 +12,9 @@ import {
   type ActiveDataRow,
   type EvidenceStep,
 } from "../../lib/activeDataIndex";
+
+const agentCodec = urlString(null);
+const entityCodec = urlString(null);
 
 type Row = ActiveDataRow;
 
@@ -21,15 +27,7 @@ function exportCSV(rows: Row[], lastEditDates: Map<string, string>) {
   a.click();
 }
 
-function EvidenceChain({
-  title,
-  steps,
-  onNavigate,
-}: {
-  title: string;
-  steps: EvidenceStep[];
-  onNavigate: (id: string) => void;
-}) {
+function EvidenceChain({ title, steps }: { title: string; steps: EvidenceStep[] }) {
   if (!steps.length) return null;
   return (
     <div className="mb-1 last:mb-0">
@@ -38,13 +36,13 @@ function EvidenceChain({
         <span key={i}>
           {i > 0 && <span className="text-tan-3 text-[10px]"> → </span>}
           {s.docId ? (
-            <button
-              onClick={() => onNavigate(s.docId!)}
+            <AtlasLink
+              to={atlasHref(s.docId)}
               title={s.label}
               className="mono text-[10px] text-accent hover:underline"
             >
               {s.docNo}
-            </button>
+            </AtlasLink>
           ) : (
             <span className="mono text-[10px] text-tan-3" title={s.label}>
               {s.docNo}
@@ -56,7 +54,7 @@ function EvidenceChain({
   );
 }
 
-function EvidenceCell({ r, onNavigate }: { r: Row; onNavigate: (id: string) => void }) {
+function EvidenceCell({ r }: { r: Row }) {
   const rpSteps = r.responsibleParty?.evidence ?? [];
   const facSteps = r.facilitator?.evidence ?? [];
   if (!rpSteps.length && !facSteps.length) {
@@ -64,21 +62,21 @@ function EvidenceCell({ r, onNavigate }: { r: Row; onNavigate: (id: string) => v
   }
   return (
     <div>
-      <EvidenceChain title="RP" steps={rpSteps} onNavigate={onNavigate} />
-      <EvidenceChain title="Fac" steps={facSteps} onNavigate={onNavigate} />
+      <EvidenceChain title="RP" steps={rpSteps} />
+      <EvidenceChain title="Fac" steps={facSteps} />
     </div>
   );
 }
 
-export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => void }) {
+export function ActiveDataReport() {
   const docs = useLoaded(loadDocs);
   const graph = useLoaded(loadGraph);
   const rows = useMemo(
     () => (docs && graph ? buildActiveDataRows(docs, graph) : []),
     [docs, graph],
   );
-  const [agentFilter, setAgentFilter] = useState<string | null>(null);
-  const [entityFilter, setEntityFilter] = useState<string | null>(null);
+  const [agentFilter, setAgentFilter] = useUrlState("agent", agentCodec);
+  const [entityFilter, setEntityFilter] = useUrlState("entity", entityCodec);
   const [lastEditDates, setLastEditDates] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
@@ -141,7 +139,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
   );
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="px-6 py-6">
       <div className="max-w-7xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
         <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>
@@ -149,12 +147,12 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
         </h1>
         <p className="text-sm text-tan-3 mb-5">
           All Active Data sections with full responsibility chain — sourced from the Atlas graph.{" "}
-          <button
+          <AtlasLink
+            to={atlasHref("75e8fd51-a540-4c3a-aaa9-1a38502f89b2")}
             className="text-accent hover:underline"
-            onClick={() => onNavigate("75e8fd51-a540-4c3a-aaa9-1a38502f89b2")}
           >
             A.1.12 ↗
-          </button>
+          </AtlasLink>
         </p>
 
         <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -216,22 +214,22 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                   className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
                 >
                   <td className="py-2 px-3 align-top">
-                    <button
-                      onClick={() => onNavigate(r.activeDataId)}
+                    <AtlasLink
+                      to={atlasHref(r.activeDataId)}
                       className="text-sm text-tan hover:underline text-left block"
                     >
                       {r.activeDataTitle}
-                    </button>
+                    </AtlasLink>
                     <span className="mono text-[10px] text-accent">{r.activeDataDocNo}</span>
                   </td>
                   <td className="py-2 px-3 align-top">
                     {r.controllerId && r.controllerDocNo ? (
-                      <button
-                        onClick={() => onNavigate(r.controllerId!)}
+                      <AtlasLink
+                        to={atlasHref(r.controllerId)}
                         className="mono text-xs text-tan-2 hover:underline text-left"
                       >
                         {r.controllerDocNo}
-                      </button>
+                      </AtlasLink>
                     ) : (
                       <span className="mono text-[10px] text-tan-3">—</span>
                     )}
@@ -242,13 +240,13 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                   <td className="py-2 px-3 align-top">
                     {r.responsibleParty ? (
                       r.responsibleParty.docId ? (
-                        <button
-                          onClick={() => onNavigate(r.responsibleParty!.docId!)}
+                        <AtlasLink
+                          to={atlasHref(r.responsibleParty.docId)}
                           className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
                           title={r.responsibleParty.declared ?? undefined}
                         >
                           {r.responsibleParty.name}
-                        </button>
+                        </AtlasLink>
                       ) : (
                         <span
                           className="text-xs text-tan-2"
@@ -264,13 +262,13 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                   <td className="py-2 px-3 align-top">
                     {r.facilitator ? (
                       r.facilitator.docId ? (
-                        <button
-                          onClick={() => onNavigate(r.facilitator!.docId!)}
+                        <AtlasLink
+                          to={atlasHref(r.facilitator.docId)}
                           className="text-xs text-tan-2 hover:text-tan hover:underline text-left"
                           title={r.facilitator.role}
                         >
                           {r.facilitator.name}
-                        </button>
+                        </AtlasLink>
                       ) : (
                         <span className="text-xs text-tan-2" title={r.facilitator.role}>
                           {r.facilitator.name}
@@ -281,7 +279,7 @@ export function ActiveDataReport({ onNavigate }: { onNavigate: (id: string) => v
                     )}
                   </td>
                   <td className="py-2 px-3 align-top">
-                    <EvidenceCell r={r} onNavigate={onNavigate} />
+                    <EvidenceCell r={r} />
                   </td>
                   <td className="py-2 px-3 align-top">
                     <span className="mono text-xs text-tan-3">{r.process}</span>

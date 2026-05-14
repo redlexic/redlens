@@ -1,9 +1,11 @@
 import { useMemo } from "react";
+import { AtlasLink } from "../AtlasLink";
 import { prepareWithSegments, measureNaturalWidth } from "@chenglou/pretext";
 import type { RadarInstance, RadarPrimitive, InstanceParam } from "../../lib/actorIndex";
 import { toAnchorId } from "../../lib/anchorId";
+import { atlasHref } from "../../lib/routes";
+import { HEADER_OFFSET } from "../../lib/layout";
 import { StatusPill } from "../reports/RewardsCells";
-import { useRadar } from "./RadarContext";
 
 const EVM_RE = /^0x[0-9a-fA-F]{40}$/;
 const SOL_RE = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
@@ -24,7 +26,7 @@ function explorerUrl(val: string): string {
   return `https://etherscan.io/address/${val}`;
 }
 
-function renderValue(value: string, onNavigate: (id: string) => void): React.ReactNode {
+function renderValue(value: string): React.ReactNode {
   if (EVM_RE.test(value) || SOL_RE.test(value)) {
     const short = `${value.slice(0, 6)}…${value.slice(-4)}`;
     return <a href={explorerUrl(value)} target="_blank" rel="noopener" title={value} className="text-accent hover:underline">{short}</a>;
@@ -44,7 +46,7 @@ function renderValue(value: string, onNavigate: (id: string) => void): React.Rea
       if (idx > last) parts.push(value.slice(last, idx));
       const [, text, href] = m;
       parts.push(UUID_RE.test(href)
-        ? <button key={idx} onClick={() => onNavigate(href)} className="text-accent hover:underline">{text}</button>
+        ? <AtlasLink key={idx} to={atlasHref(href)} className="text-accent hover:underline">{text}</AtlasLink>
         : <a key={idx} href={href} target="_blank" rel="noopener" className="text-accent hover:underline">{text}</a>
       );
       last = idx + m[0].length;
@@ -55,7 +57,7 @@ function renderValue(value: string, onNavigate: (id: string) => void): React.Rea
   return value;
 }
 
-function ParamLine({ p, colWidth, onNavigate }: { p: InstanceParam; colWidth: number; onNavigate: (id: string) => void }) {
+function ParamLine({ p, colWidth }: { p: InstanceParam; colWidth: number }) {
   return (
     <div className="flex py-0.5 w-full items-baseline">
       <span className="mono text-[10px] shrink-0" style={{ color: "var(--tan-3)" }}>
@@ -66,13 +68,13 @@ function ParamLine({ p, colWidth, onNavigate }: { p: InstanceParam; colWidth: nu
         className="mono text-[10px] shrink-0 text-right leading-relaxed"
         style={{ maxWidth: `calc(100% - ${colWidth}px)`, wordBreak: "break-word", color: "var(--tan-2)" }}
       >
-        {renderValue(p.value, onNavigate)}
+        {renderValue(p.value)}
       </span>
     </div>
   );
 }
 
-function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (id: string) => void }) {
+function InstanceCard({ inst }: { inst: RadarInstance }) {
   const colWidth = useMemo(() => {
     if (inst.signalParams.length === 0) return MIN_DOTS_PX;
     return Math.max(...inst.signalParams.map((p) => measureKeyPx(p.key))) + MIN_DOTS_PX;
@@ -82,9 +84,9 @@ function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (
     <div className="rounded p-3 break-inside-avoid" style={{ background: "#0f0a08", border: "1px solid var(--border)", maxWidth: "600px" }}>
       <div className="flex items-center gap-2 flex-wrap mb-2">
         {inst.docId ? (
-          <button onClick={() => onNavigate(inst.docId!)} className="text-sm hover:underline" style={{ color: "var(--tan)" }}>
+          <AtlasLink to={atlasHref(inst.docId)} className="text-sm hover:underline" style={{ color: "var(--tan)" }}>
             {inst.displayName}
-          </button>
+          </AtlasLink>
         ) : (
           <span className="text-sm" style={{ color: "var(--tan)" }}>{inst.displayName}</span>
         )}
@@ -92,7 +94,7 @@ function InstanceCard({ inst, onNavigate }: { inst: RadarInstance; onNavigate: (
       </div>
       {inst.signalParams.length > 0 && (
         <div>
-          {inst.signalParams.map((p) => <ParamLine key={p.key} p={p} colWidth={colWidth} onNavigate={onNavigate} />)}
+          {inst.signalParams.map((p) => <ParamLine key={p.key} p={p} colWidth={colWidth} />)}
         </div>
       )}
     </div>
@@ -125,56 +127,138 @@ function buildCategoryGroups(primitives: RadarPrimitive[]): CategoryGroup[] {
   return groups;
 }
 
-export function ActorInstances({ primitives }: Props) {
-  const { onNavigate } = useRadar();
-  const groups = buildCategoryGroups(primitives);
+const INSTANCE_STATUS_ORDER = ["Active", "Suspended", "Completed"];
+
+function instanceStatusRank(s: string | null): number {
+  const i = INSTANCE_STATUS_ORDER.indexOf(s ?? "");
+  return i === -1 ? INSTANCE_STATUS_ORDER.length : i;
+}
+
+/** Sort instances by status and tag the first of each status group with an
+ * anchor id (`distribution-reward-active`, `distribution-reward-suspended`, …).
+ * In the Invocations section all items share one status (InProgress) so the
+ * sort is a no-op and one anchor fires. */
+function withStatusAnchors(
+  prim: RadarPrimitive,
+  items: RadarInstance[],
+  anchorPrefix: string,
+): Array<{ inst: RadarInstance; anchorId?: string }> {
+  const sorted = [...items].sort((a, b) => instanceStatusRank(a.status) - instanceStatusRank(b.status));
+  const seen = new Set<string>();
+  return sorted.map((inst) => {
+    const key = (inst.status ?? "unknown").toLowerCase();
+    if (seen.has(key)) return { inst };
+    seen.add(key);
+    // Empty anchorPrefix → bare `#<primitive-st>-<status>` (Instances section, the default).
+    // Non-empty → `#<anchorPrefix>-<primitive-st>-<status>` (e.g. Invocations).
+    const id = anchorPrefix ? `${anchorPrefix}-${prim.st}-${key}` : `${prim.st}-${key}`;
+    return { inst, anchorId: id };
+  });
+}
+
+interface SectionProps {
+  /** Category groups whose primitives carry the items to render. */
+  groups: CategoryGroup[];
+  /** Which list off each primitive to render. */
+  pick: (prim: RadarPrimitive) => RadarInstance[];
+  /** Anchor namespace. Empty for Instances (the default surface) so anchors
+   * like `#distribution-reward-active` are bare. Non-empty (e.g. "Invocations")
+   * for sibling sections so the primitive anchor becomes
+   * `#Invocations-distribution-reward`. */
+  anchorPrefix: string;
+}
+
+function ActorItemsSection({ groups, pick, anchorPrefix }: SectionProps) {
+  const visibleGroups = groups
+    .map((cat) => ({ ...cat, primitives: cat.primitives.filter((p) => pick(p).length > 0) }))
+    .filter((cat) => cat.primitives.length > 0);
+  if (visibleGroups.length === 0) return null;
+
+  const catId = (cat: CategoryGroup) =>
+    anchorPrefix ? `${anchorPrefix}-${toAnchorId(cat.category)}` : toAnchorId(cat.category);
+  const primId = (prim: RadarPrimitive) =>
+    anchorPrefix ? `${anchorPrefix}-${prim.st}` : prim.st;
 
   return (
     <div className="space-y-6">
-      {groups.map((cat) => (
-        <div key={cat.category} id={toAnchorId(cat.category)}>
+      {visibleGroups.map((cat) => (
+        <div key={cat.category} id={catId(cat)} style={{ scrollMarginTop: HEADER_OFFSET }}>
           <div className="flex items-center gap-2 mb-3">
             {cat.categoryDocId ? (
-              <button onClick={() => onNavigate(cat.categoryDocId!)} className="mono text-[11px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-3)" }}>
+              <AtlasLink to={atlasHref(cat.categoryDocId)} className="mono text-[11px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan-3)" }}>
                 {cat.category}
-              </button>
+              </AtlasLink>
             ) : (
               <span className="mono text-[11px] uppercase tracking-wider" style={{ color: "var(--tan-3)" }}>{cat.category}</span>
             )}
           </div>
           <div className="space-y-4 pl-3" style={{ borderLeft: "1px solid var(--border)" }}>
-            {cat.primitives.map((prim) => (
-              <div key={prim.st} id={prim.st}>
-                <div className="flex items-baseline gap-2 mb-2 flex-wrap">
-                  {prim.docId ? (
-                    <button onClick={() => onNavigate(prim.docId!)} className="mono text-[11px] hover:underline" style={{ color: "var(--accent)" }}>
-                      {prim.title}
-                    </button>
-                  ) : (
-                    <span className="mono text-[11px]" style={{ color: "var(--accent)" }}>{prim.title}</span>
-                  )}
-                  {prim.status && <StatusPill s={prim.status} />}
-                  {prim.instances.length > 0 && (
-                    <span className="mono text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.6 }}>({prim.instances.length})</span>
-                  )}
-                  {prim.isUnknown && (
-                    <span className="mono text-[10px] px-1 rounded" style={{ color: "var(--red)", border: "1px solid var(--red)" }} title="Not listed in Current Primitives (A.2.2.1.5.1)">unknown</span>
-                  )}
-                </div>
-                {prim.instances.length > 0 && (
+            {cat.primitives.map((prim) => {
+              const items = pick(prim);
+              return (
+                <div key={prim.st} id={primId(prim)} style={{ scrollMarginTop: HEADER_OFFSET }}>
+                  <div className="flex items-baseline gap-2 mb-2 flex-wrap">
+                    {prim.docId ? (
+                      <AtlasLink to={atlasHref(prim.docId)} className="mono text-[11px] hover:underline" style={{ color: "var(--accent)" }}>
+                        {prim.title}
+                      </AtlasLink>
+                    ) : (
+                      <span className="mono text-[11px]" style={{ color: "var(--accent)" }}>{prim.title}</span>
+                    )}
+                    {prim.status && <StatusPill s={prim.status} />}
+                    <span className="mono text-[10px]" style={{ color: "var(--tan-3)", opacity: 0.6 }}>({items.length})</span>
+                    {prim.isUnknown && (
+                      <span className="mono text-[10px] px-1 rounded" style={{ color: "var(--red)", border: "1px solid var(--red)" }} title="Not listed in Current Primitives (A.2.2.1.5.1)">unknown</span>
+                    )}
+                  </div>
                   <div style={{ columns: "520px", columnGap: "0.75rem" }}>
-                    {prim.instances.map((inst) => (
-                      <div key={inst.id} className="mb-2">
-                        <InstanceCard inst={inst} onNavigate={onNavigate} />
+                    {withStatusAnchors(prim, items, anchorPrefix).map(({ inst, anchorId }) => (
+                      <div
+                        key={inst.id}
+                        id={anchorId}
+                        className="mb-2"
+                        style={anchorId ? { scrollMarginTop: HEADER_OFFSET } : undefined}
+                      >
+                        <InstanceCard inst={inst} />
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function SectionHeading({ label, count }: { label: string; count: number }) {
+  return (
+    <div className="flex items-baseline gap-2 mb-4">
+      <h2 className="text-sm font-medium" style={{ color: "var(--tan)", fontFamily: "Lora, serif" }}>{label}</h2>
+      <span className="mono text-[11px]" style={{ color: "var(--tan-3)" }}>({count})</span>
+    </div>
+  );
+}
+
+export function ActorInstances({ primitives }: Props) {
+  const groups = buildCategoryGroups(primitives);
+  const instanceCount = primitives.reduce((n, p) => n + p.instances.length, 0);
+  const invocationCount = primitives.reduce((n, p) => n + p.invocations.length, 0);
+
+  return (
+    <div className="space-y-8">
+      {invocationCount > 0 && (
+        <section id="invocations" style={{ scrollMarginTop: HEADER_OFFSET }}>
+          <SectionHeading label="Invocations" count={invocationCount} />
+          <ActorItemsSection groups={groups} pick={(p) => p.invocations} anchorPrefix="invocations" />
+        </section>
+      )}
+      <section id="instances" style={{ scrollMarginTop: HEADER_OFFSET }}>
+        <SectionHeading label="Instances" count={instanceCount} />
+        <ActorItemsSection groups={groups} pick={(p) => p.instances} anchorPrefix="" />
+      </section>
     </div>
   );
 }

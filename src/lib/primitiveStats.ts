@@ -1,6 +1,6 @@
 import type { AtlasNode } from "../types";
 import type { GraphData } from "./graph";
-import type { InstanceMeta } from "./rewardsTypes";
+import type { InstanceMeta, InvocationMeta } from "./rewardsTypes";
 import { parseMeta } from "./meta";
 
 const CURRENT_PRIMITIVES_UUID = "203b8c79-c7cf-4fcc-94e3-5bf42f791619";
@@ -9,7 +9,10 @@ export interface PrimitiveStat {
   title: string;
   st: string;
   docId: string | null;
-  pending: number;
+  // Invocations are a distinct concept from Instances (atlas A.2.2.1.4): the
+  // in-progress act of enabling a Primitive. They're counted separately and
+  // never summed with active/suspended/completed instance counts.
+  invocations: number;
   active: number;
   suspended: number;
   completed: number;
@@ -69,13 +72,19 @@ export function buildPrimitiveStats(
   const categoryNameSet = new Set(orderedCategories);
   const globalCatDocId = globalCategoryDocIds(graph, docs, categoryNameSet);
 
+  // Map ICD doc id → primitive doc id for both kinds. instance_of for
+  // Instances, invocation_of for Invocations — both resolve the parent primitive.
   const instanceOfMap = new Map<string, string>();
   for (const e of graph.edges) {
-    if (e.e === "instance_of" && e.ft === "doc" && e.tt === "doc") instanceOfMap.set(e.f, e.t);
+    if ((e.e === "instance_of" || e.e === "invocation_of") && e.ft === "doc" && e.tt === "doc") {
+      instanceOfMap.set(e.f, e.t);
+    }
   }
 
   const entityById = new Map(
-    [...graph.participants, ...graph.instances, ...graph.primitives].map((e) => [e.id, e]),
+    [...graph.participants, ...graph.instances, ...graph.invocations, ...graph.primitives].map(
+      (e) => [e.id, e],
+    ),
   );
   // executor slug/name per prime agent id
   const executorByPrimeId = new Map<string, { name: string; slug: string }>();
@@ -95,10 +104,11 @@ export function buildPrimitiveStats(
     agentMap.set(p.id, { name: p.name, slug: p.slug, docId: p.id, catMap: new Map() });
   }
 
-  for (const inst of graph.instances) {
-    if (!inst.m || !inst.st) continue;
-    const meta = parseMeta<InstanceMeta>(inst.m);
-    if (!meta?.agent_doc_id) continue;
+  // Seed every primitive with zero counts so cards list the full primitive set
+  // for each agent, even when no instances exist yet.
+  for (const prim of graph.primitives) {
+    const meta = prim.m ? parseMeta<{ agent_doc_id?: string; primitive_category_doc_id?: string }>(prim.m) : null;
+    if (!meta?.agent_doc_id || !prim.st) continue;
     const bucket = agentMap.get(meta.agent_doc_id);
     if (!bucket) continue;
 
@@ -107,19 +117,58 @@ export function buildPrimitiveStats(
     if (!bucket.catMap.has(catTitle)) bucket.catMap.set(catTitle, { docId: catDocId, primMap: new Map() });
     const { primMap } = bucket.catMap.get(catTitle)!;
 
-    const primitiveDocId = instanceOfMap.get(inst.id) ?? null;
-    const primitiveTitle = primitiveDocId
-      ? (docs[primitiveDocId]?.title?.replace(/ Primitive$/i, "") ?? inst.st)
-      : inst.st;
+    const primitiveTitle = prim.did
+      ? (docs[prim.did]?.title?.replace(/ Primitive$/i, "") ?? prim.name.replace(/ Primitive$/i, ""))
+      : prim.name.replace(/ Primitive$/i, "");
 
-    if (!primMap.has(inst.st)) {
-      primMap.set(inst.st, { title: primitiveTitle, st: inst.st, docId: primitiveDocId, pending: 0, active: 0, suspended: 0, completed: 0 });
+    if (!primMap.has(prim.st)) {
+      primMap.set(prim.st, { title: primitiveTitle, st: prim.st, docId: prim.did, invocations: 0, active: 0, suspended: 0, completed: 0 });
     }
-    const stat = primMap.get(inst.st)!;
+  }
+
+  // Shared bucketing logic — find/create the PrimitiveStat row for an ICD entity.
+  function statFor(
+    icd: GraphData["instances"][number],
+    meta: { agent_doc_id: string | null; primitive_category_doc_id: string | null },
+  ): PrimitiveStat | null {
+    if (!icd.st || !meta.agent_doc_id) return null;
+    const bucket = agentMap.get(meta.agent_doc_id);
+    if (!bucket) return null;
+
+    const catDocId = meta.primitive_category_doc_id ?? null;
+    const catTitle = catDocId ? (docs[catDocId]?.title ?? "Unknown") : "Unknown";
+    if (!bucket.catMap.has(catTitle)) bucket.catMap.set(catTitle, { docId: catDocId, primMap: new Map() });
+    const { primMap } = bucket.catMap.get(catTitle)!;
+
+    const primitiveDocId = instanceOfMap.get(icd.id) ?? null;
+    const primitiveTitle = primitiveDocId
+      ? (docs[primitiveDocId]?.title?.replace(/ Primitive$/i, "") ?? icd.st)
+      : icd.st;
+
+    if (!primMap.has(icd.st)) {
+      primMap.set(icd.st, { title: primitiveTitle, st: icd.st, docId: primitiveDocId, invocations: 0, active: 0, suspended: 0, completed: 0 });
+    }
+    return primMap.get(icd.st)!;
+  }
+
+  for (const inst of graph.instances) {
+    if (!inst.m) continue;
+    const meta = parseMeta<InstanceMeta>(inst.m);
+    if (!meta) continue;
+    const stat = statFor(inst, meta);
+    if (!stat) continue;
     if (meta.status === "Active") stat.active++;
     else if (meta.status === "Completed") stat.completed++;
-    else if (meta.status === "Pending") stat.pending++;
-    else stat.active++;
+    else if (meta.status === "Suspended") stat.suspended++;
+  }
+
+  for (const invo of graph.invocations) {
+    if (!invo.m) continue;
+    const meta = parseMeta<InvocationMeta>(invo.m);
+    if (!meta) continue;
+    const stat = statFor(invo, meta);
+    if (!stat) continue;
+    stat.invocations++;
   }
 
   return [...agentMap.values()]

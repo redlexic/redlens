@@ -1,4 +1,11 @@
-export type InstanceStatus = "Active" | "Completed" | "InProgress";
+// Atlas-canonical Instance statuses (A.2.2.1.3.2). An Instance is an
+// operational deployment with exactly one of these values.
+export type InstanceStatus = "Active" | "Suspended" | "Completed";
+// Atlas Invocation status (A.2.2.1.4.1). Invocations are the in-progress act
+// of enabling a Primitive — they're distinct from Instances. The atlas
+// placeholder currently enumerates only "InProgress"; widen the union when
+// the atlas fills in the full vocabulary.
+export type InvocationStatus = "InProgress";
 export type PrimitiveKind = "DR" | "IB";
 
 export interface EntityRef {
@@ -11,11 +18,14 @@ export interface OperationalChain {
   govops: EntityRef | null;
 }
 
-export interface RewardsInstance {
+// Shared ICD-derived shape — both Instances and Invocations are ICDs of the
+// same primitives, with the same parameter shapes. The `status` type
+// discriminates kind: InstanceStatus vs InvocationStatus.
+export interface RewardsIcd<S> {
   id: string;
   docNo: string;
   name: string;
-  status: InstanceStatus;
+  status: S;
   rewardCode?: string; // DR only
   rewardCodeDocId?: string; // DR — the .1.1 Reward Code sub-doc
   partnerName?: string; // IB only
@@ -42,6 +52,9 @@ export interface RewardsInstance {
   params?: Record<string, ParamTuple>;
 }
 
+export type RewardsInstance = RewardsIcd<InstanceStatus>;
+export type RewardsInvocation = RewardsIcd<InvocationStatus>;
+
 /** [formattedValue, srcUuid, srcDocNo] — tuple shipped on entity meta params. */
 export type ParamTuple = [string, string, string];
 
@@ -50,7 +63,18 @@ export interface InstanceMeta {
   agent_doc_id: string | null;
   primitive_category_doc_id: string | null;
   is_unknown_primitive?: boolean;
-  status: "Active" | "Completed" | "Pending" | null;
+  status: InstanceStatus | null;
+  params: Record<string, ParamTuple>;
+}
+
+/** Parsed meta block on `et="invocation"` GraphEntity.m. Same shape as
+ * InstanceMeta but with the InvocationStatus union — kept separate so callers
+ * can't accidentally cross-assign. */
+export interface InvocationMeta {
+  agent_doc_id: string | null;
+  primitive_category_doc_id: string | null;
+  is_unknown_primitive?: boolean;
+  status: InvocationStatus | null;
   params: Record<string, ParamTuple>;
 }
 
@@ -60,8 +84,9 @@ export interface AgentPrimitive {
   primitiveDocNo: string;
   globalActivation: string | null;
   active: RewardsInstance[];
+  suspended: RewardsInstance[];
   completed: RewardsInstance[];
-  inProgress: RewardsInstance[];
+  invocations: RewardsInvocation[];
 }
 
 export interface RewardsAgent {

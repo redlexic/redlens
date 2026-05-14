@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, startTransition, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useLocation, useSearchParams, Switch, Route } from "wouter";
 import { useSearchInput } from "./hooks/useSearchInput";
 import { useNavigation } from "./hooks/useNavigation";
-import { ROUTES, NAV_PAGE_ROUTES, type NavPage, type SearchScope } from "./lib/routes";
+import { useUrlState, urlString } from "./hooks/useUrlState";
+import { ROUTES, type NavPage, type SearchScope } from "./lib/routes";
 import { SearchBar } from "./components/SearchBar";
 import { SearchResults } from "./components/SearchResults";
 import { AtlasView } from "./components/atlas/AtlasView";
@@ -48,12 +49,16 @@ const RadarPage = lazy(() =>
   lazyRetry(() => import("./components/radar/RadarPage")).then((m) => ({ default: m.RadarPage })),
 );
 
+const splitCodec = urlString(null);
+
 prefetchNodeContent();
 
 export default function App() {
   const [location, navigate] = useLocation();
   const [searchParams] = useSearchParams();
-  const [splitId, setSplitId] = useState<string | null>(null);
+  // Atlas comparison pane lives in ?split=<uuid> so shift-click + back/forward
+  // restore the same side-by-side view, and the URL is shareable.
+  const [splitId, setSplitId] = useUrlState("split", splitCodec);
   const [treeOpen, setTreeOpen] = useState(false);
 
   const nodeId = location === ROUTES.ATLAS ? searchParams.get("id") : null;
@@ -75,11 +80,10 @@ export default function App() {
 
   const scope: SearchScope = activeNavPage ?? "atlas";
 
-  const { query, setQuery, inputRef, handleChange, state, ready, clearSearch, handleHintClick } =
+  const { query, inputRef, handleChange, state, ready, handleHintClick } =
     useSearchInput(location, navigate, scope);
-  const { navigateToNode, navigateToEntity, navigateToReport, handleViewChange } = useNavigation({
+  const { navigateToNode, handleViewChange } = useNavigation({
     navigate,
-    clearSearch,
     nodeId,
   });
 
@@ -93,34 +97,32 @@ export default function App() {
     [navigateToNode],
   );
 
-  const handleNavPage = useCallback(
-    (p: NavPage) => {
-      clearSearch();
-      startTransition(() => {
-        navigate(NAV_PAGE_ROUTES[p]);
-      });
-    },
-    [navigate, clearSearch],
-  );
-
   useEffect(() => {
-    if (location !== ROUTES.ATLAS) setSplitId(null);
     setTreeOpen(false);
   }, [location]);
 
+  // Window-scroll mode: routes that don't need the "fixed shell, inner scroll"
+  // layout opt in here. The root grows with content (min-h-dvh) and the
+  // overflow-hidden wrappers are dropped, so the browser's native
+  // history.scrollRestoration handles back/forward for free.
+  const windowScroll =
+    location.startsWith(ROUTES.REPORTS) || location.startsWith(ROUTES.RADAR);
+
   return (
-    <div className="flex flex-col h-dvh" style={{ background: "var(--bg)" }}>
+    <div
+      className={`flex flex-col ${windowScroll ? "min-h-dvh" : "h-dvh"}`}
+      style={{ background: "var(--bg)" }}
+    >
       <SearchBar
         inputRef={inputRef}
         query={query}
         onChange={handleChange}
         ready={ready}
         isSearching={state.status === "searching"}
-        onNavPage={handleNavPage}
         activePage={activeNavPage}
         scope={scope}
       />
-      <div className="flex-1 flex overflow-hidden">
+      <div className={`flex-1 flex ${windowScroll ? "" : "overflow-hidden"}`}>
         {showTree && (
           <ErrorBoundary fallback={<PanelError />}>
             <Drawer open={treeOpen} onClose={() => setTreeOpen(false)}>
@@ -132,9 +134,9 @@ export default function App() {
             </Drawer>
           </ErrorBoundary>
         )}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className={`flex-1 flex flex-col ${windowScroll ? "" : "overflow-hidden"}`}>
           <ErrorBoundary
-            key={location}
+            resetKey={location}
             fallback={(error) => (
               <div className="flex flex-col items-center justify-center flex-1 py-24 gap-4">
                 <p className="text-sm mono" style={{ color: "var(--red)" }}>page failed to load</p>
@@ -145,17 +147,15 @@ export default function App() {
           <Switch>
             <Route path={ROUTES.HOME}>
               {query.startsWith("__dev") ? (
-                <DevPanel query={query} onNavigate={navigateToNode} />
+                <DevPanel query={query} />
               ) : query ? (
                 <SearchResults
                   state={state}
                   query={query}
-                  onNavigate={navigateToNode}
-                  onNavigateEntity={navigateToEntity}
                   onHintClick={handleHintClick}
                 />
               ) : (
-                <HomePage onNavPage={handleNavPage} />
+                <HomePage />
               )}
             </Route>
             <Route path={ROUTES.ATLAS}>
@@ -171,22 +171,22 @@ export default function App() {
             </Route>
             <Route path={ROUTES.REPORTS}>
               <Suspense fallback={<Loading />}>
-                <ReportsIndex onNavigate={navigateToReport} query={query} />
+                <ReportsIndex query={query} />
               </Suspense>
             </Route>
             <Route path={ROUTES.REPORTS_OF_RESPONSIBILITIES}>
               <Suspense fallback={<Loading />}>
-                <OpFacilitatorsReport onNavigate={navigateToNode} />
+                <OpFacilitatorsReport />
               </Suspense>
             </Route>
             <Route path={ROUTES.REPORTS_ACTIVE_DATA}>
               <Suspense fallback={<Loading />}>
-                <ActiveDataReport onNavigate={navigateToNode} />
+                <ActiveDataReport />
               </Suspense>
             </Route>
             <Route path={ROUTES.REPORTS_REWARDS}>
               <Suspense fallback={<Loading />}>
-                <RewardsReport onNavigate={navigateToNode} onEntity={navigateToEntity} />
+                <RewardsReport />
               </Suspense>
             </Route>
             <Route path={ROUTES.REPORTS_PROCESSES}>
@@ -196,26 +196,29 @@ export default function App() {
             </Route>
             <Route path={ROUTES.CONSTELLATIONS}>
               <Suspense fallback={<Loading />}>
-                <ConstellationsPage onNavigate={navigateToNode} query={query} />
+                <ConstellationsPage query={query} />
               </Suspense>
             </Route>
             <Route path={ROUTES.RADAR_ACTOR}>
               {(params: { slug: string }) => (
                 <Suspense fallback={<Loading />}>
-                  <RadarPage actorSlug={params.slug} onNavigate={navigateToNode} query={query} />
+                  <RadarPage actorSlug={params.slug} query={query} />
                 </Suspense>
               )}
             </Route>
             <Route path={ROUTES.RADAR}>
               <Suspense fallback={<Loading />}>
-                <RadarPage onNavigate={navigateToNode} query={query} />
+                <RadarPage query={query} />
               </Suspense>
             </Route>
             <Route path={ROUTES.SEARCH_HINTS}>
               <SearchHintsPage
                 onHintClick={(q) => {
-                  navigate(ROUTES.HOME);
-                  setQuery(q);
+                  const np = new URLSearchParams();
+                  if (q) np.set("q", q);
+                  if (splitId) np.set("split", splitId);
+                  const qs = np.toString();
+                  navigate(qs ? `${ROUTES.HOME}?${qs}` : ROUTES.HOME);
                 }}
               />
             </Route>

@@ -100,6 +100,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   "src_member",
   "ecosystem_actor",
   "instance",
+  "invocation",
   "primitive",
 ]);
 
@@ -133,6 +134,7 @@ const KNOWN_EDGE_TYPES = new Set([
   "active_data_for",
   "located_at",
   "instance_of",
+  "invocation_of",
   "listed_in",
   "has_status",
   "implements",

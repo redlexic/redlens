@@ -1,8 +1,9 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
-import { useLocation, useSearchParams } from "wouter";
+import { useMemo, useCallback, useEffect } from "react";
+import { useSearchParams } from "wouter";
 import { loadAtlas } from "../lib/docs";
 import { useLoaded } from "../hooks/useAtlasData";
 import { useConstellationsWorker } from "../hooks/useConstellationsWorker";
+import { useUrlState, urlBool, urlString, urlStringSet } from "../hooks/useUrlState";
 import {
   buildEntityNodes,
   buildEntityEdges,
@@ -15,29 +16,32 @@ import { Loading } from "./Loading";
 import { ErrorBoundary, PanelError } from "./ErrorBoundary";
 import type { GraphEntity } from "../types";
 
-export function ConstellationsPage({
-  onNavigate,
-  query,
-}: {
-  onNavigate: (id: string) => void;
-  query: string;
-}) {
+const DEFAULT_HIDDEN_TYPES = new Set(["govops_org", "facilitator_org", "delegate_org"]);
+const hiddenTypesCodec = urlStringSet(DEFAULT_HIDDEN_TYPES);
+const focusCodec = urlString(null);
+const filtersOpenCodec = urlBool(true);
+
+export function ConstellationsPage({ query }: { query: string }) {
   const atlas = useLoaded(loadAtlas);
   const docNoToId = atlas?.docNoToId ?? null;
-  const [, navigate] = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlId = searchParams.get("id");
 
+  // Preserve filter params when selecting an entity.
   const selectEntity = useCallback(
-    (id: string) => navigate(`/constellations?id=${id}`),
-    [navigate],
+    (id: string) => {
+      setSearchParams((prev) => {
+        const np = new URLSearchParams(prev);
+        np.set("id", id);
+        return np;
+      });
+    },
+    [setSearchParams],
   );
 
-  const [filtersOpen, setFiltersOpen] = useState(true);
-  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(
-    () => new Set(["govops_org", "facilitator_org", "delegate_org"]),
-  );
-  const [focusAgentId, setFocusAgentId] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useUrlState("filters", filtersOpenCodec);
+  const [hiddenTypes, setHiddenTypes] = useUrlState("hide", hiddenTypesCodec);
+  const [focusAgentId, setFocusAgentId] = useUrlState("focus", focusCodec);
 
   const { init, neighborIds, topId, clusterIds } = useConstellationsWorker(query, focusAgentId);
 
@@ -50,8 +54,11 @@ export function ConstellationsPage({
     () =>
       init
         ? {
-            participants: init.entities.filter((e) => e.et !== "instance" && e.et !== "primitive"),
+            participants: init.entities.filter(
+              (e) => e.et !== "instance" && e.et !== "invocation" && e.et !== "primitive",
+            ),
             instances: init.entities.filter((e) => e.et === "instance"),
+            invocations: init.entities.filter((e) => e.et === "invocation"),
             primitives: init.entities.filter((e) => e.et === "primitive"),
             edges: init.entityEdges,
           }
@@ -232,7 +239,6 @@ export function ConstellationsPage({
             visibleIds={visibleIds}
             selectedId={urlId}
             onSelect={selectEntity}
-            onNavigateDoc={onNavigate}
           />
         </ErrorBoundary>
       </div>

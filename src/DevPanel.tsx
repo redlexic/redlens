@@ -1,3 +1,6 @@
+import { AtlasLink } from "./components/AtlasLink";
+import { atlasHref } from "./lib/routes";
+
 // ---------------------------------------------------------------------------
 // Dev shortcuts — type __dev <cmd> in the search box
 // ---------------------------------------------------------------------------
@@ -21,13 +24,7 @@ const DEV_SHORTCUTS = [
     id: "5f584db8-f8d8-4118-988c-b2bc3f68ceb7",
   },
 ];
-export function DevPanel({
-  query,
-  onNavigate,
-}: {
-  query: string;
-  onNavigate: (id: string) => void;
-}) {
+export function DevPanel({ query }: { query: string }) {
   const lower = query.slice("__dev".length).trim().toLowerCase();
   const matches = lower ? DEV_SHORTCUTS.filter((s) => s.cmd.startsWith(lower)) : DEV_SHORTCUTS;
 
@@ -38,15 +35,15 @@ export function DevPanel({
       <p className="mono text-[10px] mb-4 text-tan-3">dev shortcuts</p>
       <div className="space-y-1">
         {matches.map((s) => (
-          <button
+          <AtlasLink
             key={s.cmd}
-            onClick={() => onNavigate(s.id)}
+            to={atlasHref(s.id)}
             className="hint-row w-full text-left px-3 py-2 rounded flex items-baseline gap-4"
           >
             <span className="mono text-xs shrink-0 w-20 text-accent">__{s.cmd}</span>
             <span className="text-xs font-medium shrink-0 text-tan">{s.label}</span>
             <span className="mono text-[10px] truncate text-tan-3">{s.hint}</span>
-          </button>
+          </AtlasLink>
         ))}
       </div>
     </div>

@@ -6,13 +6,17 @@ import type {
   EntityRef,
   InstanceMeta,
   InstanceStatus,
+  InvocationMeta,
+  InvocationStatus,
   OperationalChain,
   ParamTuple,
   PrimitiveKind,
   RewardsAgent,
   RewardsEcosystemNode,
+  RewardsIcd,
   RewardsIndex,
   RewardsInstance,
+  RewardsInvocation,
 } from "./rewardsTypes";
 
 export * from "./rewardsTypes";
@@ -28,6 +32,8 @@ interface GraphCtx {
   edges: RelationEdge[];
   instanceEntities: GraphEntity[];
   instanceMetaById: Map<string, InstanceMeta>;
+  invocationEntities: GraphEntity[];
+  invocationMetaById: Map<string, InvocationMeta>;
 }
 
 function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): GraphCtx {
@@ -47,7 +53,11 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
     const parts = controller.doc_no.split(".");
     if (parts.length > 2) paymentControllerByInstance.set(parts.slice(0, -2).join("."), controller);
   }
-  const allEntities = [...(graph?.participants ?? []), ...(graph?.instances ?? [])];
+  const allEntities = [
+    ...(graph?.participants ?? []),
+    ...(graph?.instances ?? []),
+    ...(graph?.invocations ?? []),
+  ];
   const entityById = new Map<string, GraphEntity>(allEntities.map((e) => [e.id, e]));
   const rpByDocId = new Map<string, EntityRef>();
   for (const e of graph?.edges ?? []) {
@@ -72,6 +82,23 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
       /* ignore */
     }
   }
+  const invocationEntities: GraphEntity[] = [];
+  const invocationMetaById = new Map<string, InvocationMeta>();
+  for (const ent of graph?.invocations ?? []) {
+    if (!ent.m) continue;
+    try {
+      const m = JSON.parse(ent.m) as InvocationMeta;
+      invocationEntities.push(ent);
+      invocationMetaById.set(ent.id, {
+        agent_doc_id: m.agent_doc_id ?? null,
+        primitive_category_doc_id: m.primitive_category_doc_id ?? null,
+        status: m.status ?? null,
+        params: m.params ?? {},
+      });
+    } catch {
+      /* ignore */
+    }
+  }
   return {
     paymentControllerByInstance,
     rpByDocId,
@@ -79,6 +106,8 @@ function buildGraphCtx(byDocNo: Map<string, AtlasNode>, graph?: GraphData): Grap
     edges: graph?.edges ?? [],
     instanceEntities,
     instanceMetaById,
+    invocationEntities,
+    invocationMetaById,
   };
 }
 
@@ -98,8 +127,8 @@ function resolveChain(ctx: GraphCtx, primeId: string): OperationalChain | null {
   };
 }
 
-function applyParamTuples(
-  inst: RewardsInstance,
+function applyParamTuples<S>(
+  inst: RewardsIcd<S>,
   params: Record<string, ParamTuple>,
   kind: PrimitiveKind,
   docs: Record<string, AtlasNode>,
@@ -144,16 +173,16 @@ function applyParamTuples(
   }
 }
 
-function extractInstanceFromEntity(
+function extractIcdFromEntity<S>(
   ent: GraphEntity,
-  meta: InstanceMeta,
-  status: InstanceStatus,
+  meta: { params: Record<string, ParamTuple> },
+  status: S,
   kind: PrimitiveKind,
   ctx: GraphCtx,
   docs: Record<string, AtlasNode>,
-): RewardsInstance {
+): RewardsIcd<S> {
   const icdDoc = ent.did ? docs[ent.did] : null;
-  const inst: RewardsInstance = { id: ent.id, docNo: icdDoc?.doc_no ?? "", name: ent.name, status };
+  const inst: RewardsIcd<S> = { id: ent.id, docNo: icdDoc?.doc_no ?? "", name: ent.name, status };
   applyParamTuples(inst, meta.params, kind, docs);
   if (Object.keys(meta.params).length > 0) inst.params = meta.params;
   if (kind === "DR" && inst.docNo) {
@@ -179,32 +208,44 @@ function extractPrimitive(
   if (!head) return null;
   const globalActivation = unwrapBackticks(plain(byDocNo.get(`${primitiveDocNo}.1.1`))) || null;
   const primSlug = kind === "DR" ? "distribution-reward" : "integration-boost";
-  const relevant = ctx.instanceEntities.filter(
+
+  const instances = ctx.instanceEntities.filter(
     (e) => e.st === primSlug && ctx.instanceMetaById.get(e.id)?.agent_doc_id === agent.docId,
   );
-  const buckets: Record<InstanceStatus, RewardsInstance[]> = {
+  const instanceBuckets: Record<InstanceStatus, RewardsInstance[]> = {
     Active: [],
+    Suspended: [],
     Completed: [],
-    InProgress: [],
   };
-  for (const ent of relevant) {
+  for (const ent of instances) {
     const meta = ctx.instanceMetaById.get(ent.id)!;
+    // status fallback to Active preserves the report's prior behavior of
+    // surfacing instances whose atlas-side status is missing/unparseable.
     const status: InstanceStatus =
-      meta.status === "Pending"
-        ? "InProgress"
-        : meta.status === "Completed"
-          ? "Completed"
+      meta.status === "Suspended" ? "Suspended"
+        : meta.status === "Completed" ? "Completed"
           : "Active";
-    buckets[status].push(extractInstanceFromEntity(ent, meta, status, kind, ctx, docs));
+    instanceBuckets[status].push(
+      extractIcdFromEntity<InstanceStatus>(ent, meta, status, kind, ctx, docs),
+    );
   }
+
+  const invocations: RewardsInvocation[] = ctx.invocationEntities
+    .filter((e) => e.st === primSlug && ctx.invocationMetaById.get(e.id)?.agent_doc_id === agent.docId)
+    .map((ent) => {
+      const meta = ctx.invocationMetaById.get(ent.id)!;
+      return extractIcdFromEntity<InvocationStatus>(ent, meta, "InProgress", kind, ctx, docs);
+    });
+
   return {
     kind,
     primitiveId: head.id,
     primitiveDocNo,
     globalActivation,
-    active: buckets.Active,
-    completed: buckets.Completed,
-    inProgress: buckets.InProgress,
+    active: instanceBuckets.Active,
+    suspended: instanceBuckets.Suspended,
+    completed: instanceBuckets.Completed,
+    invocations,
   };
 }
 

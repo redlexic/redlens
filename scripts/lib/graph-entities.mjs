@@ -37,7 +37,7 @@ import {
 import {
   buildKnownPrimitives,
   primitiveSlugFromTitle,
-  instanceStatusFor,
+  classifyIcd,
   primitiveStatusFor,
   buildChildrenIndex,
   extractInstanceParams,
@@ -394,12 +394,16 @@ export function extractEntities(allDocs, docById, docByDocNo, addressesRaw) {
       ? instanceOfMatch[1].replace(/\binstance(?:s)?\b/g, "Instance")
       : rawName;
     const slug = `${agentSlug}-${primitiveSlug}-${slugify(name)}`;
-    const status = instanceStatusFor(icd, primRoot, docByDocNo);
+    const { kind, status } = classifyIcd(icd, primRoot, docByDocNo);
     const params = extractInstanceParams(icd, childrenByDocNo);
     const categoryDocNo = primRoot.doc_no.slice(0, primRoot.doc_no.lastIndexOf("."));
     const categoryDoc = docByDocNo.get(categoryDocNo) ?? null;
     const isUnknown = !knownPrimitives.has(primRoot.title);
-    const ent = addEntity(slug, name, "instance", primitiveSlug, icd.id, {
+    // kind === null falls back to "instance" so out-of-scope ICDs still get a
+    // graph entity (their status will be null). Per-atlas, the only valid kinds
+    // are "instance" and "invocation".
+    const entityType = kind === "invocation" ? "invocation" : "instance";
+    const ent = addEntity(slug, name, entityType, primitiveSlug, icd.id, {
       agent_doc_id: agentDoc?.id ?? null,
       primitive_category_doc_id: categoryDoc?.id ?? null,
       is_unknown_primitive: isUnknown || undefined,

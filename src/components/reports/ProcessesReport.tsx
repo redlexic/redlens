@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation, useSearchParams } from "wouter";
-import { ROUTES } from "../../lib/routes";
+import { AtlasLink } from "../AtlasLink";
+import { ROUTES, atlasHref } from "../../lib/routes";
+import { HEADER_OFFSET } from "../../lib/layout";
+import { useUrlState, urlBool, urlEnum, urlString } from "../../hooks/useUrlState";
 import { loadAtlas } from "../../lib/docs";
 import {
   loadProcesses,
@@ -19,6 +22,13 @@ import type { AtlasNode } from "../../types";
 
 type StatusFilter = "all" | "active" | "deferred-stub";
 type ShapeFilter = "all" | "child" | "inline";
+
+const STATUS_VALUES = ["all", "active", "deferred-stub"] as const;
+const SHAPE_VALUES = ["all", "child", "inline"] as const;
+const statusCodec = urlEnum<StatusFilter>("all", STATUS_VALUES);
+const shapeCodec = urlEnum<ShapeFilter>("all", SHAPE_VALUES);
+const categoryCodec = urlString(null);
+const ignoredCodec = urlBool(false);
 
 const STATUS_STYLE: Record<ProcessRow["status"], string> = {
   active: "bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] text-tan",
@@ -75,12 +85,9 @@ function ExpandedBody({
                   <li key={s.id}>
                     <h3 className="text-base font-medium mb-3" style={{ color: "var(--tan)" }}>
                       <span className="mono text-tan-3 mr-2">{i + 1}.</span>
-                      <button
-                        onClick={() => onNavigate(s.id)}
-                        className="hover:underline text-left"
-                      >
+                      <AtlasLink to={atlasHref(s.id)} className="hover:underline text-left">
                         {s.title}
-                      </button>
+                      </AtlasLink>
                       <span className="ml-2 mono text-[10px] text-tan-3 font-normal" title={s.id}>
                         ({s.id.slice(0, 8)})
                       </span>
@@ -133,33 +140,29 @@ function Row({
         id={r.uuid}
         onClick={onToggle}
         aria-expanded={expanded}
-        style={{ scrollMarginTop: "64px" }}
+        style={{ scrollMarginTop: HEADER_OFFSET }}
         className="border-t border-[var(--border)] hover:bg-[var(--hover)] transition-colors cursor-pointer"
       >
         <td className="py-2 px-3 align-top w-6 text-tan-3 mono text-[10px]" aria-hidden>
           {expanded ? "▾" : "▸"}
         </td>
         <td className="py-2 px-3 align-top">
-          <button
-            onClick={(e) => {
-              stop(e);
-              onNavigate(r.uuid);
-            }}
+          <AtlasLink
+            to={atlasHref(r.uuid)}
+            onClick={stop}
             className="mono text-xs text-accent hover:underline text-left"
           >
             {r.docNo}
-          </button>
+          </AtlasLink>
         </td>
         <td className="py-2 px-3 align-top">
-          <button
-            onClick={(e) => {
-              stop(e);
-              onNavigate(r.uuid);
-            }}
+          <AtlasLink
+            to={atlasHref(r.uuid)}
+            onClick={stop}
             className="text-sm text-tan hover:underline text-left"
           >
             {r.title}
-          </button>
+          </AtlasLink>
         </td>
         <td className="py-2 px-3 align-top">
           <StepsCell count={r.stepCount} shape={r.shape} />
@@ -203,10 +206,10 @@ export function ProcessesReport({ onNavigate }: { onNavigate: (id: string) => vo
   const atlas = useLoaded(loadAtlas);
   const processes = useLoaded(loadProcesses);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [shapeFilter, setShapeFilter] = useState<ShapeFilter>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [showIgnored, setShowIgnored] = useState(false);
+  const [statusFilter, setStatusFilter] = useUrlState("status", statusCodec);
+  const [shapeFilter, setShapeFilter] = useUrlState("shape", shapeCodec);
+  const [categoryFilter, setCategoryFilter] = useUrlState("category", categoryCodec);
+  const [showIgnored, setShowIgnored] = useUrlState("ignored", ignoredCodec);
 
   // URL is the source of truth for the expanded row. Bookmarkable + back/forward
   // navigation drives expansion via useSearchParams. The post-render useEffect
@@ -272,7 +275,7 @@ export function ProcessesReport({ onNavigate }: { onNavigate: (id: string) => vo
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="px-6 py-6">
       <div className="max-w-6xl mx-auto">
         <p className="mono text-xs text-tan-3 mb-1">report</p>
         <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--tan)" }}>

@@ -2,7 +2,7 @@ import type { AtlasNode, GraphEntity, RelationEdge } from "../types";
 import { ROUTES } from "./routes";
 import { parseMeta } from "./meta";
 import type { GraphData } from "./graph";
-import type { InstanceMeta, RewardsAgent } from "./rewardsTypes";
+import type { InstanceMeta, InvocationMeta, RewardsAgent } from "./rewardsTypes";
 import type { ActiveDataRow } from "./activeDataIndex";
 
 export interface ChainNode {
@@ -58,6 +58,11 @@ export interface RadarPrimitive {
   status: string | null;
   isUnknown: boolean;
   instances: RadarInstance[];
+  // Invocations share the RadarInstance shape (same ICD-derived fields) but
+  // are a distinct concept per atlas A.2.2.1.4 — kept in a separate array so
+  // the UI can render them as a peer section instead of conflating with
+  // operational instance statuses.
+  invocations: RadarInstance[];
 }
 export interface Recommendation {
   kind: "missing-rp" | "governance-edge" | "no-rewards";
@@ -74,6 +79,7 @@ export interface ActorProfile {
   rewardsAgent: RewardsAgent | null;
   relations: ActorRelation[];
   instances: RadarInstance[];
+  invocations: RadarInstance[];
   primitives: RadarPrimitive[];
   recommendations: Recommendation[];
   comprisesMembers: { name: string; slug: string | null }[];
@@ -261,41 +267,57 @@ export function buildActorProfile(
     });
   }
 
-  // instance config doc ID → primitive doc ID (from instance_of edges)
+  // ICD doc ID → primitive doc ID. Both instance_of (operational instances)
+  // and invocation_of (in-progress invocations) resolve to the parent primitive.
   const instanceOfMap = new Map<string, string>();
   for (const e of graph.edges) {
-    if (e.e === "instance_of" && e.ft === "doc" && e.tt === "doc") instanceOfMap.set(e.f, e.t);
+    if ((e.e === "instance_of" || e.e === "invocation_of") && e.ft === "doc" && e.tt === "doc") {
+      instanceOfMap.set(e.f, e.t);
+    }
+  }
+
+  function toRadarInstance(
+    ent: GraphEntity,
+    meta: InstanceMeta | InvocationMeta,
+  ): RadarInstance {
+    const signalParams = Object.entries(meta.params)
+      .filter(([k]) => !PARAM_BLACKLIST.has(k))
+      .map(([key, t]) => ({ key, value: t[0], srcDocId: t[1] || null }));
+    const instDoc = ent.did ? docs[ent.did] : null;
+    const primitiveDocId = ent.did ? (instanceOfMap.get(ent.did) ?? null) : null;
+    const primitiveDoc = primitiveDocId ? docs[primitiveDocId] : null;
+    return {
+      id: ent.id,
+      slug: ent.slug,
+      rawName: ent.name,
+      st: ent.st ?? "",
+      displayName: ent.name,
+      status: meta.status,
+      docId: ent.did,
+      docNo: instDoc?.doc_no ?? null,
+      primitiveTitle: primitiveDoc?.title ?? null,
+      primitiveDocId,
+      primitiveCategoryDocId: meta.primitive_category_doc_id ?? null,
+      primitiveCategory: meta.primitive_category_doc_id ? (docs[meta.primitive_category_doc_id]?.title ?? null) : null,
+      isUnknownPrimitive: meta.is_unknown_primitive ?? false,
+      signalParams,
+    };
   }
 
   const instances: RadarInstance[] = [];
+  const invocations: RadarInstance[] = [];
   if (definingDoc) {
     for (const inst of graph.instances) {
       if (!inst.m || !inst.st || EXCLUDED_INSTANCE_TYPES.has(inst.st)) continue;
       const meta = parseMeta<InstanceMeta>(inst.m);
-      if (!meta) continue;
-      if (meta.agent_doc_id !== definingDoc.id) continue;
-      const signalParams = Object.entries(meta.params)
-        .filter(([k]) => !PARAM_BLACKLIST.has(k))
-        .map(([key, t]) => ({ key, value: t[0], srcDocId: t[1] || null }));
-      const instDoc = inst.did ? docs[inst.did] : null;
-      const primitiveDocId = inst.did ? (instanceOfMap.get(inst.did) ?? null) : null;
-      const primitiveDoc = primitiveDocId ? docs[primitiveDocId] : null;
-      instances.push({
-        id: inst.id,
-        slug: inst.slug,
-        rawName: inst.name,
-        st: inst.st,
-        displayName: inst.name,
-        status: meta.status,
-        docId: inst.did,
-        docNo: instDoc?.doc_no ?? null,
-        primitiveTitle: primitiveDoc?.title ?? null,
-        primitiveDocId,
-        primitiveCategoryDocId: meta.primitive_category_doc_id ?? null,
-        primitiveCategory: meta.primitive_category_doc_id ? (docs[meta.primitive_category_doc_id]?.title ?? null) : null,
-        isUnknownPrimitive: meta.is_unknown_primitive ?? false,
-        signalParams,
-      });
+      if (!meta || meta.agent_doc_id !== definingDoc.id) continue;
+      instances.push(toRadarInstance(inst, meta));
+    }
+    for (const invo of graph.invocations) {
+      if (!invo.m || !invo.st || EXCLUDED_INSTANCE_TYPES.has(invo.st)) continue;
+      const meta = parseMeta<InvocationMeta>(invo.m);
+      if (!meta || meta.agent_doc_id !== definingDoc.id) continue;
+      invocations.push(toRadarInstance(invo, meta));
     }
   }
 
@@ -312,6 +334,10 @@ export function buildActorProfile(
     const instancesBySt = new Map<string, RadarInstance[]>();
     for (const inst of instances) {
       (instancesBySt.get(inst.st) ?? (instancesBySt.set(inst.st, []), instancesBySt.get(inst.st)!)).push(inst);
+    }
+    const invocationsBySt = new Map<string, RadarInstance[]>();
+    for (const invo of invocations) {
+      (invocationsBySt.get(invo.st) ?? (invocationsBySt.set(invo.st, []), invocationsBySt.get(invo.st)!)).push(invo);
     }
     for (const p of graph.primitives) {
       if (!p.m || !p.st) continue;
@@ -331,6 +357,7 @@ export function buildActorProfile(
         status: meta.status,
         isUnknown: meta.is_unknown_primitive ?? false,
         instances: instancesBySt.get(p.st) ?? [],
+        invocations: invocationsBySt.get(p.st) ?? [],
       });
     }
     primitives.sort((a, b) => {
@@ -375,6 +402,7 @@ export function buildActorProfile(
     rewardsAgent,
     relations,
     instances,
+    invocations,
     primitives,
     recommendations,
     comprisesMembers,

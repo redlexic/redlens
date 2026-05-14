@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useCallback, memo, useState } from "react";
+import { AtlasLink } from "../AtlasLink";
 import {
   ReactFlow,
   Background,
@@ -22,7 +23,10 @@ import { parseMeta } from "../../lib/meta";
 import type { EntityNodeData, EntityEdgeData, EntityRelation } from "../../lib/entityGraph";
 import { edgeLabel, ENTITY_TYPE_LABEL, SUBTYPE_LABEL } from "../../lib/entityGraph";
 import { getEdges, type EdgeResult } from "../../lib/graph";
+import { atlasHref } from "../../lib/routes";
 import type { GraphEntity } from "../../types";
+
+const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
 const EDGE_COLOR = "#5a3a32";
 const EDGE_HIGHLIGHT = "#c67267";
@@ -35,13 +39,12 @@ type CardData = {
   degree: number;
   entity: GraphEntity;
   onSelect: (id: string) => void;
-  onNavigateDoc: (id: string) => void;
 };
 
 type CardNode = Node<CardData, "entity">;
 
 const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNode>) {
-  const { label, color, entityType, subtype, degree, entity, onSelect, onNavigateDoc } = data;
+  const { label, color, entityType, subtype, degree, entity, onSelect } = data;
   const typeLabel = ENTITY_TYPE_LABEL[entityType] ?? entityType;
   const subLabel = subtype ? (SUBTYPE_LABEL[subtype] ?? subtype) : null;
 
@@ -69,7 +72,7 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
       <div className="mono text-[10px] mt-0.5" style={{ color: "var(--tan-3)" }}>
         {typeLabel}{subLabel ? ` · ${subLabel}` : ""}
       </div>
-      {selected && <CardBody entity={entity} onSelect={onSelect} onNavigateDoc={onNavigateDoc} />}
+      {selected && <CardBody entity={entity} onSelect={onSelect} />}
       {!selected && degree > 0 && (
         <div className="mono text-[9px] mt-1" style={{ color: "var(--tan-3)" }}>
           {degree} connection{degree !== 1 ? "s" : ""}
@@ -100,10 +103,9 @@ function edgeResultToRelations(result: EdgeResult): EntityRelation[] {
   ];
 }
 
-function CardBody({ entity, onSelect, onNavigateDoc }: {
+function CardBody({ entity, onSelect }: {
   entity: GraphEntity;
   onSelect: (id: string) => void;
-  onNavigateDoc: (id: string) => void;
 }) {
   const [edgeResult, setEdgeResult] = useState<EdgeResult | null>(null);
   useEffect(() => { getEdges(entity.id).then(setEdgeResult); }, [entity.id]);
@@ -128,10 +130,10 @@ function CardBody({ entity, onSelect, onNavigateDoc }: {
   return (
     <div className="mt-3 pt-3 border-t" style={{ borderColor: "var(--border)" }}>
       {entity.did && (
-        <button className="mono text-[11px] hover:underline mb-3" style={{ color: "var(--accent)" }}
-          onClick={(e) => { e.stopPropagation(); onNavigateDoc(entity.did!); }}>
+        <AtlasLink to={atlasHref(entity.did)} onClick={stopPropagation}
+          className="mono text-[11px] hover:underline mb-3 inline-block" style={{ color: "var(--accent)" }}>
           → defining document
-        </button>
+        </AtlasLink>
       )}
       {params && (
         <div className="mb-3">
@@ -141,8 +143,8 @@ function CardBody({ entity, onSelect, onNavigateDoc }: {
           <div className="space-y-1">
             {Object.entries(params).map(([key, [value, srcId, srcDocNo]]) => (
               <div key={key} className="text-[10px] leading-tight">
-                <button onClick={(e) => { e.stopPropagation(); onNavigateDoc(srcId); }}
-                  className="mono hover:underline" style={{ color: "var(--tan-3)" }} title={srcDocNo}>{key}</button>
+                <AtlasLink to={atlasHref(srcId)} onClick={stopPropagation}
+                  className="mono hover:underline" style={{ color: "var(--tan-3)" }} title={srcDocNo}>{key}</AtlasLink>
                 <span className="mx-1" style={{ color: "var(--tan-3)" }}>:</span>
                 <span style={{ color: "var(--tan-2)" }}>{value.length > 90 ? value.slice(0, 90) + "…" : value}</span>
               </div>
@@ -160,7 +162,7 @@ function CardBody({ entity, onSelect, onNavigateDoc }: {
             {edgeLabel(edgeType, direction)} · {rels.length}
           </p>
           <div className="flex flex-wrap gap-1">
-            {rels.map((r, i) => <RelationChip key={i} rel={r} onSelect={onSelect} onNavigateDoc={onNavigateDoc} />)}
+            {rels.map((r, i) => <RelationChip key={i} rel={r} onSelect={onSelect} />)}
           </div>
         </div>
       ))}
@@ -168,29 +170,53 @@ function CardBody({ entity, onSelect, onNavigateDoc }: {
   );
 }
 
-function RelationChip({ rel, onSelect, onNavigateDoc }: {
+function RelationChip({ rel, onSelect }: {
   rel: EntityRelation;
   onSelect: (id: string) => void;
-  onNavigateDoc: (id: string) => void;
 }) {
   const { otherType, otherId, otherLabel, direction } = rel;
   const sources = rel.edge.s ?? [];
-  const clickable = otherType === "entity" || otherType === "doc";
-  const handle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (otherType === "entity") onSelect(otherId);
-    else if (otherType === "doc") onNavigateDoc(otherId);
+  const title = sources.length ? `cited in ${sources.join(", ")}` : "structural edge";
+  const className = "mono text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1";
+  const baseStyle: React.CSSProperties = {
+    background: "var(--bg)",
+    color: "var(--tan-2)",
+    border: "1px solid var(--border)",
   };
+  const arrow = direction === "outbound" ? "→" : "←";
+
+  if (otherType === "doc") {
+    return (
+      <AtlasLink
+        to={atlasHref(otherId)}
+        onClick={stopPropagation}
+        className={`${className} hover:bg-hover`}
+        style={baseStyle}
+        title={title}
+      >
+        <span style={{ color: "var(--tan-3)" }}>{arrow}</span>
+        <span>{otherLabel}</span>
+      </AtlasLink>
+    );
+  }
+  if (otherType === "entity") {
+    return (
+      <button
+        className={`${className} hover:bg-hover`}
+        style={{ ...baseStyle, cursor: "pointer" }}
+        onClick={(e) => { e.stopPropagation(); onSelect(otherId); }}
+        title={title}
+      >
+        <span style={{ color: "var(--tan-3)" }}>{arrow}</span>
+        <span>{otherLabel}</span>
+      </button>
+    );
+  }
   return (
-    <button
-      className={`mono text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 ${clickable ? "hover:bg-hover" : ""}`}
-      style={{ background: "var(--bg)", color: "var(--tan-2)", border: "1px solid var(--border)", cursor: clickable ? "pointer" : "default" }}
-      onClick={clickable ? handle : undefined}
-      title={sources.length ? `cited in ${sources.join(", ")}` : "structural edge"}
-    >
-      <span style={{ color: "var(--tan-3)" }}>{direction === "outbound" ? "→" : "←"}</span>
+    <span className={className} style={{ ...baseStyle, cursor: "default" }} title={title}>
+      <span style={{ color: "var(--tan-3)" }}>{arrow}</span>
       <span>{otherLabel}</span>
-    </button>
+    </span>
   );
 }
 
@@ -202,14 +228,12 @@ function EntityFlowInner({
   visibleIds,
   selectedId,
   onSelect,
-  onNavigateDoc,
 }: {
   allNodes: EntityNodeData[];
   allEdges: EntityEdgeData[];
   visibleIds: Set<string>;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  onNavigateDoc: (id: string) => void;
 }) {
   // Force layout runs ONCE on the full node/edge set.
   const positions = useMemo(() => {
@@ -250,9 +274,9 @@ function EntityFlowInner({
         id: n.id, type: "entity" as const, position: pos,
         hidden: !visibleIds.has(n.id),
         selected: n.id === selectedId,
-        data: { label: n.label, color: n.color, entityType: n.entity.et, subtype: n.entity.st, degree: n.degree, entity: n.entity, onSelect, onNavigateDoc },
+        data: { label: n.label, color: n.color, entityType: n.entity.et, subtype: n.entity.st, degree: n.degree, entity: n.entity, onSelect },
       };
-    }), [positions, allNodes, visibleIds, selectedId, onSelect, onNavigateDoc]); // eslint-disable-line react-hooks/exhaustive-deps
+    }), [positions, allNodes, visibleIds, selectedId, onSelect]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cheap O(edges) — hides edges where either endpoint is hidden.
   const rfEdges = useMemo<Edge[]>(() =>

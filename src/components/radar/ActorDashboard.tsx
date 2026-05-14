@@ -1,13 +1,14 @@
 import { useEffect } from "react";
+import { Link } from "../Link";
+import { AtlasLink } from "../AtlasLink";
 import type { ActorProfile, ActorRelation, Recommendation } from "../../lib/actorIndex";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, edgeLabel } from "../../lib/entityGraph";
+import { atlasHref, actorHref } from "../../lib/routes";
 import { ActorChain } from "./ActorChain";
 import { ActorResponsibilities } from "./ActorResponsibilities";
 import { ActorRewards } from "./ActorRewards";
 import { ActorInstances } from "./ActorInstances";
 import { ActorHistory } from "./ActorHistory";
-import { useRadar } from "./RadarContext";
-import { Link } from "wouter";
 
 interface Props {
   profile: ActorProfile;
@@ -28,7 +29,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function RelationRow({ r }: { r: ActorRelation }) {
-  const { onActor } = useRadar();
   const label = edgeLabel(r.edge.e, r.direction);
   const arrow = r.direction === "outbound" ? "→" : "←";
   return (
@@ -37,9 +37,9 @@ function RelationRow({ r }: { r: ActorRelation }) {
         {arrow} {label}
       </span>
       {r.otherSlug ? (
-        <button onClick={() => onActor(r.otherSlug!)} className="text-accent hover:underline">
+        <Link to={actorHref(r.otherSlug)} className="text-accent hover:underline">
           {r.otherLabel}
-        </button>
+        </Link>
       ) : (
         <span style={{ color: "var(--tan-2)" }}>{r.otherLabel}</span>
       )}
@@ -48,7 +48,6 @@ function RelationRow({ r }: { r: ActorRelation }) {
 }
 
 function RecRow({ rec }: { rec: Recommendation }) {
-  const { onActor } = useRadar();
   return (
     <div className="flex items-start gap-2 py-1 border-t border-[var(--border)] text-sm">
       <span style={{ color: "var(--accent)" }}>▲</span>
@@ -60,12 +59,12 @@ function RecRow({ rec }: { rec: Recommendation }) {
           </Link>
         )}
         {rec.entityLink && (
-          <button
-            onClick={() => onActor(rec.entityLink!)}
+          <Link
+            to={actorHref(rec.entityLink)}
             className="mono text-[10px] text-accent hover:underline ml-2"
           >
             view actor →
-          </button>
+          </Link>
         )}
         <div className="text-xs mt-0.5" style={{ color: "var(--tan-3)" }}>
           {rec.detail}
@@ -76,7 +75,6 @@ function RecRow({ rec }: { rec: Recommendation }) {
 }
 
 export function ActorDashboard({ profile }: Props) {
-  const { onNavigate, onActor } = useRadar();
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (!hash) return;
@@ -105,7 +103,7 @@ export function ActorDashboard({ profile }: Props) {
       : (ENTITY_TYPE_LABEL[entity.et] ?? entity.et);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="flex-1 px-6 py-6 min-w-0">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-8">
         <div className="min-w-0">
           {/* Header */}
@@ -125,20 +123,20 @@ export function ActorDashboard({ profile }: Props) {
                   {typeLabel}
                 </span>
                 {definingDoc && (
-                  <button
-                    onClick={() => onNavigate(definingDoc.id)}
+                  <AtlasLink
+                    to={atlasHref(definingDoc.id)}
                     className="mono text-[10px] text-accent hover:underline"
                   >
                     {definingDoc.doc_no} →
-                  </button>
+                  </AtlasLink>
                 )}
                 {partOfComposite?.slug && (
-                  <button
-                    onClick={() => onActor(partOfComposite.slug!)}
+                  <Link
+                    to={actorHref(partOfComposite.slug)}
                     className="mono text-[10px] text-tan-3 hover:text-accent hover:underline"
                   >
                     part of {partOfComposite.name} →
-                  </button>
+                  </Link>
                 )}
               </div>
             </div>
@@ -153,19 +151,19 @@ export function ActorDashboard({ profile }: Props) {
             <Section title="Composite Party">
               <p className="text-sm mb-3" style={{ color: "var(--tan-2)" }}>
                 A composite party is the named legal counterparty in a Sky{" "}
-                <button onClick={() => onNavigate("104c3543-ce94-4a2f-9968-57f1ee858085")} className="text-accent hover:underline">
+                <AtlasLink to={atlasHref("104c3543-ce94-4a2f-9968-57f1ee858085")} className="text-accent hover:underline">
                   Ecosystem Accord
-                </button>
+                </AtlasLink>
                 {" "}— an agreement between Sky Ecosystem actors that is enforceable by Sky Governance. It may comprise the Prime Agent and associated legal entities (foundation, development company) acting together as a single party to the accord.
               </p>
               {comprisesMembers.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {comprisesMembers.map((m) =>
                     m.slug ? (
-                      <button key={m.slug} onClick={() => onActor(m.slug!)}
+                      <Link key={m.slug} to={actorHref(m.slug)}
                         className="text-xs px-2 py-0.5 rounded border border-[var(--border)] text-accent hover:border-[var(--accent)] transition-colors">
                         {m.name}
-                      </button>
+                      </Link>
                     ) : (
                       <span key={m.name} className="text-xs px-2 py-0.5 rounded border border-[var(--border)] text-tan-2">
                         {m.name}

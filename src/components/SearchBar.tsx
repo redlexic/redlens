@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "./Link";
 import { NavBar, type NavBarProps } from "./NavBar";
 import { SCOPE_CONFIG, type SearchScope } from "../lib/routes";
 import type { RefObject } from "react";
@@ -20,7 +20,6 @@ export function SearchBar({
   onChange,
   ready,
   isSearching,
-  onNavPage,
   activePage,
   scope,
 }: Props) {
@@ -29,7 +28,10 @@ export function SearchBar({
   const placeholder = disabled ? "Loading index…" : cfg.placeholder;
 
   return (
-    <header className="search-header shrink-0 px-4 pt-3 pb-2 border-b">
+    <header
+      className="search-header shrink-0 px-4 pt-3 pb-2 border-b sticky top-0 z-20"
+      style={{ background: "var(--bg)" }}
+    >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <Link to="/" className="order-1 shrink-0" title="Home">
           <img
@@ -40,7 +42,7 @@ export function SearchBar({
             className="w-7 h-7 object-cover rounded-[30%]"
           />
         </Link>
-        <NavBar activePage={activePage} onNavPage={onNavPage} />
+        <NavBar activePage={activePage} />
 
         <div
           className={`search-input-wrap order-3 sm:order-2 w-full sm:w-auto sm:flex-1 sm:max-w-[616px] flex items-center rounded border min-w-0${disabled ? " opacity-40 cursor-wait" : ""}`}

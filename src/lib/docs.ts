@@ -38,6 +38,20 @@ export function loadAtlas(): Promise<AtlasBundle> {
   return cached!;
 }
 
+// Cache the derived promise so `use(loadDocs())` always sees the same identity
+// across renders. Returning a fresh `.then(...)` each call makes React Suspense
+// treat every render as a new suspended fetch, flashing the fallback and
+// resetting scroll position.
+let docsPromise: Promise<Record<string, AtlasNode>> | null = null;
+
 export function loadDocs(): Promise<Record<string, AtlasNode>> {
-  return loadAtlas().then((b) => b.docs);
+  if (!docsPromise) {
+    docsPromise = loadAtlas()
+      .then((b) => b.docs)
+      .catch((err) => {
+        docsPromise = null;
+        throw err;
+      });
+  }
+  return docsPromise;
 }

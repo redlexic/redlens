@@ -48,7 +48,7 @@ function profileFor(slug) {
     if (inst.did) cat.set(inst.did, "instance");
     const primId = inst.did ? instanceOf.get(inst.did) : null;
     if (primId) cat.set(primId, "primitive");
-    for (const [k, t] of Object.entries(meta.params ?? {})) {
+    for (const t of Object.values(meta.params ?? {})) {
       const srcDocId = t[1];
       if (srcDocId && !cat.has(srcDocId)) cat.set(srcDocId, "param");
     }

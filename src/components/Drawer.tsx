@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HEADER_OFFSET } from "../lib/layout";
 
 function useIsNarrow(maxWidth: number) {
   const [narrow, setNarrow] = useState(() => window.innerWidth < maxWidth);
@@ -17,11 +18,34 @@ interface DrawerProps {
   onClose: () => void;
   breakpoint?: number;
   width?: number;
+  /** Desktop layout. "static" keeps the sidebar in flex flow (fixed-shell
+   *  routes). "sticky" pins it to the viewport below the header so it stays
+   *  visible while the window scrolls (window-scroll routes). */
+  desktopMode?: "static" | "sticky";
   children: React.ReactNode;
 }
 
-export function Drawer({ open, onClose, breakpoint = 1050, width = 220, children }: DrawerProps) {
+export function Drawer({
+  open,
+  onClose,
+  breakpoint = 1050,
+  width = 220,
+  desktopMode = "static",
+  children,
+}: DrawerProps) {
   const isDrawer = useIsNarrow(breakpoint);
+  const desktopStyle: React.CSSProperties =
+    desktopMode === "sticky"
+      ? {
+          position: "sticky",
+          top: HEADER_OFFSET,
+          alignSelf: "flex-start",
+          height: `calc(100vh - ${HEADER_OFFSET}px)`,
+          width,
+          flexShrink: 0,
+          background: "var(--bg)",
+        }
+      : { width, flexShrink: 0, background: "var(--bg)" };
   return (
     <>
       {isDrawer && open && <div className="fixed inset-0 z-20 bg-black/40" onClick={onClose} />}
@@ -39,7 +63,7 @@ export function Drawer({ open, onClose, breakpoint = 1050, width = 220, children
                 transform: open ? "translateX(0)" : "translateX(-100%)",
                 transition: "transform 200ms",
               }
-            : { width, flexShrink: 0, background: "var(--bg)" }
+            : desktopStyle
         }
       >
         {children}

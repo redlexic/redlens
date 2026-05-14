@@ -1,5 +1,7 @@
 import { memo, useState, useEffect, useRef, useMemo } from "react";
+import { AtlasLink } from "./AtlasLink";
 import { depthColor, realDepth } from "../lib/depth";
+import { atlasHref } from "../lib/routes";
 import type { AtlasNode } from "../types";
 import { fitBreadcrumbs } from "../lib/breadcrumbs";
 
@@ -18,10 +20,9 @@ const SEPARATOR_STYLE: React.CSSProperties = { color: "var(--tan-3)" };
 
 interface BreadcrumbsProps {
   ancestors: AtlasNode[];
-  onNavigate: (id: string) => void;
 }
 
-export const Breadcrumbs = memo(function Breadcrumbs({ ancestors, onNavigate }: BreadcrumbsProps) {
+export const Breadcrumbs = memo(function Breadcrumbs({ ancestors }: BreadcrumbsProps) {
   const [breadcrumbWidth, setBreadcrumbWidth] = useState(1000);
   const breadcrumbRef = useRef<HTMLElement>(null);
 
@@ -53,18 +54,14 @@ export const Breadcrumbs = memo(function Breadcrumbs({ ancestors, onNavigate }: 
       {ancestors.map((a, i) => (
         <span key={a.id} className="flex items-center gap-x-1">
           {i > 0 && <span style={SEPARATOR_STYLE}>/</span>}
-          <a
-            href={`/atlas?id=${a.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigate(a.id);
-            }}
+          <AtlasLink
+            to={atlasHref(a.id)}
             className="breadcrumb-link"
             style={{ "--crumb-color": depthColor(realDepth(a.doc_no)) } as React.CSSProperties}
           >
             <span className="short">{fittedTitles[i] ?? a.title}</span>
             <span className="full">{a.title}</span>
-          </a>
+          </AtlasLink>
         </span>
       ))}
     </nav>

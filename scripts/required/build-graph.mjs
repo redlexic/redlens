@@ -313,7 +313,7 @@ let icdHasAddressCount = 0;
 let icdAgentResolved = 0;
 
 for (const ent of entityMap.values()) {
-  if (ent.entity_type !== "instance") continue;
+  if (ent.entity_type !== "instance" && ent.entity_type !== "invocation") continue;
   let meta;
   try { meta = JSON.parse(ent.meta ?? "{}"); } catch { continue; }
   const params = meta.params ?? {};
@@ -366,9 +366,11 @@ for (const ent of entityMap.values()) {
 }
 
 const instanceCount = [...entityMap.values()].filter((e) => e.entity_type === "instance").length;
+const invocationCount = [...entityMap.values()].filter((e) => e.entity_type === "invocation").length;
 console.log(
   `  ICD-param: ${icdHasAddressCount} has_address edges, ${icdAnnotations.size} unique addresses` +
-  ` (agent resolved: ${icdAgentResolved}/${instanceCount} instances)`,
+  ` (agent resolved: ${icdAgentResolved}/${instanceCount + invocationCount} instances+invocations;` +
+  ` ${instanceCount} instances, ${invocationCount} invocations)`,
 );
 
 // Edge-type breakdown for quick verification.

@@ -1,9 +1,10 @@
+import { Link } from "../Link";
+import { actorHref } from "../../lib/routes";
 import type { SidebarGroup } from "../../lib/actorIndex";
 
 interface Props {
   groups: SidebarGroup[];
   selectedSlug: string | null;
-  onSelect: (slug: string) => void;
 }
 
 const SUBTYPE_BADGE: Record<string, string> = {
@@ -12,7 +13,7 @@ const SUBTYPE_BADGE: Record<string, string> = {
   core_executor: "Core Exec",
 };
 
-export function ActorList({ groups, selectedSlug, onSelect }: Props) {
+export function ActorList({ groups, selectedSlug }: Props) {
   return (
     <nav
       className="h-full overflow-y-auto py-4 border-r border-[var(--border)]"
@@ -27,10 +28,10 @@ export function ActorList({ groups, selectedSlug, onSelect }: Props) {
             {g.label}
           </div>
           {g.actors.map((a) => (
-            <button
+            <Link
               key={a.id}
+              to={actorHref(a.slug)}
               data-active={a.slug === selectedSlug ? "true" : undefined}
-              onClick={() => onSelect(a.slug)}
               className="actor-list-item w-full text-left px-3 py-1.5 text-sm flex items-center gap-2"
               style={{ color: "var(--tan-2)" }}
             >
@@ -40,7 +41,7 @@ export function ActorList({ groups, selectedSlug, onSelect }: Props) {
                   {SUBTYPE_BADGE[a.st]}
                 </span>
               )}
-            </button>
+            </Link>
           ))}
         </div>
       ))}

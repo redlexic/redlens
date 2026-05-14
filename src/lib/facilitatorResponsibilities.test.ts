@@ -27,13 +27,16 @@ for (const node of Object.values(docs)) {
   }
 }
 
-const participants = relations.entities.filter((e) => e.et !== "instance" && e.et !== "primitive");
+const participants = relations.entities.filter(
+  (e) => e.et !== "instance" && e.et !== "invocation" && e.et !== "primitive",
+);
 const instances = relations.entities.filter((e) => e.et === "instance");
+const invocations = relations.entities.filter((e) => e.et === "invocation");
 const primitives = relations.entities.filter((e) => e.et === "primitive");
 
 const results = deriveResponsibilities(
   { docs, byParent, docNoToId },
-  { participants, instances, primitives, edges: relations.edges },
+  { participants, instances, invocations, primitives, edges: relations.edges },
 );
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_LABELS));

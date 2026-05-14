@@ -43,18 +43,25 @@ export function primitiveStatusFor(primRoot, docByDocNo) {
   return m[1][0].toUpperCase() + m[1].slice(1).toLowerCase();
 }
 
-export function instanceStatusFor(icd, primRoot, docByDocNo) {
-  // Tier position varies (Allocation System interposes a Multi-Instance Coordinator
-  // at .2), so read the tier doc's title directly rather than assuming .2=Active.
-  const rest = icd.doc_no.slice(primRoot.doc_no.length + 1);
-  if (!rest) return null;
-  const tierSeg = rest.split(".")[0];
-  const tierDoc = docByDocNo.get(`${primRoot.doc_no}.${tierSeg}`);
-  const title = tierDoc?.title.toLowerCase() ?? "";
-  if (title.startsWith("active instances")) return "Active";
-  if (title.startsWith("completed instances")) return "Completed";
-  if (title.startsWith("in progress invocations")) return "Pending";
-  return null;
+// Classify an ICD as Instance (Active/Suspended/Completed) or Invocation
+// (InProgress). Per atlas A.2.2.1.3 / A.2.2.1.4 these are distinct: an
+// Invocation is the in-progress act of enabling a Primitive; an Instance is the
+// resulting operational deployment. Tier docs sit at variable depth under
+// primRoot (flat .2/.3 layouts vs nested .1.5.1.2 Suspended), so walk up the
+// ancestor chain until we find a recognized title.
+export function classifyIcd(icd, primRoot, docByDocNo) {
+  let cur = icd;
+  while (cur && cur.doc_no.startsWith(`${primRoot.doc_no}.`)) {
+    const title = cur.title.toLowerCase();
+    if (title.startsWith("active instances")) return { kind: "instance", status: "Active" };
+    if (title.startsWith("completed instances")) return { kind: "instance", status: "Completed" };
+    if (title.startsWith("suspended instances")) return { kind: "instance", status: "Suspended" };
+    if (title.startsWith("in progress invocations")) return { kind: "invocation", status: "InProgress" };
+    const lastDot = cur.doc_no.lastIndexOf(".");
+    if (lastDot < 0) break;
+    cur = docByDocNo.get(cur.doc_no.slice(0, lastDot));
+  }
+  return { kind: null, status: null };
 }
 
 // Index of direct children by parent doc_no (doc_no-based; parentId is unreliable past depth 6).

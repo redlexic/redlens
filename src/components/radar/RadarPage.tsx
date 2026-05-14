@@ -1,4 +1,4 @@
-import { Suspense, use, useMemo, useState } from "react";
+import { Suspense, use, useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { loadDocs } from "../../lib/docs";
 import { loadGraph } from "../../lib/graph";
@@ -14,7 +14,6 @@ import { Loading } from "../Loading";
 import { RadarProvider } from "./RadarContext";
 
 interface Props {
-  onNavigate: (id: string) => void;
   query: string;
   actorSlug?: string;
 }
@@ -22,10 +21,9 @@ interface Props {
 interface InnerProps extends Props {
   drawerOpen: boolean;
   onDrawerClose: () => void;
-  onActor: (slug: string) => void;
 }
 
-function RadarLoaded({ onNavigate, query, actorSlug, drawerOpen, onDrawerClose, onActor }: InnerProps) {
+function RadarLoaded({ query, actorSlug, drawerOpen, onDrawerClose }: InnerProps) {
   const docs = use(loadDocs());
   const graph = use(loadGraph());
 
@@ -47,9 +45,14 @@ function RadarLoaded({ onNavigate, query, actorSlug, drawerOpen, onDrawerClose, 
   }, [actorSlug, graph, docs, rewardsIndex, allActiveDataRows]);
 
   return (
-    <RadarProvider value={{ docs, onNavigate, onActor }}>
-      <Drawer open={drawerOpen} onClose={onDrawerClose} breakpoint={850}>
-        <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} onSelect={onActor} />
+    <RadarProvider value={{ docs }}>
+      <Drawer
+        open={drawerOpen}
+        onClose={onDrawerClose}
+        breakpoint={850}
+        desktopMode="sticky"
+      >
+        <ActorList groups={filteredGroups} selectedSlug={actorSlug ?? null} />
       </Drawer>
       {!actorSlug ? (
         <PrimitiveDashboard agents={primitiveStats} />
@@ -62,19 +65,21 @@ function RadarLoaded({ onNavigate, query, actorSlug, drawerOpen, onDrawerClose, 
   );
 }
 
-export function RadarPage({ onNavigate, query, actorSlug }: Props) {
-  const [, navigate] = useLocation();
+export function RadarPage({ query, actorSlug }: Props) {
+  const [location] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const selectActor = (slug: string, fragment?: string) => {
-    navigate(`/radar/${slug}${fragment ? `#${fragment}` : ""}`);
+  // Close the drawer when navigation actually changes the URL — the actor list
+  // uses <Link> now, so we react to location changes instead of firing inside
+  // each link's onClick.
+  useEffect(() => {
     setDrawerOpen(false);
-  };
+  }, [location]);
 
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex">
       <Suspense fallback={
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col">
           <DrawerToggle label="Actors" onClick={() => setDrawerOpen(true)} breakpoint={850} />
           <Loading />
         </div>
@@ -82,12 +87,10 @@ export function RadarPage({ onNavigate, query, actorSlug }: Props) {
 
         <DrawerToggle label="Actors" onClick={() => setDrawerOpen(true)} breakpoint={850} />
         <RadarLoaded
-          onNavigate={onNavigate}
           query={query}
           actorSlug={actorSlug}
           drawerOpen={drawerOpen}
           onDrawerClose={() => setDrawerOpen(false)}
-          onActor={selectActor}
         />
       </Suspense>
     </div>

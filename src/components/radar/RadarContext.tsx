@@ -3,10 +3,6 @@ import type { AtlasNode } from "../../types";
 
 interface RadarContextValue {
   docs: Record<string, AtlasNode>;
-  /** Navigate to a doc in the atlas reader (UUID). */
-  onNavigate: (id: string) => void;
-  /** Select an actor by slug, optionally jumping to a section fragment. */
-  onActor: (slug: string, fragment?: string) => void;
 }
 
 const RadarCtx = createContext<RadarContextValue | null>(null);

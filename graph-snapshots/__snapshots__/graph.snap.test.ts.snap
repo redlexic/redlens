@@ -9825,7 +9825,8 @@ exports[`edge type counts > all edge types and their counts 1`] = `
   "has_status": 136,
   "holds_role_for": 2,
   "implements": 188,
-  "instance_of": 191,
+  "instance_of": 186,
+  "invocation_of": 5,
   "invoked_by": 190,
   "listed_in": 26,
   "located_at": 184,
@@ -12689,26 +12690,6 @@ exports[`instances > distribution-reward instances 1`] = `
   },
   {
     "agent": "A.6.1.1.4",
-    "name": "Gnosis Protocol",
-    "params": {
-      "Reward Code": "1050",
-      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
-    },
-    "slug": "skybase-distribution-reward-gnosis-protocol",
-    "status": "Pending",
-  },
-  {
-    "agent": "A.6.1.1.4",
-    "name": "InstaDapp",
-    "params": {
-      "Reward Code": "1006",
-      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
-    },
-    "slug": "skybase-distribution-reward-instadapp",
-    "status": "Pending",
-  },
-  {
-    "agent": "A.6.1.1.4",
     "name": "Lazy Summer Protocol",
     "params": {
       "Reward Code": "1016",
@@ -12716,16 +12697,6 @@ exports[`instances > distribution-reward instances 1`] = `
     },
     "slug": "skybase-distribution-reward-lazy-summer-protocol",
     "status": "Active",
-  },
-  {
-    "agent": "A.6.1.1.4",
-    "name": "MetaMask",
-    "params": {
-      "Reward Code": "1005",
-      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
-    },
-    "slug": "skybase-distribution-reward-metamask",
-    "status": "Pending",
   },
   {
     "agent": "A.6.1.1.4",
@@ -12746,16 +12717,6 @@ exports[`instances > distribution-reward instances 1`] = `
     },
     "slug": "skybase-distribution-reward-paraswap",
     "status": "Active",
-  },
-  {
-    "agent": "A.6.1.1.4",
-    "name": "Piku.co",
-    "params": {
-      "Reward Code": "1010",
-      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
-    },
-    "slug": "skybase-distribution-reward-piku-co",
-    "status": "Pending",
   },
   {
     "agent": "A.6.1.1.4",
@@ -12883,10 +12844,10 @@ exports[`instances > instance counts by type 1`] = `
   "agent-token": 8,
   "allocation-system": 104,
   "core-governance-reward": 1,
-  "distribution-reward": 16,
+  "distribution-reward": 12,
   "ecosystem-upkeep-fee": 8,
   "executor-accord": 8,
-  "integration-boost": 10,
+  "integration-boost": 9,
   "pioneer-chain": 3,
   "prime-transformation": 8,
   "root-edit": 8,
@@ -12985,21 +12946,6 @@ exports[`instances > integration-boost instances 1`] = `
     },
     "slug": "keel-integration-boost-save",
     "status": "Active",
-  },
-  {
-    "agent": "A.6.1.1.4",
-    "name": "Compound",
-    "params": {
-      "Integration Boost Cadence": "weekly",
-      "Integration Boost Data Submission Format": "The Data Submission Responsible Actor calculates the net deposits based on on-chain events and makes the data available through an API endpoint located at [https://info-sky.blockanalitica.com/api/v1/incentivized-pools/](https://info-sky.blockanalitica.com/api/v1/incentivized-pools/).",
-      "Integration Boost Data Submission Responsible Actor": "The Data Submission Responsible Actor is The Data Submission Responsible Actor is.",
-      "Integration Boost Savings Rate Adjustment Strategy": "The Integration Boost is calculated based on per block values for USDS in Compound and the Sky Savings Rate.",
-      "Integration Partner Chain": "Base",
-      "Integration Partner Name": "Compound",
-      "Integration Partner Reward Address": "0xD66241b84dC4d6ccD4aA072A9da22b4B218FC1b0",
-    },
-    "slug": "skybase-integration-boost-compound",
-    "status": "Pending",
   },
   {
     "agent": "A.6.1.1.4",
@@ -13161,6 +13107,78 @@ exports[`instances > upkeep-rebate instances 1`] = `
     },
     "slug": "launch-agent-7-upkeep-rebate-launch-agent-7-s-instance-of-the-upkeep-rebate-primitive",
     "status": "Active",
+  },
+]
+`;
+
+exports[`invocations > invocation counts by type 1`] = `
+{
+  "distribution-reward": 4,
+  "integration-boost": 1,
+}
+`;
+
+exports[`invocations > invocations 1`] = `
+[
+  {
+    "agent": "A.6.1.1.4",
+    "name": "Gnosis Protocol",
+    "params": {
+      "Reward Code": "1050",
+      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
+    },
+    "slug": "skybase-distribution-reward-gnosis-protocol",
+    "status": "InProgress",
+    "subtype": "distribution-reward",
+  },
+  {
+    "agent": "A.6.1.1.4",
+    "name": "InstaDapp",
+    "params": {
+      "Reward Code": "1006",
+      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
+    },
+    "slug": "skybase-distribution-reward-instadapp",
+    "status": "InProgress",
+    "subtype": "distribution-reward",
+  },
+  {
+    "agent": "A.6.1.1.4",
+    "name": "MetaMask",
+    "params": {
+      "Reward Code": "1005",
+      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
+    },
+    "slug": "skybase-distribution-reward-metamask",
+    "status": "InProgress",
+    "subtype": "distribution-reward",
+  },
+  {
+    "agent": "A.6.1.1.4",
+    "name": "Piku.co",
+    "params": {
+      "Reward Code": "1010",
+      "Tracking Methodology": "This parameter will be defined in a future iteration of the Skybase Artifact.",
+    },
+    "slug": "skybase-distribution-reward-piku-co",
+    "status": "InProgress",
+    "subtype": "distribution-reward",
+  },
+  {
+    "agent": "A.6.1.1.4",
+    "name": "Compound",
+    "params": {
+      "Integration Boost Cadence": "weekly",
+      "Integration Boost Data Submission Format": "The Data Submission Responsible Actor calculates the net deposits based on on-chain events and makes the data available through an API endpoint located at [https://info-sky.blockanalitica.com/api/v1/incentivized-pools/](https://info-sky.blockanalitica.com/api/v1/incentivized-pools/).",
+      "Integration Boost Data Submission Responsible Actor": "The Data Submission Responsible Actor is The Data Submission Responsible Actor is.",
+      "Integration Boost Savings Rate Adjustment Strategy": "The Integration Boost is calculated based on per block values for USDS in Compound and the Sky Savings Rate.",
+      "Integration Partner Chain": "Base",
+      "Integration Partner Name": "Compound",
+      "Integration Partner Reward Address": "0xD66241b84dC4d6ccD4aA072A9da22b4B218FC1b0",
+    },
+    "slug": "skybase-integration-boost-compound",
+    "status": "InProgress",
+    "subtype": "integration-boost",
   },
 ]
 `;

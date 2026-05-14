@@ -4,6 +4,10 @@ interface Props {
   children: ReactNode;
   fallback: ReactNode | ((error: Error, reset: () => void) => ReactNode);
   onError?: (error: Error, info: ErrorInfo) => void;
+  /** Clears the boundary's error state when this value changes — without
+   *  remounting the children. Use this for route-change-driven resets so the
+   *  child tree's state, memos, and Suspense cache survive navigation. */
+  resetKey?: unknown;
 }
 
 export class ErrorBoundary extends Component<Props, { error: Error | null }> {
@@ -19,6 +23,12 @@ export class ErrorBoundary extends Component<Props, { error: Error | null }> {
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[ErrorBoundary]", error, info.componentStack);
     this.props.onError?.(error, info);
+  }
+
+  componentDidUpdate(prev: Props) {
+    if (this.state.error && prev.resetKey !== this.props.resetKey) {
+      this.reset();
+    }
   }
 
   private reset = () => this.setState({ error: null });
