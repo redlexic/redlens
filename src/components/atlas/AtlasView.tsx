@@ -1,7 +1,6 @@
 import {
   useState,
   useEffect,
-  useLayoutEffect,
   useRef,
   useMemo,
   useCallback,
@@ -55,11 +54,10 @@ export function AtlasView({
   const [data, setData] = useState<LoadedData | null>(null);
   const [userToggles, setUserToggles] = useState<Set<string>>(new Set());
   const [graphEdges, setGraphEdges] = useState<EdgeResult>(EMPTY_EDGES);
-  // Grows-only: once a node is auto-expanded, it stays expanded across navigations to prevent layout jumps.
+  // Grows-only: once expanded, stays expanded across navigations so the user's context
+  // (previously visited nodes) doesn't collapse out from under them.
   const seenExpanded = useRef<Set<string>>(new Set());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  // Captures the target element's position before navigation so useLayoutEffect can restore it.
-  const scrollAnchor = useRef<{ id: string; top: number } | null>(null);
 
   useEffect(() => {
     Promise.all([loadAtlas(), loadAddresses(), loadChainState(), loadGlossary()]).then(
@@ -98,24 +96,15 @@ export function AtlasView({
     };
   }, [id]);
 
-  const autoExpanded = useMemo(() => {
+  // Only the target itself auto-expands on navigation. Parents and siblings stay as
+  // they were — clicking a node opens just that node in place without shifting
+  // surrounding rows. Anything previously visited stays expanded via seenExpanded.
+  const expandedSet = useMemo(() => {
     if (!data || !id) return ATLAS_EMPTY_SET;
-    const { docs, byParent } = data.atlas;
-    const target = docs[id];
-    if (!target) return ATLAS_EMPTY_SET;
-    const set = new Set<string>();
-    set.add(id);
-    if (target.parentId && docs[target.parentId]) set.add(target.parentId);
-    for (const sib of byParent.get(target.parentId) ?? []) set.add(sib.id);
-    for (const nodeId of set) seenExpanded.current.add(nodeId);
-    return set;
+    if (!data.atlas.docs[id]) return new Set(seenExpanded.current);
+    seenExpanded.current.add(id);
+    return new Set(seenExpanded.current);
   }, [data, id]);
-
-  const effectiveExpanded = useMemo(() => {
-    const combined = new Set(seenExpanded.current);
-    for (const nodeId of autoExpanded) combined.add(nodeId);
-    return combined;
-  }, [autoExpanded]);
 
   const ancestors = useMemo(() => {
     if (!data || !id) return [];
@@ -167,41 +156,10 @@ export function AtlasView({
     });
   }, []);
 
-  const handleNavigate = useCallback(
-    (nodeId: string) => {
-      const container = scrollContainerRef.current;
-      const el = document.getElementById(nodeId);
-      if (container && el) {
-        scrollAnchor.current = {
-          id: nodeId,
-          top: el.getBoundingClientRect().top - container.getBoundingClientRect().top,
-        };
-      } else {
-        scrollAnchor.current = null;
-      }
-      onNavigate(nodeId);
-    },
-    [onNavigate],
-  );
-
   const { expandedParents, hasDeepChildren, expandParent } = useDepth6Expand(
     data?.flatNodes ?? [],
     id,
   );
-
-  // Restore the pre-render scroll position before the browser paints, preventing the
-  // visual jump that occurs when siblings expand and push the selected node downward.
-  useLayoutEffect(() => {
-    const anchor = scrollAnchor.current;
-    if (!anchor || anchor.id !== id) return;
-    scrollAnchor.current = null;
-    const container = scrollContainerRef.current;
-    const el = document.getElementById(id);
-    if (!container || !el) return;
-    const delta =
-      el.getBoundingClientRect().top - container.getBoundingClientRect().top - anchor.top;
-    if (Math.abs(delta) > 1) container.scrollTop += delta;
-  }, [id]);
 
   // scrolledRef guards against re-scrolling when only expandedParents changes (depth-6 expand).
   // Reset on every id change so revisiting a node re-checks and scrolls if needed.
@@ -232,8 +190,8 @@ export function AtlasView({
           key={entry.node.id}
           entry={entry}
           isSelected={entry.node.id === id}
-          isExpanded={effectiveExpanded.has(entry.node.id) !== userToggles.has(entry.node.id)}
-          onNavigate={handleNavigate}
+          isExpanded={expandedSet.has(entry.node.id) !== userToggles.has(entry.node.id)}
+          onNavigate={onNavigate}
           onToggle={handleToggle}
           onShiftNavigate={onSplitChange}
         />,
@@ -253,9 +211,9 @@ export function AtlasView({
   }, [
     data,
     id,
-    effectiveExpanded,
+    expandedSet,
     userToggles,
-    handleNavigate,
+    onNavigate,
     handleToggle,
     expandedParents,
     hasDeepChildren,
@@ -283,7 +241,7 @@ export function AtlasView({
           borderBottom: "1px solid var(--border)",
       }}>
         <DrawerToggle label="Atlas" onClick={onOpenTree} breakpoint={1050} />
-        {id && <Breadcrumbs ancestors={ancestors} onNavigate={handleNavigate} />}
+        {id && <Breadcrumbs ancestors={ancestors} onNavigate={onNavigate} />}
       </div>
       <div
         className="flex-1 min-[750px]:grid min-[750px]:grid-cols-[3fr_2fr]"
@@ -345,10 +303,10 @@ export function AtlasView({
                 annotationCount={annotationCount}
                 graphEdges={graphEdges}
                 glossaryTerms={glossaryTerms}
-                onNavigate={handleNavigate}
+                onNavigate={onNavigate}
                 onNavigateByDocNo={(docNo) => {
                   const uuid = data?.atlas.docNoToId.get(docNo);
-                  if (uuid) handleNavigate(uuid);
+                  if (uuid) onNavigate(uuid);
                 }}
                 tab={view}
                 onTabChange={onViewChange}
