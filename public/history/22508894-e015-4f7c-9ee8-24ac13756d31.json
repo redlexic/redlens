@@ -75,5 +75,105 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "The outcome of the polls determines the contents of the upcoming Executive Vote."
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Core Facilitator confirm the Executive Vote contents and deliver the Executive Sheet to the "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " team. The "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " team prepares and reviews the Mainnet "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            ". The "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " team deploys the Mainnet "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            "; and then creates and reviews a Mainnet fork."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "The Core Facilitator add the Executive Vote to the Voting Portal and communicate this to the Sky Ecosystem community. The Executive Vote has an expiration of thirty (30) days; if an Executive proposal does not pass within this timeframe, it expires and can no longer have any effect on the Sky Protocol."
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/10/1/3/document.md",
+    "movedTo": "content/A/1/11/1/3/document.md"
   }
 ]

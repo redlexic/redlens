@@ -24,5 +24,85 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "Once a Notice of Potential Conflict is posted on the Sky Forum, "
+          ],
+          [
+            "-",
+            "Sky"
+          ],
+          [
+            "+",
+            "the"
+          ],
+          [
+            "=",
+            " Core "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Facilitator"
+          ],
+          [
+            "=",
+            " must review the merits of the claim. The"
+          ],
+          [
+            "-",
+            " Sky"
+          ],
+          [
+            "=",
+            " Core "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Facilitator"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "have"
+          ],
+          [
+            "+",
+            "has"
+          ],
+          [
+            "=",
+            " the discretion to conduct an investigation and collect more information as needed to assess the potential conflict."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/13/1/5/1/document.md",
+    "movedTo": "content/A/1/14/1/5/1/document.md"
   }
 ]

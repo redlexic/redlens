@@ -24,5 +24,53 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Crafter plays a key role in the process for identifying, analyzing, and resolving technical issues like bugs, mistakes, and exploits when they arise during the "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " development process. Other stakeholders, including the Spell Reviewer and Core "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Facilitator"
+          ],
+          [
+            "=",
+            ", also play an important role. This process is set out in the subdocuments herein."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/2/4/7/3/document.md",
+    "movedTo": "content/A/1/10/2/4/7/3/document.md"
   }
 ]

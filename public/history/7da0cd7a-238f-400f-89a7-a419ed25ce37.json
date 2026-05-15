@@ -672,5 +672,182 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Core Facilitator, in consultation with the Core Council Risk Advisor, may modify the parameters of the vesting stream to achieve the target reward rate "
+          ],
+          [
+            "-",
+            "consistent"
+          ],
+          [
+            "+",
+            "as"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "with"
+          ],
+          [
+            "+",
+            "specified in"
+          ],
+          [
+            "=",
+            " [A.2.3.1"
+          ],
+          [
+            "-",
+            ".2"
+          ],
+          [
+            "=",
+            ".4"
+          ],
+          [
+            "+",
+            ".1"
+          ],
+          [
+            "=",
+            " - "
+          ],
+          [
+            "-",
+            "Step"
+          ],
+          [
+            "+",
+            "Short"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "3:"
+          ],
+          [
+            "+",
+            "Term"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Smart"
+          ],
+          [
+            "+",
+            "SKY"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Burn"
+          ],
+          [
+            "+",
+            "Staking"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "Engine"
+          ],
+          [
+            "+",
+            "Rewards Rate"
+          ],
+          [
+            "=",
+            "]("
+          ],
+          [
+            "-",
+            "5ce73730"
+          ],
+          [
+            "+",
+            "de233df4"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "4d5d"
+          ],
+          [
+            "+",
+            "34cc"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "479c"
+          ],
+          [
+            "+",
+            "4e88"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "b01e"
+          ],
+          [
+            "+",
+            "a065"
+          ],
+          [
+            "=",
+            "-"
+          ],
+          [
+            "-",
+            "40e87f072121"
+          ],
+          [
+            "+",
+            "9a9dde9add3c"
+          ],
+          [
+            "=",
+            "). Such modifications can be effected directly via an Executive Vote, without a prior Governance Poll."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
   }
 ]

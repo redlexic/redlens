@@ -24,5 +24,41 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The subdocuments herein define currently available global Standby Spells. Global Standby Spell contracts are "
+          ],
+          [
+            "-",
+            "spells"
+          ],
+          [
+            "+",
+            "Spells"
+          ],
+          [
+            "=",
+            " in themselves and are thus reusable; beyond the initial deployment of the contract, no further deployment is needed. Global Standby Spells differ from multi-collateral Standby Spells in that the former operates on the Protocol globally and not on some set of collaterals."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/5/2/2/4/document.md",
+    "movedTo": "content/A/1/10/5/2/2/4/document.md"
   }
 ]

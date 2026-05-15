@@ -24,5 +24,41 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "On Friday week 1, the Governance Point must make sure that the Executive Sheet is finalized and ready for handover to the Spell Team. This includes verifying that all required fields are completed, the content aligns with decisions made during the GovOps meeting, and all financial details are accurate. The Governance Point must notify the Spell Team in the #govops channel that the Executive Sheet is finalized. Any updates to the Executive Sheet made after Friday, week 1, must follow the procedure in [A.1."
+          ],
+          [
+            "-",
+            "9"
+          ],
+          [
+            "+",
+            "10"
+          ],
+          [
+            "=",
+            ".2.4.8.3.8 - Core Facilitator Must Notify Spell Team Of Changes](e3d137d7-3244-497b-b065-25cc2dffafeb)."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "typo"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/2/4/6/document.md",
+    "movedTo": "content/A/1/10/2/4/6/document.md"
   }
 ]
