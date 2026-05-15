@@ -67,6 +67,11 @@ export function Tooltip({ content, delay = 800, children }: TooltipProps) {
     setPos({ left, top, maxHeight, placed: true });
   }, []);
 
+  // Stable handle to the latest hideNow so timer callbacks (which may outlive
+  // the closures they were created in) and the module-level activeHide slot
+  // both refer to a single, current function.
+  const hideRef = useRef<() => void>(() => {});
+
   const cancelHide = useCallback(() => {
     if (hideTimer.current) {
       clearTimeout(hideTimer.current);
@@ -76,7 +81,7 @@ export function Tooltip({ content, delay = 800, children }: TooltipProps) {
 
   const scheduleHide = useCallback(() => {
     // Cancel any pending show so a quick hover-and-leave doesn't open the
-    // tooltip 1000ms later when the mouse is somewhere else entirely.
+    // tooltip later when the mouse is somewhere else entirely.
     if (showTimer.current) {
       clearTimeout(showTimer.current);
       showTimer.current = null;
@@ -88,7 +93,6 @@ export function Tooltip({ content, delay = 800, children }: TooltipProps) {
     }, HIDE_GRACE_MS);
   }, [cancelHide]);
 
-  const hideRef = useRef<() => void>(() => {});
   const hideNow = useCallback(() => {
     if (showTimer.current) {
       clearTimeout(showTimer.current);
