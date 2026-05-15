@@ -1,4 +1,5 @@
 import { Link } from "../Link";
+import { Tooltip } from "../Tooltip";
 import type { AgentPrimitiveStat, CategoryStat, PrimitiveStat } from "../../lib/primitiveStats";
 import { toAnchorId } from "../../lib/anchorId";
 import { actorHref } from "../../lib/routes";
@@ -11,14 +12,46 @@ function shortenCategoryTitle(title: string): string {
 }
 
 // Instances (A/S/C) and Invocations are atlas-distinct concepts (A.2.2.1.3 vs
-// A.2.2.1.4). The Invocations column carries a thicker left divider so it
-// reads as a separate group, not a fourth instance status.
+// A.2.2.1.4). Invocations sit in the leftmost column; the Active column carries
+// the thick group divider so the boundary between the two concepts reads
+// visually. `isGroupStart` drives the divider; `group` drives anchor routing.
 const HEADERS = [
-  { key: "A",   full: "Active",     group: "instance" as const },
-  { key: "S",   full: "Suspended",  group: "instance" as const },
-  { key: "C",   full: "Completed",  group: "instance" as const },
-  { key: "INV", full: "Invocations in Progress", group: "invocation" as const },
+  { key: "Inv", full: "Invocations", label: "Invocations", group: "invocation" as const, isGroupStart: false },
+  { key: "Act", full: "Active",     label: "Active Instances",    group: "instance" as const, isGroupStart: true },
+  { key: "Sus", full: "Suspended",  label: "Suspended Instances", group: "instance" as const, isGroupStart: false },
+  { key: "Com", full: "Completed",  label: "Completed Instances", group: "instance" as const, isGroupStart: false },
 ];
+
+function namesFor(p: PrimitiveStat, i: number): string[] {
+  return [p.invocationNames, p.activeNames, p.suspendedNames, p.completedNames][i];
+}
+
+function NameList({ names }: { names: string[] }) {
+  return (
+    <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+      {names.map((n, i) => (
+        <li key={i} style={{ whiteSpace: "nowrap" }}>{n}</li>
+      ))}
+    </ul>
+  );
+}
+
+interface NameGroup { primTitle: string; names: string[] }
+
+function GroupedNameList({ groups }: { groups: NameGroup[] }) {
+  return (
+    <div>
+      {groups.map((g, gi) => (
+        <div key={gi} style={{ marginTop: gi === 0 ? 0 : 6 }}>
+          <div className="mono" style={{ color: "var(--tan-3)", textTransform: "uppercase", fontSize: 9, letterSpacing: "0.05em", marginBottom: 1 }}>
+            {g.primTitle}
+          </div>
+          <NameList names={g.names} />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const BORDER = "1px solid #4e3a35";
 const GROUP_BORDER = "2px solid #6b4a40";
@@ -27,9 +60,9 @@ const cellPadding = "0.175rem"
 
 function thStyle(h: typeof HEADERS[number]): React.CSSProperties {
   return {
-    width: h.key === "INV" ? "2rem" : "1.5rem",
+    width: "2rem",
     textAlign: "center",
-    borderLeft: h.group === "invocation" ? GROUP_BORDER : BORDER,
+    borderLeft: h.isGroupStart ? GROUP_BORDER : BORDER,
     paddingLeft: cellPadding,
     paddingRight: cellPadding,
     color: "var(--tan)",
@@ -41,7 +74,7 @@ function thStyle(h: typeof HEADERS[number]): React.CSSProperties {
 function tdStyle(h: typeof HEADERS[number], dim: boolean): React.CSSProperties {
   return {
     textAlign: "center",
-    borderLeft: h.group === "invocation" ? GROUP_BORDER : BORDER,
+    borderLeft: h.isGroupStart ? GROUP_BORDER : BORDER,
     paddingLeft: cellPadding,
     paddingRight: cellPadding,
     color: "var(--tan-2)",
@@ -64,23 +97,32 @@ function PrimitiveRow({ p, rowIndex, agentSlug }: { p: PrimitiveStat; rowIndex: 
   return (
     <tr style={{ background: ROW_COLORS[rowIndex % 2] }}>
       <td className="py-0.5 pl-3" style={{ maxWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        <Link to={actorHref(agentSlug, p.st)} className="mono text-[11px] hover:underline w-full text-left truncate block" style={{ color: "var(--tan-2)" }} title={p.title}>
-          {p.title}
-        </Link>
+        <Tooltip content={`${p.title} Primitive`}>
+          <Link to={actorHref(agentSlug, p.st)} className="mono text-[11px] hover:underline w-full text-left truncate block" style={{ color: "var(--tan-2)" }}>
+            {p.title}
+          </Link>
+        </Tooltip>
       </td>
-      {[p.active, p.suspended, p.completed, p.invocations].map((n, i) => {
+      {[p.invocations, p.active, p.suspended, p.completed].map((n, i) => {
         const h = HEADERS[i];
         const style = tdStyle(h, n === 0);
-        const title = `${n} ${p.title} ${h.full}`;
+        const names = namesFor(p, i);
+        const tip = n === 0 ? `No ${h.label}` : <NameList names={names} />;
         if (n === 0) {
-          return <td key={i} className="mono text-[10px] py-0.5" style={style} title={title}>{n}</td>;
+          return (
+            <Tooltip key={i} content={tip}>
+              <td className="mono text-[10px] py-0.5" style={style}>{n}</td>
+            </Tooltip>
+          );
         }
         return (
-          <td key={i} className="mono text-[10px] py-0.5" style={style} title={title}>
-            <Link to={actorHref(agentSlug, anchorFor(h, p.st))} className="hover:underline" style={{ color: "inherit" }}>
-              {n}
-            </Link>
-          </td>
+          <Tooltip key={i} content={tip}>
+            <td className="mono text-[10px] py-0.5" style={style}>
+              <Link to={actorHref(agentSlug, anchorFor(h, p.st))} className="hover:underline" style={{ color: "inherit" }}>
+                {n}
+              </Link>
+            </td>
+          </Tooltip>
         );
       })}
     </tr>
@@ -89,20 +131,65 @@ function PrimitiveRow({ p, rowIndex, agentSlug }: { p: PrimitiveStat; rowIndex: 
 
 function CategoryRows({ cat, startIndex, agentSlug }: { cat: CategoryStat; startIndex: number; agentSlug: string }) {
   const title = shortenCategoryTitle(cat.title);
+  const sums = cat.primitives.reduce(
+    (acc, p) => {
+      acc[0] += p.invocations;
+      acc[1] += p.active;
+      acc[2] += p.suspended;
+      acc[3] += p.completed;
+      return acc;
+    },
+    [0, 0, 0, 0],
+  );
   return (
     <>
-      <tr>
-        <td colSpan={5} className="pt-3 pb-0.5 pl-3" style={{ borderBottom: BORDER }}>
-          <Link to={actorHref(agentSlug, toAnchorId(cat.title))} className="mono text-[10px] uppercase tracking-wider hover:underline" style={{ color: "var(--tan)" }}>
-            {title}
-          </Link>
+      <tr style={{ fontWeight: "bold" }}>
+        <td className="pt-3 pb-0.5 pl-3" style={{ borderBottom: BORDER }}>
+          <Tooltip content={cat.title}>
+            <Link to={actorHref(agentSlug, toAnchorId(cat.title))} className="mono text-[10px] uppercase tracking-wider hover:underline" style={{ color: "var(--lily-green)" }}>
+              {title}
+            </Link>
+          </Tooltip>
         </td>
+        {HEADERS.map((h, i) => {
+          const sum = sums[i];
+          const groups: NameGroup[] = cat.primitives
+            .map((p) => ({ primTitle: p.title, names: namesFor(p, i) }))
+            .filter((g) => g.names.length > 0);
+          const tip = sum === 0
+            ? `No ${h.label} in ${cat.title}`
+            : <GroupedNameList groups={groups} />;
+          const cellStyle: React.CSSProperties = {
+            textAlign: "center",
+            borderLeft: h.isGroupStart ? GROUP_BORDER : BORDER,
+            borderBottom: BORDER,
+            paddingLeft: cellPadding,
+            paddingRight: cellPadding,
+            color: "var(--terminal-green)",
+            opacity: sum === 0 ? 0.3 : 1,
+          };
+          return (
+            <Tooltip key={h.key} content={tip}>
+              <td className="mono text-[10px] pt-3 pb-0.5" style={cellStyle}>
+                {sum === 0 ? (
+                  sum
+                ) : (
+                  <Link to={actorHref(agentSlug, toAnchorId(cat.title))} className="hover:underline" style={{ color: "inherit" }}>
+                    {sum}
+                  </Link>
+                )}
+              </td>
+            </Tooltip>
+          );
+        })}
       </tr>
       {cat.primitives.length === 0 ? (
         <tr style={{ background: ROW_COLORS[startIndex % 2] }}>
           <td className="mono text-[11px] py-0.5 pl-3" style={{ color: "var(--tan-3)", opacity: 0.5 }}>—</td>
           {HEADERS.map((h, i) => (
-            <td key={i} className="mono text-[10px] py-0.5" style={tdStyle(h, true)} title={`0 ${h.full}`}>0</td>
+            <Tooltip key={i} content={`No ${h.label}`}>
+              <td className="mono text-[10px] py-0.5" style={tdStyle(h, true)}>0</td>
+            </Tooltip>
           ))}
         </tr>
       ) : (
@@ -116,20 +203,43 @@ function CategoryRows({ cat, startIndex, agentSlug }: { cat: CategoryStat; start
 
 function AgentPanel({ agent }: { agent: AgentPrimitiveStat }) {
   let rowCounter = 0;
+  const totals = agent.categories.reduce(
+    (acc, cat) => {
+      for (const p of cat.primitives) {
+        acc[0] += p.invocations;
+        acc[1] += p.active;
+        acc[2] += p.suspended;
+        acc[3] += p.completed;
+      }
+      return acc;
+    },
+    [0, 0, 0, 0],
+  );
+  const instanceTotal = totals[1] + totals[2] + totals[3];
+  const agentTip = (
+    <div>
+      <div style={{ fontWeight: 600 }}>{agent.name} Prime Agent</div>
+      <div style={{ color: "var(--tan-2)" }}>{instanceTotal} Total Instances</div>
+    </div>
+  );
   return (
     <article className="rounded py-4 break-inside-avoid" style={{ border: "1px solid var(--border)", background: "#0f0a08" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
         <colgroup>
           <col style={{ width: "auto" }} />
-          {HEADERS.map((h) => <col key={h.key} style={{ width: h.key === "INV" ? "2rem" : "1.5rem" }} />)}
+          {HEADERS.map((h) => <col key={h.key} style={{ width: "2rem" }} />)}
         </colgroup>
         <thead>
           <tr>
             <th className="text-left pb-2 pl-3" style={{ fontWeight: "600", fontSize: "0.875rem", color: "var(--tan)" }}>
-              <Link to={actorHref(agent.slug)} className="hover:underline">{agent.name}</Link>
+              <Tooltip content={agentTip}>
+                <Link to={actorHref(agent.slug)} className="hover:underline">{agent.name}</Link>
+              </Tooltip>
             </th>
-            {HEADERS.map((h) => (
-              <th key={h.key} className="mono text-[10px] pb-2" title={h.full} style={thStyle(h)}>{h.key}</th>
+            {HEADERS.map((h, i) => (
+              <Tooltip key={h.key} content={`${totals[i]} ${h.label}`}>
+                <th className="mono text-[10px] pb-2" style={thStyle(h)}>{h.key}</th>
+              </Tooltip>
             ))}
           </tr>
         </thead>

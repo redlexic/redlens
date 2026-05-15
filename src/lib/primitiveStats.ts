@@ -16,6 +16,11 @@ export interface PrimitiveStat {
   active: number;
   suspended: number;
   completed: number;
+  // Parallel name lists for tooltips. Counts are the .length of these arrays.
+  activeNames: string[];
+  suspendedNames: string[];
+  completedNames: string[];
+  invocationNames: string[];
 }
 
 export interface CategoryStat {
@@ -122,7 +127,7 @@ export function buildPrimitiveStats(
       : prim.name.replace(/ Primitive$/i, "");
 
     if (!primMap.has(prim.st)) {
-      primMap.set(prim.st, { title: primitiveTitle, st: prim.st, docId: prim.did, invocations: 0, active: 0, suspended: 0, completed: 0 });
+      primMap.set(prim.st, { title: primitiveTitle, st: prim.st, docId: prim.did, invocations: 0, active: 0, suspended: 0, completed: 0, activeNames: [], suspendedNames: [], completedNames: [], invocationNames: [] });
     }
   }
 
@@ -146,7 +151,7 @@ export function buildPrimitiveStats(
       : icd.st;
 
     if (!primMap.has(icd.st)) {
-      primMap.set(icd.st, { title: primitiveTitle, st: icd.st, docId: primitiveDocId, invocations: 0, active: 0, suspended: 0, completed: 0 });
+      primMap.set(icd.st, { title: primitiveTitle, st: icd.st, docId: primitiveDocId, invocations: 0, active: 0, suspended: 0, completed: 0, activeNames: [], suspendedNames: [], completedNames: [], invocationNames: [] });
     }
     return primMap.get(icd.st)!;
   }
@@ -157,9 +162,9 @@ export function buildPrimitiveStats(
     if (!meta) continue;
     const stat = statFor(inst, meta);
     if (!stat) continue;
-    if (meta.status === "Active") stat.active++;
-    else if (meta.status === "Completed") stat.completed++;
-    else if (meta.status === "Suspended") stat.suspended++;
+    if (meta.status === "Active") { stat.active++; stat.activeNames.push(inst.name); }
+    else if (meta.status === "Completed") { stat.completed++; stat.completedNames.push(inst.name); }
+    else if (meta.status === "Suspended") { stat.suspended++; stat.suspendedNames.push(inst.name); }
   }
 
   for (const invo of graph.invocations) {
@@ -169,6 +174,7 @@ export function buildPrimitiveStats(
     const stat = statFor(invo, meta);
     if (!stat) continue;
     stat.invocations++;
+    stat.invocationNames.push(invo.name);
   }
 
   return [...agentMap.values()]

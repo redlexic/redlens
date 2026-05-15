@@ -63,8 +63,13 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
   );
 
   const handleHintClick = useCallback(
-    (q: string) => setQueryParam(q || null),
-    [setQueryParam],
+    (q: string) => {
+      if (q === "/reports") { navigate(ROUTES.REPORTS); return; }
+      if (q === "/radar") { navigate(ROUTES.RADAR); return; }
+      if (q === "/hints") { navigate(ROUTES.SEARCH_HINTS); return; }
+      setQueryParam(q || null);
+    },
+    [navigate, setQueryParam],
   );
   return { query, inputRef, handleChange, state, ready, handleHintClick };
 }
