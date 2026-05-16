@@ -99,5 +99,57 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "All Facilitators must act swiftly to investigate ADs who are suspected of breaching their requirements regarding operational security and privacy."
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Core Facilitator must initiate a formal adjudication pursuant to [A.1."
+          ],
+          [
+            "-",
+            "4"
+          ],
+          [
+            "+",
+            "5"
+          ],
+          [
+            "=",
+            ".9 - Adjudication Process](560e1024-0897-4f1e-ae71-3ba31e29ed57) where there is an allegation concerning AD breach of operational security."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "If there is clear evidence or significant suspicion that the operational security of an AD has been compromised, or that they have failed to follow best practice or otherwise made operational security errors, the Core Facilitator must promptly derecognize the AD."
+      ]
+    ],
+    "changeKind": "typo"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/5/8/document.md",
+    "movedTo": "content/A/1/6/8/document.md"
   }
 ]

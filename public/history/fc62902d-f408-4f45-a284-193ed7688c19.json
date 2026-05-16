@@ -62,5 +62,41 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "It is severe misalignment for an Aligned Delegate to vote for an Emergency Drop Spell whose authenticity has not been validated pursuant to [A.1."
+          ],
+          [
+            "-",
+            "9"
+          ],
+          [
+            "+",
+            "10"
+          ],
+          [
+            "=",
+            ".5.3.2.3 - ADs' Role In Protego Usage](0cec9b17-ef83-4d25-9b6e-dbba11587d52). Aligned Delegates in breach of this requirement must be immediately derecognized and their full AD Buffer should be confiscated."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "typo"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/5/3/2/3/2/document.md",
+    "movedTo": "content/A/1/10/5/3/2/3/2/document.md"
   }
 ]

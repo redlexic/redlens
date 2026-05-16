@@ -24,5 +24,101 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The element \""
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " teams\" indicates that the entire "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " roster can participate in the decision described in the Target Document. The "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " roster is defined as all "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " team members authorized to perform "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " crafting and "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " reviewing services for Sky Core."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/10/1/4/4/0/4/1/document.md",
+    "movedTo": "content/A/1/11/1/4/4/0/4/1/document.md"
   }
 ]

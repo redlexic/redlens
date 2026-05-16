@@ -24,5 +24,41 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "All existing Sky processes and patterns, whether pertaining to rules, processes, systems, smart contracts, or code, must be complied with. If regular operation is impossible due to a technical limitation or otherwise, it is permitted so long as it does not compromise the safety or security of the Sky Protocol in any way. New patterns developed in this way must prioritize the safety and security of the Sky Protocol over all other considerations and should be as similar to old patterns as possible. However, deviation from industry norms and best practices is encouraged so long as they are made in the interest of maximizing security. Any deviations by the Crafter or Reviewers must be communicated to the Core "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Facilitator"
+          ],
+          [
+            "=",
+            "."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/2/4/7/4/6/document.md",
+    "movedTo": "content/A/1/10/2/4/7/4/6/document.md"
   }
 ]
