@@ -24,5 +24,65 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Governance Point should include the module deployment in the Executive Sheet. The \"Input Action\" describes the high level logic of the Deployment, for example \"Add [Module Name] to Chainlog\". The Reasoning URL for the \"Input Action\" should contain a link to the Atlas Edit Proposal Forum post specified in [A.1."
+          ],
+          [
+            "-",
+            "9"
+          ],
+          [
+            "+",
+            "10"
+          ],
+          [
+            "=",
+            ".2.3.2.1.2.1.2 - Technical Scope Forum Post](ef6d73e5-cdcb-48dd-873c-264c07af80bf) and the Authority URL for the \"Input Action\" should contain a link to Atlas documents. The \"Derived Action\" is more specific for deployment address and other necessary information. The Reasoning URL for the \"Derived Action\" should contain a link to the Technical Scope Forum post specified in [A.1."
+          ],
+          [
+            "-",
+            "9"
+          ],
+          [
+            "+",
+            "10"
+          ],
+          [
+            "=",
+            ".2.3.2.1.2.1.2 - Technical Scope Forum Post](ef6d73e5-cdcb-48dd-873c-264c07af80bf) and the Authority URL for the \"Derived Action\" should contain a link to the approval of the Core Facilitator as specified in [A.1."
+          ],
+          [
+            "-",
+            "9"
+          ],
+          [
+            "+",
+            "10"
+          ],
+          [
+            "=",
+            ".2.3.2.1.2.1.3 - Core Facilitator Approve Inclusion In Executive Vote](d0c4f880-902e-4d32-ac55-f05725753ac1)."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/2/3/2/1/3/1/document.md",
+    "movedTo": "content/A/1/10/2/3/2/1/3/1/document.md"
   }
 ]

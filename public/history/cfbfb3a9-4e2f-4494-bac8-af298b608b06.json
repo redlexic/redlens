@@ -62,5 +62,57 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "Active Data with the \"Alignment Conserver Changes\" Update Process pertains to the Core "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Facilitator"
+          ],
+          [
+            "=",
+            "’"
+          ],
+          [
+            "+",
+            "s"
+          ],
+          [
+            "=",
+            " maintenance of the Atlas’ official listing of some subset of Alignment Conservers."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "The triggers of such updates can include, but are not limited to, recognizing a new Alignment Conserver; offboarding an Alignment Conserver at the request of that Alignment Conserver; adding an Alignment Conserver to the list of ACs who have received a formal warning; or derecognizing an Alignment Conserver for misalignment."
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/12/1/3/2/document.md",
+    "movedTo": "content/A/1/13/1/3/2/document.md"
   }
 ]

@@ -24,5 +24,41 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Core Facilitator must make sure that the Executive Document is accurate and adheres to the specified conventions. The Core Facilitator must ensure that all the steps outlined in [A.1."
+          ],
+          [
+            "-",
+            "9"
+          ],
+          [
+            "+",
+            "10"
+          ],
+          [
+            "=",
+            ".2.4.8.3 - Core Facilitator Creates Executive Document](6d40ab22-bcf5-42c2-8a27-fef39fa43d6f) are followed."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "typo"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/2/4/8/4/2/document.md",
+    "movedTo": "content/A/1/10/2/4/8/4/2/document.md"
   }
 ]

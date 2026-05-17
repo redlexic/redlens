@@ -24,5 +24,61 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "When an issue has been reported by a Spell validator, the Core "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Facilitator"
+          ],
+          [
+            "=",
+            " or the Spell Team who worked on the Spell "
+          ],
+          [
+            "-",
+            "are"
+          ],
+          [
+            "+",
+            "is"
+          ],
+          [
+            "=",
+            " likely to respond to the issue. The Spell validator must assume that the parties providing the answer are acting maliciously and lying to prevent the discovery of their attack."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "The validator may only consider the issue as resolved once they are comfortable that the issue does not constitute a bug or attack that poses a threat to the Sky Protocol. Only the validator who raised the issue is permitted to consider an issue as resolved, and any unresolved issue will prevent the Spell from passing validation."
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/2/4/12/4/4/document.md",
+    "movedTo": "content/A/1/10/2/4/12/4/4/document.md"
   }
 ]

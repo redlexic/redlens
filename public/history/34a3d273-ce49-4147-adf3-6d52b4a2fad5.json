@@ -74,5 +74,41 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "Upon receiving notification from the Core Facilitator of a validated and categorized emergency situation, TechOps Services must trigger a notification in the Emergency Contact Mechanism specified in [A.1."
+          ],
+          [
+            "-",
+            "8"
+          ],
+          [
+            "+",
+            "9"
+          ],
+          [
+            "=",
+            ".1.3.2 - Emergency Contact Mechanism](3efb0238-aaae-4351-9ec9-31902f3a1394). All Emergency Response Group Members are required to acknowledge the incident in a timely manner through the Emergency Contact Mechanism. The notification must include a link to the official Emergency Response video call (\"war room\")."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "typo"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/8/1/5/3/document.md",
+    "movedTo": "content/A/1/9/1/5/3/document.md"
   }
 ]

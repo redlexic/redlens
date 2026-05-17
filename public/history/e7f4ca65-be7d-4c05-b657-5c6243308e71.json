@@ -24,5 +24,34 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The element \"Included In An Executive Vote\" refers to the Support Facilitators’ act of adding a Resilience Research and Preparedness grant payment to an Executive Vote. The Support Facilitators are also responsible for providing provenance for such requests by confirming payment requests on the Executive Sheet. See [A.1."
+          ],
+          [
+            "-",
+            "10"
+          ],
+          [
+            "+",
+            "11"
+          ],
+          [
+            "=",
+            ".1.3.0.3.1 - Executive Sheet - Element Annotation](52aef6ac-9eda-4795-9dab-73ea85b8ca31)."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "typo"
   }
 ]
