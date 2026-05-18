@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-05-14T15:08:17.661Z",
-  "redlensCommit": "e02e5ddb55f4e1778f7f3c3a9867e019493ddf36",
-  "atlasCommit": "a5626901a7d619f85f9da05bfdfb28f4910ee55c",
-  "blockNumber": "25094172",
+  "generatedAt": "2026-05-16T09:18:05.598Z",
+  "redlensCommit": "3cc4ac643d009b76605012947203b4ddb818c83a",
+  "atlasCommit": "b2e6d18144b6a22d32d738d2363a7bdb3487ad59",
+  "blockNumber": "25106780",
   "artifacts": {
     "docs.json": {
-      "sha256": "a564fbd314dd881b3085453c8f1d2e210754690438c95524507810a29ab95ab5",
-      "bytes": 5770827
+      "sha256": "466e04f80419502b2191bfaeef08db7bf20175d022945f998adaaf61850ed003",
+      "bytes": 5813944
     },
     "search-index.json": {
-      "sha256": "84e3a39afa192ca1e3b33bd2f2e2f5b7c778d0ac1e497d672e121243ada2bddb",
-      "bytes": 14631968
+      "sha256": "03926957264b442505cde0dce636f7c7c44b4126b32a4fc19a780f031256dea6",
+      "bytes": 14754270
     },
     "addresses.atlas.json": {
       "sha256": "47e4c3fc5469a000291f63761890a6f5a0ce409baaa4a93942da641ea5021ab7",
@@ -21,20 +21,20 @@
       "bytes": 53738
     },
     "chain-state.json": {
-      "sha256": "84886f59a13833cf9c02df22cd520f443b2ce072d5305c5f2682f25e251a7946",
+      "sha256": "1626dfb9de2784c8344fb6aa6e017c35733e633da0ca8c0939954aa722a8189e",
       "bytes": 35490
     },
     "glossary.json": {
-      "sha256": "384924571ad16f9f27faed4c7efee614fc87a865c756ae3e44a6315a5ff5233a",
-      "bytes": 51348
+      "sha256": "a803c181acdd84079d86b95845e664d3e0a9d6f7b254f36e2c3288ddf23fcb5f",
+      "bytes": 51724
     },
     "relations.json": {
-      "sha256": "199b80499e380ee62f3bda73b89d72f97cff572e8ba6e271207192f2f79d70d7",
-      "bytes": 1040142
+      "sha256": "4ca0cc490bb0306cf3127b51910489d2aa0ce1c63097838a0e6d022a02a0421d",
+      "bytes": 1045593
     },
     "graph.json": {
-      "sha256": "333939348ed08024f9062be10139ed8a870e41611a25de2894f93f38f71cc087",
-      "bytes": 3559186
+      "sha256": "1be956babd1773b2895f4b0b81349a994134befd25523142b1a93093abc71c92",
+      "bytes": 3571484
     }
   }
 }

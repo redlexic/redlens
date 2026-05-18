@@ -61,5 +61,49 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Aligned Delegate role exists to provide active stewardship of Sky Governance. For the purposes of this document, abstaining refers to casting an Abstain vote, not to failing to vote entirely (which is addressed under [A.1."
+          ],
+          [
+            "-",
+            "5"
+          ],
+          [
+            "+",
+            "6"
+          ],
+          [
+            "=",
+            ".2.1 - Aligned Delegate Voting Responsibilities](8c813d3d-5ed3-43b9-a495-e7332e10aead)). Casting an Abstain vote is appropriate when an Aligned Delegate has a conflict of interest or lacks sufficient expertise on a specialized matter, but abstaining should be the exception rather than the norm."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "=",
+        "The Core Facilitator may issue a Tier 1 (Procedural) notice to an Aligned Delegate whose pattern of abstentions indicates disengagement from active governance participation. In evaluating whether abstentions are excessive, the Core Facilitator should consider:"
+      ]
+    ],
+    "changeKind": "typo"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/5/2/1/1/document.md",
+    "movedTo": "content/A/1/6/2/1/1/document.md"
   }
 ]

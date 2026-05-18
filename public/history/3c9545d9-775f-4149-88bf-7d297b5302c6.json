@@ -62,5 +62,49 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "Once an Executive Vote passes, the GSM Pause Delay must pass before the changes within that Executive Vote can affect the Sky Protocol. The Sky Protocol only has one GSM Pause Delay, and all parameter changes are subject to it. The GSM Pause Delay is usually expressed in terms of hours."
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "It is possible to move functionality outside of the GSM Pause Delay; however, this requires additional engineering work. A list of exceptional functionality can be found in [A.1."
+          ],
+          [
+            "-",
+            "9"
+          ],
+          [
+            "+",
+            "10"
+          ],
+          [
+            "=",
+            ".3.2 - Exceptions](6781594b-5dff-45ec-89a4-1c9684c4eed8)."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "typo"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/3/1/document.md",
+    "movedTo": "content/A/1/10/3/1/document.md"
   }
 ]

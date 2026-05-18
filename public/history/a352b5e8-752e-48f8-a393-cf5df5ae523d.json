@@ -103,5 +103,122 @@
     "prUrl": "https://github.com/sky-ecosystem/next-gen-atlas/pull/236",
     "reviewCount": 1,
     "approvalCount": 1
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "modified",
+    "diff": [
+      [
+        "=",
+        "The Executive Document (also referred to as the \"Executive Copy,\" \"executive,\" \"Executive Proposal,\" or \"exec doc\") is a formal, plain-English Markdown document that serves as the primary communication tool for presenting the contents of an Executive Vote to the community. Created after the Executive Sheet is finalized, it provides a detailed breakdown of the actions proposed in the Executive Vote. Unlike the Executive Sheet, which organizes actions in a cell-based format, the Executive Document expresses these actions in sentence format for improved readability."
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "Each Executive Document corresponds to a specific "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " and describes the actions that the "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " will perform if executed. It is a critical tool for ensuring transparency, clarity, and alignment among stakeholders. The document serves as a proposal that can be voted on and either approved or rejected by Sky Governance. The Core "
+          ],
+          [
+            "-",
+            "Facilitators"
+          ],
+          [
+            "+",
+            "Facilitator"
+          ],
+          [
+            "=",
+            " "
+          ],
+          [
+            "-",
+            "are"
+          ],
+          [
+            "+",
+            "is"
+          ],
+          [
+            "=",
+            " responsible for producing and finalizing the Executive Document; and any changes must be made by them."
+          ]
+        ]
+      ],
+      [
+        "=",
+        ""
+      ],
+      [
+        "~",
+        [
+          [
+            "=",
+            "The Executive Document is designed to be accessible to both technical and non-technical members of the Sky Ecosystem. It enables Aligned Delegates and SKY holders to understand the actions that will be executed when the "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            " is cast. Its contents are publicly visible on the Voting Portal, where Aligned Delegates review it before voting on the "
+          ],
+          [
+            "-",
+            "spell"
+          ],
+          [
+            "+",
+            "Spell"
+          ],
+          [
+            "=",
+            ". In addition to serving as a reference for voters, the Executive Document also guides the Spell Team in developing and finalizing the Spell, ensuring that the proposed actions are accurately implemented. The contents of the Executive Document are hashed and included within the Spell code to provide an additional layer of verification."
+          ]
+        ]
+      ]
+    ],
+    "changeKind": "semantic"
+  },
+  {
+    "date": "2026-05-15",
+    "commitHash": "4ddd34c",
+    "changeType": "moved",
+    "movedFrom": "content/A/1/9/2/1/3/document.md",
+    "movedTo": "content/A/1/10/2/1/3/document.md"
   }
 ]
