@@ -50,7 +50,11 @@ export function loadAddresses(): Promise<Record<string, AddressInfo>> {
         const aliasCandidates = [o.chainlogId, a.entityLabel, o.etherscanName].filter(
           (l): l is string => !!l && l !== label,
         );
-        const aliases = [...new Set([...a.aliases, ...aliasCandidates])].sort();
+        // roles/aliases/expectedTokens are absent when addresses.atlas.json has
+        // only the minimal { chain } format written by build-index (before
+        // build-graph enriches it). Default to empty arrays so a partial build
+        // still renders without throwing.
+        const aliases = [...new Set([...(a.aliases ?? []), ...aliasCandidates])].sort();
         out[addr] = {
           chain: a.chain,
           explorerUrl: (EXPLORER[a.chain] ?? EXPLORER.ethereum) + addr,
@@ -61,9 +65,9 @@ export function loadAddresses(): Promise<Record<string, AddressInfo>> {
           isContract: o.isContract,
           isProxy: o.isProxy,
           ...(o.implementation ? { implementation: o.implementation } : {}),
-          roles: a.roles,
+          roles: a.roles ?? [],
           aliases,
-          expectedTokens: a.expectedTokens,
+          expectedTokens: a.expectedTokens ?? [],
         };
       }
       return out;

@@ -80,7 +80,7 @@ export default function App() {
 
   const scope: SearchScope = activeNavPage ?? "atlas";
 
-  const { query, inputRef, handleChange, state, ready, handleHintClick } =
+  const { query, inputRef, handleChange, clearQuery, state, ready, handleHintClick } =
     useSearchInput(location, navigate, scope);
   const { navigateToNode, handleViewChange } = useNavigation({
     navigate,
@@ -110,13 +110,14 @@ export default function App() {
 
   return (
     <div
-      className={`flex flex-col ${windowScroll ? "min-h-dvh" : "h-dvh"}`}
+      className={`flex flex-col pb-6 ${windowScroll ? "min-h-dvh" : "h-dvh"}`}
       style={{ background: "var(--bg)" }}
     >
       <SearchBar
         inputRef={inputRef}
         query={query}
         onChange={handleChange}
+        onClear={clearQuery}
         ready={ready}
         isSearching={state.status === "searching"}
         activePage={activeNavPage}

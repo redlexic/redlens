@@ -1,5 +1,9 @@
 const HINTS: { label: string; query: string; description: string }[] = [
-  { label: "wildcard", query: "govern*", description: "Trailing * matches any suffix" },
+  {
+    label: "prefix",
+    query: "govern",
+    description: "Partial words match automatically — type as you think",
+  },
   { label: "0x address", query: "0x*", description: "All nodes containing an Ethereum address" },
   {
     label: "chainlog id",
@@ -7,6 +11,16 @@ const HINTS: { label: string; query: string; description: string }[] = [
     description: "All nodes referencing a Sky chainlog contract",
   },
   { label: "doc number", query: "A.1.2", description: "Jump directly to a section by number" },
+  {
+    label: "exact phrase",
+    query: '"properly implemented"',
+    description: 'Case-insensitive literal phrase — only results containing this exact sequence',
+  },
+  {
+    label: "case-sensitive",
+    query: "'delegatedSigners'",
+    description: "Single quotes — case-sensitive exact match",
+  },
   {
     label: "field: title",
     query: "title:facilitator",
@@ -24,11 +38,6 @@ const HINTS: { label: string; query: string; description: string }[] = [
     description: "Restrict results to a section subtree",
   },
   { label: "fuzzy match", query: "misaligment~1", description: "~N allows N character edits" },
-  {
-    label: "boost term",
-    query: "delegate^5 voting",
-    description: "^N boosts a term's relevance weight",
-  },
   {
     label: "exclude term",
     query: "alignment -slippery",

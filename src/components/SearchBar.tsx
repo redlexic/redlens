@@ -9,6 +9,7 @@ interface Props extends NavBarProps {
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClear: () => void;
   ready: boolean;
   isSearching: boolean;
   scope: SearchScope;
@@ -18,6 +19,7 @@ export function SearchBar({
   inputRef,
   query,
   onChange,
+  onClear,
   ready,
   isSearching,
   activePage,
@@ -78,14 +80,24 @@ export function SearchBar({
             className="search-input flex-1 min-w-0 px-2 py-2 text-sm"
           />
 
-          {isSearching && (
+          {isSearching ? (
             <span
               className="mr-3 text-xs animate-pulse mono shrink-0"
               style={{ color: "var(--gray)" }}
             >
               searching…
             </span>
-          )}
+          ) : query ? (
+            <button
+              type="button"
+              onClick={onClear}
+              aria-label="Clear search"
+              className="mr-2 shrink-0 w-5 h-5 flex items-center justify-center rounded text-lg leading-none"
+              style={{ color: "var(--gray)" }}
+            >
+              ×
+            </button>
+          ) : null}
         </div>
       </div>
     </header>

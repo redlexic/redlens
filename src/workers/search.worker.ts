@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import lunr from "lunr";
+import MiniSearch from "minisearch";
 import type {
   AtlasNode,
   AddressInfo,
@@ -7,11 +7,23 @@ import type {
   WorkerInMessage,
   WorkerOutMessage,
 } from "../types";
-import { fetchJsonVerified } from "../lib/verify";
+import { fetchJsonVerified, fetchTextVerified } from "../lib/verify";
 
 declare const self: DedicatedWorkerGlobalScope;
 
-let idx: lunr.Index | null = null;
+// KEEP IN SYNC WITH scripts/required/build-index.mjs (same processTerm config)
+const MINISEARCH_OPTIONS: ConstructorParameters<typeof MiniSearch>[0] = {
+  fields: ["title", "doc_no", "type", "content"],
+  idField: "id",
+  processTerm: (term) => {
+    // Strip leading/trailing non-alphanumeric chars so backtick-wrapped tokens
+    // like `delegatedSigners` index as "delegatedsigners" not "`delegatedsigners`".
+    const lower = term.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "").toLowerCase();
+    return lower.length >= 2 ? lower : null;
+  },
+};
+
+let idx: MiniSearch | null = null;
 let docs: Record<string, AtlasNode> = {};
 
 // Address reverse-lookup structures, built at init from addresses.json + docs.
@@ -20,24 +32,26 @@ let docs: Record<string, AtlasNode> = {};
 const chainlogToAddr: Map<string, string> = new Map();
 const addrToNodeIds: Map<string, string[]> = new Map();
 
+// Exact doc_no → node for fast direct-navigation lookups
+const byDocNo: Map<string, AtlasNode> = new Map();
+
 async function init() {
   const base = import.meta.env.BASE_URL;
-  const [idxData, docsData, addrsData] = await Promise.all([
-    fetchJsonVerified<object>(`${base}search-index.json`, "search-index.json"),
+  const [idxText, docsData, addrsData] = await Promise.all([
+    fetchTextVerified(`${base}search-index.json`, "search-index.json"),
     fetchJsonVerified<Record<string, AtlasNode>>(`${base}docs.json`, "docs.json"),
     fetchJsonVerified<Record<string, AddressInfo>>(`${base}addresses.json`, "addresses.json"),
   ]);
 
-  idx = lunr.Index.load(idxData);
+  idx = MiniSearch.loadJSON(idxText, MINISEARCH_OPTIONS);
   docs = docsData;
 
-  // Build chainlogId → address map
   for (const [addr, info] of Object.entries(addrsData)) {
     if (info.chainlogId) chainlogToAddr.set(info.chainlogId, addr);
   }
 
-  // Build address → node ids reverse map from docs addressRefs
   for (const [id, doc] of Object.entries(docs)) {
+    byDocNo.set(doc.doc_no, doc);
     for (const ref of doc.addressRefs ?? []) {
       const list = addrToNodeIds.get(ref);
       if (list) list.push(id);
@@ -52,70 +66,125 @@ function post(msg: WorkerOutMessage) {
   self.postMessage(msg);
 }
 
-// Build a plain-text snippet around the best match in `content`.
-// Returns a string with <mark> tags around matched terms.
-function buildSnippet(content: string, matchedTerms: string[]): string {
-  if (!content || matchedTerms.length === 0) return "";
+const ESC_HTML = (c: string) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!;
+const ESC_RE = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  const WINDOW = 160; // chars of context to show
+// Single-pass highlight over plain text (HTML-escaped first).
+// Three tiers in priority order — higher tiers win when ranges overlap:
+//   casePhrases → exact case-sensitive, no word-extension
+//   phrases     → exact case-insensitive, no word-extension
+//   terms       → prefix case-insensitive, with \w* word-extension
+// Using one regex + callback avoids double-wrapping <mark> tags across passes.
+function applyHighlight(
+  raw: string,
+  terms: string[],
+  phrases: string[],
+  casePhrases: string[],
+): string {
+  const escaped = raw.replace(/[&<>"]/g, ESC_HTML);
+
+  type Entry = { pattern: string; exact: string; caseSensitive: boolean };
+  const entries: Entry[] = [];
+
+  for (const p of casePhrases) if (p.length >= 2) entries.push({ pattern: ESC_RE(p), exact: p, caseSensitive: true });
+  for (const p of phrases)    if (p.length >= 2) entries.push({ pattern: ESC_RE(p), exact: p, caseSensitive: false });
+  for (const t of terms)      if (t.length >= 2) entries.push({ pattern: ESC_RE(t) + "\\w*", exact: "", caseSensitive: false });
+
+  if (entries.length === 0) return escaped;
+
+  // Build one alternation; use 'gi' so the engine finds all candidates — the
+  // callback enforces case-sensitivity for casePhrases by comparing match text.
+  const re = new RegExp(entries.map((e) => `(${e.pattern})`).join("|"), "gi");
+  return escaped.replace(re, (...args: unknown[]) => {
+    const match = args[0] as string;
+    const groups = args.slice(1, entries.length + 1) as (string | undefined)[];
+    const idx = groups.findIndex((g) => g !== undefined);
+    if (idx === -1) return match;
+    const entry = entries[idx];
+    // Reject case-insensitive hit for a case-sensitive pattern
+    if (entry.caseSensitive && match !== entry.exact) return match;
+    return `<mark>${match}</mark>`;
+  });
+}
+
+function buildSnippet(
+  content: string,
+  terms: string[],
+  phrases: string[],
+  casePhrases: string[],
+): string {
+  if (!content) return "";
+
+  const WINDOW = 160;
   const lower = content.toLowerCase();
 
-  // Find the earliest match position
+  // Anchor on the most specific match first: case-sensitive phrase > case-insensitive phrase > term
   let bestPos = -1;
-  for (const term of matchedTerms) {
-    const pos = lower.indexOf(term.toLowerCase());
-    if (pos !== -1 && (bestPos === -1 || pos < bestPos)) bestPos = pos;
+  for (const p of casePhrases) {
+    const pos = content.indexOf(p);
+    if (pos !== -1) { bestPos = pos; break; }
+  }
+  if (bestPos === -1) {
+    for (const p of phrases) {
+      const pos = lower.indexOf(p.toLowerCase());
+      if (pos !== -1) { bestPos = pos; break; }
+    }
+  }
+  if (bestPos === -1) {
+    for (const t of terms) {
+      const pos = lower.indexOf(t.toLowerCase());
+      if (pos !== -1 && (bestPos === -1 || pos < bestPos)) bestPos = pos;
+    }
   }
 
-  if (bestPos === -1) return content.slice(0, WINDOW) + "…";
+  if (bestPos === -1) return content.slice(0, WINDOW) + (content.length > WINDOW ? "…" : "");
 
   const start = Math.max(0, bestPos - 60);
   const end = Math.min(content.length, start + WINDOW);
-  let excerpt =
-    (start > 0 ? "…" : "") + content.slice(start, end) + (end < content.length ? "…" : "");
+  const excerpt = (start > 0 ? "…" : "") + content.slice(start, end) + (end < content.length ? "…" : "");
 
-  // Wrap matched terms in <mark>, extending to cover the full word (not just the stem)
-  const valid = matchedTerms.filter((t) => t.length >= 2);
-  if (valid.length > 0) {
-    const pattern = valid.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\w*").join("|");
-    excerpt = excerpt.replace(new RegExp(pattern, "gi"), "<mark>$&</mark>");
-  }
-
-  return excerpt;
+  return applyHighlight(excerpt, terms, phrases, casePhrases);
 }
 
-function highlightTerms(text: string, terms: string[]): string {
-  const valid = terms.filter((t) => t.length >= 2);
-  if (valid.length === 0)
-    return text.replace(
-      /[&<>"]/g,
-      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!,
-    );
-  let result = text.replace(
-    /[&<>"]/g,
-    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!,
-  );
-  // Single-pass replacement to avoid matching inside <mark> tags
-  const pattern = valid.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\w*").join("|");
-  result = result.replace(new RegExp(pattern, "gi"), "<mark>$&</mark>");
-  return result;
+function highlightTerms(
+  text: string,
+  terms: string[],
+  phrases: string[] = [],
+  casePhrases: string[] = [],
+): string {
+  return applyHighlight(text, terms, phrases, casePhrases);
 }
 
 import { UUID_RE } from "../lib/patterns";
-// Chainlog IDs are ALL_CAPS_WITH_UNDERSCORES, at least 3 chars, starting with a letter.
 const CHAINLOG_RE = /^[A-Z][A-Z0-9_]{2,}$/;
+// Doc number pattern for fast exact-lookup: e.g. "A.1.2", "A.1.2.3.4", "NR-12"
+const DOC_NO_RE = /^[A-Z][A-Z0-9]*(?:\.\w+)+$|^NR-\d+$/i;
 
-// Extract quoted "phrases" from a query and return them along with the
-// query stripped of quotes. Lunr has no native phrase operator, so we
-// post-filter results by literal substring match.
-function extractPhrases(q: string): { phrases: string[]; rest: string } {
+// Ticker pattern: all-caps tokens that the stemmer would mangle.
+// NOTE: the phrase-filter substring check means "USDC" also matches "USDCe"
+// in content — a known pre-existing limitation not regressed by this migration.
+const TICKER_RE = /^[a-z]{0,2}[A-Z]{2,}[0-9]*$/;
+
+function extractPhrases(q: string): {
+  phrases: string[];
+  casePhrases: string[];
+  rest: string;
+} {
   const phrases: string[] = [];
-  const rest = q.replace(/"([^"]+)"/g, (_, p: string) => {
+  const casePhrases: string[] = [];
+  let rest = q.replace(/"([^"]+)"/g, (_, p: string) => {
     const trimmed = p.trim();
     if (trimmed) phrases.push(trimmed);
     return ` ${p} `;
   });
-  return { phrases, rest };
+  // Single quotes → case-sensitive exact match
+  rest = rest.replace(/'([^']+)'/g, (_, p: string) => {
+    const trimmed = p.trim();
+    if (trimmed) casePhrases.push(trimmed);
+    return ` ${p} `;
+  });
+  return { phrases, casePhrases, rest };
 }
 
 function docToHit(
@@ -150,13 +219,19 @@ function search(q: string): SearchHit[] {
 
   const trimmed = q.trim();
 
-  // Direct UUID lookup — bypass Lunr entirely
+  // Direct UUID lookup — bypass MiniSearch entirely
   if (UUID_RE.test(trimmed)) {
     const doc = docs[trimmed.toLowerCase()];
     return doc ? [docToHit(doc)] : [];
   }
 
-  // Extract in:DOCNUMBER scope filter before other processing
+  // Exact doc_no fast-path — e.g. "A.1.2" or "NR-12"
+  if (DOC_NO_RE.test(trimmed)) {
+    const doc = byDocNo.get(trimmed.toUpperCase());
+    if (doc) return [docToHit(doc, 10, undefined, [trimmed], "doc number")];
+  }
+
+  // Extract in:DOCNUMBER scope filter
   const IN_RE = /\bin:(\S+)/gi;
   let inPrefix: string | null = null;
   const qWithoutIn = q
@@ -166,15 +241,8 @@ function search(q: string): SearchHit[] {
     })
     .trim();
 
-  // Extract type:VALUE filters before lunr. Supports three forms to cover
-  // multi-word types (Scenario Variation, Active Data Controller, etc.):
-  //   type:Core                       bare single word
-  //   type:Scenario_Variation         underscore/hyphen as space proxy
-  //   type:"Scenario Variation"       explicit quoted
-  // All are applied as exact, case-insensitive post-filters against doc.type,
-  // and removed from the lunr query so trailing words don't leak into content
-  // search. Multiple type: filters are ORed (a node has exactly one type).
-  const TYPE_RE = /\btype:(?:"([^"]+)"|([A-Za-z][A-Za-z0-9_-]*))/gi;
+  // Extract type:VALUE filters
+  const TYPE_RE = /\btype:\s*(?:"([^"]+)"|([A-Za-z][A-Za-z0-9_-]*))/gi;
   const typeFilters: string[] = [];
   const qForPhrases = qWithoutIn
     .replace(TYPE_RE, (_, quoted: string | undefined, bare: string | undefined) => {
@@ -188,12 +256,52 @@ function search(q: string): SearchHit[] {
     })
     .trim();
 
-  const { phrases, rest } = extractPhrases(qForPhrases);
+  const { phrases, casePhrases, rest: restAfterPhrases } = extractPhrases(qForPhrases);
 
-  // Chainlog reverse-map results — collected into a scored map first so they
-  // can be merged with lunr results below. Chainlog hits get score 2 so they
-  // surface above typical lunr scores but can be outranked by a very strong
-  // lunr match on the same node.
+  // Tickers get auto-added as phrases so the stemmer can't mangle them
+  const restWords = restAfterPhrases.trim().split(/\s+/).filter(Boolean);
+  for (const word of restWords) {
+    const bare = word.replace(/^[+\-~]/, "").replace(/[~^*]\d*$/, "");
+    if (
+      bare.length >= 3 &&
+      bare.length <= 8 &&
+      TICKER_RE.test(bare) &&
+      !phrases.includes(bare) &&
+      !casePhrases.includes(bare)
+    ) {
+      phrases.push(bare);
+    }
+  }
+
+  // Extract field scope: title:foo, content:foo, doc_no:foo
+  let searchFields: string[] | undefined;
+  const restAfterFields = restAfterPhrases
+    .replace(/\b(title|content|doc_no):\s*(\S+)/gi, (_, field, term) => {
+      if (!searchFields) searchFields = [];
+      searchFields.push((field as string).toLowerCase());
+      return term as string;
+    })
+    .trim();
+
+  // Extract ~N fuzzy operator (applied globally to the query)
+  let fuzzyLevel: number | false = false;
+  const restAfterFuzzy = restAfterFields
+    .replace(/(\S+)~(\d+)/g, (_, term, n) => {
+      fuzzyLevel = parseInt(n as string, 10);
+      return term as string;
+    })
+    .trim();
+
+  // Extract -word exclusions as a post-filter
+  const excludeTerms: string[] = [];
+  const finalQuery = restAfterFuzzy
+    .replace(/(?:^|\s)-(\w+)/g, (_, term) => {
+      excludeTerms.push((term as string).toLowerCase());
+      return " ";
+    })
+    .trim();
+
+  // Chainlog reverse-map — collected into a scored map to merge with search results
   const chainlogHits = new Map<string, SearchHit>();
   let matchedChainlogId: string | undefined;
   let matchedChainlogAddr: string | undefined;
@@ -214,68 +322,50 @@ function search(q: string): SearchHit[] {
     }
   }
 
-  // A bare hex-prefix query ("0x", "0x35d1", partial address) won't match
-  // anything in lunr as-is because it has no trailing wildcard. Auto-append *
-  // so the user doesn't have to remember to type it.
-  const HEX_PREFIX_RE = /^0x[0-9a-fA-F]*$/i;
+  const queryEmpty = !finalQuery;
 
-  // Token tickers (all-caps, 3-8 chars like SUSDS, USDC, MKR, stUSDS) get
-  // mangled by lunr's stemmer — "SUSDS" stems to match "sUSDe". Treat them
-  // as implicit exact phrases so the post-filter requires a literal substring.
-  const TICKER_RE = /^[a-z]{0,2}[A-Z]{2,}[0-9]*$/;
-  const restWords = rest.trim().split(/\s+/).filter(Boolean);
-  for (const word of restWords) {
-    const bare = word.replace(/^[+\-~]/, "").replace(/[~^*]\d*$/, "");
-    if (bare.length >= 3 && bare.length <= 8 && TICKER_RE.test(bare) && !phrases.includes(bare)) {
-      phrases.push(bare);
-    }
-  }
+  type MiniResult = { id: unknown; score: number; terms: string[]; queryTerms: string[]; match: Record<string, string[]> };
+  let results: MiniResult[];
 
-  const normalized = HEX_PREFIX_RE.test(rest.trim()) ? rest.trim() + "*" : rest;
-
-  // If the user typed only filter tokens (e.g. bare `type:Core`), the lunr
-  // query is empty but we still want to return every matching node. Walk docs
-  // directly and let the post-filters narrow it down.
-  const lunrQueryEmpty = !normalized.trim();
-
-  let results: lunr.Index.Result[];
-  if (lunrQueryEmpty) {
+  if (queryEmpty) {
     results = Object.keys(docs).map((id) => ({
-      ref: id,
+      id,
       score: 1,
-      matchData: { metadata: {} },
-    })) as lunr.Index.Result[];
+      terms: [],
+      queryTerms: [],
+      match: {},
+    }));
   } else {
-    try {
-      results = idx.search(normalized);
-    } catch {
-      // lunr throws on bad query syntax — fall back to wildcard search
-      try {
-        results = idx.search(
-          normalized
-            .split(/\s+/)
-            .filter(Boolean)
-            .map((t) => `${t}*`)
-            .join(" "),
-        );
-      } catch {
-        return [];
-      }
-    }
+    results = idx.search(finalQuery, {
+      prefix: true,
+      fuzzy: fuzzyLevel || false,
+      boost: { title: 10, doc_no: 5, type: 2 },
+      combineWith: "OR",
+      ...(searchFields ? { fields: searchFields } : {}),
+    }) as MiniResult[];
   }
 
-  const lunrHits = results
+  // Use original query words for highlighting (not stems)
+  // Exclude words that came from phrases — the phrase highlight covers them.
+  // Without this, "Delegated" from 'Delegated Signers' leaks into terms and
+  // highlights "delegatedSigners" case-insensitively via the \w* extension.
+  const phraseWordSet = new Set(
+    [...phrases, ...casePhrases].flatMap((p) => p.toLowerCase().split(/\s+/)),
+  );
+  const queryWords = finalQuery
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w && !phraseWordSet.has(w.toLowerCase()));
+
+  const hits = results
     .map((r) => {
-      const doc = docs[r.ref];
+      const doc = docs[r.id as string];
       if (!doc) return null;
 
-      // Type post-filter: exact case-insensitive match against doc.type.
-      // Multiple type: filters are ORed (a node only ever has one type).
-      if (typeFilters.length > 0 && !typeFilters.includes(doc.type.toLowerCase())) {
-        return null;
-      }
+      // Type post-filter
+      if (typeFilters.length > 0 && !typeFilters.includes(doc.type.toLowerCase())) return null;
 
-      // Phrase post-filter: every quoted phrase must literally appear in title or content.
+      // Phrase post-filter: every quoted phrase must literally appear in title or content
       if (phrases.length > 0) {
         const lowerContent = doc.content.toLowerCase();
         const lowerTitle = doc.title.toLowerCase();
@@ -284,26 +374,30 @@ function search(q: string): SearchHit[] {
           if (!lowerContent.includes(lp) && !lowerTitle.includes(lp)) return null;
         }
       }
+      // Case-sensitive phrase post-filter (single-quoted phrases)
+      if (casePhrases.length > 0) {
+        for (const p of casePhrases) {
+          if (!doc.content.includes(p) && !doc.title.includes(p)) return null;
+        }
+      }
 
-      // Include both stemmed terms (from lunr metadata) and original query words
-      // so highlighting covers cases where stemming diverges (e.g. "sky" → "ski")
-      const queryWords = rest.trim().split(/\s+/).filter(Boolean);
-      const matchedTerms = [
-        ...new Set([...Object.keys(r.matchData.metadata), ...queryWords, ...phrases]),
-      ];
+      // Exclusion post-filter
+      if (excludeTerms.length > 0) {
+        const haystack = (doc.title + " " + doc.content).toLowerCase();
+        if (excludeTerms.some((t) => haystack.includes(t))) return null;
+      }
 
-      // Build match reason from which fields each term matched in
+      // Build matchReason from MiniSearch match object: { term: [field, ...] }
       const fieldSet = new Set<string>();
-      const meta = r.matchData.metadata as Record<string, Record<string, unknown>>;
-      for (const fields of Object.values(meta)) {
-        for (const f of Object.keys(fields)) fieldSet.add(f);
+      for (const fields of Object.values(r.match)) {
+        for (const f of fields) fieldSet.add(f);
       }
       const parts: string[] = [];
       if (typeFilters.length > 0) parts.push("type");
       if (fieldSet.has("title")) parts.push("title");
       if (fieldSet.has("doc_no")) parts.push("doc number");
       if (fieldSet.has("content")) parts.push("content");
-      if (phrases.length > 0) parts.push("exact phrase");
+      if (phrases.length > 0 || casePhrases.length > 0) parts.push("exact phrase");
       const matchReason = parts.join(" + ");
 
       return {
@@ -311,39 +405,37 @@ function search(q: string): SearchHit[] {
         score: r.score,
         doc_no: doc.doc_no,
         title: doc.title,
-        titleHtml: highlightTerms(doc.title, matchedTerms),
+        titleHtml: highlightTerms(doc.title, queryWords, phrases, casePhrases),
         matchReason,
         type: doc.type,
         depth: doc.depth,
         parentId: doc.parentId,
-        snippet: buildSnippet(doc.content, matchedTerms),
+        snippet: buildSnippet(doc.content, queryWords, phrases, casePhrases),
       } satisfies SearchHit;
     })
     .filter((h): h is SearchHit => h !== null);
 
-  // Apply in:DOCNUMBER scope filter if present
-  const scopedLunrHits = inPrefix
-    ? lunrHits.filter((h) => h.doc_no === inPrefix || h.doc_no.startsWith(inPrefix + "."))
-    : lunrHits;
+  // Apply in:DOCNUMBER scope filter
+  const scopedHits = inPrefix
+    ? hits.filter((h) => h.doc_no === inPrefix || h.doc_no.startsWith(inPrefix + "."))
+    : hits;
 
   // Merge with three tiers:
-  //   1. found by BOTH chainlog + lunr  (best snippet from lunr, highest priority)
+  //   1. found by BOTH chainlog + search  (best snippet from search, highest priority)
   //   2. chainlog only
-  //   3. lunr only  (sorted by lunr score)
-  if (chainlogHits.size === 0) return scopedLunrHits;
+  //   3. search only  (sorted by score)
+  if (chainlogHits.size === 0) return scopedHits;
 
-  const lunrById = new Map(scopedLunrHits.map((h) => [h.id, h]));
+  const hitsById = new Map(scopedHits.map((h) => [h.id, h]));
 
   const both: SearchHit[] = [];
   const chainlogOnly: SearchHit[] = [];
   for (const [id, chainlogHit] of chainlogHits) {
-    const lunrHit = lunrById.get(id);
-    if (lunrHit) {
-      // Use lunr's snippet (has highlights) but carry chainlog info
+    const hit = hitsById.get(id);
+    if (hit) {
       both.push({
-        ...lunrHit,
-        score: lunrHit.score,
-        matchReason: "chainlog + " + lunrHit.matchReason,
+        ...hit,
+        matchReason: "chainlog + " + hit.matchReason,
         chainlogId: matchedChainlogId,
         chainlogAddress: matchedChainlogAddr,
       });
@@ -351,12 +443,12 @@ function search(q: string): SearchHit[] {
       chainlogOnly.push(chainlogHit);
     }
   }
-  const lunrOnly = scopedLunrHits.filter((h) => !chainlogHits.has(h.id));
+  const searchOnly = scopedHits.filter((h) => !chainlogHits.has(h.id));
 
   both.sort((a, b) => b.score - a.score);
-  lunrOnly.sort((a, b) => b.score - a.score);
+  searchOnly.sort((a, b) => b.score - a.score);
 
-  return [...both, ...chainlogOnly, ...lunrOnly];
+  return [...both, ...chainlogOnly, ...searchOnly];
 }
 
 self.addEventListener("message", (e: MessageEvent<WorkerInMessage>) => {

@@ -71,5 +71,11 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
     },
     [navigate, setQueryParam],
   );
-  return { query, inputRef, handleChange, state, ready, handleHintClick };
+
+  const clearQuery = useCallback(() => {
+    setQueryParam(null);
+    inputRef.current?.focus();
+  }, [setQueryParam]);
+
+  return { query, inputRef, handleChange, clearQuery, state, ready, handleHintClick };
 }
