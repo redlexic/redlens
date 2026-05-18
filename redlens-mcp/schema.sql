@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS docs (
   depth       INTEGER NOT NULL DEFAULT 0,
   parent_id   TEXT REFERENCES docs(id),
   content     TEXT NOT NULL DEFAULT '',
-  ord         INTEGER NOT NULL DEFAULT 0
+  ord         INTEGER NOT NULL DEFAULT 0,
+  atlas_hash  TEXT,   -- atlas submodule commit SHA when this row was last written
+  updated_at  TEXT    -- ISO timestamp of the sync run that last changed this row
 );
 
 CREATE INDEX IF NOT EXISTS idx_docs_doc_no   ON docs(doc_no);
@@ -33,20 +35,10 @@ CREATE VIRTUAL TABLE IF NOT EXISTS docs_fts USING fts5(
   content_rowid=rowid
 );
 
-CREATE TRIGGER IF NOT EXISTS docs_ai AFTER INSERT ON docs BEGIN
-  INSERT INTO docs_fts(rowid,id,doc_no,title,type,content)
-  VALUES (new.rowid,new.id,new.doc_no,new.title,new.type,new.content);
-END;
-CREATE TRIGGER IF NOT EXISTS docs_ad AFTER DELETE ON docs BEGIN
-  INSERT INTO docs_fts(docs_fts,rowid,id,doc_no,title,type,content)
-  VALUES ('delete',old.rowid,old.id,old.doc_no,old.title,old.type,old.content);
-END;
-CREATE TRIGGER IF NOT EXISTS docs_au AFTER UPDATE ON docs BEGIN
-  INSERT INTO docs_fts(docs_fts,rowid,id,doc_no,title,type,content)
-  VALUES ('delete',old.rowid,old.id,old.doc_no,old.title,old.type,old.content);
-  INSERT INTO docs_fts(rowid,id,doc_no,title,type,content)
-  VALUES (new.rowid,new.id,new.doc_no,new.title,new.type,new.content);
-END;
+-- FTS5 is rebuilt explicitly via `INSERT INTO docs_fts(docs_fts) VALUES('rebuild')`
+-- at the end of sync-d1.mjs after all docs rows are loaded. Per-row triggers
+-- were removed because they fired on every delete AND every insert during the
+-- bulk clear→reload cycle, doubling the effective write count for docs.
 
 -- ---------------------------------------------------------------------------
 -- entities — named real-world actors, derived from docs.
@@ -155,6 +147,9 @@ CREATE TABLE IF NOT EXISTS node_history (
   moved_to      TEXT
 );
 
+-- Natural key for dedup: a node can only have one event of each type per commit.
+-- Required for INSERT OR IGNORE in sync-history.mjs (incremental sync).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hist_unique    ON node_history(doc_id, commit_hash, change_type);
 CREATE INDEX IF NOT EXISTS idx_hist_doc       ON node_history(doc_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_hist_date      ON node_history(date DESC);
 CREATE INDEX IF NOT EXISTS idx_hist_type_date ON node_history(change_type, date DESC);
