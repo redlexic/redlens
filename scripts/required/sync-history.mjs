@@ -37,12 +37,14 @@ function esc(s) {
 
 async function writeBatched(filePath, tableName, cols, rows) {
   const out = fs.createWriteStream(filePath);
-  out.write(`DELETE FROM ${tableName};\n`);
+  // INSERT OR IGNORE: history rows are immutable (keyed by doc_id + commit_hash).
+  // On re-syncs only new entries are written; existing rows are skipped entirely,
+  // avoiding a full DELETE + reinsert of ~24k rows every atlas update.
   let i = 0;
   for (const row of rows) {
     if (i % BATCH === 0) {
       if (i > 0) out.write(";\n");
-      out.write(`INSERT INTO ${tableName} (${cols.join(",")}) VALUES\n`);
+      out.write(`INSERT OR IGNORE INTO ${tableName} (${cols.join(",")}) VALUES\n`);
     } else {
       out.write(",\n");
     }

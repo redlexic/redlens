@@ -48,15 +48,18 @@ const artifactHashes: Record<string, string> = (() => {
   }
 })();
 
+// CF Pages sets CF_PAGES=1 automatically; GH Pages is served under /redlens/.
+const base = process.env.CF_PAGES === "1" ? "/" : "/redlens/";
+
 export default defineConfig({
-  base: "/redlens/",
+  base,
   plugins: [
     {
       name: "redirect-root",
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url === "/" || req.url === "/redlens") {
-            res.writeHead(307, { Location: "/redlens/" });
+          if (req.url === "/" || req.url === base.slice(0, -1)) {
+            res.writeHead(307, { Location: base });
             res.end();
             return;
           }
@@ -67,7 +70,7 @@ export default defineConfig({
     tailwindcss(),
     react(),
     VitePWA({
-      scope: "/redlens/",
+      scope: base,
       // "prompt" — the new SW waits for explicit activation. Avoids the
       // mid-session race where autoUpdate evicts the chunks the live page
       // is still importing (manifests as "Failed to fetch dynamically
@@ -77,14 +80,14 @@ export default defineConfig({
         name: "RedLens' Sky Atlas",
         short_name: "RedLens",
         description: "Search-first interface for the Sky ecosystem Atlas",
-        start_url: "/redlens/",
-        scope: "/redlens/",
+        start_url: base,
+        scope: base,
         display: "standalone",
         background_color: "#160e0d",
         theme_color: "#160e0d",
         icons: [
           {
-            src: "/redlens/icon-SMALL.png",
+            src: `${base}icon-SMALL.png`,
             sizes: "28x28",
             type: "image/png",
           },
@@ -102,8 +105,7 @@ export default defineConfig({
           "**/history/**",
         ],
         // Serve index.html for all navigation requests so deep-URL refreshes work offline.
-        // Must point at a precached URL — `/redlens/` itself is not in the precache, only `index.html` is.
-        navigateFallback: "/redlens/index.html",
+        navigateFallback: `${base}index.html`,
         runtimeCaching: [
           {
             // Atlas data JSON files — network-first, 3 s timeout before falling to cache

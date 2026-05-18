@@ -70,6 +70,36 @@ async function writeBatched(filePath, tableName, cols, rows) {
   return new Promise((r) => out.on("finish", r));
 }
 
+// Incremental upsert: only writes rows where a content field changed.
+// pkCols:      columns forming the conflict target (PK)
+// contentCols: columns checked in WHERE — excluded from change detection means 0 writes
+// atlas_hash / updated_at are always in SET but never in WHERE (metadata, not content)
+// IS NOT is used throughout: safe for both nullable and non-nullable columns in SQLite.
+async function writeUpsert(filePath, tableName, cols, pkCols, contentCols, rows) {
+  const setCols = cols.filter((c) => !pkCols.includes(c));
+  const setClause = setCols.map((c) => `${c}=excluded.${c}`).join(",");
+  const whereClause = contentCols
+    .map((c) => `excluded.${c} IS NOT ${tableName}.${c}`)
+    .join(" OR ");
+  const conflict =
+    `ON CONFLICT(${pkCols.join(",")}) DO UPDATE SET ${setClause} WHERE ${whereClause}`;
+  const out = fs.createWriteStream(filePath);
+  let i = 0;
+  for (const row of rows) {
+    if (i % BATCH === 0) {
+      if (i > 0) out.write(`\n${conflict};\n`);
+      out.write(`INSERT INTO ${tableName} (${cols.join(",")}) VALUES\n`);
+    } else {
+      out.write(",\n");
+    }
+    out.write("(" + cols.map((c) => esc(row[c])).join(",") + ")");
+    i++;
+  }
+  if (i > 0) out.write(`\n${conflict};\n`);
+  out.end();
+  return new Promise((r) => out.on("finish", r));
+}
+
 // ---------------------------------------------------------------------------
 // Load artifacts
 // ---------------------------------------------------------------------------
@@ -119,17 +149,6 @@ if (chainState.chains) {
 // Build rows
 // ---------------------------------------------------------------------------
 
-const docRows = allDocs.map((d) => ({
-  id: d.id,
-  doc_no: d.doc_no,
-  title: d.title,
-  type: d.type,
-  depth: d.depth ?? 0,
-  parent_id: d.parentId ?? null,
-  content: d.content ?? "",
-  ord: d.order ?? 0,
-}));
-
 console.log("Loading manifest.json…");
 const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "public/manifest.json"), "utf8"));
 const metaRows = [
@@ -139,6 +158,22 @@ const metaRows = [
   { key: "blockNumber",   value: manifest.blockNumber ?? null },
 ];
 console.log(`  atlas: ${manifest.atlasCommit?.slice(0,12)}, redlens: ${manifest.redlensCommit?.slice(0,12)}`);
+
+const syncAtlasHash = manifest.atlasCommit ?? null;
+const syncUpdatedAt = new Date().toISOString();
+
+const docRows = allDocs.map((d) => ({
+  id: d.id,
+  doc_no: d.doc_no,
+  title: d.title,
+  type: d.type,
+  depth: d.depth ?? 0,
+  parent_id: d.parentId ?? null,
+  content: d.content ?? "",
+  ord: d.order ?? 0,
+  atlas_hash: syncAtlasHash,
+  updated_at: syncUpdatedAt,
+}));
 
 // slug → entity id, for resolving address.entity_id
 const entityBySlug = new Map(entityRows.map((e) => [e.slug, e]));
@@ -181,22 +216,36 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "redlens-sync-"));
 const clearFile = path.join(TMP, "_0_clear.sql");
 fs.writeFileSync(
   clearFile,
-  "DELETE FROM edges;\nDELETE FROM addresses;\nDELETE FROM entities;\nDELETE FROM docs;\nDELETE FROM kv_meta;\n",
+  // Drop FTS5 triggers before clearing docs so deletes don't fire per-row
+  // FTS5 writes. The index is rebuilt once after all docs are inserted.
+  "DROP TRIGGER IF EXISTS docs_ai;\n" +
+  "DROP TRIGGER IF EXISTS docs_ad;\n" +
+  "DROP TRIGGER IF EXISTS docs_au;\n" +
+  "DELETE FROM edges;\nDELETE FROM addresses;\nDELETE FROM entities;\nDELETE FROM kv_meta;\n",
 );
 const files = {
-  docs:      path.join(TMP, "_docs.sql"),
-  entities:  path.join(TMP, "_entities.sql"),
-  addresses: path.join(TMP, "_addresses.sql"),
-  edges:     path.join(TMP, "_edges.sql"),
-  kv_meta:   path.join(TMP, "_kv_meta.sql"),
+  docs:         path.join(TMP, "_docs.sql"),
+  docs_cleanup: path.join(TMP, "_docs_cleanup.sql"),
+  entities:     path.join(TMP, "_entities.sql"),
+  addresses:    path.join(TMP, "_addresses.sql"),
+  edges:        path.join(TMP, "_edges.sql"),
+  kv_meta:      path.join(TMP, "_kv_meta.sql"),
 };
 
 console.log("\nWriting SQL files…");
-await writeBatched(
-  files.docs,
-  "docs",
-  ["id", "doc_no", "title", "type", "depth", "parent_id", "content", "ord"],
+await writeUpsert(
+  files.docs, "docs",
+  ["id", "doc_no", "title", "type", "depth", "parent_id", "content", "ord", "atlas_hash", "updated_at"],
+  ["id"],
+  ["doc_no", "title", "type", "depth", "parent_id", "content", "ord"],
   docRows,
+);
+
+// Remove any docs whose UUIDs are no longer in the atlas.
+// Sends all current IDs so D1 can delete the diff; 0 rows written when nothing was removed.
+fs.writeFileSync(
+  files.docs_cleanup,
+  `DELETE FROM docs WHERE id NOT IN (${docRows.map((d) => esc(d.id)).join(",")});\n`,
 );
 await writeBatched(
   files.entities,
@@ -223,7 +272,28 @@ await writeBatched(
 );
 await writeBatched(files.kv_meta, "kv_meta", ["key", "value"], metaRows);
 
+// Rebuild FTS5 index from the content table in one pass (replaces per-row triggers).
+const rebuildFile = path.join(TMP, "_fts_rebuild.sql");
+fs.writeFileSync(rebuildFile, "INSERT INTO docs_fts(docs_fts) VALUES('rebuild');\n");
+files.fts_rebuild = rebuildFile;
+
 console.log(`\nApplying to D1 ${REMOTE ? "(remote)" : "(local)"}…`);
+
+// One-time column migrations — idempotent: errors mean the column already exists.
+for (const stmt of [
+  "ALTER TABLE docs ADD COLUMN atlas_hash TEXT",
+  "ALTER TABLE docs ADD COLUMN updated_at TEXT",
+]) {
+  try {
+    execSync(`npx wrangler@latest d1 execute ${DB} ${FLAG} --command="${stmt}"`, {
+      stdio: "pipe",
+      cwd: MCP_DIR,
+    });
+  } catch {
+    // Column already exists — safe to ignore
+  }
+}
+
 runFile(SCHEMA);
 console.log("  schema done");
 runFile(clearFile);

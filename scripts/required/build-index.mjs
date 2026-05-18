@@ -98,8 +98,8 @@ const ATLAS_ROOT = path.join(ROOT, "vendor/next-gen-atlas");
 const COMPOSE_SCRIPT = path.join(ATLAS_ROOT, "sync/compose.py");
 const CONTENT_DIR = path.join(ATLAS_ROOT, "content");
 
-if (!fs.existsSync(ATLAS_PATH) && fs.existsSync(COMPOSE_SCRIPT) && fs.existsSync(CONTENT_DIR)) {
-  console.log("Sky Atlas.md not found — composing from folder tree via sync/compose.py…");
+if (fs.existsSync(COMPOSE_SCRIPT) && fs.existsSync(CONTENT_DIR)) {
+  console.log("Composing Sky Atlas.md from content/ folder tree…");
   fs.mkdirSync(path.dirname(ATLAS_PATH), { recursive: true });
   execFileSync("python3", [COMPOSE_SCRIPT, "--input", CONTENT_DIR, "--output", ATLAS_PATH], {
     stdio: "inherit",

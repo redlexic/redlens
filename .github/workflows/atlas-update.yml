@@ -105,6 +105,10 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Delete stale remote branch if it exists from a previous failed run
+          git push origin --delete "$BRANCH" 2>/dev/null || true
+
           git checkout -b "$BRANCH"
 
           git add vendor/next-gen-atlas public/ graph-snapshots/
@@ -125,6 +129,13 @@ jobs:
           TAG="atlas-${SHORT}"
           git tag -a "$TAG" -m "Atlas commit ${FULL_SHA}"
           git push origin "$TAG" || echo "Tag $TAG already exists, skipping"
+
+          # Skip if a PR already exists for this branch (e.g. re-run after partial failure)
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR #$EXISTING_PR already open for $BRANCH — skipping gh pr create."
+            exit 0
+          fi
 
           gh pr create \
             --title "Atlas update ${SHORT} — ${DATE}" \
