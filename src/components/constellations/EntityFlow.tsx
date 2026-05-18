@@ -24,8 +24,8 @@ import { edgeLabel, ENTITY_TYPE_LABEL, SUBTYPE_LABEL } from "../../lib/entityGra
 import { getEdges, type EdgeResult } from "../../lib/graph";
 import type { Participant } from "../../types";
 
-const EDGE_COLOR = "#5a3a32";
-const EDGE_HIGHLIGHT = "#c67267";
+const EDGE_COLOR = "var(--edge)";
+const EDGE_HIGHLIGHT = "var(--accent)";
 
 type CardData = {
   label: string;
@@ -55,9 +55,8 @@ const EntityCard = memo(function EntityCard({ data, selected }: NodeProps<CardNo
         padding: selected ? "12px 14px" : "6px 10px",
         minWidth: 160,
         maxWidth: selected ? 550 : 250,
-        boxShadow: selected ? `0 8px 24px rgba(0,0,0,0.5)` : "0 2px 6px rgba(0,0,0,0.3)",
+        boxShadow: selected ? "0 8px 24px var(--shadow-strong)" : "0 2px 6px var(--shadow)",
         transition: "width 150ms ease, padding 150ms ease",
-        fontFamily: "'Lora', serif",
       }}
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0, pointerEvents: "none" }} />
@@ -264,8 +263,8 @@ function EntityFlowInner({
         label: edgeLabel(e.type, "outbound"),
         style: { stroke: active ? EDGE_HIGHLIGHT : EDGE_COLOR, strokeWidth: active ? 2 : 1.2 },
         markerEnd: { type: MarkerType.ArrowClosed, color: active ? EDGE_HIGHLIGHT : EDGE_COLOR, width: 16, height: 16 },
-        labelStyle: { fill: "#8a6a60", fontSize: 10, fontFamily: "'Source Code Pro', monospace" },
-        labelBgStyle: { fill: "#160e0d", fillOpacity: 0.9 },
+        labelStyle: { fill: "var(--edge-label-fg)", fontSize: 10, fontFamily: "'Source Code Pro', monospace" },
+        labelBgStyle: { fill: "var(--bg)", fillOpacity: 0.9 },
         labelBgPadding: [4, 2] as [number, number],
         zIndex: active ? 1 : 0,
       };
@@ -287,7 +286,7 @@ function EntityFlowInner({
       onNodeClick={handleNodeClick} nodeTypes={nodeTypes} fitView minZoom={0.2} maxZoom={2}
       nodesConnectable={false} colorMode="dark" proOptions={{ hideAttribution: true }}
     >
-      <Background variant={BackgroundVariant.Dots} gap={32} size={1} color="#2a1a16" />
+      <Background variant={BackgroundVariant.Dots} gap={32} size={1} color="var(--graph-dots)" />
       <Controls showInteractive={false} />
     </ReactFlow>
   );

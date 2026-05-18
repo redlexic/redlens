@@ -50,7 +50,7 @@ export function ActorChain({ chain, currentSlug, onActor }: Props) {
                     key={node.id}
                     onClick={() => onActor(node.slug)}
                     className="hover:underline"
-                    style={{ color: ENTITY_TYPE_COLOR[node.et] ?? "#888" }}
+                    style={{ color: ENTITY_TYPE_COLOR[node.et] ?? "var(--entity-fallback)" }}
                   >
                     {node.name}
                   </button>

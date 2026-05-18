@@ -71,17 +71,17 @@ export function edgeLabel(edgeType: string, direction: "outbound" | "inbound"): 
 }
 
 export const ENTITY_TYPE_COLOR: Record<string, string> = {
-  agent: "#c67267",
-  facilitator_org: "#e0a060",
-  govops_org: "#8fb8c2",
-  delegate_org: "#9ab58a",
-  development_company: "#a0b0d0",
-  foundation: "#b8a0c8",
-  composite_party: "#c8b070",
-  governance_body: "#90a880",
-  operational_party: "#c09080",
-  ecosystem_actor: "#a89090",
-  instance: "#7a8a9c",
+  agent: "var(--entity-agent)",
+  facilitator_org: "var(--entity-facilitator-org)",
+  govops_org: "var(--entity-govops-org)",
+  delegate_org: "var(--entity-delegate-org)",
+  development_company: "var(--entity-development-company)",
+  foundation: "var(--entity-foundation)",
+  composite_party: "var(--entity-composite-party)",
+  governance_body: "var(--entity-governance-body)",
+  operational_party: "var(--entity-operational-party)",
+  ecosystem_actor: "var(--entity-ecosystem-actor)",
+  instance: "var(--entity-instance)",
 };
 
 export interface EntityNodeData {
@@ -131,7 +131,7 @@ export function buildEntityNodes(data: GraphData): EntityNodeData[] {
       id: ent.id,
       label: ent.name,
       entity: ent,
-      color: ENTITY_TYPE_COLOR[ent.et] ?? "#888888",
+      color: ENTITY_TYPE_COLOR[ent.et] ?? "var(--entity-fallback)",
       degree: d,
       size: nodeSize(ent, d),
     };
@@ -153,7 +153,7 @@ export const CONNECTED_ENTITY_TYPES: ReadonlySet<string> = new Set([
   "instance",
 ]);
 
-/** Entity↔entity edges only, for the sigma canvas. */
+/** Entity↔entity edges only, for the ReactFlow graph. */
 export function buildEntityEdges(data: GraphData): EntityEdgeData[] {
   const out: EntityEdgeData[] = [];
   let i = 0;

@@ -52,3 +52,6 @@ note.md
 
 .cache/pr-check/*
 .cache/pr-check/pr227-ffe21c9.md
+
+# Personal docs (not checked in)
+docs/ds/
