@@ -54,3 +54,6 @@ note.md
 .cache/processes-audit.md
 .cache/processes-heuristic.json
 .claude/scheduled_tasks.lock
+
+# Personal docs (not checked in)
+docs/ds/
