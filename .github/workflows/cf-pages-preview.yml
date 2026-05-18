@@ -15,7 +15,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: WorkerDeploy
+    environment: CF Page Deploy
     steps:
       - uses: actions/checkout@v5
         with:
