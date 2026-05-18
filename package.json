@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.5",
+    "@uiw/react-color": "^2.10.1",
     "@xyflow/react": "^12.10.2",
     "graphology": "^0.26.0",
     "graphology-layout-forceatlas2": "^0.10.1",

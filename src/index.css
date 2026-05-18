@@ -1,13 +1,19 @@
 @import "tailwindcss";
 
 :root {
+  /* ─── Surface tier ─── */
   --bg: #160e0d; /* charcoal with a reddish undertone */
+  --bg-deep: #0e0907; /* deeper than --bg — tree sidebar */
   --surface: #221614;
   --hover: #3a1f1a;
   --border: #3d2c28;
+
+  /* ─── Brand ─── */
   --red: #a63228; /* burn red — badges, target highlight */
   --red-dim: #753021;
   --accent: #c67267; /* browner/pinker — focus, interactive */
+
+  /* ─── Text ─── */
   --gray: #9a8a80; /* bumped from #7a6860 — passes 4.5:1 on --bg */
   --tan: #f3e7ce; /* primary text — lightened */
   --tan-2: #e4d1b9; /* secondary */
@@ -15,7 +21,46 @@
   --magenta: #c61f7c; /* status pills (e.g. update available) — high-contrast on --tan */
   --terminal-green: #399930;
   --lily-green: #ecffea;
+
+  /* ─── Row state overlays (translucent white) ─── */
+  --row-hover: rgba(255, 255, 255, 0.1);
+  --row-selected: rgba(255, 255, 255, 0.08);
+  --row-focused: rgba(255, 255, 255, 0.04);
+
+  /* ─── Shadows ─── */
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-strong: rgba(0, 0, 0, 0.5);
+
+  /* ─── Graph chrome (constellations / ReactFlow) ─── */
+  --edge: #5a3a32;
+  --edge-label-fg: #8a6a60;
+  --graph-dots: #2a1a16;
+
+  /* ─── Diff view ─── */
+  --diff-removed-bg: #4a1010;
+  --diff-removed-fg: #e8d5d5;
+
+  /* ─── Entity-type categorical palette ─── */
+  --entity-agent: #c67267; /* same hue as --accent */
+  --entity-facilitator-org: #e0a060;
+  --entity-govops-org: #8fb8c2;
+  --entity-delegate-org: #9ab58a;
+  --entity-development-company: #a0b0d0;
+  --entity-foundation: #b8a0c8;
+  --entity-composite-party: #c8b070;
+  --entity-governance-body: #90a880;
+  --entity-operational-party: #c09080;
+  --entity-ecosystem-actor: #a89090;
+  --entity-instance: #7a8a9c;
+  --entity-fallback: #888888;
+
   --max-prose-width: 68ch;
+}
+
+/* Light theme — fill in when the toggle is wired up.
+   Each token above can be overridden here; missing ones fall through to dark. */
+[data-theme="light"] {
+  /* TODO: light theme overrides */
 }
 
 html,
@@ -23,7 +68,8 @@ body,
 #root {
   background-color: var(--bg);
   color: var(--tan);
-  font-family: "Lora", Georgia, serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 500;
   min-height: 100vh;
 }
 
@@ -67,25 +113,25 @@ mark {
 
 /* webkit search chrome stripped per-input — see .search-input below */
 
-/* Depth palette — 17 levels: white → saturated rainbow → pastel rainbow */
+/* Depth palette — 17 levels: 7-color rainbow (R O Y G B P M) cycled. */
 :root {
-  --depth-1: #e8e0d8; /* white */
-  --depth-2: #fd3a3a; /* deep red */
-  --depth-3: #fd7041; /* reddish orange */
-  --depth-4: #ed9332; /* orange */
-  --depth-5: #d8b235; /* golden */
-  --depth-6: #5fbf5c; /* green — bumped for 4.5:1 on --bg */
-  --depth-7: #5cc0d0; /* azure — bumped for 4.5:1 on --bg */
-  --depth-8: #5a94d8; /* blue — bumped for 4.5:1 on --bg */
-  --depth-9: #7a7ee0; /* indigo — bumped for 4.5:1 on --bg */
-  --depth-10: #a87ae0; /* violet — bumped for 4.5:1 on --bg */
-  --depth-11: #ba5184; /* magenta */
-  --depth-12: #e4a6c3; /* light pink */
-  --depth-13: #f7b9ad; /* pinky white */
-  --depth-14: #e9c098; /* orange white */
-  --depth-15: #e0d5a2; /* yellow white */
-  --depth-16: #b0d6a5; /* green white */
-  --depth-17: #a9cce4; /* blue white */
+  --depth-1: #f43545;  /* red */
+  --depth-2: #fb923c;  /* orange */
+  --depth-3: #facc15;  /* yellow */
+  --depth-4: #4ade80;  /* green */
+  --depth-5: #3b82f6;  /* blue */
+  --depth-6: #a855f7;  /* purple */
+  --depth-7: #ec4899;  /* magenta */
+  --depth-8: #f43545;  /* red */
+  --depth-9: #fb923c;  /* orange */
+  --depth-10: #facc15; /* yellow */
+  --depth-11: #4ade80; /* green */
+  --depth-12: #3b82f6; /* blue */
+  --depth-13: #a855f7; /* purple */
+  --depth-14: #ec4899; /* magenta */
+  --depth-15: #f43545; /* red */
+  --depth-16: #fb923c; /* orange */
+  --depth-17: #facc15; /* yellow */
 }
 
 /* Tree sidebar — Drawer controls visibility/width */
