@@ -4,7 +4,7 @@ import { segmentDepths } from "../../lib/depth";
 import type { AtlasNode } from "../../types";
 import { truncateTitle } from "../../lib/treeUtils";
 
-export const ROW_HEIGHT = 20;
+export const ROW_HEIGHT = 24;
 const TOGGLE_WIDTH = 14;
 const PAD_X = 6;
 
@@ -27,7 +27,7 @@ export interface TreeRowData {
 
 const DOC_NUM_STYLE: React.CSSProperties = {
   flexShrink: 0,
-  fontSize: 8,
+  fontSize: 9,
   userSelect: "none",
   display: "inline-flex",
   alignItems: "center",
@@ -39,7 +39,7 @@ const TOGGLE_BASE: React.CSSProperties = {
   width: TOGGLE_WIDTH,
   textAlign: "center",
   flexShrink: 0,
-  fontSize: 9,
+  fontSize: 10,
   userSelect: "none",
 };
 const TITLE_BASE: React.CSSProperties = {
@@ -74,7 +74,7 @@ export function TreeRow({
   const docNo = node?.doc_no ?? "";
   const treeDepth = item?.treeDepth ?? 0;
 
-  const docNumWidth = docNo.length * 4;
+  const docNumWidth = docNo.length * 5;
   const availableWidth = sidebarWidth - 5 - docNumWidth - TOGGLE_WIDTH - PAD_X - 6;
 
   const displayTitle = useMemo(
@@ -100,7 +100,7 @@ export function TreeRow({
   const boxShadow = isSelected
     ? `inset 2px 0 0 ${depthVar}`
     : isFocused
-      ? `inset 2px 0 0 var(--tan-3), inset 0 0 0 1px rgba(255, 255, 255, 0.1)`
+      ? `inset 2px 0 0 var(--tan-3), inset 0 0 0 1px var(--row-hover)`
       : undefined;
 
   return (

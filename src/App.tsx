@@ -128,7 +128,15 @@ export default function App() {
       <div className={`flex-1 flex ${windowScroll ? "" : "overflow-hidden"}`}>
         {showTree && (
           <ErrorBoundary fallback={<PanelError />}>
-            <Drawer open={treeOpen} onClose={() => setTreeOpen(false)}>
+            <Drawer
+              open={treeOpen}
+              onClose={() => setTreeOpen(false)}
+              width={242}
+              resizable
+              minWidth={180}
+              maxWidth={600}
+              storageKey="redlens:tree-sidebar-width"
+            >
               <TreeSidebar
                 nodeId={nodeId}
                 onNavigate={handleTreeNavigate}

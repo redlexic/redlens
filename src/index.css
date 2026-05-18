@@ -142,24 +142,25 @@ mark {
   height: 100%;
   overflow: hidden;
   border-right: 1px solid var(--border);
-  background: #0e0907;
+  background: var(--bg-deep);
 }
 .tree-row {
   cursor: pointer;
   white-space: nowrap;
-  font-family: "Lora", Georgia, serif;
-  font-size: 10px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
   transition: background-color 0.1s;
   border-radius: 2px;
 }
 .tree-row:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--row-hover);
 }
 .tree-row.is-selected {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--row-selected);
 }
 .tree-row.is-focused {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--row-focused);
 }
 .tree-toggle {
   cursor: pointer;
