@@ -712,6 +712,7 @@ async function main() {
       const entry = {
         date: commit.date.slice(0, 10),
         commitHash: commit.hash.slice(0, 7),
+        commitSeq: 1000 + startIndex + i,
         changeType,
       };
 

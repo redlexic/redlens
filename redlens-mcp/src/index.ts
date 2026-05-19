@@ -827,6 +827,113 @@ function createMcpServer(env: Env): McpServer {
     },
   );
 
+  // atlas_changed_between — diff view between two atlas commits
+  server.tool(
+    "atlas_changed_between",
+    "Which docs changed between two atlas commits? Pass two short commit SHAs (as returned by atlas_describe, atlas_history, or atlas_recent_changes) and get every doc that was added, modified, moved, or removed in that window. Date-precision: all commits on the same calendar date as a boundary SHA are included. Optionally filter by change_type or ancestor_id (restricts to a subtree). Results are grouped by doc, each with its change events.",
+    {
+      commit_a: z.string().describe("First boundary commit SHA (7-char prefix or full)."),
+      commit_b: z.string().describe("Second boundary commit SHA (7-char prefix or full)."),
+      change_type: z.enum(["added", "modified", "removed", "moved"]).optional(),
+      ancestor_id: z.string().optional().describe("UUID or doc_no — restrict results to descendants of this node."),
+      limit: z.number().int().min(1).max(500).default(100),
+    },
+    async ({ commit_a, commit_b, change_type, ancestor_id, limit }) => {
+      const sha_a = commit_a.slice(0, 7);
+      const sha_b = commit_b.slice(0, 7);
+
+      const [rowA, rowB] = await Promise.all([
+        db.prepare("SELECT commit_seq FROM node_history WHERE commit_hash = ? LIMIT 1").bind(sha_a).first<{ commit_seq: number }>(),
+        db.prepare("SELECT commit_seq FROM node_history WHERE commit_hash = ? LIMIT 1").bind(sha_b).first<{ commit_seq: number }>(),
+      ]);
+
+      if (!rowA) return { content: [{ type: "text", text: JSON.stringify({ error: `commit_a '${sha_a}' not found in history — may have had no doc changes` }) }] };
+      if (!rowB) return { content: [{ type: "text", text: JSON.stringify({ error: `commit_b '${sha_b}' not found in history — may have had no doc changes` }) }] };
+
+      const seq_lo = Math.min(rowA.commit_seq, rowB.commit_seq);
+      const seq_hi = Math.max(rowA.commit_seq, rowB.commit_seq);
+
+      let rootUuid: string | null = null;
+      if (ancestor_id) {
+        const node = await db
+          .prepare(`SELECT id FROM docs WHERE ${isUuid(ancestor_id) ? "id" : "doc_no"} = ? LIMIT 1`)
+          .bind(ancestor_id)
+          .first<{ id: string }>();
+        if (!node) return { content: [{ type: "text", text: JSON.stringify({ error: `ancestor_id '${ancestor_id}' not found` }) }] };
+        rootUuid = node.id;
+      }
+
+      const where = ["h.commit_seq >= ?", "h.commit_seq <= ?"];
+      const params: unknown[] = [seq_lo, seq_hi];
+      if (change_type) { where.push("h.change_type = ?"); params.push(change_type); }
+
+      let sql: string;
+      if (rootUuid) {
+        sql = `
+          WITH RECURSIVE tree(id) AS (
+            SELECT ?
+            UNION ALL
+            SELECT d.id FROM docs d JOIN tree t ON d.parent_id = t.id
+          )
+          SELECT h.doc_id, h.date, h.commit_hash, h.commit_seq, h.change_type,
+                 h.pr_number, h.pr_title, h.pr_author, h.pr_url,
+                 h.summary, h.description, h.moved_from, h.moved_to,
+                 n.doc_no, n.title, n.type
+          FROM node_history h
+          LEFT JOIN docs n ON n.id = h.doc_id
+          JOIN tree t ON t.id = h.doc_id
+          WHERE ${where.join(" AND ")}
+          ORDER BY h.commit_seq, n.doc_no
+          LIMIT ?
+        `;
+        params.unshift(rootUuid);
+      } else {
+        sql = `
+          SELECT h.doc_id, h.date, h.commit_hash, h.commit_seq, h.change_type,
+                 h.pr_number, h.pr_title, h.pr_author, h.pr_url,
+                 h.summary, h.description, h.moved_from, h.moved_to,
+                 n.doc_no, n.title, n.type
+          FROM node_history h
+          LEFT JOIN docs n ON n.id = h.doc_id
+          WHERE ${where.join(" AND ")}
+          ORDER BY h.commit_seq, n.doc_no
+          LIMIT ?
+        `;
+      }
+      params.push(limit);
+
+      const { results } = await db.prepare(sql).bind(...params).all<{
+        doc_id: string; date: string; commit_hash: string; commit_seq: number; change_type: string;
+        pr_number: number | null; pr_title: string | null; pr_author: string | null; pr_url: string | null;
+        summary: string | null; description: string | null;
+        moved_from: string | null; moved_to: string | null;
+        doc_no: string | null; title: string | null; type: string | null;
+      }>();
+
+      const byDoc = new Map<string, { doc_no: string | null; title: string | null; type: string | null; events: unknown[] }>();
+      for (const r of results) {
+        if (!byDoc.has(r.doc_id)) {
+          byDoc.set(r.doc_id, { doc_no: r.doc_no, title: r.title, type: r.type, events: [] });
+        }
+        byDoc.get(r.doc_id)!.events.push({
+          date: r.date, commit_hash: r.commit_hash, commit_seq: r.commit_seq, change_type: r.change_type,
+          pr_number: r.pr_number, pr_title: r.pr_title, pr_author: r.pr_author, pr_url: r.pr_url,
+          summary: r.summary, description: r.description,
+          moved_from: r.moved_from, moved_to: r.moved_to,
+        });
+      }
+
+      const docs = Array.from(byDoc.entries()).map(([id, d]) => ({ id, ...d }));
+
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({ commit_a: sha_a, commit_b: sha_b, seq_lo, seq_hi, doc_count: docs.length, docs }),
+        }],
+      };
+    },
+  );
+
   return server;
 }
 
@@ -973,10 +1080,11 @@ app.get("/", (c) => {
     <code>atlas_entity</code> — aggregate view of a named entity (agent, role, actor)<br/>
     <code>atlas_filter</code> — structural filter: type / entity / ancestor / doc_no_pattern / depth<br/>
     <code>atlas_get_address</code> — on-chain address lookup with merged atlas + chain metadata<br/>
-    <code>atlas_entity_params</code> — child-Core "params" of an instance doc (Reward, Primitive Instance, …)
-    <code>atlas_search</code> · <code>atlas_get</code> · <code>atlas_neighbors</code> ·
-    <code>atlas_traverse</code> · <code>atlas_entity</code> ·
-    <code>atlas_history</code> · <code>atlas_recent_changes</code> · <code>atlas_pr</code>
+    <code>atlas_entity_params</code> — child-Core "params" of an instance doc (Reward, Primitive Instance, …)<br/>
+    <code>atlas_history</code> — change log for one doc, with PR rationale; filter by date range, PR, or change type<br/>
+    <code>atlas_recent_changes</code> — global feed of recent changes across the atlas, type-filterable<br/>
+    <code>atlas_pr</code> — every doc touched by a single GitHub PR<br/>
+    <code>atlas_changed_between</code> — all docs changed between two atlas commits (exact topological order via commit_seq)
   </p>
   <p>Every tool response is wrapped with <code>_meta: { atlasCommit, redlensCommit, generatedAt }</code> so callers can verify which atlas snapshot produced the answer.</p>
 
