@@ -7,8 +7,7 @@ import type { SearchState } from "../hooks/useSearch";
 import { useUrlState, urlInt } from "../hooks/useUrlState";
 import { useScrollRestore } from "../hooks/useScrollRestore";
 import { loadGraph } from "../lib/graph";
-import { matchParticipants } from "../lib/search";
-import { entityHref } from "../lib/routes";
+import { matchParticipants, buildParticipantLinks } from "../lib/search";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, SUBTYPE_LABEL } from "../lib/entityGraph";
 
 interface Props {
@@ -38,15 +37,22 @@ export const SearchResults = memo(function SearchResults({
     }
   }, [query, setVisible]);
 
-  const [participants, setParticipants] = useState<GraphEntity[] | null>(null);
+  const [graph, setGraph] = useState<{ participants: GraphEntity[]; edges: import("../types").RelationEdge[] } | null>(null);
   useEffect(() => {
-    loadGraph().then((g) => setParticipants(g.participants));
+    loadGraph().then((g) => setGraph({ participants: g.participants, edges: g.edges }));
   }, []);
 
+  const participantLinks = useMemo(
+    () => (graph ? buildParticipantLinks(graph.participants, graph.edges) : new Map<string, string>()),
+    [graph],
+  );
+
   const entityHits = useMemo(() => {
-    if (!participants || !query.trim() || query.startsWith("/")) return [];
-    return matchParticipants(query, participants).slice(0, ENTITY_CAP);
-  }, [participants, query]);
+    if (!graph || !query.trim() || query.startsWith("/")) return [];
+    return matchParticipants(query, graph.participants)
+      .filter(({ participant }) => participantLinks.has(participant.id))
+      .slice(0, ENTITY_CAP);
+  }, [graph, participantLinks, query]);
 
   const displayed = hits.slice(0, visible);
   const remaining = hits.length - displayed.length;
@@ -68,7 +74,7 @@ export const SearchResults = memo(function SearchResults({
               {entityHits.map(({ participant }) => (
                 <li key={participant.id}>
                   <Link
-                    to={entityHref(participant.id)}
+                    to={participantLinks.get(participant.id)!}
                     className="search-result-link px-4 py-3 flex items-center gap-3"
                   >
                     <span
