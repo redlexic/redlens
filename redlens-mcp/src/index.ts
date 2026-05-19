@@ -742,26 +742,42 @@ function createMcpServer(env: Env): McpServer {
   // atlas_recent_changes — global feed of recent changes, type-filterable
   server.tool(
     "atlas_recent_changes",
-    "What changed recently? Returns the most recent change events across the whole atlas, optionally filtered by doc type (e.g. 'Active Data') or change type. Defaults to the last 30 days.",
+    "What changed recently? Returns the most recent change events across the whole atlas, optionally filtered by doc type (e.g. 'Active Data'), change type, or entity (restricts to docs owned by that entity via responsible_party_for / active_data_for edges). Defaults to the last 30 days.",
     {
       since: z.string().optional().describe("ISO date (YYYY-MM-DD). Defaults to 30 days ago."),
       until: z.string().optional().describe("ISO date (YYYY-MM-DD). Defaults to today."),
       type: z.string().optional().describe("Atlas doc type filter (e.g. 'Active Data', 'Core', 'Annotation')."),
       change_type: z.enum(["added", "modified", "removed", "moved"]).optional(),
+      entity: z.string().optional().describe("Entity slug — restricts to docs linked to this entity via responsible_party_for or active_data_for edges (e.g. 'spark', 'phoenix-labs')."),
       k: z.number().int().min(1).max(200).default(50),
     },
-    async ({ since, until, type, change_type, k }) => {
+    async ({ since, until, type, change_type, entity, k }) => {
       const defaultSince = (() => {
         const d = new Date();
         d.setUTCDate(d.getUTCDate() - 30);
         return d.toISOString().slice(0, 10);
       })();
 
+      let entityId: string | null = null;
+      if (entity) {
+        const ent = await db
+          .prepare("SELECT id FROM entities WHERE slug = ? LIMIT 1")
+          .bind(entity)
+          .first<{ id: string }>();
+        if (!ent) return { content: [{ type: "text", text: JSON.stringify({ error: `entity '${entity}' not found` }) }] };
+        entityId = ent.id;
+      }
+
       const where = ["h.date >= ?"];
       const params: unknown[] = [since ?? defaultSince];
       if (until) { where.push("h.date <= ?"); params.push(until); }
       if (type) { where.push("n.type = ?"); params.push(type); }
       if (change_type) { where.push("h.change_type = ?"); params.push(change_type); }
+
+      const entityJoin = entityId
+        ? `JOIN edges ef ON ef.to_id = h.doc_id AND ef.from_id = ? AND ef.edge_type IN ('responsible_party_for', 'active_data_for')`
+        : "";
+      if (entityId) params.unshift(entityId);
 
       const { results } = await db
         .prepare(`SELECT h.date, h.commit_hash, h.change_type,
@@ -770,6 +786,7 @@ function createMcpServer(env: Env): McpServer {
                          n.id AS doc_id, n.doc_no, n.title, n.type
                   FROM node_history h
                   JOIN docs n ON n.id = h.doc_id
+                  ${entityJoin}
                   WHERE ${where.join(" AND ")}
                   ORDER BY h.date DESC, h.id DESC
                   LIMIT ?`)
@@ -784,6 +801,7 @@ function createMcpServer(env: Env): McpServer {
             until: until ?? null,
             type: type ?? null,
             change_type: change_type ?? null,
+            entity: entity ?? null,
             count: results.length,
             events: results,
           }),
@@ -830,15 +848,16 @@ function createMcpServer(env: Env): McpServer {
   // atlas_changed_between — diff view between two atlas commits
   server.tool(
     "atlas_changed_between",
-    "Which docs changed between two atlas commits? Pass two short commit SHAs (as returned by atlas_describe, atlas_history, or atlas_recent_changes) and get every doc that was added, modified, moved, or removed in that window. Date-precision: all commits on the same calendar date as a boundary SHA are included. Optionally filter by change_type or ancestor_id (restricts to a subtree). Results are grouped by doc, each with its change events.",
+    "Which docs changed between two atlas commits? Pass two short commit SHAs (as returned by atlas_describe, atlas_history, or atlas_recent_changes) and get every doc that was added, modified, moved, or removed in that window. Uses commit_seq (topological git order) for exact ordering — immune to author-date rebase skew. Optionally filter by change_type, ancestor_id (subtree), or entity (docs owned by a facilitator via responsible_party_for / active_data_for edges). Results are grouped by doc, each with its change events.",
     {
       commit_a: z.string().describe("First boundary commit SHA (7-char prefix or full)."),
       commit_b: z.string().describe("Second boundary commit SHA (7-char prefix or full)."),
       change_type: z.enum(["added", "modified", "removed", "moved"]).optional(),
       ancestor_id: z.string().optional().describe("UUID or doc_no — restrict results to descendants of this node."),
+      entity: z.string().optional().describe("Entity slug — restricts to docs linked to this entity via responsible_party_for or active_data_for edges (e.g. 'spark', 'phoenix-labs')."),
       limit: z.number().int().min(1).max(500).default(100),
     },
-    async ({ commit_a, commit_b, change_type, ancestor_id, limit }) => {
+    async ({ commit_a, commit_b, change_type, ancestor_id, entity, limit }) => {
       const sha_a = commit_a.slice(0, 7);
       const sha_b = commit_b.slice(0, 7);
 
@@ -863,12 +882,30 @@ function createMcpServer(env: Env): McpServer {
         rootUuid = node.id;
       }
 
+      let entityId: string | null = null;
+      if (entity) {
+        const ent = await db
+          .prepare("SELECT id FROM entities WHERE slug = ? LIMIT 1")
+          .bind(entity)
+          .first<{ id: string }>();
+        if (!ent) return { content: [{ type: "text", text: JSON.stringify({ error: `entity '${entity}' not found` }) }] };
+        entityId = ent.id;
+      }
+
       const where = ["h.commit_seq >= ?", "h.commit_seq <= ?"];
       const params: unknown[] = [seq_lo, seq_hi];
       if (change_type) { where.push("h.change_type = ?"); params.push(change_type); }
 
+      const entityJoin = entityId
+        ? `JOIN edges ef ON ef.to_id = h.doc_id AND ef.from_id = ? AND ef.edge_type IN ('responsible_party_for', 'active_data_for')`
+        : "";
+
       let sql: string;
       if (rootUuid) {
+        // param order: rootUuid (CTE seed), [entityId], seq_lo, seq_hi, [change_type], limit
+        const orderedParams: unknown[] = [rootUuid];
+        if (entityId) orderedParams.push(entityId);
+        orderedParams.push(...params, limit);
         sql = `
           WITH RECURSIVE tree(id) AS (
             SELECT ?
@@ -882,27 +919,50 @@ function createMcpServer(env: Env): McpServer {
           FROM node_history h
           LEFT JOIN docs n ON n.id = h.doc_id
           JOIN tree t ON t.id = h.doc_id
+          ${entityJoin}
           WHERE ${where.join(" AND ")}
           ORDER BY h.commit_seq, n.doc_no
           LIMIT ?
         `;
-        params.unshift(rootUuid);
-      } else {
-        sql = `
-          SELECT h.doc_id, h.date, h.commit_hash, h.commit_seq, h.change_type,
-                 h.pr_number, h.pr_title, h.pr_author, h.pr_url,
-                 h.summary, h.description, h.moved_from, h.moved_to,
-                 n.doc_no, n.title, n.type
-          FROM node_history h
-          LEFT JOIN docs n ON n.id = h.doc_id
-          WHERE ${where.join(" AND ")}
-          ORDER BY h.commit_seq, n.doc_no
-          LIMIT ?
-        `;
+        const { results: r2 } = await db.prepare(sql).bind(...orderedParams).all<{
+          doc_id: string; date: string; commit_hash: string; commit_seq: number; change_type: string;
+          pr_number: number | null; pr_title: string | null; pr_author: string | null; pr_url: string | null;
+          summary: string | null; description: string | null;
+          moved_from: string | null; moved_to: string | null;
+          doc_no: string | null; title: string | null; type: string | null;
+        }>();
+        const byDoc2 = new Map<string, { doc_no: string | null; title: string | null; type: string | null; events: unknown[] }>();
+        for (const r of r2) {
+          if (!byDoc2.has(r.doc_id)) byDoc2.set(r.doc_id, { doc_no: r.doc_no, title: r.title, type: r.type, events: [] });
+          byDoc2.get(r.doc_id)!.events.push({
+            date: r.date, commit_hash: r.commit_hash, commit_seq: r.commit_seq, change_type: r.change_type,
+            pr_number: r.pr_number, pr_title: r.pr_title, pr_author: r.pr_author, pr_url: r.pr_url,
+            summary: r.summary, description: r.description, moved_from: r.moved_from, moved_to: r.moved_to,
+          });
+        }
+        const docs2 = Array.from(byDoc2.entries()).map(([id, d]) => ({ id, ...d }));
+        return { content: [{ type: "text", text: JSON.stringify({ commit_a: sha_a, commit_b: sha_b, seq_lo, seq_hi, doc_count: docs2.length, docs: docs2 }) }] };
       }
-      params.push(limit);
 
-      const { results } = await db.prepare(sql).bind(...params).all<{
+      // No rootUuid: param order: [entityId], seq_lo, seq_hi, [change_type], limit
+      const orderedParams: unknown[] = [];
+      if (entityId) orderedParams.push(entityId);
+      orderedParams.push(...params, limit);
+
+      const flatSql = `
+        SELECT h.doc_id, h.date, h.commit_hash, h.commit_seq, h.change_type,
+               h.pr_number, h.pr_title, h.pr_author, h.pr_url,
+               h.summary, h.description, h.moved_from, h.moved_to,
+               n.doc_no, n.title, n.type
+        FROM node_history h
+        LEFT JOIN docs n ON n.id = h.doc_id
+        ${entityJoin}
+        WHERE ${where.join(" AND ")}
+        ORDER BY h.commit_seq, n.doc_no
+        LIMIT ?
+      `;
+
+      const { results } = await db.prepare(flatSql).bind(...orderedParams).all<{
         doc_id: string; date: string; commit_hash: string; commit_seq: number; change_type: string;
         pr_number: number | null; pr_title: string | null; pr_author: string | null; pr_url: string | null;
         summary: string | null; description: string | null;
