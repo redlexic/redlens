@@ -242,11 +242,21 @@ await writeUpsert(
 );
 
 // Remove any docs whose UUIDs are no longer in the atlas.
-// Sends all current IDs so D1 can delete the diff; 0 rows written when nothing was removed.
-fs.writeFileSync(
-  files.docs_cleanup,
-  `DELETE FROM docs WHERE id NOT IN (${docRows.map((d) => esc(d.id)).join(",")});\n`,
-);
+// Stage IDs into a helper table in batches to avoid SQLITE_TOOBIG on a single NOT IN clause.
+{
+  const ID_BATCH = 500;
+  const lines = [
+    "CREATE TABLE IF NOT EXISTS _sync_keep_ids(id TEXT PRIMARY KEY);",
+    "DELETE FROM _sync_keep_ids;",
+  ];
+  for (let i = 0; i < docRows.length; i += ID_BATCH) {
+    const chunk = docRows.slice(i, i + ID_BATCH);
+    lines.push(`INSERT INTO _sync_keep_ids(id) VALUES ${chunk.map((d) => `(${esc(d.id)})`).join(",")};`);
+  }
+  lines.push("DELETE FROM docs WHERE id NOT IN (SELECT id FROM _sync_keep_ids);");
+  lines.push("DROP TABLE IF EXISTS _sync_keep_ids;");
+  fs.writeFileSync(files.docs_cleanup, lines.join("\n") + "\n");
+}
 await writeBatched(
   files.entities,
   "entities",
