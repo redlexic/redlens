@@ -175,7 +175,15 @@ async function main() {
   }
 
   // Pin to atlas commit so the worker can detect drift between vectors and D1.
+  // Primary: read from committed manifest.json (always present in CI without submodule).
+  // Fallback: git rev-parse in submodule (local dev with submodule checked out).
   const atlasCommit = (() => {
+    try {
+      const manifest = JSON.parse(
+        readFileSync(resolve(ROOT, "public/manifest.json"), "utf8"),
+      );
+      if (manifest.atlasCommit) return manifest.atlasCommit;
+    } catch {}
     try {
       return execSync("git rev-parse HEAD", {
         cwd: resolve(ROOT, "vendor/next-gen-atlas"),
