@@ -102,6 +102,31 @@ describe("hint: MCD_VAT — chainlog id lookup", () => {
     const refDocs = Object.values(docs).filter((d) => d.addressRefs?.includes(addr));
     expect(refDocs.length).toBeGreaterThan(0);
   });
+
+  it("MiniSearch alone over-matches: raw 'MCD_VAT' query returns docs without the literal string", () => {
+    // MiniSearch splits on '_', so "MCD_VAT" → ["MCD","VAT"]; prefix:true matches
+    // "MCD_JUG", "MCD_POT", "advocate", etc. — the raw candidate set is too broad.
+    const raw = ms.search("MCD_VAT", SEARCH_OPTS);
+    const withoutLiteral = raw.filter((r) => {
+      const doc = docs[r.id as string];
+      return !(doc.content + " " + doc.title).includes("MCD_VAT");
+    });
+    expect(withoutLiteral.length).toBeGreaterThan(0);
+  });
+
+  it("case-phrase filter removes spurious MCD_* and 'vat'-prefix hits", () => {
+    // Simulates the worker's fix: require literal "MCD_VAT" in text-matched results.
+    const raw = ms.search("MCD_VAT", SEARCH_OPTS);
+    const filtered = raw.filter((r) => {
+      const doc = docs[r.id as string];
+      return (doc.content + " " + doc.title).includes("MCD_VAT");
+    });
+    expect(filtered.length).toBeLessThan(raw.length);
+    for (const r of filtered) {
+      const doc = docs[r.id as string];
+      expect((doc.content + " " + doc.title)).toContain("MCD_VAT");
+    }
+  });
 });
 
 describe("hint: A.1.2 — doc number jumps directly to a section", () => {

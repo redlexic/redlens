@@ -4,22 +4,22 @@ const HINTS: { label: string; query: string; description: string }[] = [
     query: "govern",
     description: "Partial words match automatically — type as you think",
   },
-  { label: "0x address", query: "0x*", description: "All nodes containing an Ethereum address" },
+  { label: "0x address", query: "0xbe8e3e", description: "All nodes containing matched Ethereum address" },
   {
     label: "chainlog id",
     query: "MCD_VAT",
     description: "All nodes referencing a Sky chainlog contract",
   },
-  { label: "doc number", query: "A.1.2", description: "Jump directly to a section by number" },
+  { label: "doc number", query: "fb", description: "Jump directly to a section by number" },
   {
-    label: "exact phrase",
+    label: "phrase",
     query: '"properly implemented"',
-    description: 'Case-insensitive literal phrase — only results containing this exact sequence',
+    description: 'Double quotes — literal phrase match, case-insensitive',
   },
   {
-    label: "case-sensitive",
+    label: "phrase, case-sensitive",
     query: "'delegatedSigners'",
-    description: "Single quotes — case-sensitive exact match",
+    description: "Single quotes — literal phrase match, case-sensitive",
   },
   {
     label: "field: title",
@@ -97,34 +97,39 @@ export function SearchHints({
 
   return (
     <div className="px-4 py-8 max-w-2xl mx-auto">
-      <p className="text-xs mono mb-6 text-tan-3">search patterns</p>
-      <div className="space-y-1 mb-8">
-        {HINTS.map((h) => (
-          <button
-            key={h.query}
-            onClick={() => onSearch(h.query)}
-            className="hint-row w-full text-left flex items-baseline gap-4 px-3 py-2 rounded"
-          >
-            <span className="mono text-xs shrink-0 w-32 text-tan-3">{h.label}</span>
-            <span className="mono text-sm shrink-0 text-accent">{h.query}</span>
-            <span className="text-xs hidden sm:block text-tan-3">{h.description}</span>
-          </button>
-        ))}
-      </div>
-      <p className="text-xs mono mb-3 text-tan-3">shortcuts</p>
-      <div className="space-y-1">
-        {SLASH.map((s) => (
-          <button
-            key={s.cmd}
-            onClick={() => onSearch(s.cmd)}
-            className="hint-row w-full text-left flex items-baseline gap-4 px-3 py-2 rounded"
-          >
-            <span className="mono text-xs shrink-0 w-32 text-tan-3">slash</span>
-            <span className="mono text-sm shrink-0 text-accent">{s.cmd}</span>
-            <span className="text-xs hidden sm:block text-tan-3">{s.description}</span>
-          </button>
-        ))}
-      </div>
+      <table className="w-full text-xs border-collapse mb-8">
+        <thead>
+          <tr className="text-left">
+            <th className="mono text-tan-3 font-normal pb-3 pr-6">Feature</th>
+            <th className="mono text-tan-3 font-normal pb-3 pr-6">Example</th>
+            <th className="mono text-tan-3 font-normal pb-3 hidden sm:table-cell">Explanation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {HINTS.map((h) => (
+            <tr
+              key={h.query}
+              onClick={() => onSearch(h.query)}
+              className="hint-row cursor-pointer"
+            >
+              <td className="mono text-tan-3 pr-6 py-1.5 whitespace-nowrap">{h.label}</td>
+              <td className="mono text-accent pr-6 py-1.5 whitespace-nowrap">{h.query}</td>
+              <td className="text-tan-3 py-1.5 hidden sm:table-cell">{h.description}</td>
+            </tr>
+          ))}
+          {SLASH.map((s) => (
+            <tr
+              key={s.cmd}
+              onClick={() => onSearch(s.cmd)}
+              className="hint-row cursor-pointer"
+            >
+              <td className="mono text-tan-3 pr-6 py-1.5 whitespace-nowrap">slash</td>
+              <td className="mono text-accent pr-6 py-1.5 whitespace-nowrap">{s.cmd}</td>
+              <td className="text-tan-3 py-1.5 hidden sm:table-cell">{s.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

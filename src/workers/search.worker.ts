@@ -313,13 +313,21 @@ function search(q: string): SearchHit[] {
       for (const id of addrToNodeIds.get(addr) ?? []) {
         const doc = docs[id];
         if (doc) {
-          const hit = docToHit(doc, 2, undefined, [], "chainlog");
+          const snippet = buildSnippet(doc.content, [addr], [], []);
+          const hit = docToHit(doc, 2, snippet, [], "chainlog");
           hit.chainlogId = trimmed;
           hit.chainlogAddress = addr;
           chainlogHits.set(id, hit);
         }
       }
     }
+  }
+
+  // When query is a known chainlog ID, require it literally in text-matched results.
+  // Without this, MiniSearch splits "MCD_VAT" → ["MCD","VAT"] and prefix-matches
+  // every node containing "MCD_JUG", "advocate", etc.
+  if (matchedChainlogId && !casePhrases.includes(matchedChainlogId)) {
+    casePhrases.push(matchedChainlogId);
   }
 
   const queryEmpty = !finalQuery;
