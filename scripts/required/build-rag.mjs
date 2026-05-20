@@ -4,8 +4,15 @@
  *
  * Reads:  public/docs.json
  * Writes: .cache/atlas-vectors/vectors.bin
- *         .cache/atlas-vectors/ids.json   (ordered UUIDs that index vectors.bin)
- *         .cache/atlas-vectors/meta.json  (model, dim, count, atlasCommit, …)
+ *         .cache/atlas-vectors/ids.json        (ordered UUIDs that index vectors.bin)
+ *         .cache/atlas-vectors/meta.json        (model, dim, count, atlasCommit, …)
+ *         .cache/atlas-vectors/text-hashes.json (uuid → sha256(embedText) for incremental builds)
+ *
+ * Incremental: on each run, the embed text for every node is hashed and
+ * compared to the previous text-hashes.json. Only nodes whose embed text
+ * changed (or that are new) are sent to Workers AI; unchanged nodes reuse
+ * their cached Float32 vectors directly. Reused vectors are already
+ * L2-normalized and are copied as-is; only fresh embeddings are normalized.
  *
  * These are not part of the frontend bundle — they feed the hosted MCP
  * server's Vectorize index via redlens-mcp/sync-vectors.mjs.
@@ -22,6 +29,7 @@
  *               CLOUDFLARE_ACCOUNT_ID (or read from redlens-mcp/wrangler.jsonc).
  */
 
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,13 +37,18 @@ import { execSync } from "node:child_process";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const DOCS_PATH = resolve(ROOT, "public/docs.json");
-const OUT_DIR = resolve(ROOT, ".cache/atlas-vectors");
+const OUT_DIR   = resolve(ROOT, ".cache/atlas-vectors");
 const WRANGLER_JSONC = resolve(ROOT, "redlens-mcp/wrangler.jsonc");
 
-const MODEL = "@cf/baai/bge-base-en-v1.5";
-const DIM = 768;
+// Cache paths — read at startup, written at end.
+const HASHES_PATH  = resolve(OUT_DIR, "text-hashes.json");
+const IDS_PATH     = resolve(OUT_DIR, "ids.json");
+const VECTORS_PATH = resolve(OUT_DIR, "vectors.bin");
+
+const MODEL     = "@cf/baai/bge-base-en-v1.5";
+const DIM       = 768;
 // Workers AI bge-base accepts up to 100 inputs per request.
-const BATCH = Number(process.env.RAG_BATCH ?? 96);
+const BATCH     = Number(process.env.RAG_BATCH ?? 96);
 // bge-base-en's positional embedding cap is 512 tokens. ~4 chars/token in
 // English → 2048 chars is the safe cap (matches how the model was trained).
 const MAX_CHARS = Number(process.env.RAG_MAX_CHARS ?? 2048);
@@ -132,56 +145,104 @@ async function main() {
   const chunks = nodes.map((n) => ({
     id: n.id,
     doc_no: n.doc_no,
-    title: n.title,
-    type: n.type,
-    depth: n.depth,
     embedText: buildEmbedText(n, docs),
   }));
 
   const truncated = chunks.filter((c) => c.embedText.length === MAX_CHARS).length;
   if (truncated > 0) console.log(`  ${truncated} chunks truncated to ${MAX_CHARS} chars`);
 
-  console.log(`embedding via ${MODEL}, batch=${BATCH}, account=${ACCOUNT_ID.slice(0, 8)}…`);
+  // ── Load previous cache ────────────────────────────────────────────────
+  // prevHashes: uuid → sha256(embedText) from the last successful run.
+  // prevVectors: uuid → Float32Array(DIM) view into the loaded binary.
+  // Both are empty on a cold start (no cache or load failure).
+  let prevHashes = {};
+  let prevVectors = new Map();
 
-  const vectors = new Float32Array(chunks.length * DIM);
-  const t0 = Date.now();
-  for (let i = 0; i < chunks.length; i += BATCH) {
-    const end = Math.min(i + BATCH, chunks.length);
-    const batch = chunks.slice(i, end).map((c) => c.embedText);
-    const embs = await embedBatchWithRetry(batch);
-    for (let k = 0; k < embs.length; k++) {
-      if (embs[k].length !== DIM) {
-        throw new Error(`dim mismatch at chunk ${i + k}: got ${embs[k].length}, expected ${DIM}`);
+  if (existsSync(HASHES_PATH) && existsSync(IDS_PATH) && existsSync(VECTORS_PATH)) {
+    try {
+      prevHashes = JSON.parse(readFileSync(HASHES_PATH, "utf8"));
+      const prevIds = JSON.parse(readFileSync(IDS_PATH, "utf8"));
+      const buf = readFileSync(VECTORS_PATH);
+      // Slice to guarantee 4-byte alignment for Float32Array.
+      const f32 = new Float32Array(
+        buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+      );
+      for (let i = 0; i < prevIds.length; i++) {
+        prevVectors.set(prevIds[i], f32.subarray(i * DIM, (i + 1) * DIM));
       }
-      vectors.set(embs[k], (i + k) * DIM);
-    }
-    const done = end;
-    if (done % (BATCH * 8) < BATCH || done === chunks.length) {
-      const pct = ((done / chunks.length) * 100).toFixed(1);
-      const sec = ((Date.now() - t0) / 1000).toFixed(1);
-      const rate = (done / ((Date.now() - t0) / 1000)).toFixed(1);
-      console.log(`  ${done}/${chunks.length} (${pct}%) — ${sec}s — ${rate}/s`);
+      console.log(`  ${prevIds.length} cached vectors loaded`);
+    } catch (e) {
+      console.warn(`  cache load failed (${e.message}) — rebuilding all vectors`);
+      prevHashes = {};
+      prevVectors = new Map();
     }
   }
 
-  // L2-normalize so the worker can use a single dot product (cosine).
+  // ── Classify chunks ────────────────────────────────────────────────────
+  // Hash each chunk's embed text. Reuse the cached vector if the hash
+  // matches; otherwise queue for embedding.
+  const vectors  = new Float32Array(chunks.length * DIM);
+  const newHashes = {};
+  const toEmbed  = []; // { idx: number, embedText: string }
+
   for (let i = 0; i < chunks.length; i++) {
-    let sum = 0;
-    for (let k = 0; k < DIM; k++) sum += vectors[i * DIM + k] ** 2;
-    const norm = Math.sqrt(sum);
-    if (norm > 0) {
-      for (let k = 0; k < DIM; k++) vectors[i * DIM + k] /= norm;
+    const { id, embedText } = chunks[i];
+    const hash = createHash("sha256").update(embedText).digest("hex");
+    newHashes[id] = hash;
+
+    if (prevHashes[id] === hash && prevVectors.has(id)) {
+      vectors.set(prevVectors.get(id), i * DIM);
+    } else {
+      toEmbed.push({ idx: i, embedText });
     }
   }
 
-  // Pin to atlas commit so the worker can detect drift between vectors and D1.
+  const reused = chunks.length - toEmbed.length;
+  console.log(`\nembedding via ${MODEL}, batch=${BATCH}, account=${ACCOUNT_ID.slice(0, 8)}…`);
+  console.log(`  ${toEmbed.length} to embed, ${reused} reused from cache`);
+
+  // ── Embed changed / new chunks ─────────────────────────────────────────
+  if (toEmbed.length === 0) {
+    console.log("  all vectors reused — no API calls needed");
+  } else {
+    const t0 = Date.now();
+    for (let b = 0; b < toEmbed.length; b += BATCH) {
+      const slice = toEmbed.slice(b, b + BATCH);
+      const embs  = await embedBatchWithRetry(slice.map((x) => x.embedText));
+      for (let k = 0; k < embs.length; k++) {
+        const { idx } = slice[k];
+        if (embs[k].length !== DIM) {
+          throw new Error(`dim mismatch at idx ${idx}: got ${embs[k].length}, expected ${DIM}`);
+        }
+        vectors.set(embs[k], idx * DIM);
+      }
+      const done = b + slice.length;
+      const pct  = ((done / toEmbed.length) * 100).toFixed(1);
+      const sec  = ((Date.now() - t0) / 1000).toFixed(1);
+      console.log(`  ${done}/${toEmbed.length} embedded (${pct}%) — ${sec}s`);
+    }
+    const totalSec = ((Date.now() - t0) / 1000).toFixed(1);
+    console.log(`  done in ${totalSec}s`);
+
+    // L2-normalize only newly embedded vectors. Reused vectors are already
+    // normalized from the previous run — re-normalizing would cause tiny
+    // floating-point drift and break byte-identical reproducibility checks.
+    const newIdxSet = new Set(toEmbed.map((x) => x.idx));
+    for (let i = 0; i < chunks.length; i++) {
+      if (!newIdxSet.has(i)) continue;
+      let sum = 0;
+      for (let k = 0; k < DIM; k++) sum += vectors[i * DIM + k] ** 2;
+      const norm = Math.sqrt(sum);
+      if (norm > 0) for (let k = 0; k < DIM; k++) vectors[i * DIM + k] /= norm;
+    }
+  }
+
+  // ── atlasCommit ────────────────────────────────────────────────────────
   // Primary: read from committed manifest.json (always present in CI without submodule).
   // Fallback: git rev-parse in submodule (local dev with submodule checked out).
   const atlasCommit = (() => {
     try {
-      const manifest = JSON.parse(
-        readFileSync(resolve(ROOT, "public/manifest.json"), "utf8"),
-      );
+      const manifest = JSON.parse(readFileSync(resolve(ROOT, "public/manifest.json"), "utf8"));
       if (manifest.atlasCommit) return manifest.atlasCommit;
     } catch {}
     try {
@@ -194,33 +255,23 @@ async function main() {
     }
   })();
 
+  // ── Write outputs ──────────────────────────────────────────────────────
   mkdirSync(OUT_DIR, { recursive: true });
-  writeFileSync(resolve(OUT_DIR, "vectors.bin"), Buffer.from(vectors.buffer));
-  writeFileSync(
-    resolve(OUT_DIR, "ids.json"),
-    JSON.stringify(chunks.map((c) => c.id)),
-  );
+  writeFileSync(VECTORS_PATH, Buffer.from(vectors.buffer));
+  writeFileSync(IDS_PATH, JSON.stringify(chunks.map((c) => c.id)));
   writeFileSync(
     resolve(OUT_DIR, "meta.json"),
     JSON.stringify(
-      {
-        model: MODEL,
-        dim: DIM,
-        count: chunks.length,
-        normalized: true,
-        maxChars: MAX_CHARS,
-        atlasCommit,
-      },
+      { model: MODEL, dim: DIM, count: chunks.length, normalized: true, maxChars: MAX_CHARS, atlasCommit },
       null,
       2,
     ) + "\n",
   );
+  writeFileSync(HASHES_PATH, JSON.stringify(newHashes));
 
-  const totalSec = ((Date.now() - t0) / 1000).toFixed(1);
-  console.log(`done in ${totalSec}s`);
-  console.log(`  .cache/atlas-vectors/vectors.bin: ${(vectors.byteLength / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`  .cache/atlas-vectors/ids.json: ${chunks.length} ids`);
-  console.log(`  .cache/atlas-vectors/meta.json: model=${MODEL}, dim=${DIM}, atlas=${atlasCommit?.slice(0, 12)}`);
+  console.log(`\n  vectors.bin: ${(vectors.byteLength / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`  ids.json: ${chunks.length} ids`);
+  console.log(`  atlas: ${atlasCommit?.slice(0, 12) ?? "unknown"}`);
 }
 
 main().catch((err) => {

@@ -142,7 +142,11 @@ const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "public/manifest.jso
 console.log("\n=== Reproducible build ===");
 console.log(`atlas:   ${manifest.atlasCommit}`);
 console.log(`redlens: ${manifest.redlensCommit}`);
-if (manifest.blockNumber) console.log(`block:   ${manifest.blockNumber}`);
+const chainStatePath = path.join(ROOT, "public/chain-state.json");
+const blockNum = fs.existsSync(chainStatePath)
+  ? (() => { const cs = JSON.parse(fs.readFileSync(chainStatePath, "utf8")); return cs.block ?? Object.values(cs.chains ?? {})[0]?.block ?? null; })()
+  : null;
+if (blockNum) console.log(`block:   ${blockNum}`);
 console.log("");
 for (const [name, info] of Object.entries(manifest.artifacts)) {
   console.log(`  ${name.padEnd(22)} ${info.sha256}`);
