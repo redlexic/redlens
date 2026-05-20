@@ -20,6 +20,11 @@ export function useSearch() {
       type: "module",
     });
 
+    worker.addEventListener("error", (e: ErrorEvent) => {
+      console.error("Search worker error:", e.message, e);
+      setState({ status: "error", message: e.message ?? "Worker failed to load" });
+    });
+
     worker.addEventListener("message", (e: MessageEvent<WorkerOutMessage>) => {
       const msg = e.data;
       if (msg.type === "ready") {

@@ -8,6 +8,8 @@ import type {
   WorkerOutMessage,
 } from "../types";
 import { fetchJsonVerified, fetchTextVerified } from "../lib/verify";
+import { buildSnippet, highlightTerms, extractPhrases } from "../lib/searchHighlight";
+import { UUID_RE } from "../lib/patterns";
 
 declare const self: DedicatedWorkerGlobalScope;
 
@@ -34,6 +36,13 @@ const addrToNodeIds: Map<string, string[]> = new Map();
 
 // Exact doc_no → node for fast direct-navigation lookups
 const byDocNo: Map<string, AtlasNode> = new Map();
+
+const CHAINLOG_RE = /^[A-Z][A-Z0-9_]{2,}$/;
+// Doc number pattern for fast exact-lookup: e.g. "A.1.2", "A.1.2.3.4", "NR-12"
+const DOC_NO_RE = /^[A-Z][A-Z0-9]*(?:\.\w+)+$|^NR-\d+$/i;
+// Ticker pattern: all-caps tokens that the stemmer would mangle.
+// NOTE: the phrase-filter substring check means "USDC" also matches "USDCe" in content.
+const TICKER_RE = /^[a-z]{0,2}[A-Z]{2,}[0-9]*$/;
 
 async function init() {
   const base = import.meta.env.BASE_URL;
@@ -64,127 +73,6 @@ async function init() {
 
 function post(msg: WorkerOutMessage) {
   self.postMessage(msg);
-}
-
-const ESC_HTML = (c: string) =>
-  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!;
-const ESC_RE = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-// Single-pass highlight over plain text (HTML-escaped first).
-// Three tiers in priority order — higher tiers win when ranges overlap:
-//   casePhrases → exact case-sensitive, no word-extension
-//   phrases     → exact case-insensitive, no word-extension
-//   terms       → prefix case-insensitive, with \w* word-extension
-// Using one regex + callback avoids double-wrapping <mark> tags across passes.
-function applyHighlight(
-  raw: string,
-  terms: string[],
-  phrases: string[],
-  casePhrases: string[],
-): string {
-  const escaped = raw.replace(/[&<>"]/g, ESC_HTML);
-
-  type Entry = { pattern: string; exact: string; caseSensitive: boolean };
-  const entries: Entry[] = [];
-
-  for (const p of casePhrases) if (p.length >= 2) entries.push({ pattern: ESC_RE(p), exact: p, caseSensitive: true });
-  for (const p of phrases)    if (p.length >= 2) entries.push({ pattern: ESC_RE(p), exact: p, caseSensitive: false });
-  for (const t of terms)      if (t.length >= 2) entries.push({ pattern: ESC_RE(t) + "\\w*", exact: "", caseSensitive: false });
-
-  if (entries.length === 0) return escaped;
-
-  // Build one alternation; use 'gi' so the engine finds all candidates — the
-  // callback enforces case-sensitivity for casePhrases by comparing match text.
-  const re = new RegExp(entries.map((e) => `(${e.pattern})`).join("|"), "gi");
-  return escaped.replace(re, (...args: unknown[]) => {
-    const match = args[0] as string;
-    const groups = args.slice(1, entries.length + 1) as (string | undefined)[];
-    const idx = groups.findIndex((g) => g !== undefined);
-    if (idx === -1) return match;
-    const entry = entries[idx];
-    // Reject case-insensitive hit for a case-sensitive pattern
-    if (entry.caseSensitive && match !== entry.exact) return match;
-    return `<mark>${match}</mark>`;
-  });
-}
-
-function buildSnippet(
-  content: string,
-  terms: string[],
-  phrases: string[],
-  casePhrases: string[],
-): string {
-  if (!content) return "";
-
-  const WINDOW = 160;
-  const lower = content.toLowerCase();
-
-  // Anchor on the most specific match first: case-sensitive phrase > case-insensitive phrase > term
-  let bestPos = -1;
-  for (const p of casePhrases) {
-    const pos = content.indexOf(p);
-    if (pos !== -1) { bestPos = pos; break; }
-  }
-  if (bestPos === -1) {
-    for (const p of phrases) {
-      const pos = lower.indexOf(p.toLowerCase());
-      if (pos !== -1) { bestPos = pos; break; }
-    }
-  }
-  if (bestPos === -1) {
-    for (const t of terms) {
-      const pos = lower.indexOf(t.toLowerCase());
-      if (pos !== -1 && (bestPos === -1 || pos < bestPos)) bestPos = pos;
-    }
-  }
-
-  if (bestPos === -1) return content.slice(0, WINDOW) + (content.length > WINDOW ? "…" : "");
-
-  const start = Math.max(0, bestPos - 60);
-  const end = Math.min(content.length, start + WINDOW);
-  const excerpt = (start > 0 ? "…" : "") + content.slice(start, end) + (end < content.length ? "…" : "");
-
-  return applyHighlight(excerpt, terms, phrases, casePhrases);
-}
-
-function highlightTerms(
-  text: string,
-  terms: string[],
-  phrases: string[] = [],
-  casePhrases: string[] = [],
-): string {
-  return applyHighlight(text, terms, phrases, casePhrases);
-}
-
-import { UUID_RE } from "../lib/patterns";
-const CHAINLOG_RE = /^[A-Z][A-Z0-9_]{2,}$/;
-// Doc number pattern for fast exact-lookup: e.g. "A.1.2", "A.1.2.3.4", "NR-12"
-const DOC_NO_RE = /^[A-Z][A-Z0-9]*(?:\.\w+)+$|^NR-\d+$/i;
-
-// Ticker pattern: all-caps tokens that the stemmer would mangle.
-// NOTE: the phrase-filter substring check means "USDC" also matches "USDCe"
-// in content — a known pre-existing limitation not regressed by this migration.
-const TICKER_RE = /^[a-z]{0,2}[A-Z]{2,}[0-9]*$/;
-
-function extractPhrases(q: string): {
-  phrases: string[];
-  casePhrases: string[];
-  rest: string;
-} {
-  const phrases: string[] = [];
-  const casePhrases: string[] = [];
-  let rest = q.replace(/"([^"]+)"/g, (_, p: string) => {
-    const trimmed = p.trim();
-    if (trimmed) phrases.push(trimmed);
-    return ` ${p} `;
-  });
-  // Single quotes → case-sensitive exact match
-  rest = rest.replace(/'([^']+)'/g, (_, p: string) => {
-    const trimmed = p.trim();
-    if (trimmed) casePhrases.push(trimmed);
-    return ` ${p} `;
-  });
-  return { phrases, casePhrases, rest };
 }
 
 function docToHit(
@@ -373,19 +261,18 @@ function search(q: string): SearchHit[] {
       // Type post-filter
       if (typeFilters.length > 0 && !typeFilters.includes(doc.type.toLowerCase())) return null;
 
-      // Phrase post-filter: every quoted phrase must literally appear in title or content
+      // Phrase post-filter: every quoted phrase must appear as a whole-word sequence
       if (phrases.length > 0) {
-        const lowerContent = doc.content.toLowerCase();
-        const lowerTitle = doc.title.toLowerCase();
         for (const p of phrases) {
-          const lp = p.toLowerCase();
-          if (!lowerContent.includes(lp) && !lowerTitle.includes(lp)) return null;
+          const re = new RegExp("\\b" + p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
+          if (!re.test(doc.content) && !re.test(doc.title)) return null;
         }
       }
       // Case-sensitive phrase post-filter (single-quoted phrases)
       if (casePhrases.length > 0) {
         for (const p of casePhrases) {
-          if (!doc.content.includes(p) && !doc.title.includes(p)) return null;
+          const re = new RegExp("\\b" + p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b");
+          if (!re.test(doc.content) && !re.test(doc.title)) return null;
         }
       }
 
