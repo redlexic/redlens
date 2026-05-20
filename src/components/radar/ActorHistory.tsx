@@ -225,7 +225,7 @@ function DocTable({ docs }: { docs: AffectedDoc[] }) {
   return (
     <table className="w-full mono text-[10px]" style={{ borderCollapse: "collapse", tableLayout: "fixed" }}>
       <colgroup>
-        <col style={{ width: "7rem" }} />
+        <col style={{ width: "12rem" }} />
         <col />
         <col style={{ width: "9rem" }} />
         <col style={{ width: "4rem" }} />
