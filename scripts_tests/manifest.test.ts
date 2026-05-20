@@ -37,7 +37,6 @@ describe("manifest", () => {
       "search-index.json",
       "addresses.atlas.json",
       "addresses.json",
-      "chain-state.json",
       "glossary.json",
       "relations.json",
       "graph.json",
