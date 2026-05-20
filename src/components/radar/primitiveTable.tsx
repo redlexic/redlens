@@ -14,7 +14,7 @@ export const HEADERS = [
 export const BORDER = "1px solid #4e3a35";
 export const GROUP_BORDER = "2px solid #6b4a40";
 export const CELL_PADDING = "0.175rem";
-export const ROW_COLORS = ["#110b08", "#1a0e0b"] as const;
+export const ROW_COLORS = ["#030201", "#20110d"] as const;
 
 export function shortenCategoryTitle(title: string): string {
   return title.replace(/\s*Primitives\s*/i, "").trim();
