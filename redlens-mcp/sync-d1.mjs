@@ -177,11 +177,17 @@ if (chainState.chains) {
 
 console.log("Loading manifest.json…");
 const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "public/manifest.json"), "utf8"));
+
+// blockNumber is no longer in manifest (it changed on every build:snapshot run,
+// causing spurious manifest hash changes). Read directly from chain-state.json.
+const blockNumber = chainState.block
+  ?? (chainState.chains ? Object.values(chainState.chains)[0]?.block ?? null : null);
+
 const metaRows = [
   { key: "atlasCommit",   value: manifest.atlasCommit ?? null },
   { key: "redlensCommit", value: manifest.redlensCommit ?? null },
   { key: "generatedAt",   value: manifest.generatedAt ?? null },
-  { key: "blockNumber",   value: manifest.blockNumber ?? null },
+  { key: "blockNumber",   value: blockNumber },
 ];
 console.log(`  atlas: ${manifest.atlasCommit?.slice(0,12)}, redlens: ${manifest.redlensCommit?.slice(0,12)}`);
 
