@@ -98,6 +98,8 @@ jobs:
   # docs.json is gitignored and must be rebuilt. The vector cache is keyed
   # on docs.json content; a restore-keys fallback lets build:rag reuse
   # cached vectors for unchanged docs rather than re-embedding everything.
+  # Embedder: @huggingface/transformers Xenova/bge-base-en-v1.5 (ONNX, CPU).
+  # No CF token needed for embedding; token is only used by vectors:remote.
   # ─────────────────────────────────────────────────────────────────────────
   sync-vectors:
     name: Build RAG vectors → Vectorize
@@ -127,6 +129,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
+      - name: Cache HuggingFace models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-models-bge-base-en-v1.5
+
       - name: Restore vector cache
         id: vector-cache
         uses: actions/cache@v4
@@ -146,9 +154,6 @@ jobs:
 
       - name: Build RAG vectors (incremental)
         run: pnpm build:rag
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          RAG_REQUIRE: "1"
 
       - name: Sync vectors to Vectorize
         run: pnpm vectors:remote

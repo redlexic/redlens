@@ -10,23 +10,19 @@
  *
  * Incremental: on each run, the embed text for every node is hashed and
  * compared to the previous text-hashes.json. Only nodes whose embed text
- * changed (or that are new) are sent to Workers AI; unchanged nodes reuse
- * their cached Float32 vectors directly. Reused vectors are already
- * L2-normalized and are copied as-is; only fresh embeddings are normalized.
+ * changed (or that are new) are re-embedded; unchanged nodes reuse their
+ * cached Float32 vectors directly. Reused vectors are already L2-normalized
+ * and are copied as-is; only fresh embeddings are normalized.
  *
  * These are not part of the frontend bundle — they feed the hosted MCP
  * server's Vectorize index via redlens-mcp/sync-vectors.mjs.
  *
- * Embedder: Cloudflare Workers AI `@cf/baai/bge-base-en-v1.5` (768d).
- * The same model runs in the worker at query time, so build vectors and
- * query vectors share the same embedding space.
+ * Embedder: @huggingface/transformers Xenova/bge-base-en-v1.5 (768d, ONNX).
+ * Same weights as the Workers AI model used at query time in the MCP worker.
  *
  * Strategy: one vector per atlas node. Embed text is the node's heading line
  * plus a 3-deep parent chain so tiny one-line nodes (~31% of the corpus)
  * have enough semantics to be retrievable.
- *
- * Required env: CLOUDFLARE_API_TOKEN (Workers AI Run scope) and
- *               CLOUDFLARE_ACCOUNT_ID (or read from redlens-mcp/wrangler.jsonc).
  */
 
 import { createHash } from "node:crypto";
@@ -34,49 +30,35 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
+import { pipeline } from "@huggingface/transformers";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const DOCS_PATH = resolve(ROOT, "public/docs.json");
 const OUT_DIR   = resolve(ROOT, ".cache/atlas-vectors");
-const WRANGLER_JSONC = resolve(ROOT, "redlens-mcp/wrangler.jsonc");
 
 // Cache paths — read at startup, written at end.
 const HASHES_PATH  = resolve(OUT_DIR, "text-hashes.json");
 const IDS_PATH     = resolve(OUT_DIR, "ids.json");
 const VECTORS_PATH = resolve(OUT_DIR, "vectors.bin");
 
-const MODEL     = "@cf/baai/bge-base-en-v1.5";
+const MODEL     = "Xenova/bge-base-en-v1.5";
 const DIM       = 768;
-// Workers AI bge-base accepts up to 100 inputs per request.
-const BATCH     = Number(process.env.RAG_BATCH ?? 96);
 // bge-base-en's positional embedding cap is 512 tokens. ~4 chars/token in
 // English → 2048 chars is the safe cap (matches how the model was trained).
+const BATCH     = Number(process.env.RAG_BATCH ?? 32);
 const MAX_CHARS = Number(process.env.RAG_MAX_CHARS ?? 2048);
 
-const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
-if (!TOKEN) {
-  console.warn(
-    "build:rag: CLOUDFLARE_API_TOKEN not set — skipping vector build. " +
-      "Semantic search will be disabled until vectors are produced by CI " +
-      "(set RAG_REQUIRE=1 to fail loudly instead).",
-  );
-  if (process.env.RAG_REQUIRE === "1") process.exit(1);
-  process.exit(0);
-}
+const isAppleSilicon = process.platform === "darwin" && process.arch === "arm64";
+const DEVICE = process.env.RAG_DEVICE ?? (isAppleSilicon ? "coreml" : "cpu");
 
-function readAccountId() {
-  if (process.env.CLOUDFLARE_ACCOUNT_ID) return process.env.CLOUDFLARE_ACCOUNT_ID;
-  if (existsSync(WRANGLER_JSONC)) {
-    const txt = readFileSync(WRANGLER_JSONC, "utf8");
-    const m = txt.match(/"account_id"\s*:\s*"([0-9a-f]+)"/);
-    if (m) return m[1];
+let _embedder = null;
+async function getEmbedder() {
+  if (!_embedder) {
+    console.log(`  loading model ${MODEL} on ${DEVICE}…`);
+    _embedder = await pipeline("feature-extraction", MODEL, { device: DEVICE, dtype: "fp32" });
   }
-  throw new Error(
-    "CLOUDFLARE_ACCOUNT_ID is required (or set account_id in redlens-mcp/wrangler.jsonc).",
-  );
+  return _embedder;
 }
-const ACCOUNT_ID = readAccountId();
-const ENDPOINT = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL}`;
 
 function buildEmbedText(node, docs) {
   const header = `${node.doc_no} - ${node.title} [${node.type}]`;
@@ -95,42 +77,13 @@ function buildEmbedText(node, docs) {
 }
 
 async function embedBatch(inputs) {
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${TOKEN}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ text: inputs }),
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`workers-ai ${res.status}: ${body.slice(0, 400)}`);
-  }
-  const j = await res.json();
-  if (!j.success) throw new Error(`workers-ai error: ${JSON.stringify(j.errors).slice(0, 400)}`);
-  const data = j.result?.data;
-  if (!Array.isArray(data) || data.length !== inputs.length) {
-    throw new Error(`embed count mismatch: got ${data?.length}, expected ${inputs.length}`);
+  const embedder = await getEmbedder();
+  const output = await embedder(inputs, { pooling: "mean", normalize: false });
+  const data = output.tolist();
+  if (data.length !== inputs.length) {
+    throw new Error(`embed count mismatch: got ${data.length}, expected ${inputs.length}`);
   }
   return data;
-}
-
-async function embedBatchWithRetry(inputs, attempt = 0) {
-  try {
-    return await embedBatch(inputs);
-  } catch (err) {
-    if (attempt >= 4) {
-      const longest = inputs.reduce((a, b) => (b.length > a.length ? b : a), "");
-      console.error(`  failed batch of ${inputs.length}; longest input ${longest.length} chars`);
-      console.error(`  longest starts: ${longest.slice(0, 200)}`);
-      throw err;
-    }
-    const wait = 1000 * Math.pow(2, attempt);
-    console.warn(`  retry ${attempt + 1} in ${wait}ms: ${err.message}`);
-    await new Promise((r) => setTimeout(r, wait));
-    return embedBatchWithRetry(inputs, attempt + 1);
-  }
 }
 
 async function main() {
@@ -198,7 +151,7 @@ async function main() {
   }
 
   const reused = chunks.length - toEmbed.length;
-  console.log(`\nembedding via ${MODEL}, batch=${BATCH}, account=${ACCOUNT_ID.slice(0, 8)}…`);
+  console.log(`\nembedding via ${MODEL}, batch=${BATCH}`);
   console.log(`  ${toEmbed.length} to embed, ${reused} reused from cache`);
 
   // ── Embed changed / new chunks ─────────────────────────────────────────
@@ -208,7 +161,7 @@ async function main() {
     const t0 = Date.now();
     for (let b = 0; b < toEmbed.length; b += BATCH) {
       const slice = toEmbed.slice(b, b + BATCH);
-      const embs  = await embedBatchWithRetry(slice.map((x) => x.embedText));
+      const embs  = await embedBatch(slice.map((x) => x.embedText));
       for (let k = 0; k < embs.length; k++) {
         const { idx } = slice[k];
         if (embs[k].length !== DIM) {
