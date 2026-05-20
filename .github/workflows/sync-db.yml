@@ -95,11 +95,11 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────────────────
   # Job 2: build index, build RAG vectors (incremental), sync → Vectorize
-  # docs.json is gitignored and must be rebuilt. The vector cache is keyed
-  # on docs.json content; a restore-keys fallback lets build:rag reuse
-  # cached vectors for unchanged docs rather than re-embedding everything.
-  # Embedder: @huggingface/transformers Xenova/bge-base-en-v1.5 (ONNX, CPU).
-  # No CF token needed for embedding; token is only used by vectors:remote.
+  # docs.json is gitignored and must be rebuilt from the atlas submodule.
+  # Vector baseline (.cache/atlas-vectors/) is committed via Git LFS —
+  # checkout restores it so build:rag only re-embeds changed/new nodes.
+  # Embedder: Workers AI when token present (fast); falls back to
+  # @huggingface/transformers (CPU) if token unavailable.
   # ─────────────────────────────────────────────────────────────────────────
   sync-vectors:
     name: Build RAG vectors → Vectorize
@@ -109,6 +109,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           submodules: recursive
+          lfs: true
 
       - uses: pnpm/action-setup@v5
 
@@ -135,25 +136,13 @@ jobs:
           path: ~/.cache/huggingface
           key: hf-models-bge-base-en-v1.5
 
-      - name: Restore vector cache
-        id: vector-cache
-        uses: actions/cache@v4
-        with:
-          path: .cache/atlas-vectors
-          # Keyed on manifest.json (committed) which changes whenever docs.json
-          # changes — docs.json itself is gitignored and doesn't exist yet at
-          # cache-key evaluation time (before build:index runs).
-          key: atlas-vectors-${{ hashFiles('public/manifest.json') }}
-          # Fallback: restore most recent cache so build:rag only re-embeds
-          # docs that actually changed rather than starting from scratch.
-          restore-keys: |
-            atlas-vectors-
-
       - name: Build index (docs.json)
         run: pnpm build:index
 
       - name: Build RAG vectors (incremental)
         run: pnpm build:rag
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Sync vectors to Vectorize
         run: pnpm vectors:remote

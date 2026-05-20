@@ -17,12 +17,15 @@
  * These are not part of the frontend bundle — they feed the hosted MCP
  * server's Vectorize index via redlens-mcp/sync-vectors.mjs.
  *
- * Embedder: @huggingface/transformers Xenova/bge-base-en-v1.5 (768d, ONNX).
- * Same weights as the Workers AI model used at query time in the MCP worker.
+ * Embedder (auto-selected):
+ *   CI:    CLOUDFLARE_API_TOKEN set → Workers AI @cf/baai/bge-base-en-v1.5
+ *   Local: no token               → @huggingface/transformers Xenova/bge-base-en-v1.5
+ *          (CoreML on Apple Silicon, CPU elsewhere)
+ * Both use the same BAAI/bge-base-en-v1.5 weights; vectors are compatible.
+ * Override with RAG_EMBEDDER=workersai|transformers.
  *
- * Strategy: one vector per atlas node. Embed text is the node's heading line
- * plus a 3-deep parent chain so tiny one-line nodes (~31% of the corpus)
- * have enough semantics to be retrievable.
+ * Embed text: title + content only. No doc_no or ancestry — those change on
+ * atlas renumbering and would invalidate vectors without semantic change.
  */
 
 import { createHash } from "node:crypto";
@@ -30,60 +33,89 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
-import { pipeline } from "@huggingface/transformers";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const DOCS_PATH = resolve(ROOT, "public/docs.json");
 const OUT_DIR   = resolve(ROOT, ".cache/atlas-vectors");
 
-// Cache paths — read at startup, written at end.
 const HASHES_PATH  = resolve(OUT_DIR, "text-hashes.json");
 const IDS_PATH     = resolve(OUT_DIR, "ids.json");
 const VECTORS_PATH = resolve(OUT_DIR, "vectors.bin");
 
-const MODEL     = "Xenova/bge-base-en-v1.5";
 const DIM       = 768;
-// bge-base-en's positional embedding cap is 512 tokens. ~4 chars/token in
-// English → 2048 chars is the safe cap (matches how the model was trained).
-const BATCH     = Number(process.env.RAG_BATCH ?? 32);
 const MAX_CHARS = Number(process.env.RAG_MAX_CHARS ?? 2048);
 
+// ── Backend selection ──────────────────────────────────────────────────────
+const TOKEN   = process.env.CLOUDFLARE_API_TOKEN;
+const BACKEND = process.env.RAG_EMBEDDER ?? (TOKEN ? "workersai" : "transformers");
+const BATCH   = Number(process.env.RAG_BATCH ?? (BACKEND === "workersai" ? 96 : 32));
+
+// ── Workers AI backend ─────────────────────────────────────────────────────
+const WA_MODEL = "@cf/baai/bge-base-en-v1.5";
+const WRANGLER_JSONC = resolve(ROOT, "redlens-mcp/wrangler.jsonc");
+
+function readAccountId() {
+  if (process.env.CLOUDFLARE_ACCOUNT_ID) return process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (existsSync(WRANGLER_JSONC)) {
+    const m = readFileSync(WRANGLER_JSONC, "utf8").match(/"account_id"\s*:\s*"([0-9a-f]+)"/);
+    if (m) return m[1];
+  }
+  throw new Error("CLOUDFLARE_ACCOUNT_ID required (or set account_id in redlens-mcp/wrangler.jsonc)");
+}
+
+async function embedBatchWorkersAI(inputs, attempt = 0) {
+  const accountId = readAccountId();
+  const endpoint  = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${WA_MODEL}`;
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { authorization: `Bearer ${TOKEN}`, "content-type": "application/json" },
+      body: JSON.stringify({ text: inputs }),
+    });
+    if (!res.ok) throw new Error(`workers-ai ${res.status}: ${(await res.text().catch(() => "")).slice(0, 400)}`);
+    const j = await res.json();
+    if (!j.success) throw new Error(`workers-ai error: ${JSON.stringify(j.errors).slice(0, 400)}`);
+    const data = j.result?.data;
+    if (!Array.isArray(data) || data.length !== inputs.length)
+      throw new Error(`embed count mismatch: got ${data?.length}, expected ${inputs.length}`);
+    return data;
+  } catch (err) {
+    if (attempt >= 4) throw err;
+    const wait = 1000 * 2 ** attempt;
+    console.warn(`  retry ${attempt + 1} in ${wait}ms: ${err.message}`);
+    await new Promise((r) => setTimeout(r, wait));
+    return embedBatchWorkersAI(inputs, attempt + 1);
+  }
+}
+
+// ── Transformers.js backend ────────────────────────────────────────────────
+const TF_MODEL = "Xenova/bge-base-en-v1.5";
 const isAppleSilicon = process.platform === "darwin" && process.arch === "arm64";
 const DEVICE = process.env.RAG_DEVICE ?? (isAppleSilicon ? "coreml" : "cpu");
 
 let _embedder = null;
-async function getEmbedder() {
+async function embedBatchTransformers(inputs) {
   if (!_embedder) {
-    console.log(`  loading model ${MODEL} on ${DEVICE}…`);
-    _embedder = await pipeline("feature-extraction", MODEL, { device: DEVICE, dtype: "fp32" });
+    const { pipeline } = await import("@huggingface/transformers");
+    console.log(`  loading model ${TF_MODEL} on ${DEVICE}…`);
+    _embedder = await pipeline("feature-extraction", TF_MODEL, { device: DEVICE, dtype: "fp32" });
   }
-  return _embedder;
-}
-
-function buildEmbedText(node, docs) {
-  const header = `${node.doc_no} - ${node.title} [${node.type}]`;
-  const chain = [];
-  let cur = node.parentId ? docs[node.parentId] : null;
-  let hops = 0;
-  while (cur && hops < 3) {
-    chain.push(`${cur.doc_no} - ${cur.title} [${cur.type}]`);
-    cur = cur.parentId ? docs[cur.parentId] : null;
-    hops++;
-  }
-  const ancestry = chain.length > 0 ? `in: ${chain.join(" ← ")}` : "";
-  const content = (node.content ?? "").trim();
-  const text = [header, ancestry, "", content].filter(Boolean).join("\n").trim();
-  return text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) : text;
-}
-
-async function embedBatch(inputs) {
-  const embedder = await getEmbedder();
-  const output = await embedder(inputs, { pooling: "mean", normalize: false });
+  const output = await _embedder(inputs, { pooling: "mean", normalize: false });
   const data = output.tolist();
-  if (data.length !== inputs.length) {
+  if (data.length !== inputs.length)
     throw new Error(`embed count mismatch: got ${data.length}, expected ${inputs.length}`);
-  }
   return data;
+}
+
+// ── Unified dispatch ───────────────────────────────────────────────────────
+const MODEL    = BACKEND === "workersai" ? WA_MODEL : TF_MODEL;
+const embedBatch = BACKEND === "workersai" ? embedBatchWorkersAI : embedBatchTransformers;
+
+// ── Embed text ─────────────────────────────────────────────────────────────
+function buildEmbedText(node) {
+  const content = (node.content ?? "").trim();
+  const text = content ? `${node.title}\n\n${content}` : node.title;
+  return text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) : text;
 }
 
 async function main() {
@@ -97,18 +129,14 @@ async function main() {
 
   const chunks = nodes.map((n) => ({
     id: n.id,
-    doc_no: n.doc_no,
-    embedText: buildEmbedText(n, docs),
+    embedText: buildEmbedText(n),
   }));
 
   const truncated = chunks.filter((c) => c.embedText.length === MAX_CHARS).length;
   if (truncated > 0) console.log(`  ${truncated} chunks truncated to ${MAX_CHARS} chars`);
 
   // ── Load previous cache ────────────────────────────────────────────────
-  // prevHashes: uuid → sha256(embedText) from the last successful run.
-  // prevVectors: uuid → Float32Array(DIM) view into the loaded binary.
-  // Both are empty on a cold start (no cache or load failure).
-  let prevHashes = {};
+  let prevHashes  = {};
   let prevVectors = new Map();
 
   if (existsSync(HASHES_PATH) && existsSync(IDS_PATH) && existsSync(VECTORS_PATH)) {
@@ -116,27 +144,22 @@ async function main() {
       prevHashes = JSON.parse(readFileSync(HASHES_PATH, "utf8"));
       const prevIds = JSON.parse(readFileSync(IDS_PATH, "utf8"));
       const buf = readFileSync(VECTORS_PATH);
-      // Slice to guarantee 4-byte alignment for Float32Array.
-      const f32 = new Float32Array(
-        buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
-      );
+      const f32 = new Float32Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
       for (let i = 0; i < prevIds.length; i++) {
         prevVectors.set(prevIds[i], f32.subarray(i * DIM, (i + 1) * DIM));
       }
       console.log(`  ${prevIds.length} cached vectors loaded`);
     } catch (e) {
       console.warn(`  cache load failed (${e.message}) — rebuilding all vectors`);
-      prevHashes = {};
+      prevHashes  = {};
       prevVectors = new Map();
     }
   }
 
   // ── Classify chunks ────────────────────────────────────────────────────
-  // Hash each chunk's embed text. Reuse the cached vector if the hash
-  // matches; otherwise queue for embedding.
-  const vectors  = new Float32Array(chunks.length * DIM);
+  const vectors   = new Float32Array(chunks.length * DIM);
   const newHashes = {};
-  const toEmbed  = []; // { idx: number, embedText: string }
+  const toEmbed   = [];
 
   for (let i = 0; i < chunks.length; i++) {
     const { id, embedText } = chunks[i];
@@ -151,7 +174,7 @@ async function main() {
   }
 
   const reused = chunks.length - toEmbed.length;
-  console.log(`\nembedding via ${MODEL}, batch=${BATCH}`);
+  console.log(`\nembedding via ${MODEL} (${BACKEND}), batch=${BATCH}`);
   console.log(`  ${toEmbed.length} to embed, ${reused} reused from cache`);
 
   // ── Embed changed / new chunks ─────────────────────────────────────────
@@ -164,9 +187,8 @@ async function main() {
       const embs  = await embedBatch(slice.map((x) => x.embedText));
       for (let k = 0; k < embs.length; k++) {
         const { idx } = slice[k];
-        if (embs[k].length !== DIM) {
+        if (embs[k].length !== DIM)
           throw new Error(`dim mismatch at idx ${idx}: got ${embs[k].length}, expected ${DIM}`);
-        }
         vectors.set(embs[k], idx * DIM);
       }
       const done = b + slice.length;
@@ -174,12 +196,10 @@ async function main() {
       const sec  = ((Date.now() - t0) / 1000).toFixed(1);
       console.log(`  ${done}/${toEmbed.length} embedded (${pct}%) — ${sec}s`);
     }
-    const totalSec = ((Date.now() - t0) / 1000).toFixed(1);
-    console.log(`  done in ${totalSec}s`);
+    console.log(`  done in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
     // L2-normalize only newly embedded vectors. Reused vectors are already
-    // normalized from the previous run — re-normalizing would cause tiny
-    // floating-point drift and break byte-identical reproducibility checks.
+    // normalized — re-normalizing causes float drift that breaks reproducibility.
     const newIdxSet = new Set(toEmbed.map((x) => x.idx));
     for (let i = 0; i < chunks.length; i++) {
       if (!newIdxSet.has(i)) continue;
@@ -191,8 +211,6 @@ async function main() {
   }
 
   // ── atlasCommit ────────────────────────────────────────────────────────
-  // Primary: read from committed manifest.json (always present in CI without submodule).
-  // Fallback: git rev-parse in submodule (local dev with submodule checked out).
   const atlasCommit = (() => {
     try {
       const manifest = JSON.parse(readFileSync(resolve(ROOT, "public/manifest.json"), "utf8"));
