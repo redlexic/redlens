@@ -14,6 +14,9 @@ on:
       - "redlens-mcp/sync-vectors.mjs"
       - "scripts/required/build-rag.mjs"
       - "scripts/required/sync-history.mjs"
+      # sync-d1.mjs imports slugify from graph-patterns — a change there
+      # affects entity_id linkage in the addresses table
+      - "scripts/lib/graph-patterns.mjs"
       - ".github/workflows/sync-db.yml"
   workflow_dispatch:
 
