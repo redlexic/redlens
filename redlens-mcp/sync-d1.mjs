@@ -391,6 +391,8 @@ for (const stmt of [
   // schema.sql would abort the sync if old data has collisions; try/catch here
   // is the safe path. IF NOT EXISTS means a no-op once created.
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_edges_natural ON edges(from_id, to_id, edge_type, COALESCE(meta, ''))",
+  // node_history.commit_seq added after initial table creation
+  "ALTER TABLE node_history ADD COLUMN commit_seq INTEGER",
 ]) {
   try {
     execSync(`npx wrangler@latest d1 execute ${DB} ${FLAG} --command="${stmt}"`, {
