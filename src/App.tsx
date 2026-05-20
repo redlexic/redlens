@@ -80,7 +80,7 @@ export default function App() {
 
   const scope: SearchScope = activeNavPage ?? "atlas";
 
-  const { query, inputRef, handleChange, clearQuery, state, ready, handleHintClick } =
+  const { query, inputRef, handleChange, clearQuery, cycleMode, state, ready, handleHintClick } =
     useSearchInput(location, navigate, scope);
   const { navigateToNode, handleViewChange } = useNavigation({
     navigate,
@@ -118,8 +118,8 @@ export default function App() {
         query={query}
         onChange={handleChange}
         onClear={clearQuery}
+        onCycleMode={cycleMode}
         ready={ready}
-        isSearching={state.status === "searching"}
         activePage={activeNavPage}
         scope={scope}
       />

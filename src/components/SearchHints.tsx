@@ -1,26 +1,27 @@
 const HINTS: { label: string; query: string; description: string }[] = [
   {
-    label: "prefix",
+    label: "broad",
     query: "govern",
-    description: "Partial words match automatically — type as you think",
+    description: "Default mode — partial words match automatically, case-insensitive",
   },
+  {
+    label: "phrase",
+    query: '"properly implemented"',
+    description: "Double quotes — whole-word phrase match, case-insensitive",
+  },
+  {
+    label: "strict",
+    query: "'delegatedSigners'",
+    description: "Single quotes — whole-word phrase match, case-sensitive",
+  },
+  { label: "fuzzy", query: "misaligment~1", description: "~N allows N character edits" },
   { label: "0x address", query: "0xbe8e3e", description: "All nodes containing matched Ethereum address" },
   {
     label: "chainlog id",
     query: "MCD_VAT",
     description: "All nodes referencing a Sky chainlog contract",
   },
-  { label: "doc number", query: "fb", description: "Jump directly to a section by number" },
-  {
-    label: "phrase",
-    query: '"properly implemented"',
-    description: 'Double quotes — literal phrase match, case-insensitive',
-  },
-  {
-    label: "phrase, case-sensitive",
-    query: "'delegatedSigners'",
-    description: "Single quotes — literal phrase match, case-sensitive",
-  },
+  { label: "doc number", query: "A.1.2", description: "Jump directly to a section by number" },
   {
     label: "field: title",
     query: "title:facilitator",
@@ -37,7 +38,6 @@ const HINTS: { label: string; query: string; description: string }[] = [
     query: "in:A.1.2 delegate",
     description: "Restrict results to a section subtree",
   },
-  { label: "fuzzy match", query: "misaligment~1", description: "~N allows N character edits" },
   {
     label: "exclude term",
     query: "alignment -slippery",
@@ -46,7 +46,7 @@ const HINTS: { label: string; query: string; description: string }[] = [
   {
     label: "combine fields",
     query: "type:Core title:quorum",
-    description: "Mix field filters and free text",
+    description: "Mix field filters and broad terms",
   },
 ];
 

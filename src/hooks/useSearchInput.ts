@@ -5,10 +5,34 @@ import { ROUTES, type SearchScope } from "../lib/routes";
 
 const queryCodec = urlString(null);
 
+export type SearchMode = "broad" | "phrase" | "strict" | "fuzzy";
+
+const FUZZY_SUFFIX_RE = /~\d+$/;
+
+export function detectMode(q: string): SearchMode {
+  if (q.length >= 2 && q.startsWith('"') && q.endsWith('"')) return "phrase";
+  if (q.length >= 2 && q.startsWith("'") && q.endsWith("'")) return "strict";
+  if (FUZZY_SUFFIX_RE.test(q)) return "fuzzy";
+  return "broad";
+}
+
+function rawContent(q: string, mode: SearchMode): string {
+  if (mode === "phrase" || mode === "strict") return q.slice(1, -1);
+  if (mode === "fuzzy") return q.replace(FUZZY_SUFFIX_RE, "");
+  return q;
+}
+
+function cycleWrap(q: string): string {
+  const mode = detectMode(q);
+  const raw = rawContent(q, mode);
+  if (mode === "broad")   return `"${raw}"`;
+  if (mode === "phrase")  return `'${raw}'`;
+  if (mode === "strict")  return `${raw}~2`;
+  return raw; // fuzzy → broad
+}
+
 export function useSearchInput(location: string, navigate: (to: string) => void, scope: SearchScope) {
   const { state, search, ready } = useSearch();
-  // Search query lives in the URL as ?q=… so it's shareable and back/forward
-  // restore the active search alongside the page.
   const [queryParam, setQueryParam] = useUrlState("q", queryCodec);
   const query = queryParam ?? "";
   const deferredQuery = useDeferredValue(query);
@@ -27,7 +51,9 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
       search("");
       return;
     }
-    search(deferredQuery);
+    const mode = detectMode(deferredQuery);
+    const inner = mode === "broad" ? deferredQuery : deferredQuery.slice(1, -1);
+    search(inner.trim() ? deferredQuery : "");
   }, [deferredQuery, location, search]);
 
   const handleChange = useCallback(
@@ -77,5 +103,10 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
     inputRef.current?.focus();
   }, [setQueryParam]);
 
-  return { query, inputRef, handleChange, clearQuery, state, ready, handleHintClick };
+  const cycleMode = useCallback(() => {
+    setQueryParam((q) => cycleWrap(q ?? ""));
+    inputRef.current?.focus();
+  }, [setQueryParam]);
+
+  return { query, inputRef, handleChange, clearQuery, cycleMode, state, ready, handleHintClick };
 }

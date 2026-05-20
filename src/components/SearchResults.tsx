@@ -94,11 +94,13 @@ export const SearchResults = memo(function SearchResults({
             </ul>
           </>
         )}
-        {state.status === "done" && (
+        {(state.status === "searching" || state.status === "done") && (
           <div className="px-4 py-2 text-xs border-b mono text-tan-3 border-border">
-            {hits.length === 0
-              ? `no results for "${state.query}"`
-              : `${displayed.length < hits.length ? `${displayed.length} of ` : ""}${hits.length} result${hits.length !== 1 ? "s" : ""} · ${state.durationMs.toFixed(0)}ms`}
+            {state.status === "searching"
+              ? "searching…"
+              : hits.length === 0
+                ? `no results for "${state.query}"`
+                : `${displayed.length < hits.length ? `${displayed.length} of ` : ""}${hits.length} result${hits.length !== 1 ? "s" : ""} · ${state.durationMs.toFixed(0)}ms`}
           </div>
         )}
         {displayed.length > 0 && (

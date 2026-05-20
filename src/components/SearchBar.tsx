@@ -1,17 +1,20 @@
 import { Link } from "./Link";
 import { NavBar, type NavBarProps } from "./NavBar";
 import { SCOPE_CONFIG, type SearchScope } from "../lib/routes";
+import { detectMode } from "../hooks/useSearchInput";
 import type { RefObject } from "react";
 
 const BASE = import.meta.env.BASE_URL;
+
+const MODE_LABEL: Record<string, string> = { broad: "broad", phrase: "phrase", strict: "strict", fuzzy: "fuzzy" };
 
 interface Props extends NavBarProps {
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClear: () => void;
+  onCycleMode: () => void;
   ready: boolean;
-  isSearching: boolean;
   scope: SearchScope;
 }
 
@@ -20,13 +23,14 @@ export function SearchBar({
   query,
   onChange,
   onClear,
+  onCycleMode,
   ready,
-  isSearching,
   activePage,
   scope,
 }: Props) {
   const cfg = SCOPE_CONFIG[scope];
   const disabled = scope === "atlas" && !ready;
+  const mode = detectMode(query);
   const placeholder = disabled ? "Loading index…" : cfg.placeholder;
 
   return (
@@ -80,14 +84,19 @@ export function SearchBar({
             className="search-input flex-1 min-w-0 px-2 py-2 text-sm"
           />
 
-          {isSearching ? (
-            <span
-              className="mr-3 text-xs animate-pulse mono shrink-0"
-              style={{ color: "var(--gray)" }}
+          {scope === "atlas" && (
+            <button
+              type="button"
+              onClick={onCycleMode}
+              aria-label={`Search mode: ${mode}. Click to cycle.`}
+              className="shrink-0 px-2 py-0.5 text-xs mono rounded"
+              style={{ color: mode === "broad" ? "var(--gray)" : "var(--accent)" }}
             >
-              searching…
-            </span>
-          ) : query ? (
+              MODE {MODE_LABEL[mode]}
+            </button>
+          )}
+
+          {query ? (
             <button
               type="button"
               onClick={onClear}
