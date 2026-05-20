@@ -244,10 +244,12 @@ fs.writeFileSync(
   clearFile,
   // Drop FTS5 triggers before clearing docs so deletes don't fire per-row
   // FTS5 writes. The index is rebuilt once after all docs are inserted.
+  // kv_meta is NOT cleared here — sync-vectors writes vectorsAtlasCommit
+  // concurrently and DELETE would race with it. INSERT OR REPLACE in
+  // writeBatched is idempotent; the key set is stable so no stale keys accumulate.
   "DROP TRIGGER IF EXISTS docs_ai;\n" +
   "DROP TRIGGER IF EXISTS docs_ad;\n" +
-  "DROP TRIGGER IF EXISTS docs_au;\n" +
-  "DELETE FROM kv_meta;\n",
+  "DROP TRIGGER IF EXISTS docs_au;\n",
 );
 const files = {
   docs:     path.join(TMP, "_docs.sql"),
