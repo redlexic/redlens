@@ -48,6 +48,9 @@ const ProvenancePage = lazy(() =>
 const RadarPage = lazy(() =>
   lazyRetry(() => import("./components/radar/RadarPage")).then((m) => ({ default: m.RadarPage })),
 );
+const QAPage = lazy(() =>
+  lazyRetry(() => import("./components/qa/QAPage")).then((m) => ({ default: m.QAPage })),
+);
 
 const splitCodec = urlString(null);
 
@@ -225,6 +228,11 @@ export default function App() {
             <Route path={ROUTES.PROVENANCE}>
               <Suspense fallback={<Loading />}>
                 <ProvenancePage />
+              </Suspense>
+            </Route>
+            <Route path={ROUTES.QA}>
+              <Suspense fallback={<Loading />}>
+                <QAPage />
               </Suspense>
             </Route>
           </Switch>

@@ -36,8 +36,10 @@
     "pull-atlas": "git submodule update --init --recursive"
   },
   "dependencies": {
+    "@browser-ai/transformers-js": "^2.2.2",
     "@chenglou/pretext": "^0.0.5",
     "@xyflow/react": "^12.10.2",
+    "ai": "^6.0.185",
     "graphology": "^0.26.0",
     "graphology-layout-forceatlas2": "^0.10.1",
     "graphology-layout-noverlap": "^0.4.2",
@@ -53,7 +55,8 @@
     "remark-math": "^6.0.0",
     "unist-util-visit": "^5.1.0",
     "workbox-window": "^7.4.1",
-    "wouter": "^3.9.0"
+    "wouter": "^3.9.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",
@@ -80,6 +83,9 @@
   },
   "packageManager": "pnpm@10.33.0",
   "pnpm": {
-    "onlyBuiltDependencies": ["onnxruntime-node", "protobufjs"]
+    "onlyBuiltDependencies": [
+      "onnxruntime-node",
+      "protobufjs"
+    ]
   }
 }
