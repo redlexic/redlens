@@ -53,3 +53,4 @@ note.md
 .cache/processes-audit.md
 .cache/processes-heuristic.json
 .claude/scheduled_tasks.lock
+.claude/worktrees/**
