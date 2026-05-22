@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { List, useListRef } from "react-window";
 import { useAtlasTree } from "../../hooks/useAtlasTree";
 import { useTreeKeyboard } from "../../hooks/useTreeKeyboard";
+import { usePulseOnChange, ROW_PULSE_MS } from "../../hooks/usePulseOnChange";
 import { realDepth } from "../../lib/depth";
 import { TreeRow, ROW_HEIGHT, type VisibleNode, type TreeRowData } from "./TreeRow";
 
@@ -19,14 +20,7 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useListRef(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [pulseId, setPulseId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!nodeId) return;
-    setPulseId(nodeId);
-    const t = setTimeout(() => setPulseId(null), 700);
-    return () => clearTimeout(t);
-  }, [nodeId]);
+  const pulseId = usePulseOnChange(nodeId, ROW_PULSE_MS);
 
   useEffect(() => {
     if (!bundle || !nodeId) return;

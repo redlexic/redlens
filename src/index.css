@@ -29,6 +29,7 @@
   --atlas-row-selected: #1f1f1f;
   --row-pulse-flash: rgba(255, 255, 255, 0.28);
   --row-bar-tint: white; /* mix target for the selected red-bar tint; overridden in light theme */
+  --row-pulse-ms: 700ms;
 
   /* ─── Shadows ─── */
   --shadow: rgba(0, 0, 0, 0.3);
@@ -183,7 +184,7 @@ mark {
   background: var(--row-focused);
 }
 .tree-row.is-pulse {
-  animation: tree-row-pulse 700ms ease-out;
+  animation: tree-row-pulse var(--row-pulse-ms) ease-out;
 }
 @keyframes tree-row-pulse {
   0% {
@@ -339,18 +340,17 @@ mark {
   .atlas-node-fresh {
     animation: none;
   }
+  .tree-row.is-pulse {
+    animation: none;
+  }
 }
 .atlas-node.is-selected {
   background-color: var(--atlas-row-selected);
 }
-.atlas-node:hover,
-.atlas-node:focus-visible {
+.atlas-node:not(.is-selected):hover,
+.atlas-node:not(.is-selected):focus-visible {
   background-color: var(--hover);
   outline: none;
-}
-.atlas-node.is-selected:hover,
-.atlas-node.is-selected:focus-visible {
-  background-color: var(--atlas-row-selected);
 }
 .atlas-node-meta {
   display: none;

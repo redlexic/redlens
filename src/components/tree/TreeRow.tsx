@@ -111,7 +111,7 @@ export function TreeRow({
   const { hasChildren } = item;
   const isSelected = index === selectedIndex;
   const isFocused = index === focusedIndex;
-  const isPulse = !!pulseId && pulseId === node!.id;
+  const isPulse = pulseId === node!.id;
   const isExpanded = expandedIds.has(node!.id);
   const depthVar = `var(--depth-${Math.min(Math.max(treeDepth, 1), 17)})`;
   const selectedBar = `color-mix(in srgb, ${depthVar} 80%, var(--row-bar-tint))`;
