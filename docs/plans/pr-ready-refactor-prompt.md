@@ -6,6 +6,7 @@ RedLens is a Vite + React 19 atlas viewer. The integration branch just received 
 - Each component has a kebab-case CSS class in `src/index.css` (e.g. `.scope-pill`, `.scope-chip`, `.nav-link`, `.actor-list-item`, `.hint-row`, `.related-node`, `.breadcrumb-link`); inline `style={...}` is reserved for per-instance dynamic values, expressed as CSS custom properties (see `.breadcrumb-link` + `--crumb-color`).
 - Variant state via `data-*` attributes (`data-active`, `data-scope`, etc.), chained in CSS.
 - Hooks in `src/hooks/`, helpers in `src/lib/`, tests colocated. `pnpm tsc --noEmit` must stay clean.
+- **Theming readiness.** Every color MUST flow through a CSS custom property defined in the single `:root` block of `src/index.css`. The existing `[data-theme="light"]` block (currently empty TODO at `src/index.css:62`) is the future light-mode override surface; no other file should be edited to swap themes. This means NO hex literals, NO `rgb()` / `rgba()` calls, NO named colors (`white`, `black`, `red`, etc.) anywhere outside the `:root` block — not in CSS rules, not in `@keyframes`, not in inline `style={…}`, not inside `color-mix(...)` expressions. Inline `style={…}` may only carry per-instance CSS custom properties (e.g. `--c`, `--row-color`). Goal: adding a light/dark toggle later is a one-place change.
 
 The repo is also configured to commit as `darkstar-covenant`. **MUST NOT** add `Co-Authored-By: Claude …` trailers to any commit you create.
 
@@ -15,32 +16,72 @@ The repo is also configured to commit as `darkstar-covenant`. **MUST NOT** add `
 - `src/index.css`
 - `src/components/atlas/CollapsibleNode.tsx`
 - `src/components/atlas/AtlasView.tsx`
-- `src/components/atlas/useDepth6Expand.ts` (timer-leak + shadow fix only — commit 7)
+- `src/components/atlas/useDepth6Expand.ts` (timer-leak + shadow fix only — commit 8)
 - `src/components/tree/TreeSidebar.tsx`
-- `src/components/tree/TreeRow.tsx` (only the new pulse-guard simplification in commit 2)
+- `src/components/tree/TreeRow.tsx` (selectedBar tokenization in commit 1 + pulse-guard simplification in commit 2 + chiclet migration in commit 7)
+- `src/components/Tooltip.tsx` (commit 1 only — inline shadow tokenization)
+- `src/admin/palette-tokens.ts` (commit 1 only — APPEND the three new tokens introduced in commit 1 for admin-editor parity; MUST NOT modify any existing entry)
 - `src/lib/atlasHelpers.ts`
+- `src/lib/depth.ts` (commit 7 only — add `chicletColor` helper next to `depthColor`)
+- New: `src/components/DocNoChiclets.tsx`
 - New: `src/hooks/usePulseOnChange.ts`
 - New: `src/hooks/useCopyState.ts`
 - New: `src/lib/atlasHelpers.test.ts`
+- New: `src/components/DocNoChiclets.test.tsx`
 - New: `src/hooks/usePulseOnChange.test.ts`
 - New: `src/hooks/useCopyState.test.ts`
 - New: `src/components/atlas/CollapsibleNode.test.tsx`
 
-**MUST NOT edit:** `src/admin/palette-tokens.ts`, anything under `scripts/`, `vendor/`, `public/` data artifacts, `package.json`, `vite.config.ts`, `vitest.config.ts`, the build pipeline, or any atlas data. MUST NOT split `CollapsibleNode.tsx` or `AtlasView.tsx` into multiple component files — those are out-of-scope tech debt for a separate PR.
+**MUST NOT edit:** anything under `scripts/`, `vendor/`, `public/` data artifacts, `package.json`, `vite.config.ts`, `vitest.config.ts`, the build pipeline, or any atlas data. MUST NOT split `CollapsibleNode.tsx` or `AtlasView.tsx` into multiple component files — those are out-of-scope tech debt for a separate PR. MUST NOT modify existing `palette-tokens.ts` entries (only append the three new tokens added in commit 1).
 
 **MUST NOT** add new dependencies, new abstractions, or scope creep. Only make changes directly requested. Match existing patterns — read neighbouring code before writing.
 
-## Nine commits — work in this order
+## Ten commits — work in this order
 
 ### Commit 1 — Tokenize `#1f1f1f` and the pulse-flash color (issues A + B)
 
 `src/index.css` currently hardcodes `#1f1f1f` in three rules (`.atlas-node.is-selected`, `.atlas-node.is-selected:hover, .atlas-node.is-selected:focus-visible`, `.atlas-node-meta` selected background) and `rgba(255, 255, 255, 0.28)` in `@keyframes tree-row-pulse`.
 
 - The file currently has TWO `:root` blocks — the **first** (around line 3) holds the main palette; the **second** (around line 135) holds the depth palette only. The split was introduced by the depth-palette migration in this commit. Merge them: move the depth-palette declarations into the first `:root` block (anywhere coherent — a `/* ─── Depth palette ─── */` section comment is fine), then delete the second `:root` block entirely.
-- In the merged single `:root` block, add `--atlas-row-selected: #1f1f1f;` and `--row-pulse-flash: rgba(255, 255, 255, 0.28);` next to `--row-focused`.
+- In the merged single `:root` block, add three new tokens next to `--row-focused`:
+  ```css
+  --atlas-row-selected: #1f1f1f;
+  --row-pulse-flash: rgba(255, 255, 255, 0.28);
+  --row-bar-tint: white; /* mix target for the selected red-bar tint; overridden in light theme */
+  ```
 - Replace every literal use of `#1f1f1f` and `rgba(255, 255, 255, 0.28)` in `src/index.css` with the variable.
 
-Commit subject: `Tokenize atlas-row-selected/pulse-flash + merge :root blocks`.
+**Tokenize the two `color-mix(... white)` landmines.** Hardcoded `white` inside `color-mix` would break in a future light theme. Two call sites:
+- `src/components/tree/TreeRow.tsx` (~line 117): change
+  ```ts
+  const selectedBar = `color-mix(in srgb, ${depthVar} 80%, white)`;
+  ```
+  to
+  ```ts
+  const selectedBar = `color-mix(in srgb, ${depthVar} 80%, var(--row-bar-tint))`;
+  ```
+  CSS custom properties resolve inside `color-mix(...)` inside an inline `boxShadow` string — verified to work.
+- `src/components/atlas/CollapsibleNode.tsx` (~line 221): the inline `boxShadow: isSelected ? \`inset 3px 0 0 color-mix(in srgb, ${color} 80%, white)\` : undefined` will be migrated to CSS in commit 6d. Update the migration target in 6d (not here) to use `var(--row-bar-tint)`.
+
+**Tokenize `Tooltip.tsx`'s inline shadow.** `src/components/Tooltip.tsx` (~line 189):
+```ts
+boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
+```
+→
+```ts
+boxShadow: "0 4px 12px var(--shadow-strong)"
+```
+`--shadow-strong` already exists in `:root` with that exact rgba value.
+
+**Keep `src/admin/palette-tokens.ts` in sync.** Append three new entries (in the surface group, near `--row-focused`) so the admin palette editor stays in sync with `:root`:
+```ts
+{ name: "atlas-row-selected", label: "Atlas Row Selected", group: "surface", alpha: false, defaultValue: "#1f1f1f" },
+{ name: "row-pulse-flash", label: "Row Pulse Flash", group: "surface", alpha: true, defaultValue: "rgba(255, 255, 255, 0.28)" },
+{ name: "row-bar-tint", label: "Row Bar Tint", group: "surface", alpha: false, defaultValue: "#ffffff" },
+```
+MUST NOT modify any existing entry — only append.
+
+Commit subject: `Tokenize atlas-row-selected/pulse-flash/row-bar-tint + merge :root blocks`.
 
 ### Commit 2 — Consolidate the pulse + de-duplicate the hover/selected CSS dance (issues C + D + F)
 
@@ -257,35 +298,55 @@ TSX (apply to BOTH copy buttons):
 ```
 Same shape for the UUID button.
 
-**6c. `.atlas-chiclet`** — the depth-coloured squares (lines ~229–242). Pattern matches `.breadcrumb-link` using `--crumb-color`:
+**6c. `.atlas-chiclets` + `.atlas-chiclet`** — the doc-no chiclet strip (current `<span style={{ fontFamily: '"Inter", ... }}>` wrapper + per-segment `<span style={{ width:16, height:16, borderBottom: ... }}>` cells around lines ~227–260). The chiclet visual matches the sidebar (16×16 numbered cells with a 3 px colored bottom border, Inter 11 px / 700 / 0.02em tracking) — that shared shape is then consolidated into one component in commit 7. In *this* commit, just move the styling from inline to CSS classes; CollapsibleNode keeps its own per-call render for now.
+
+Add to `src/index.css`:
 ```css
+.atlas-chiclets {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--tan-3);
+  user-select: none;
+}
 .atlas-chiclet {
-  display: inline-block;
-  box-sizing: content-box;
-  width: 11px;
-  height: 11px;
-  background-color: var(--c, var(--gray));
-}
-.atlas-chiclet:not(:last-child) {
-  border-right: 1px solid var(--bg-deep);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  border-bottom: 3px solid var(--c, var(--gray));
 }
 ```
-TSX:
+
+TSX in `CollapsibleNode.tsx`:
 ```tsx
-{docNoParts.map((_, i) => {
-  const c =
-    docNoDepths[i] === 0
-      ? "var(--gray)"
-      : `var(--depth-${Math.min(docNoDepths[i], 17)})`;
-  return (
-    <span
-      key={i}
-      className="atlas-chiclet"
-      style={{ ["--c" as string]: c } as React.CSSProperties}
-    />
-  );
-})}
+<span className="atlas-chiclets">
+  {docNoParts.map((seg, i) => {
+    const c =
+      docNoDepths[i] === 0
+        ? "var(--gray)"
+        : `var(--depth-${Math.min(docNoDepths[i], 17)})`;
+    return (
+      <span
+        key={i}
+        className="atlas-chiclet"
+        style={{ ["--c" as string]: c } as React.CSSProperties}
+      >
+        {seg}
+      </span>
+    );
+  })}
+</span>
 ```
+
+Do NOT touch `TreeRow.tsx` in this commit — commit 7 handles the dual migration.
 
 **6d. `.atlas-node` static styles + `--row-color` custom property for the selected red bar** — current outer `style={...}` (lines ~218–224):
 
@@ -300,7 +361,7 @@ Update `.atlas-node` in `src/index.css`:
 }
 .atlas-node.is-selected {
   background-color: var(--atlas-row-selected);
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--row-color) 80%, white);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--row-color) 80%, var(--row-bar-tint));
 }
 .atlas-node[data-has-hidden="true"] {
   border-bottom: 1px solid var(--border);
@@ -363,7 +424,7 @@ TSX: drop the `style={...}` block entirely.
 .atlas-node-body {
   padding-bottom: 12px;
   margin-top: 8px;
-  margin-left: 20px; /* aligns body under the title — chiclet (11) + gap-2 (8) + 1 px slop */
+  margin-left: 24px; /* aligns body roughly under the title — one chiclet (16) + gap-2 (8) */
 }
 ```
 TSX:
@@ -383,13 +444,74 @@ TSX:
 
 Commit subject: `Move CollapsibleNode inline styles into CSS classes`.
 
-### Commit 7 — `useDepth6Expand` timer-leak + variable-shadow fix
+### Commit 7 — Extract `<DocNoChiclets>` shared component (DRY across sidebar + reader)
+
+After commit 6, `src/components/atlas/CollapsibleNode.tsx` renders the chiclet strip using the new `.atlas-chiclets`/`.atlas-chiclet` classes — and `src/components/tree/TreeRow.tsx` renders the **same visual** (16×16 numbered cells with depth-coloured 3 px bottom border, Inter 11 px / 700 / 0.02em) using its own inline `DOC_NUM_STYLE` + `SEG_BOX_STYLE` constants. Same render logic in both files = textbook DRY target. This commit consolidates them.
+
+**7a. Add a `chicletColor` helper** in `src/lib/depth.ts` next to `depthColor`:
+```ts
+export function chicletColor(depth: number): string {
+  return depth === 0 ? "var(--gray)" : `var(--depth-${Math.min(depth, 17)})`;
+}
+```
+This removes the inline `depth === 0 ? ... : \`var(--depth-${Math.min(depth, 17)})\`` expression duplicated in both callers (and matches the existing `depthColor` precedent in the same file).
+
+**7b. Create `src/components/DocNoChiclets.tsx`** (top-level `components/`, not under `atlas/` or `tree/`, because it's shared across both):
+```tsx
+import { memo } from "react";
+import { chicletColor } from "../lib/depth";
+
+interface Props {
+  parts: string[];
+  depths: number[];
+}
+
+export const DocNoChiclets = memo(function DocNoChiclets({ parts, depths }: Props) {
+  return (
+    <span className="atlas-chiclets">
+      {parts.map((seg, i) => (
+        <span
+          key={i}
+          className="atlas-chiclet"
+          style={{ ["--c" as string]: chicletColor(depths[i]) } as React.CSSProperties}
+        >
+          {seg}
+        </span>
+      ))}
+    </span>
+  );
+});
+```
+The component takes pre-computed `parts` and `depths` arrays — each caller keeps its own NR-X strategy (sidebar treats `NR-X` as a single chiclet at `treeDepth`; reader transforms to `parentDocNo + ".x"`). The shared component just renders what it's given.
+
+**7c. Migrate `CollapsibleNode.tsx`**: replace the chiclet block (entered in commit 6c) with:
+```tsx
+<DocNoChiclets parts={docNoParts} depths={docNoDepths} />
+```
+Add the import; delete the now-unused inline `c =` computation.
+
+**7d. Migrate `TreeRow.tsx`**:
+- Delete the `DOC_NUM_STYLE` and `SEG_BOX_STYLE` module-level constants at the top of the file — they're now expressed by `.atlas-chiclets` / `.atlas-chiclet` from commit 6c.
+- Replace the chiclet render block with:
+  ```tsx
+  <DocNoChiclets parts={docNoSegments.parts} depths={docNoSegments.depths} />
+  ```
+  (`docNoSegments` is the existing useMemo returning `{ parts, depths }` — keep it; the shape already matches.)
+- Add the import.
+
+**7e. Final sweep**: run `grep -n "var(--depth-" src/components/` — after this commit the only match in `src/components/` should be inside `DocNoChiclets.tsx` (via `chicletColor`). If a literal `var(--depth-...)` template still appears in TreeRow or CollapsibleNode, you missed one. (`src/lib/depth.ts` is the canonical home.)
+
+Note (out of scope for this PR, flag in the commit body): the `color-mix(in srgb, ${color} 80%, white)` selected-bar tint still appears in two places — `TreeRow.tsx`'s inline `selectedBar` and `.atlas-node.is-selected`'s CSS rule. Unifying them would require refactoring TreeRow's state-based `boxShadow`; defer to a follow-up.
+
+Commit subject: `Extract DocNoChiclets shared component used by sidebar and reader`.
+
+### Commit 8 — `useDepth6Expand` timer-leak + variable-shadow fix
 
 `src/components/atlas/useDepth6Expand.ts:17` calls `setTimeout(() => setRecentlyExpanded(...), 350)` but never `clearTimeout`s it. If the hook unmounts during the 350 ms window, the timer still fires `setRecentlyExpanded` on an unmounted instance. React 18 swallows the warning silently but the state update leaks.
 
 Two changes in `useDepth6Expand.ts`:
 
-**7a. Track and clear all pending timers.** Add a `pendingTimers` ref to the hook and:
+**8a. Track and clear all pending timers.** Add a `pendingTimers` ref to the hook and:
 - In `markRecent`, push the new timer id onto the ref before scheduling.
 - In a top-level `useEffect(() => () => { for (const t of pendingTimers.current) clearTimeout(t); }, [])` cleanup, clear every pending timer on unmount.
 - In the timer callback, remove its own id from the ref after firing (so the array doesn't grow unbounded over the life of the hook).
@@ -422,13 +544,13 @@ const markRecent = useCallback((ids: string[]) => {
 }, []);
 ```
 
-**7b. Rename the shadowed loop variable.** The outer hook parameter is `id`; the inner `for (const id of ids)` loop on lines 14 and 20 shadows it. Rename to `entryId` (as shown above) in both spots.
+**8b. Rename the shadowed loop variable.** The outer hook parameter is `id`; the inner `for (const id of ids)` loop on lines 14 and 20 shadows it. Rename to `entryId` (as shown above) in both spots.
 
 Do NOT touch anything else in `useDepth6Expand.ts` — the rest is out-of-scope behaviour.
 
 Commit subject: `Fix useDepth6Expand timer leak and rename shadowed loop var`.
 
-### Commit 8 — Extract `useCopyState` hook (M6)
+### Commit 9 — Extract `useCopyState` hook (M6)
 
 `CollapsibleNode.tsx` defines `handleCopyUrl` (~line 67) and `handleCopyDocNo` (~line 76). They are structurally identical: write to clipboard, set a "copied" boolean, reset to false after 1200 ms via `setTimeout` with no cleanup. The 1200 ms magic appears twice. If the row unmounts within 1200 ms of a copy click the timer fires `setX(false)` on an unmounted component.
 
@@ -477,7 +599,7 @@ In `CollapsibleNode.tsx`:
 
 Commit subject: `Extract useCopyState hook to dedupe copy buttons and fix timer leak`.
 
-### Commit 9 — Tests (issue I)
+### Commit 10 — Tests (issue I)
 
 **Existing conventions to copy from** (read first):
 - `src/lib/glossary.test.ts` — pure-helper test pattern (`describe`, `it`, `expect` from `vitest`, no DOM).
@@ -488,17 +610,21 @@ Write:
    - returns the ancestor chain followed by the target node when given a regular doc-numbered node (e.g. `A.1.2.3` → `[A.1, A.1.2, A.1.2.3]`).
    - returns `[node]` (only self, no chain) for an `NR-` prefixed node — `buildAncestors` returns `[]` for those, but `WithSelf` MUST still include the node itself.
    - returns `[]` when `docs[nodeId]` is undefined (missing node — neither chain nor self).
-2. `src/hooks/useCopyState.test.ts`:
+2. `src/components/DocNoChiclets.test.tsx`:
+   - `// @vitest-environment jsdom` at the top.
+   - Use `render` from `@testing-library/react`.
+   - Cases: given `parts=["A","1","2"]` + `depths=[1,2,3]`, renders three `.atlas-chiclet` spans, each showing the correct segment text and an inline `--c` matching `chicletColor(depth)` (assert via `getComputedStyle` or by reading `style.getPropertyValue("--c")` — `style.getPropertyValue` is simpler and avoids resolving the CSS variable). One case with `depth=0` → `--c` is `var(--gray)`.
+3. `src/hooks/useCopyState.test.ts`:
    - Add `// @vitest-environment jsdom` at the top.
    - Use `vi.useFakeTimers()` / `vi.useRealTimers()` in `beforeEach` / `afterEach`.
    - Stub `navigator.clipboard.writeText` to a `vi.fn().mockResolvedValue(undefined)`.
    - Cases: `copied` is `false` initially; after `act(() => result.current.copy("hello"))` plus a `vi.runAllTimersAsync()` to flush the promise, `copied` is `true`; after `vi.advanceTimersByTime(1200)` inside an `act`, `copied` is back to `false`; calling `copy()` twice rapidly only fires one reset (the second resets the timer).
-3. `src/hooks/usePulseOnChange.test.ts`:
+4. `src/hooks/usePulseOnChange.test.ts`:
    - Add `// @vitest-environment jsdom` at the top (jsdom is required because `renderHook` mounts a tree; the dir is NOT covered by the components-only globmatch).
    - Use `vi.useFakeTimers()` in a `beforeEach`, `vi.useRealTimers()` in `afterEach`.
    - Use `renderHook` + `act` from `@testing-library/react`.
    - Cases: initial return is `null`; changing the input to a non-null value makes return equal that value synchronously; after `vi.advanceTimersByTime(ms)` inside an `act`, return is back to `null`; rapid successive value changes flip return immediately to the latest and ultimately clear after the latest `ms` elapses.
-4. `src/components/atlas/CollapsibleNode.test.tsx`:
+5. `src/components/atlas/CollapsibleNode.test.tsx`:
    - `// @vitest-environment jsdom` at the top (match the existing component-test pattern even though the glob would cover it).
    - Use `render`, `fireEvent` from `@testing-library/react`. Mount with mock `onNavigate` / `onToggle` / `onShiftNavigate` vi.fn()s.
    - Construct a minimal `FlatEntry` literal — DO NOT spin up real atlas data; use a fixture object with the shape required by the type.
@@ -510,31 +636,32 @@ Write:
 
 Do not introduce new test dependencies; everything above is already in `package.json`.
 
-Commit subject: `Add tests for buildAncestorsWithSelf, usePulseOnChange, useCopyState, and row click logic`.
+Commit subject: `Add tests for buildAncestorsWithSelf, DocNoChiclets, usePulseOnChange, useCopyState, and row click logic`.
 
 ## Forbidden actions
 - MUST NOT change visible behaviour anywhere except where this prompt explicitly says (the colour values are token-equivalent; the drag threshold is the only behaviour delta and it's a strict improvement).
 - MUST NOT add `Co-Authored-By: Claude …` trailers to commit messages.
-- MUST NOT touch `package.json`, `vite.config.ts`, `pnpm-lock.yaml`, build artifacts, or palette-tokens.
-- MUST NOT batch commits or skip commits — nine commits in the listed order.
+- MUST NOT touch `package.json`, `vite.config.ts`, `pnpm-lock.yaml`, or build artifacts. MUST NOT modify EXISTING entries in `src/admin/palette-tokens.ts` — appending the three new tokens introduced in commit 1 is allowed and required.
+- MUST NOT batch commits or skip commits — ten commits in the listed order.
 - MUST NOT introduce a CSS animation `transitionend` listener or any other "smart" sync between JS and CSS timing — the variable is enough.
+- MUST NOT introduce hardcoded color literals (hex like `#abc`, `rgb()` / `rgba()`, named colors like `white` / `black` / `red`) ANYWHERE outside the merged `:root` block or the `[data-theme="light"]` override block. All colors flow through CSS custom properties so a future light/dark toggle is a one-place change. This applies to CSS rules, `@keyframes`, inline `style={...}`, and `color-mix(...)` arguments.
 
 ## Checkpoints (output after each commit)
-After each of the nine commits, output:
+After each of the ten commits, output:
 1. ✅ Commit N subject — short summary of the diff
 2. `git diff --stat HEAD^ HEAD` of that commit
 3. The next file you intend to touch
 
 ## Stop conditions
 - Stop and ask before deleting any file, adding any dependency, running `pnpm install`, or amending an earlier commit in this series.
-- Stop and ask if any of the four new test files require a setup/mocking utility that does not already exist in the repo.
+- Stop and ask if any of the five new test files require a setup/mocking utility that does not already exist in the repo.
 - Stop and ask if `pnpm tsc --noEmit` surfaces an error you cannot fix within the allowed file set.
 
 ## Verification (MUST all pass before declaring done)
 
-After all nine commits:
+After all ten commits:
 1. `pnpm tsc --noEmit` — clean.
-2. `pnpm test` — all tests pass, including the four new test files. (`package.json` defines `"test": "vitest run"`.)
+2. `pnpm test` — all tests pass, including the five new test files. (`package.json` defines `"test": "vitest run"`.)
 3. `pnpm dev`, open `http://localhost:5173/redlens/atlas?id=<any-uuid>`, and visually confirm:
    a. Selecting a tree-sidebar row briefly flashes brighter then settles into `--row-selected`.
    b. Hovering a non-selected atlas row swaps its background to `--hover`.
@@ -542,10 +669,23 @@ After all nine commits:
    d. The breadcrumb above the main reader ends with the currently-selected node's title.
    e. Drag-text-selecting inside an expanded body does NOT navigate or toggle the row.
    f. The selected row's red left bar still appears (colour driven by `--row-color` now).
-   g. Each row's chiclet strip still shows the correct depth colours.
+   g. Each row's chiclet strip — sidebar AND main reader — shows the correct depth colours, both rendered by `<DocNoChiclets>` (same visual on both sides).
    h. The type pill, both copy buttons (with "copied" flip), the sky-atlas external link, and the "N hidden" affordance all render and behave identically to before commit 6 — zero visible difference.
-   i. The expanded body still sits indented under the title (the `marginLeft: 20` move into `.atlas-node-body`).
-4. `git log --oneline -10` shows nine new commits on top of `32a3db27`, no Claude co-author trailer in any of them.
-5. `git diff --stat 32a3db27..HEAD` is bounded to the allowed file list — no other files appear.
+   i. The expanded body still sits indented under the title (the `margin-left: 24px` rule on `.atlas-node-body`).
+4. `git log --oneline -10` shows the ten new commits from this refactor, no Claude co-author trailer in any of them.
+5. **Theme-readiness audit.** Both commands MUST produce no output. (Tests are excluded; `palette-tokens.ts` is the intentional mirror of `:root` so it's filtered out.)
+   ```bash
+   # No color literal survives outside :root / [data-theme] blocks in CSS:
+   awk '/^:root/,/^}/{next} /\[data-theme/,/^}/{next} 1' src/index.css \
+     | grep -nE '#[0-9a-fA-F]{3,8}|rgba?\(|\b(white|black)\b' \
+     | grep -v '^[^:]*:[[:space:]]*/\*'
+   # No color literal in component or admin inline styles:
+   grep -rnE "['\"](#[0-9a-fA-F]{3,8}|rgba?\(|white|black)['\"]" \
+     src/components src/admin \
+     | grep -v 'palette-tokens\.ts' \
+     | grep -v '\.test\.'
+   ```
+   If either prints lines, a literal slipped through and MUST be tokenized before declaring done.
+6. `git diff --stat HEAD~10..HEAD` is bounded to the allowed file list — no other files appear.
 
-Done only when 1–5 all pass.
+Done only when 1–6 all pass.
