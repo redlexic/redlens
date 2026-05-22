@@ -48,11 +48,22 @@ const HINTS: { label: string; query: string; description: string }[] = [
     query: "type:Core title:quorum",
     description: "Mix field filters and broad terms",
   },
+  {
+    label: "scope + type + phrase",
+    query: 'in:A.1 type:Core "alignment requirement"',
+    description: "Restrict to a section subtree, filter by node type, match an exact phrase",
+  },
+  {
+    label: "field + type + exclude",
+    query: "title:facilitator type:Core -operational",
+    description: "Search within the title field, filter by type, and drop an unwanted term",
+  },
 ];
 
 const SLASH: { cmd: string; description: string }[] = [
   { cmd: "/reports", description: "Open the reports index" },
-  { cmd: "/hints", description: "Open the search syntax reference" },
+  { cmd: "/radar", description: "Open the radar actor index" },
+  { cmd: "/h", description: "Open the search syntax reference" },
 ];
 
 export function SearchHintsPage({ onHintClick }: { onHintClick: (q: string) => void }) {
@@ -73,7 +84,7 @@ export function SearchHints({
   if (slashFilter !== null && slashFilter !== undefined) {
     const matches = SLASH.filter((s) => s.cmd.startsWith(slashFilter));
     return (
-      <div className="px-4 py-8 max-w-2xl mx-auto">
+      <div className="px-4 py-8 max-w-4xl mx-auto">
         <p className="text-xs mono mb-3 text-tan-3">shortcuts</p>
         <div className="space-y-1">
           {matches.length > 0 ? (
@@ -96,7 +107,7 @@ export function SearchHints({
   }
 
   return (
-    <div className="px-4 py-8 max-w-2xl mx-auto">
+    <div className="px-4 py-8 max-w-4xl mx-auto">
       <table className="w-full text-xs border-collapse mb-8">
         <thead>
           <tr className="text-left">
@@ -110,22 +121,11 @@ export function SearchHints({
             <tr
               key={h.query}
               onClick={() => onSearch(h.query)}
-              className="hint-row cursor-pointer"
+              className="hint-row cursor-pointer even:bg-[var(--surface)]"
             >
               <td className="mono text-tan-3 pr-6 py-1.5 whitespace-nowrap">{h.label}</td>
               <td className="mono text-accent pr-6 py-1.5 whitespace-nowrap">{h.query}</td>
               <td className="text-tan-3 py-1.5 hidden sm:table-cell">{h.description}</td>
-            </tr>
-          ))}
-          {SLASH.map((s) => (
-            <tr
-              key={s.cmd}
-              onClick={() => onSearch(s.cmd)}
-              className="hint-row cursor-pointer"
-            >
-              <td className="mono text-tan-3 pr-6 py-1.5 whitespace-nowrap">slash</td>
-              <td className="mono text-accent pr-6 py-1.5 whitespace-nowrap">{s.cmd}</td>
-              <td className="text-tan-3 py-1.5 hidden sm:table-cell">{s.description}</td>
             </tr>
           ))}
         </tbody>

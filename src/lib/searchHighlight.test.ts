@@ -213,3 +213,34 @@ describe("extractPhrases: query parsing", () => {
     expect(casePhrases).not.toContain("s delegate");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Field-scoped highlighting — title: terms must not bleed into content
+// ---------------------------------------------------------------------------
+
+describe("field-scoped highlighting: title: terms only highlight in title", () => {
+  // The worker computes separate titleHighlightTerms / contentHighlightTerms so
+  // that `title:Facilitator` marks the title but not the content snippet.
+  // These tests document the contract: pass the right term list to each call.
+
+  it("term in titleHighlightTerms highlights in title", () => {
+    expect(applyHighlight("Core Facilitator Is Subject", ["Facilitator"], [], []))
+      .toContain("<mark>Facilitator</mark>");
+  });
+
+  it("passing [] as contentTerms leaves content unhighlighted", () => {
+    const snippet = buildSnippet(
+      "If the Core Facilitator is subject to a conflict of interest",
+      [], // contentHighlightTerms — no title-scoped terms here
+      [],
+      [],
+    );
+    expect(snippet).not.toContain("<mark>");
+  });
+
+  it("free (unscoped) terms still highlight in both title and content", () => {
+    const freeTerms = ["conflict"];
+    expect(applyHighlight("Conflict Of Interest", freeTerms, [], [])).toContain("<mark>");
+    expect(buildSnippet("subject to a conflict of interest", freeTerms, [], [])).toContain("<mark>");
+  });
+});

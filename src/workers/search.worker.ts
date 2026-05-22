@@ -162,11 +162,17 @@ function search(q: string): SearchHit[] {
   }
 
   // Extract field scope: title:foo, content:foo, doc_no:foo
+  // fieldScopedTerms tracks which terms belong to title: or content: so they
+  // only highlight in that field, not everywhere.
   let searchFields: string[] | undefined;
+  const fieldScopedTerms = new Map<string, string[]>();
   const restAfterFields = restAfterPhrases
     .replace(/\b(title|content|doc_no):\s*(\S+)/gi, (_, field, term) => {
+      const f = (field as string).toLowerCase();
       if (!searchFields) searchFields = [];
-      searchFields.push((field as string).toLowerCase());
+      searchFields.push(f);
+      if (!fieldScopedTerms.has(f)) fieldScopedTerms.set(f, []);
+      fieldScopedTerms.get(f)!.push(term as string);
       return term as string;
     })
     .trim();
@@ -253,6 +259,16 @@ function search(q: string): SearchHit[] {
     .split(/\s+/)
     .filter((w) => w && !phraseWordSet.has(w.toLowerCase()));
 
+  // title: and content: scoped terms only highlight in their own field.
+  // doc_no: and unscoped terms are treated as free (highlight everywhere).
+  const strictFieldTerms = new Set([
+    ...(fieldScopedTerms.get("title") ?? []),
+    ...(fieldScopedTerms.get("content") ?? []),
+  ].map((w) => w.toLowerCase()));
+  const freeWords = queryWords.filter((w) => !strictFieldTerms.has(w.toLowerCase()));
+  const titleHighlightTerms = [...(fieldScopedTerms.get("title") ?? []), ...freeWords];
+  const contentHighlightTerms = [...(fieldScopedTerms.get("content") ?? []), ...freeWords];
+
   const hits = results
     .map((r) => {
       const doc = docs[r.id as string];
@@ -300,12 +316,12 @@ function search(q: string): SearchHit[] {
         score: r.score,
         doc_no: doc.doc_no,
         title: doc.title,
-        titleHtml: highlightTerms(doc.title, queryWords, phrases, casePhrases),
+        titleHtml: highlightTerms(doc.title, titleHighlightTerms, phrases, casePhrases),
         matchReason,
         type: doc.type,
         depth: doc.depth,
         parentId: doc.parentId,
-        snippet: buildSnippet(doc.content, queryWords, phrases, casePhrases),
+        snippet: buildSnippet(doc.content, contentHighlightTerms, phrases, casePhrases),
       } satisfies SearchHit;
     })
     .filter((h): h is SearchHit => h !== null);

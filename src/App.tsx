@@ -80,7 +80,7 @@ export default function App() {
 
   const scope: SearchScope = activeNavPage ?? "atlas";
 
-  const { query, inputRef, handleChange, clearQuery, cycleMode, state, ready, handleHintClick } =
+  const { query, activeMode, isMixed, inputRef, handleChange, clearQuery, wrapModeClick, broadSearch, state, handleHintClick } =
     useSearchInput(location, navigate, scope);
   const { navigateToNode, handleViewChange } = useNavigation({
     navigate,
@@ -116,10 +116,11 @@ export default function App() {
       <SearchBar
         inputRef={inputRef}
         query={query}
+        mode={activeMode}
+        isMixed={isMixed}
         onChange={handleChange}
         onClear={clearQuery}
-        onCycleMode={cycleMode}
-        ready={ready}
+        onSetMode={wrapModeClick}
         activePage={activeNavPage}
         scope={scope}
       />
@@ -153,7 +154,9 @@ export default function App() {
                 <SearchResults
                   state={state}
                   query={query}
+                  mode={activeMode}
                   onHintClick={handleHintClick}
+                  onBroadSearch={broadSearch}
                 />
               ) : (
                 <HomePage />
