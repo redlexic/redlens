@@ -1,6 +1,7 @@
-import { memo, useRef, useState } from "react";
+import { memo, useRef } from "react";
 import { segmentDepths } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
+import { useCopyState } from "../../hooks/useCopyState";
 import { DocNoChiclets } from "../DocNoChiclets";
 import { NodeContent } from "../NodeContent";
 
@@ -61,25 +62,19 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   const chicletSource = isNR && parentDocNo ? `${parentDocNo}.x` : node.doc_no;
   const docNoParts = chicletSource.split(".");
   const docNoDepths = chicletSource.startsWith("NR-") ? [1] : segmentDepths(chicletSource);
-  const [copied, setCopied] = useState(false);
-  const [docNoCopied, setDocNoCopied] = useState(false);
+  const urlCopy = useCopyState();
+  const docNoCopy = useCopyState();
   const mouseDownRef = useRef<{ x: number; y: number } | null>(null);
 
   const handleCopyUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = `${window.location.origin}${import.meta.env.BASE_URL}atlas?id=${node.id}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    });
+    urlCopy.copy(url);
   };
 
   const handleCopyDocNo = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(node.doc_no).then(() => {
-      setDocNoCopied(true);
-      setTimeout(() => setDocNoCopied(false), 1200);
-    });
+    docNoCopy.copy(node.doc_no);
   };
 
   const metaRow = (
@@ -88,9 +83,9 @@ export const CollapsibleNode = memo(function CollapsibleNode({
       <button
         type="button"
         onClick={handleCopyDocNo}
-        title={docNoCopied ? "Copied!" : `Copy ${node.doc_no}`}
+        title={docNoCopy.copied ? "Copied!" : `Copy ${node.doc_no}`}
         className="atlas-copy-btn"
-        data-copied={docNoCopied ? "true" : undefined}
+        data-copied={docNoCopy.copied ? "true" : undefined}
       >
         <svg
           width="11"
@@ -106,7 +101,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           <rect x="4" y="4" width="7" height="7" rx="1" />
           <path d="M1 8V2C1 1.45 1.45 1 2 1H8" />
         </svg>
-        <span className="atlas-copy-flip" data-flipped={docNoCopied ? "true" : undefined}>
+        <span className="atlas-copy-flip" data-flipped={docNoCopy.copied ? "true" : undefined}>
           <span className="label">{node.doc_no}</span>
           <span className="flipped">copied</span>
         </span>
@@ -114,9 +109,9 @@ export const CollapsibleNode = memo(function CollapsibleNode({
       <button
         type="button"
         onClick={handleCopyUrl}
-        title={copied ? "Copied!" : `Copy link · ${node.id}`}
+        title={urlCopy.copied ? "Copied!" : `Copy link · ${node.id}`}
         className="atlas-copy-btn"
-        data-copied={copied ? "true" : undefined}
+        data-copied={urlCopy.copied ? "true" : undefined}
       >
         <svg
           width="11"
@@ -132,7 +127,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
-        <span className="atlas-copy-flip" data-flipped={copied ? "true" : undefined}>
+        <span className="atlas-copy-flip" data-flipped={urlCopy.copied ? "true" : undefined}>
           <span className="label">{`${node.id.slice(0, 3)}…${node.id.slice(-3)}`}</span>
           <span className="flipped">copied</span>
         </span>
