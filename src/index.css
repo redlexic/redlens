@@ -111,27 +111,45 @@ mark {
   border-radius: 3px;
 }
 
+/* Wider scrollbar hit target without a visually wider bar.
+   Track is 14px so it's easy to grab, but transparent borders shrink the
+   visible thumb back to 6px sitting 4–10 px from the edge — clear of
+   adjacent 3px resize-handle overlap.
+   Applied to the left sidebar AND the atlas reader (whose right edge is
+   adjacent to the right-panel resize handle). */
+.tree-sidebar ::-webkit-scrollbar,
+.atlas-scroll::-webkit-scrollbar {
+  width: 14px;
+}
+.tree-sidebar ::-webkit-scrollbar-thumb,
+.atlas-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  background-clip: content-box;
+  border: 4px solid transparent;
+  border-radius: 8px;
+}
+
 /* webkit search chrome stripped per-input — see .search-input below */
 
-/* Depth palette — 17 levels: 7-color rainbow (R O Y G B P M) cycled. */
+/* Depth palette — depth-1 is a soft pink; depth-2…17 cycle the 5-color jewel-tone palette (red, orange, green, blue, purple), ending on red at depth-17. */
 :root {
-  --depth-1: #f43545;  /* red */
-  --depth-2: #fb923c;  /* orange */
-  --depth-3: #facc15;  /* yellow */
-  --depth-4: #4ade80;  /* green */
-  --depth-5: #3b82f6;  /* blue */
-  --depth-6: #a855f7;  /* purple */
-  --depth-7: #ec4899;  /* magenta */
-  --depth-8: #f43545;  /* red */
-  --depth-9: #fb923c;  /* orange */
-  --depth-10: #facc15; /* yellow */
-  --depth-11: #4ade80; /* green */
-  --depth-12: #3b82f6; /* blue */
-  --depth-13: #a855f7; /* purple */
-  --depth-14: #ec4899; /* magenta */
-  --depth-15: #f43545; /* red */
-  --depth-16: #fb923c; /* orange */
-  --depth-17: #facc15; /* yellow */
+  --depth-1: #baaaaa;  /* soft pink */
+  --depth-2: #9a0000;  /* red */
+  --depth-3: #a36600;  /* orange */
+  --depth-4: #1c701e;  /* green */
+  --depth-5: #2b51c5;  /* blue */
+  --depth-6: #5200a3;  /* purple */
+  --depth-7: #9a0000;  /* red */
+  --depth-8: #a36600;  /* orange */
+  --depth-9: #1c701e;  /* green */
+  --depth-10: #2b51c5; /* blue */
+  --depth-11: #5200a3; /* purple */
+  --depth-12: #9a0000; /* red */
+  --depth-13: #a36600; /* orange */
+  --depth-14: #1c701e; /* green */
+  --depth-15: #2b51c5; /* blue */
+  --depth-16: #5200a3; /* purple */
+  --depth-17: #9a0000; /* red */
 }
 
 /* Tree sidebar — Drawer controls visibility/width */
@@ -148,7 +166,7 @@ mark {
   cursor: pointer;
   white-space: nowrap;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   transition: background-color 0.1s;
   border-radius: 2px;
@@ -161,6 +179,17 @@ mark {
 }
 .tree-row.is-focused {
   background: var(--row-focused);
+}
+.tree-row.is-pulse {
+  animation: tree-row-pulse 700ms ease-out;
+}
+@keyframes tree-row-pulse {
+  0% {
+    background-color: rgba(255, 255, 255, 0.28);
+  }
+  100% {
+    background-color: var(--row-selected);
+  }
 }
 .tree-toggle {
   cursor: pointer;
@@ -267,20 +296,78 @@ mark {
   border-bottom: none;
 }
 
+/* Inline bottom-right "expand descendants" affordance inside the row */
+.view-children-affordance {
+  transition:
+    background-color 0.1s,
+    color 0.1s;
+}
+.view-children-affordance:hover,
+.view-children-affordance:focus-visible {
+  background-color: var(--hover) !important;
+  color: var(--tan) !important;
+}
+
 /* Atlas tree view */
 .atlas-node {
   /* content-visibility: auto + contain-intrinsic-size caches off-screen sizes;
      the cached size can go stale as nodes expand/collapse during navigation,
      causing layout to shift unexpectedly when clicking — re-enable only with a
      proper virtualizer if scroll perf becomes a problem. */
-  border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background-color 0.1s;
+}
+/* Rows newly revealed by an expansion event get a brief fade-in.
+   The class is applied only while the row's parent is in the
+   `recentlyExpanded` set (~350ms), then removed. */
+.atlas-node-fresh {
+  animation: atlas-node-appear 220ms ease-out;
+}
+@keyframes atlas-node-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-node-fresh {
+    animation: none;
+  }
+}
+.atlas-node.is-selected {
+  background-color: #1f1f1f;
 }
 .atlas-node:hover,
 .atlas-node:focus-visible {
   background-color: var(--hover);
   outline: none;
+}
+.atlas-node.is-selected:hover,
+.atlas-node.is-selected:focus-visible {
+  background-color: #1f1f1f;
+}
+.atlas-node-meta {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  background-color: var(--hover);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.atlas-node:hover .atlas-node-meta,
+.atlas-node:focus-within .atlas-node-meta,
+.atlas-node.is-selected .atlas-node-meta {
+  display: flex;
+  align-items: center;
+}
+.atlas-node.is-selected .atlas-node-meta {
+  background-color: #1f1f1f;
 }
 .atlas-node-title {
   border-radius: 2px;

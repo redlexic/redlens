@@ -19,6 +19,14 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useListRef(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [pulseId, setPulseId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!nodeId) return;
+    setPulseId(nodeId);
+    const t = setTimeout(() => setPulseId(null), 700);
+    return () => clearTimeout(t);
+  }, [nodeId]);
 
   useEffect(() => {
     if (!bundle || !nodeId) return;
@@ -125,6 +133,7 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
       focusedIndex,
       expandedIds,
       sidebarWidth,
+      pulseId,
       onNavigate: handleRowClick,
       onToggle: toggleExpand,
       onShiftNavigate,
@@ -135,6 +144,7 @@ export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
       focusedIndex,
       expandedIds,
       sidebarWidth,
+      pulseId,
       handleRowClick,
       toggleExpand,
       onShiftNavigate,

@@ -34,6 +34,11 @@ import {
 
 const EMPTY_EDGES: EdgeResult = { outbound: [], inbound: [] };
 
+const RIGHT_PANEL_KEY = "redlens:right-panel-width";
+const RIGHT_PANEL_MIN = 260; // keeps annotations / glossary / history tabs visible
+const RIGHT_PANEL_MAX = 800;
+const RIGHT_PANEL_DEFAULT = 420;
+
 export function AtlasView({
   id,
   onNavigate,
@@ -54,6 +59,47 @@ export function AtlasView({
   const [data, setData] = useState<LoadedData | null>(null);
   const [userToggles, setUserToggles] = useState<Set<string>>(new Set());
   const [graphEdges, setGraphEdges] = useState<EdgeResult>(EMPTY_EDGES);
+  const [rightWidth, setRightWidth] = useState(() => {
+    try {
+      const raw = localStorage.getItem(RIGHT_PANEL_KEY);
+      if (raw) {
+        const n = parseInt(raw, 10);
+        if (Number.isFinite(n) && n >= RIGHT_PANEL_MIN && n <= RIGHT_PANEL_MAX) return n;
+      }
+    } catch {}
+    return RIGHT_PANEL_DEFAULT;
+  });
+
+  const startResizeRight = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = rightWidth;
+      let latest = startWidth;
+      const prevCursor = document.body.style.cursor;
+      const prevSelect = document.body.style.userSelect;
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      const onMove = (ev: MouseEvent) => {
+        // dragging LEFT (toward viewport-left) widens the right panel
+        const delta = startX - ev.clientX;
+        latest = Math.max(RIGHT_PANEL_MIN, Math.min(RIGHT_PANEL_MAX, startWidth + delta));
+        setRightWidth(latest);
+      };
+      const onUp = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        document.body.style.cursor = prevCursor;
+        document.body.style.userSelect = prevSelect;
+        try {
+          localStorage.setItem(RIGHT_PANEL_KEY, String(latest));
+        } catch {}
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    [rightWidth],
+  );
   // Grows-only: once expanded, stays expanded across navigations so the user's context
   // (previously visited nodes) doesn't collapse out from under them.
   const seenExpanded = useRef<Set<string>>(new Set());
@@ -108,7 +154,9 @@ export function AtlasView({
 
   const ancestors = useMemo(() => {
     if (!data || !id) return [];
-    return buildAncestors(data.atlas.docs, data.atlas.docNoToId, id);
+    const chain = buildAncestors(data.atlas.docs, data.atlas.docNoToId, id);
+    const current = data.atlas.docs[id];
+    return current ? [...chain, current] : chain;
   }, [data, id]);
 
   const { linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {
@@ -156,7 +204,7 @@ export function AtlasView({
     });
   }, []);
 
-  const { expandedParents, hasDeepChildren, expandParent } = useDepth6Expand(
+  const { expandedParents, recentlyExpanded, hiddenCount, expandParent } = useDepth6Expand(
     data?.flatNodes ?? [],
     id,
   );
@@ -185,27 +233,26 @@ export function AtlasView({
     const items: ReactElement[] = [];
     for (const entry of data.flatNodes) {
       if (entry.depth >= 6 && !expandedParents.has(entry.node.parentId ?? "")) continue;
+      const gatedCount = expandedParents.has(entry.node.id) ? 0 : (hiddenCount.get(entry.node.id) ?? 0);
+      const fresh = recentlyExpanded.has(entry.node.parentId ?? "");
+      const parentDocNo = entry.node.parentId
+        ? data.atlas.docs[entry.node.parentId]?.doc_no
+        : undefined;
       items.push(
         <CollapsibleNode
           key={entry.node.id}
           entry={entry}
           isSelected={entry.node.id === id}
           isExpanded={expandedSet.has(entry.node.id) !== userToggles.has(entry.node.id)}
+          hiddenCount={gatedCount}
+          fresh={fresh}
+          parentDocNo={parentDocNo}
+          onExpandChildren={expandParent}
           onNavigate={onNavigate}
           onToggle={handleToggle}
           onShiftNavigate={onSplitChange}
         />,
       );
-      if (hasDeepChildren.has(entry.node.id) && !expandedParents.has(entry.node.id)) {
-        items.push(
-          <ViewChildrenFill
-            key={`fill-${entry.node.id}`}
-            nodeId={entry.node.id}
-            docNo={entry.node.doc_no}
-            onExpand={expandParent}
-          />,
-        );
-      }
     }
     return items;
   }, [
@@ -216,7 +263,8 @@ export function AtlasView({
     onNavigate,
     handleToggle,
     expandedParents,
-    hasDeepChildren,
+    hiddenCount,
+    recentlyExpanded,
     expandParent,
     onSplitChange,
   ]);
@@ -244,11 +292,11 @@ export function AtlasView({
         {id && <Breadcrumbs ancestors={ancestors} />}
       </div>
       <div
-        className="flex-1 min-[750px]:grid min-[750px]:grid-cols-[3fr_2fr]"
+        className="flex-1 flex"
         style={ATLAS_GRID_STYLE}
       >
         <div
-          className="relative flex flex-col overflow-hidden"
+          className="relative flex flex-col overflow-hidden flex-1 min-w-0"
           style={{ ...ATLAS_LEFT_PANE_STYLE, minHeight: 0 }}
         >
           {id && !splitId && (
@@ -274,8 +322,8 @@ export function AtlasView({
               </svg>
             </button>
           )}
-          <div ref={scrollContainerRef} className="overflow-y-auto flex-1" style={{ minHeight: 0 }}>
-            <div className="mx-auto px-3 py-2">
+          <div ref={scrollContainerRef} className="atlas-scroll overflow-y-auto flex-1" style={{ minHeight: 0 }}>
+            <div className="mx-auto py-2">
               <ErrorBoundary key={id} fallback={<PanelError />}>
                 {docList}
               </ErrorBoundary>
@@ -293,7 +341,23 @@ export function AtlasView({
           )}
         </div>
         {id && (
-          <div className="flex flex-col hidden min-[750px]:flex" style={{ minHeight: 0 }}>
+          <div
+            className="relative hidden min-[750px]:flex flex-col"
+            style={{ width: rightWidth, flexShrink: 0, minHeight: 0 }}
+          >
+            <div
+              onMouseDown={startResizeRight}
+              title="Drag to resize"
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: -3,
+                width: 6,
+                cursor: "col-resize",
+                zIndex: 10,
+              }}
+            />
             <ErrorBoundary key={id} fallback={(_, reset) => <PanelError reset={reset} />}>
               <RightPanel
                 id={id}

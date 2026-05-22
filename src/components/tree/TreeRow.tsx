@@ -4,7 +4,7 @@ import { segmentDepths } from "../../lib/depth";
 import type { AtlasNode } from "../../types";
 import { truncateTitle } from "../../lib/treeUtils";
 
-export const ROW_HEIGHT = 24;
+export const ROW_HEIGHT = 25;
 const TOGGLE_WIDTH = 14;
 const PAD_X = 6;
 
@@ -20,6 +20,7 @@ export interface TreeRowData {
   focusedIndex: number;
   expandedIds: Set<string>;
   sidebarWidth: number;
+  pulseId?: string | null;
   onNavigate: (id: string) => void;
   onToggle: (id: string, e: React.MouseEvent) => void;
   onShiftNavigate?: (id: string) => void;
@@ -27,14 +28,25 @@ export interface TreeRowData {
 
 const DOC_NUM_STYLE: React.CSSProperties = {
   flexShrink: 0,
-  fontSize: 9,
+  fontFamily: '"Inter", system-ui, sans-serif',
+  fontSize: 11,
+  fontWeight: 700,
   userSelect: "none",
   display: "inline-flex",
   alignItems: "center",
-  letterSpacing: "0.01em",
+  letterSpacing: "0.02em",
 };
-const DOT_STYLE: React.CSSProperties = { color: "var(--gray)" };
-const HIDDEN_PAD_STYLE: React.CSSProperties = { visibility: "hidden" };
+const SEG_BOX_STYLE: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 16,
+  height: 16,
+  color: "var(--tan-3)",
+  lineHeight: 1,
+  overflow: "hidden",
+  flexShrink: 0,
+};
 const TOGGLE_BASE: React.CSSProperties = {
   width: TOGGLE_WIDTH,
   textAlign: "center",
@@ -64,6 +76,7 @@ export function TreeRow({
   focusedIndex,
   expandedIds,
   sidebarWidth,
+  pulseId,
   onNavigate,
   onToggle,
   onShiftNavigate,
@@ -74,7 +87,10 @@ export function TreeRow({
   const docNo = node?.doc_no ?? "";
   const treeDepth = item?.treeDepth ?? 0;
 
-  const docNumWidth = docNo.length * 5;
+  // chiclet width = ~7 px/char + ~6 px (padding+border) per segment, no dots
+  const docNumWidth = docNo
+    .split(".")
+    .reduce((sum, seg) => sum + Math.max(13, seg.length * 7 + 6), 0);
   const availableWidth = sidebarWidth - 5 - docNumWidth - TOGGLE_WIDTH - PAD_X - 6;
 
   const displayTitle = useMemo(
@@ -83,22 +99,24 @@ export function TreeRow({
   );
 
   const docNoSegments = useMemo(() => {
-    if (!docNo) return { parts: [] as string[], depths: [] as number[], needsPad: false };
+    if (!docNo) return { parts: [] as string[], depths: [] as number[] };
     const parts = docNo.split(".");
     // NR-X nodes have a single opaque token; colour it at the node's actual tree depth
     // rather than letting segmentDepths fall back to 1.
     const depths = docNo.startsWith("NR-") ? [treeDepth] : segmentDepths(docNo);
-    return { parts, depths, needsPad: parts[parts.length - 1].length < 2 };
+    return { parts, depths };
   }, [docNo, treeDepth]);
 
   if (!item) return null;
   const { hasChildren } = item;
   const isSelected = index === selectedIndex;
   const isFocused = index === focusedIndex;
+  const isPulse = !!pulseId && pulseId === node!.id;
   const isExpanded = expandedIds.has(node!.id);
   const depthVar = `var(--depth-${Math.min(Math.max(treeDepth, 1), 17)})`;
+  const selectedBar = `color-mix(in srgb, ${depthVar} 80%, white)`;
   const boxShadow = isSelected
-    ? `inset 2px 0 0 ${depthVar}`
+    ? `inset 3px 0 0 ${selectedBar}`
     : isFocused
       ? `inset 2px 0 0 var(--tan-3), inset 0 0 0 1px var(--row-hover)`
       : undefined;
@@ -106,7 +124,7 @@ export function TreeRow({
   return (
     <div
       style={{ ...style, ...ROW_LAYOUT_STYLE, boxShadow }}
-      className={`tree-row ${isSelected ? "is-selected" : ""} ${isFocused ? "is-focused" : ""}`}
+      className={`tree-row ${isSelected ? "is-selected" : ""} ${isFocused ? "is-focused" : ""} ${isPulse ? "is-pulse" : ""}`}
       onClick={(e) => {
         if (e.shiftKey && onShiftNavigate) {
           e.preventDefault();
@@ -114,23 +132,22 @@ export function TreeRow({
         } else onNavigate(node.id);
       }}
     >
-      <span className="mono" style={DOC_NUM_STYLE}>
+      <span style={DOC_NUM_STYLE}>
         {docNoSegments.parts.map((seg, i) => (
-          <span key={i}>
-            {i > 0 && <span style={DOT_STYLE}>.</span>}
-            <span
-              style={{
-                color:
-                  docNoSegments.depths[i] === 0
-                    ? "var(--gray)"
-                    : `var(--depth-${Math.min(docNoSegments.depths[i], 17)})`,
-              }}
-            >
-              {seg}
-            </span>
+          <span
+            key={i}
+            style={{
+              ...SEG_BOX_STYLE,
+              borderBottom: `3px solid ${
+                docNoSegments.depths[i] === 0
+                  ? "var(--gray)"
+                  : `var(--depth-${Math.min(docNoSegments.depths[i], 17)})`
+              }`,
+            }}
+          >
+            {seg}
           </span>
         ))}
-        {docNoSegments.needsPad && <span style={HIDDEN_PAD_STYLE}>0</span>}
       </span>
       <span
         className="tree-toggle"
@@ -141,7 +158,7 @@ export function TreeRow({
       </span>
       <span
         className="tree-title"
-        style={{ ...TITLE_BASE, color: depthVar }}
+        style={{ ...TITLE_BASE, color: "var(--tan)" }}
         title={node.doc_no + " \u2014 " + node.title}
       >
         {displayTitle}
