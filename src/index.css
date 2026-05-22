@@ -131,25 +131,25 @@ mark {
 
 /* webkit search chrome stripped per-input — see .search-input below */
 
-/* Depth palette — depth-1 is a soft pink; depth-2…17 cycle the 5-color jewel-tone palette (red, orange, green, blue, purple), ending on red at depth-17. */
+/* Depth palette — 5-color jewel-tone cycle (red, orange, green, blue, purple) starting at depth-1, looping through depth-17. */
 :root {
-  --depth-1: #baaaaa;  /* soft pink */
-  --depth-2: #9a0000;  /* red */
-  --depth-3: #a36600;  /* orange */
-  --depth-4: #1c701e;  /* green */
-  --depth-5: #2b51c5;  /* blue */
-  --depth-6: #5200a3;  /* purple */
-  --depth-7: #9a0000;  /* red */
-  --depth-8: #a36600;  /* orange */
-  --depth-9: #1c701e;  /* green */
-  --depth-10: #2b51c5; /* blue */
-  --depth-11: #5200a3; /* purple */
-  --depth-12: #9a0000; /* red */
-  --depth-13: #a36600; /* orange */
-  --depth-14: #1c701e; /* green */
-  --depth-15: #2b51c5; /* blue */
-  --depth-16: #5200a3; /* purple */
-  --depth-17: #9a0000; /* red */
+  --depth-1: #9a0000;  /* red */
+  --depth-2: #a36600;  /* orange */
+  --depth-3: #1c701e;  /* green */
+  --depth-4: #2b51c5;  /* blue */
+  --depth-5: #5200a3;  /* purple */
+  --depth-6: #9a0000;  /* red */
+  --depth-7: #a36600;  /* orange */
+  --depth-8: #1c701e;  /* green */
+  --depth-9: #2b51c5;  /* blue */
+  --depth-10: #5200a3; /* purple */
+  --depth-11: #9a0000; /* red */
+  --depth-12: #a36600; /* orange */
+  --depth-13: #1c701e; /* green */
+  --depth-14: #2b51c5; /* blue */
+  --depth-15: #5200a3; /* purple */
+  --depth-16: #9a0000; /* red */
+  --depth-17: #a36600; /* orange */
 }
 
 /* Tree sidebar — Drawer controls visibility/width */
@@ -634,7 +634,7 @@ mark {
 .atlas-md p {
   margin-bottom: 0.75rem;
   line-height: 1.625;
-  font-size: 0.875rem;
+  font-size: 1rem;
   max-width: var(--max-prose-width);
   color: var(--tan-2);
 }
@@ -646,7 +646,7 @@ mark {
   max-width: var(--max-prose-width);
   margin-bottom: 0.75rem;
   padding-left: 1.25rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--tan-2);
 }
 .atlas-md ul {
@@ -660,7 +660,7 @@ mark {
 }
 .atlas-md code {
   font-family: "Source Code Pro", "Courier New", monospace;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   padding: 1px 4px;
   border-radius: 4px;
   background: var(--surface);
@@ -678,7 +678,7 @@ mark {
 }
 .atlas-md table {
   width: 100%;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border-collapse: collapse;
   color: var(--tan-2);
 }
@@ -686,13 +686,13 @@ mark {
   text-align: left;
   padding: 0.5rem 0.75rem;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border-bottom: 1px solid var(--border);
   color: var(--tan);
 }
 .atlas-md td {
   padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border-bottom: 1px solid var(--border);
 }
 .atlas-md blockquote {
@@ -700,7 +700,7 @@ mark {
   padding-left: 0.75rem;
   margin-bottom: 0.75rem;
   font-style: italic;
-  font-size: 0.875rem;
+  font-size: 1rem;
   border-left: 3px solid var(--border);
   color: var(--tan-3);
 }

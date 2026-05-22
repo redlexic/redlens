@@ -224,22 +224,37 @@ export const CollapsibleNode = memo(function CollapsibleNode({
       }}
     >
       <div data-row-bar className="flex items-center gap-2">
-        <span className="inline-flex items-center shrink-0">
-          {docNoParts.map((_, i) => (
+        <span
+          className="inline-flex items-center shrink-0"
+          style={{
+            fontFamily: '"Inter", system-ui, sans-serif',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.02em",
+            color: "var(--tan-3)",
+            userSelect: "none",
+          }}
+        >
+          {docNoParts.map((seg, i) => (
             <span
               key={i}
               style={{
-                boxSizing: "content-box",
-                width: 11,
-                height: 11,
-                backgroundColor:
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 16,
+                height: 16,
+                lineHeight: 1,
+                flexShrink: 0,
+                borderBottom: `3px solid ${
                   docNoDepths[i] === 0
                     ? "var(--gray)"
-                    : `var(--depth-${Math.min(docNoDepths[i], 17)})`,
-                borderRight:
-                  i < docNoParts.length - 1 ? "1px solid var(--bg-deep)" : undefined,
+                    : `var(--depth-${Math.min(docNoDepths[i], 17)})`
+                }`,
               }}
-            />
+            >
+              {seg}
+            </span>
           ))}
         </span>
         <div className="atlas-node-title flex items-center gap-2 py-1.5 flex-1 min-w-0">
