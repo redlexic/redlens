@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { type FlatEntry } from "../../lib/atlasHelpers";
 
 export function useDepth6Expand(flatNodes: FlatEntry[], id: string) {
@@ -7,20 +7,29 @@ export function useDepth6Expand(flatNodes: FlatEntry[], id: string) {
   // to animate the *new* rows only (not initial mount, not navigation reshuffle).
   // Auto-clears 350ms after each expansion (animation runs ~200ms; small grace).
   const [recentlyExpanded, setRecentlyExpanded] = useState<Set<string>>(new Set());
+  const pendingTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => () => {
+    for (const t of pendingTimers.current) clearTimeout(t);
+    pendingTimers.current = [];
+  }, []);
+
   const markRecent = useCallback((ids: string[]) => {
     if (ids.length === 0) return;
     setRecentlyExpanded((prev) => {
       const next = new Set(prev);
-      for (const id of ids) next.add(id);
+      for (const entryId of ids) next.add(entryId);
       return next;
     });
-    setTimeout(() => {
+    const t = setTimeout(() => {
+      pendingTimers.current = pendingTimers.current.filter((x) => x !== t);
       setRecentlyExpanded((prev) => {
         const next = new Set(prev);
-        for (const id of ids) next.delete(id);
+        for (const entryId of ids) next.delete(entryId);
         return next.size === prev.size ? prev : next;
       });
     }, 350);
+    pendingTimers.current.push(t);
   }, []);
 
   // hiddenCount[parentId] = how many immediate children of `parentId` are at
