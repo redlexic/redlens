@@ -3,6 +3,7 @@ import { type RowComponentProps } from "react-window";
 import { segmentDepths } from "../../lib/depth";
 import type { AtlasNode } from "../../types";
 import { truncateTitle } from "../../lib/treeUtils";
+import { DocNoChiclets } from "../DocNoChiclets";
 
 export const ROW_HEIGHT = 25;
 const TOGGLE_WIDTH = 14;
@@ -26,27 +27,6 @@ export interface TreeRowData {
   onShiftNavigate?: (id: string) => void;
 }
 
-const DOC_NUM_STYLE: React.CSSProperties = {
-  flexShrink: 0,
-  fontFamily: '"Inter", system-ui, sans-serif',
-  fontSize: 11,
-  fontWeight: 700,
-  userSelect: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  letterSpacing: "0.02em",
-};
-const SEG_BOX_STYLE: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 16,
-  height: 16,
-  color: "var(--tan-3)",
-  lineHeight: 1,
-  overflow: "hidden",
-  flexShrink: 0,
-};
 const TOGGLE_BASE: React.CSSProperties = {
   width: TOGGLE_WIDTH,
   textAlign: "center",
@@ -132,23 +112,7 @@ export function TreeRow({
         } else onNavigate(node.id);
       }}
     >
-      <span style={DOC_NUM_STYLE}>
-        {docNoSegments.parts.map((seg, i) => (
-          <span
-            key={i}
-            style={{
-              ...SEG_BOX_STYLE,
-              borderBottom: `3px solid ${
-                docNoSegments.depths[i] === 0
-                  ? "var(--gray)"
-                  : `var(--depth-${Math.min(docNoSegments.depths[i], 17)})`
-              }`,
-            }}
-          >
-            {seg}
-          </span>
-        ))}
-      </span>
+      <DocNoChiclets parts={docNoSegments.parts} depths={docNoSegments.depths} />
       <span
         className="tree-toggle"
         style={{ ...TOGGLE_BASE, color: hasChildren ? "var(--tan-3)" : "transparent" }}

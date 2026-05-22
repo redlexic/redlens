@@ -1,6 +1,7 @@
 import { memo, useRef, useState } from "react";
 import { segmentDepths } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
+import { DocNoChiclets } from "../DocNoChiclets";
 import { NodeContent } from "../NodeContent";
 
 const DRAG_THRESHOLD_PX = 4;
@@ -205,23 +206,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
     >
       {/* data-row-bar: marker the outer onClick uses to distinguish title-bar clicks from body clicks (see handler above). */}
       <div data-row-bar className="flex items-center gap-2">
-        <span className="atlas-chiclets">
-          {docNoParts.map((seg, i) => {
-            const c =
-              docNoDepths[i] === 0
-                ? "var(--gray)"
-                : `var(--depth-${Math.min(docNoDepths[i], 17)})`;
-            return (
-              <span
-                key={i}
-                className="atlas-chiclet"
-                style={{ ["--c" as string]: c } as React.CSSProperties}
-              >
-                {seg}
-              </span>
-            );
-          })}
-        </span>
+        <DocNoChiclets parts={docNoParts} depths={docNoDepths} />
         <div className="atlas-node-title flex items-center gap-2 py-1.5 flex-1 min-w-0">
           <HeadingTag className={TITLE_CLASS}>
             {node.title}
