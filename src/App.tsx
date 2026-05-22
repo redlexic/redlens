@@ -109,7 +109,7 @@ export default function App() {
   // overflow-hidden wrappers are dropped, so the browser's native
   // history.scrollRestoration handles back/forward for free.
   const windowScroll =
-    location.startsWith(ROUTES.REPORTS) || location.startsWith(ROUTES.RADAR);
+    location.startsWith(ROUTES.REPORTS) || location.startsWith(ROUTES.RADAR) || location.startsWith(ROUTES.QA);
 
   return (
     <div

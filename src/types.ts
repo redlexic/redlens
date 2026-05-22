@@ -29,6 +29,14 @@ export interface AddressInfo {
   expectedTokens: string[]; // token symbols from atlas annotation
 }
 
+export interface SearchHitAncestor {
+  id: string;
+  doc_no: string;
+  title: string;
+  type: string;
+  depth: number;
+}
+
 export interface SearchHit {
   id: string;
   score: number;
@@ -42,6 +50,8 @@ export interface SearchHit {
   matchReason: string; // why this result was included, e.g. "title + content"
   chainlogId?: string; // set when result was found via chainlog reverse-lookup
   chainlogAddress?: string; // the resolved address for chainlog matches
+  content?: string; // full doc content, set when fetched with enrich=true
+  ancestors?: SearchHitAncestor[]; // breadcrumb chain parent→root, set when fetched with enrich=true
 }
 
 // Worker message types — search
