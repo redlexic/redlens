@@ -86,7 +86,9 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
     if (location !== ROUTES.HOME) { search(""); return; }
     if (deferredQuery.startsWith("/")) { search(""); return; }
     const withMode = applyMode(deferredQuery, mode);
-    search(withMode.trim() ? withMode : "");
+    const trimmed = withMode.trim();
+    const isEmptyPair = trimmed === '""' || trimmed === "''";
+    search(!isEmptyPair && trimmed ? trimmed : "");
   }, [deferredQuery, mode, location, search]);
 
   const handleChange = useCallback(
@@ -146,11 +148,13 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
       newQuery = bareQuery;
       cursorPos = newQuery.length;
     } else {
-      const wrapped = applyMode(bareQuery, newMode);
-      if (wrapped === bareQuery) {
+      // Strip fuzzy suffixes before wrapping (terns~2 → terns inside "terns")
+      const deFuzzied = bareQuery.replace(/~\d+/g, "").replace(/\s+/g, " ").trim();
+      const wrapped = applyMode(deFuzzied, newMode);
+      if (wrapped === deFuzzied) {
         // No free text to wrap — insert an empty quote pair
         const pair = newMode === "phrase" ? '""' : "''";
-        newQuery = bareQuery.trim() ? `${bareQuery.trim()} ${pair}` : pair;
+        newQuery = deFuzzied.trim() ? `${deFuzzied.trim()} ${pair}` : pair;
         cursorPos = newQuery.length - 1; // between the quotes
       } else {
         newQuery = wrapped;

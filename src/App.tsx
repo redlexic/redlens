@@ -82,6 +82,7 @@ export default function App() {
 
   const { query, activeMode, isMixed, inputRef, handleChange, clearQuery, wrapModeClick, broadSearch, state, handleHintClick } =
     useSearchInput(location, navigate, scope);
+  const hasQuery = !!query && query !== '""' && query !== "''";
   const { navigateToNode, handleViewChange } = useNavigation({
     navigate,
     nodeId,
@@ -150,7 +151,7 @@ export default function App() {
             <Route path={ROUTES.HOME}>
               {query.startsWith("__dev") ? (
                 <DevPanel query={query} />
-              ) : query ? (
+              ) : hasQuery ? (
                 <SearchResults
                   state={state}
                   query={query}
