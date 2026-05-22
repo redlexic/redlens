@@ -1,7 +1,6 @@
 import { memo, useRef, useState } from "react";
 import { segmentDepths } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
-import { HEADER_OFFSET } from "../../lib/layout";
 import { NodeContent } from "../NodeContent";
 
 const DRAG_THRESHOLD_PX = 4;
@@ -25,8 +24,6 @@ export const ViewChildrenFill = ({
 );
 
 const TITLE_CLASS = "text-xl font-bold";
-
-const BORDER_WIDTH = 3;
 
 export const CollapsibleNode = memo(function CollapsibleNode({
   entry,
@@ -86,30 +83,13 @@ export const CollapsibleNode = memo(function CollapsibleNode({
 
   const metaRow = (
     <div className="flex items-center gap-3 shrink-0">
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: "var(--tan-3)",
-          background: "var(--surface)",
-          border: `1px solid ${isSelected ? "var(--tan)" : "var(--tan-2)"}`,
-          borderRadius: 999,
-          padding: "2px 8px",
-          lineHeight: 1.4,
-          whiteSpace: "nowrap",
-        }}
-      >
-        {node.type}
-      </span>
+      <span className="atlas-type-pill">{node.type}</span>
       <button
         type="button"
         onClick={handleCopyDocNo}
         title={docNoCopied ? "Copied!" : `Copy ${node.doc_no}`}
-        className="mono text-[10px] cursor-pointer bg-transparent border-0 p-0 inline-flex items-center gap-1 shrink-0 hover:text-tan"
-        style={{ color: docNoCopied ? "var(--accent)" : "var(--tan-3)" }}
+        className="atlas-copy-btn"
+        data-copied={docNoCopied ? "true" : undefined}
       >
         <svg
           width="11"
@@ -125,21 +105,17 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           <rect x="4" y="4" width="7" height="7" rx="1" />
           <path d="M1 8V2C1 1.45 1.45 1 2 1H8" />
         </svg>
-        <span style={{ display: "inline-grid" }}>
-          <span style={{ gridArea: "1 / 1", visibility: docNoCopied ? "hidden" : "visible" }}>
-            {node.doc_no}
-          </span>
-          <span style={{ gridArea: "1 / 1", visibility: docNoCopied ? "visible" : "hidden" }}>
-            copied
-          </span>
+        <span className="atlas-copy-flip" data-flipped={docNoCopied ? "true" : undefined}>
+          <span className="label">{node.doc_no}</span>
+          <span className="flipped">copied</span>
         </span>
       </button>
       <button
         type="button"
         onClick={handleCopyUrl}
         title={copied ? "Copied!" : `Copy link · ${node.id}`}
-        className="mono text-[10px] cursor-pointer bg-transparent border-0 p-0 inline-flex items-center gap-1 shrink-0 hover:text-tan"
-        style={{ color: copied ? "var(--accent)" : "var(--tan-3)" }}
+        className="atlas-copy-btn"
+        data-copied={copied ? "true" : undefined}
       >
         <svg
           width="11"
@@ -155,13 +131,9 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
-        <span style={{ display: "inline-grid" }}>
-          <span style={{ gridArea: "1 / 1", visibility: copied ? "hidden" : "visible" }}>
-            {`${node.id.slice(0, 3)}…${node.id.slice(-3)}`}
-          </span>
-          <span style={{ gridArea: "1 / 1", visibility: copied ? "visible" : "hidden" }}>
-            copied
-          </span>
+        <span className="atlas-copy-flip" data-flipped={copied ? "true" : undefined}>
+          <span className="label">{`${node.id.slice(0, 3)}…${node.id.slice(-3)}`}</span>
+          <span className="flipped">copied</span>
         </span>
       </button>
       <a
@@ -178,7 +150,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           aria-hidden="true"
           width={14}
           height={14}
-          style={{ display: "block" }}
+          className="block"
         />
       </a>
     </div>
@@ -188,6 +160,8 @@ export const CollapsibleNode = memo(function CollapsibleNode({
     <div
       id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
       className={`atlas-node relative${fresh ? " atlas-node-fresh" : ""}${isSelected ? " is-selected" : ""}`}
+      data-has-hidden={hiddenCount > 0 ? "true" : undefined}
+      style={{ ["--row-color" as string]: color } as React.CSSProperties}
       tabIndex={0}
       onMouseDown={(e: React.MouseEvent) => {
         mouseDownRef.current = { x: e.clientX, y: e.clientY };
@@ -228,54 +202,28 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           }
         }
       }}
-      style={{
-        padding: "4px 4px 4px 10px",
-        borderRadius: 4,
-        boxShadow: isSelected ? `inset 3px 0 0 color-mix(in srgb, ${color} 80%, white)` : undefined,
-        borderBottom: hiddenCount > 0 ? "1px solid var(--border)" : undefined,
-        scrollMarginTop: HEADER_OFFSET,
-      }}
     >
       {/* data-row-bar: marker the outer onClick uses to distinguish title-bar clicks from body clicks (see handler above). */}
       <div data-row-bar className="flex items-center gap-2">
-        <span
-          className="inline-flex items-center shrink-0"
-          style={{
-            fontFamily: '"Inter", system-ui, sans-serif',
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.02em",
-            color: "var(--tan-3)",
-            userSelect: "none",
-          }}
-        >
-          {docNoParts.map((seg, i) => (
-            <span
-              key={i}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 16,
-                height: 16,
-                lineHeight: 1,
-                flexShrink: 0,
-                borderBottom: `3px solid ${
-                  docNoDepths[i] === 0
-                    ? "var(--gray)"
-                    : `var(--depth-${Math.min(docNoDepths[i], 17)})`
-                }`,
-              }}
-            >
-              {seg}
-            </span>
-          ))}
+        <span className="atlas-chiclets">
+          {docNoParts.map((seg, i) => {
+            const c =
+              docNoDepths[i] === 0
+                ? "var(--gray)"
+                : `var(--depth-${Math.min(docNoDepths[i], 17)})`;
+            return (
+              <span
+                key={i}
+                className="atlas-chiclet"
+                style={{ ["--c" as string]: c } as React.CSSProperties}
+              >
+                {seg}
+              </span>
+            );
+          })}
         </span>
         <div className="atlas-node-title flex items-center gap-2 py-1.5 flex-1 min-w-0">
-          <HeadingTag
-            className={TITLE_CLASS}
-            style={{ color: isSelected ? "var(--tan)" : "var(--tan-2)" }}
-          >
+          <HeadingTag className={TITLE_CLASS}>
             {node.title}
           </HeadingTag>
         </div>
@@ -292,30 +240,6 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           title={`View ${hiddenCount} hidden ${hiddenCount === 1 ? "section" : "sections"} under ${node.doc_no}`}
           aria-label={`View ${hiddenCount} hidden sections`}
           className="view-children-affordance"
-          style={{
-            position: "absolute",
-            right: 0,
-            bottom: 0,
-            height: 14,
-            padding: "0 6px",
-            borderTop: "1px solid var(--border)",
-            borderLeft: "1px solid var(--border)",
-            borderRight: "none",
-            borderBottom: "none",
-            borderTopLeftRadius: 4,
-            background: "var(--surface)",
-            color: "var(--tan-3)",
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            fontFamily: '"Source Code Pro", "Courier New", monospace',
-            fontSize: 9,
-            fontWeight: 600,
-            letterSpacing: "0.04em",
-            whiteSpace: "nowrap",
-            lineHeight: 1,
-          }}
         >
           <span>{hiddenCount} hidden</span>
           <svg
@@ -330,13 +254,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
         </button>
       )}
       {isExpanded && hasContent && (
-        <div
-          className="pb-3 mt-2"
-          style={{
-            // align body text with title text: title sits at content-x = toggle width (12) + gap-2 (8) = 20.
-            marginLeft: 20,
-          }}
-        >
+        <div className="atlas-node-body">
           <NodeContent content={node.content} onNavigate={onNavigate} />
         </div>
       )}
