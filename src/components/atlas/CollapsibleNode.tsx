@@ -191,6 +191,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
         // Drag-text-select fires a click on mouseup — skip those so selecting
         // a paragraph doesn't also toggle or navigate the row.
         if ((window.getSelection()?.toString().length ?? 0) > 0) return;
+        // inRowBar = click landed on the title row (chiclets/title), not the expanded body. See data-row-bar attr below.
         const inRowBar = !!(e.target as Element).closest("[data-row-bar]");
         if (e.shiftKey && onShiftNavigate) {
           e.preventDefault();
@@ -223,6 +224,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
         scrollMarginTop: HEADER_OFFSET,
       }}
     >
+      {/* data-row-bar: marker the outer onClick uses to distinguish title-bar clicks from body clicks (see handler above). */}
       <div data-row-bar className="flex items-center gap-2">
         <span
           className="inline-flex items-center shrink-0"
