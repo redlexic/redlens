@@ -114,7 +114,7 @@ export function TreeRow({
   const isPulse = !!pulseId && pulseId === node!.id;
   const isExpanded = expandedIds.has(node!.id);
   const depthVar = `var(--depth-${Math.min(Math.max(treeDepth, 1), 17)})`;
-  const selectedBar = `color-mix(in srgb, ${depthVar} 80%, white)`;
+  const selectedBar = `color-mix(in srgb, ${depthVar} 80%, var(--row-bar-tint))`;
   const boxShadow = isSelected
     ? `inset 3px 0 0 ${selectedBar}`
     : isFocused

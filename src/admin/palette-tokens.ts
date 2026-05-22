@@ -48,6 +48,9 @@ export const PALETTE_TOKENS: readonly PaletteToken[] = [
   { name: "surface", label: "Surface", group: "surface", alpha: false, defaultValue: "#221614" },
   { name: "hover", label: "Hover", group: "surface", alpha: false, defaultValue: "#3a1f1a" },
   { name: "border", label: "Border", group: "surface", alpha: false, defaultValue: "#3d2c28" },
+  { name: "atlas-row-selected", label: "Atlas Row Selected", group: "surface", alpha: false, defaultValue: "#1f1f1f" },
+  { name: "row-pulse-flash", label: "Row Pulse Flash", group: "surface", alpha: true, defaultValue: "rgba(255, 255, 255, 0.28)" },
+  { name: "row-bar-tint", label: "Row Bar Tint", group: "surface", alpha: false, defaultValue: "#ffffff" },
 
   // ─── Brand ───
   { name: "red", label: "Red", group: "brand", alpha: false, defaultValue: "#a63228" },

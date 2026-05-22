@@ -26,6 +26,9 @@
   --row-hover: rgba(255, 255, 255, 0.1);
   --row-selected: rgba(255, 255, 255, 0.08);
   --row-focused: rgba(255, 255, 255, 0.04);
+  --atlas-row-selected: #1f1f1f;
+  --row-pulse-flash: rgba(255, 255, 255, 0.28);
+  --row-bar-tint: white; /* mix target for the selected red-bar tint; overridden in light theme */
 
   /* ─── Shadows ─── */
   --shadow: rgba(0, 0, 0, 0.3);
@@ -55,6 +58,26 @@
   --entity-fallback: #888888;
 
   --max-prose-width: 68ch;
+
+  /* ─── Depth palette ─── */
+  /* 5-color jewel-tone cycle (red, orange, green, blue, purple) starting at depth-1, looping through depth-17. */
+  --depth-1: #9a0000;  /* red */
+  --depth-2: #a36600;  /* orange */
+  --depth-3: #1c701e;  /* green */
+  --depth-4: #2b51c5;  /* blue */
+  --depth-5: #5200a3;  /* purple */
+  --depth-6: #9a0000;  /* red */
+  --depth-7: #a36600;  /* orange */
+  --depth-8: #1c701e;  /* green */
+  --depth-9: #2b51c5;  /* blue */
+  --depth-10: #5200a3; /* purple */
+  --depth-11: #9a0000; /* red */
+  --depth-12: #a36600; /* orange */
+  --depth-13: #1c701e; /* green */
+  --depth-14: #2b51c5; /* blue */
+  --depth-15: #5200a3; /* purple */
+  --depth-16: #9a0000; /* red */
+  --depth-17: #a36600; /* orange */
 }
 
 /* Light theme — fill in when the toggle is wired up.
@@ -131,27 +154,6 @@ mark {
 
 /* webkit search chrome stripped per-input — see .search-input below */
 
-/* Depth palette — 5-color jewel-tone cycle (red, orange, green, blue, purple) starting at depth-1, looping through depth-17. */
-:root {
-  --depth-1: #9a0000;  /* red */
-  --depth-2: #a36600;  /* orange */
-  --depth-3: #1c701e;  /* green */
-  --depth-4: #2b51c5;  /* blue */
-  --depth-5: #5200a3;  /* purple */
-  --depth-6: #9a0000;  /* red */
-  --depth-7: #a36600;  /* orange */
-  --depth-8: #1c701e;  /* green */
-  --depth-9: #2b51c5;  /* blue */
-  --depth-10: #5200a3; /* purple */
-  --depth-11: #9a0000; /* red */
-  --depth-12: #a36600; /* orange */
-  --depth-13: #1c701e; /* green */
-  --depth-14: #2b51c5; /* blue */
-  --depth-15: #5200a3; /* purple */
-  --depth-16: #9a0000; /* red */
-  --depth-17: #a36600; /* orange */
-}
-
 /* Tree sidebar — Drawer controls visibility/width */
 .tree-sidebar {
   display: flex;
@@ -185,7 +187,7 @@ mark {
 }
 @keyframes tree-row-pulse {
   0% {
-    background-color: rgba(255, 255, 255, 0.28);
+    background-color: var(--row-pulse-flash);
   }
   100% {
     background-color: var(--row-selected);
@@ -339,7 +341,7 @@ mark {
   }
 }
 .atlas-node.is-selected {
-  background-color: #1f1f1f;
+  background-color: var(--atlas-row-selected);
 }
 .atlas-node:hover,
 .atlas-node:focus-visible {
@@ -348,7 +350,7 @@ mark {
 }
 .atlas-node.is-selected:hover,
 .atlas-node.is-selected:focus-visible {
-  background-color: #1f1f1f;
+  background-color: var(--atlas-row-selected);
 }
 .atlas-node-meta {
   display: none;
@@ -367,7 +369,7 @@ mark {
   align-items: center;
 }
 .atlas-node.is-selected .atlas-node-meta {
-  background-color: #1f1f1f;
+  background-color: var(--atlas-row-selected);
 }
 .atlas-node-title {
   border-radius: 2px;
