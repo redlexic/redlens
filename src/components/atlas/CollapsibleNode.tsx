@@ -1,8 +1,10 @@
-import { memo, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { segmentDepths } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
 import { HEADER_OFFSET } from "../../lib/layout";
 import { NodeContent } from "../NodeContent";
+
+const DRAG_THRESHOLD_PX = 4;
 
 export const ViewChildrenFill = ({
   nodeId,
@@ -63,6 +65,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   const docNoDepths = chicletSource.startsWith("NR-") ? [1] : segmentDepths(chicletSource);
   const [copied, setCopied] = useState(false);
   const [docNoCopied, setDocNoCopied] = useState(false);
+  const mouseDownRef = useRef<{ x: number; y: number } | null>(null);
 
   const handleCopyUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -186,11 +189,20 @@ export const CollapsibleNode = memo(function CollapsibleNode({
       id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
       className={`atlas-node relative${fresh ? " atlas-node-fresh" : ""}${isSelected ? " is-selected" : ""}`}
       tabIndex={0}
+      onMouseDown={(e: React.MouseEvent) => {
+        mouseDownRef.current = { x: e.clientX, y: e.clientY };
+      }}
       onClick={(e: React.MouseEvent) => {
         if ((e.target as Element).closest('a, button, [role="button"]')) return;
         // Drag-text-select fires a click on mouseup — skip those so selecting
         // a paragraph doesn't also toggle or navigate the row.
-        if ((window.getSelection()?.toString().length ?? 0) > 0) return;
+        const down = mouseDownRef.current;
+        mouseDownRef.current = null;
+        if (down) {
+          const dx = Math.abs(e.clientX - down.x);
+          const dy = Math.abs(e.clientY - down.y);
+          if (dx > DRAG_THRESHOLD_PX || dy > DRAG_THRESHOLD_PX) return;
+        }
         // inRowBar = click landed on the title row (chiclets/title), not the expanded body. See data-row-bar attr below.
         const inRowBar = !!(e.target as Element).closest("[data-row-bar]");
         if (e.shiftKey && onShiftNavigate) {
