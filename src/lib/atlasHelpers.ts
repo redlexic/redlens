@@ -36,6 +36,16 @@ export function buildAncestors(
   return ancestors;
 }
 
+export function buildAncestorsWithSelf(
+  docs: Record<string, AtlasNode>,
+  docNoToId: Map<string, string>,
+  nodeId: string,
+): AtlasNode[] {
+  const chain = buildAncestors(docs, docNoToId, nodeId);
+  const self = docs[nodeId];
+  return self ? [...chain, self] : chain;
+}
+
 export interface FlatEntry {
   node: AtlasNode;
   depth: number;

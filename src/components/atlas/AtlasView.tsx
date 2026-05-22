@@ -25,7 +25,7 @@ import { ErrorBoundary, PanelError } from "../ErrorBoundary";
 import { DrawerToggle } from "../Drawer";
 import {
   extractLinkedIds,
-  buildAncestors,
+  buildAncestorsWithSelf,
   ATLAS_GRID_STYLE,
   ATLAS_LEFT_PANE_STYLE,
   ATLAS_EMPTY_SET,
@@ -154,9 +154,7 @@ export function AtlasView({
 
   const ancestors = useMemo(() => {
     if (!data || !id) return [];
-    const chain = buildAncestors(data.atlas.docs, data.atlas.docNoToId, id);
-    const current = data.atlas.docs[id];
-    return current ? [...chain, current] : chain;
+    return buildAncestorsWithSelf(data.atlas.docs, data.atlas.docNoToId, id);
   }, [data, id]);
 
   const { linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {

@@ -52,6 +52,7 @@ export function JuniorPane({
     });
   }, []);
 
+  // JuniorPane styles the current node differently from the rest of the chain, so it keeps using buildAncestors and renders the current segment separately. See buildAncestorsWithSelf in atlasHelpers if that ever changes.
   const ancestors = useMemo(
     () => buildAncestors(data.atlas.docs, data.atlas.docNoToId, splitId),
     [data, splitId],
