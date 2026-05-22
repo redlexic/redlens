@@ -1,6 +1,6 @@
 # RedLens' Sky Atlas
 
-A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github.com/sky-ecosystem/next-gen-atlas). The atlas is included as a git submodule at `vendor/next-gen-atlas/`; the source document is `vendor/next-gen-atlas/Sky Atlas/Sky Atlas.md` (~50k lines, ~10,200 nodes). When the atlas gets a new commit, trigger the **Atlas Update** GitHub Actions workflow (`.github/workflows/atlas-update.yml`) — it pulls the submodule, rebuilds all artifacts, and opens a PR.
+A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github.com/sky-ecosystem/next-gen-atlas). The atlas is included as a git submodule at `vendor/next-gen-atlas/`; source documents live at `vendor/next-gen-atlas/content/**` (one `document.md` per node, atomized since PR #236). When the atlas gets a new commit, trigger the **Atlas Update** GitHub Actions workflow (`.github/workflows/atlas-update.yml`) — it pulls the submodule, rebuilds all artifacts, and opens a PR.
 
 **Atlas Markdown syntax reference**: `vendor/next-gen-atlas/ATLAS_MARKDOWN_SYNTAX.md` — canonical spec for heading format, document numbering, document types, extra fields, and nesting rules. Read this before touching the parser.
 
@@ -16,7 +16,7 @@ A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github
 ## Commands
 
 ```bash
-pnpm build:index     # parses Sky Atlas.md → public/docs.json + public/search-index.json + public/addresses.atlas.json (chain only; annotation added by build-graph)
+pnpm build:index     # parses content/** → public/docs.json + public/search-index.json + public/addresses.atlas.json (chain only; annotation added by build-graph)
 pnpm build:glossary  # extracts Definitions sections → public/glossary.json
 pnpm build:addresses # chainlog + Etherscan enrichment → public/addresses.json (on-chain fields only)
 pnpm build:snapshot  # viem multicall snapshots → public/chain-state.json

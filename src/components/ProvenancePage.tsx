@@ -10,7 +10,7 @@ const STAGES: Stage[] = [
     description:
       "Reads Sky Atlas.md and extracts every heading into a structured node record with a UUID, doc number, type, depth, and full content. Also builds a full-text search index over the entire corpus.",
     powers: [
-      "Full-text search (lunr in a Web Worker)",
+      "Full-text search (MiniSearch in a Web Worker)",
       "Document viewing — every atlas node page, breadcrumbs, and UUID-to-UUID linking",
     ],
   },

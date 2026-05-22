@@ -44,3 +44,8 @@ export async function fetchJsonVerified<T = unknown>(url: string, name: string):
   const buf = await fetchVerified(url, name);
   return JSON.parse(new TextDecoder().decode(buf)) as T;
 }
+
+export async function fetchTextVerified(url: string, name: string): Promise<string> {
+  const buf = await fetchVerified(url, name);
+  return new TextDecoder().decode(buf);
+}

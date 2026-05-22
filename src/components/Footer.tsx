@@ -24,8 +24,8 @@ export function Footer() {
 
   return (
     <footer
-      className="shrink-0 border-t flex items-center justify-between gap-0 overflow-hidden"
-      style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px" }}
+      className="fixed bottom-0 left-0 right-0 border-t flex items-center justify-between gap-0 overflow-hidden"
+      style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px", zIndex: 10 }}
     >
       <div className="flex items-center">
         {!online && (

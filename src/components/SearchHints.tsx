@@ -1,6 +1,21 @@
 const HINTS: { label: string; query: string; description: string }[] = [
-  { label: "wildcard", query: "govern*", description: "Trailing * matches any suffix" },
-  { label: "0x address", query: "0x*", description: "All nodes containing an Ethereum address" },
+  {
+    label: "broad",
+    query: "govern",
+    description: "Default mode — partial words match automatically, case-insensitive",
+  },
+  {
+    label: "phrase",
+    query: '"properly implemented"',
+    description: "Double quotes — whole-word phrase match, case-insensitive",
+  },
+  {
+    label: "strict",
+    query: "'delegatedSigners'",
+    description: "Single quotes — whole-word phrase match, case-sensitive",
+  },
+  { label: "fuzzy", query: "misaligment~1", description: "~N allows N character edits" },
+  { label: "0x address", query: "0xbe8e3e", description: "All nodes containing matched Ethereum address" },
   {
     label: "chainlog id",
     query: "MCD_VAT",
@@ -23,12 +38,6 @@ const HINTS: { label: string; query: string; description: string }[] = [
     query: "in:A.1.2 delegate",
     description: "Restrict results to a section subtree",
   },
-  { label: "fuzzy match", query: "misaligment~1", description: "~N allows N character edits" },
-  {
-    label: "boost term",
-    query: "delegate^5 voting",
-    description: "^N boosts a term's relevance weight",
-  },
   {
     label: "exclude term",
     query: "alignment -slippery",
@@ -37,13 +46,24 @@ const HINTS: { label: string; query: string; description: string }[] = [
   {
     label: "combine fields",
     query: "type:Core title:quorum",
-    description: "Mix field filters and free text",
+    description: "Mix field filters and broad terms",
+  },
+  {
+    label: "scope + type + phrase",
+    query: 'in:A.1 type:Core "alignment requirement"',
+    description: "Restrict to a section subtree, filter by node type, match an exact phrase",
+  },
+  {
+    label: "field + type + exclude",
+    query: "title:facilitator type:Core -operational",
+    description: "Search within the title field, filter by type, and drop an unwanted term",
   },
 ];
 
 const SLASH: { cmd: string; description: string }[] = [
   { cmd: "/reports", description: "Open the reports index" },
-  { cmd: "/hints", description: "Open the search syntax reference" },
+  { cmd: "/radar", description: "Open the radar actor index" },
+  { cmd: "/h", description: "Open the search syntax reference" },
 ];
 
 export function SearchHintsPage({ onHintClick }: { onHintClick: (q: string) => void }) {
@@ -64,7 +84,7 @@ export function SearchHints({
   if (slashFilter !== null && slashFilter !== undefined) {
     const matches = SLASH.filter((s) => s.cmd.startsWith(slashFilter));
     return (
-      <div className="px-4 py-8 max-w-2xl mx-auto">
+      <div className="px-4 py-8 max-w-4xl mx-auto">
         <p className="text-xs mono mb-3 text-tan-3">shortcuts</p>
         <div className="space-y-1">
           {matches.length > 0 ? (
@@ -87,35 +107,29 @@ export function SearchHints({
   }
 
   return (
-    <div className="px-4 py-8 max-w-2xl mx-auto">
-      <p className="text-xs mono mb-6 text-tan-3">search patterns</p>
-      <div className="space-y-1 mb-8">
-        {HINTS.map((h) => (
-          <button
-            key={h.query}
-            onClick={() => onSearch(h.query)}
-            className="hint-row w-full text-left flex items-baseline gap-4 px-3 py-2 rounded"
-          >
-            <span className="mono text-xs shrink-0 w-32 text-tan-3">{h.label}</span>
-            <span className="mono text-sm shrink-0 text-accent">{h.query}</span>
-            <span className="text-xs hidden sm:block text-tan-3">{h.description}</span>
-          </button>
-        ))}
-      </div>
-      <p className="text-xs mono mb-3 text-tan-3">shortcuts</p>
-      <div className="space-y-1">
-        {SLASH.map((s) => (
-          <button
-            key={s.cmd}
-            onClick={() => onSearch(s.cmd)}
-            className="hint-row w-full text-left flex items-baseline gap-4 px-3 py-2 rounded"
-          >
-            <span className="mono text-xs shrink-0 w-32 text-tan-3">slash</span>
-            <span className="mono text-sm shrink-0 text-accent">{s.cmd}</span>
-            <span className="text-xs hidden sm:block text-tan-3">{s.description}</span>
-          </button>
-        ))}
-      </div>
+    <div className="px-4 py-8 max-w-4xl mx-auto">
+      <table className="w-full text-xs border-collapse mb-8">
+        <thead>
+          <tr className="text-left">
+            <th className="mono text-tan-3 font-normal pb-3 pr-6">Feature</th>
+            <th className="mono text-tan-3 font-normal pb-3 pr-6">Example</th>
+            <th className="mono text-tan-3 font-normal pb-3 hidden sm:table-cell">Explanation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {HINTS.map((h) => (
+            <tr
+              key={h.query}
+              onClick={() => onSearch(h.query)}
+              className="hint-row cursor-pointer even:bg-[var(--surface)]"
+            >
+              <td className="mono text-tan-3 pr-6 py-1.5 whitespace-nowrap">{h.label}</td>
+              <td className="mono text-accent pr-6 py-1.5 whitespace-nowrap">{h.query}</td>
+              <td className="text-tan-3 py-1.5 hidden sm:table-cell">{h.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
