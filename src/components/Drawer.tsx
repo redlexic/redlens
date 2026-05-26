@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { HEADER_OFFSET } from "../lib/layout";
+import { useResizeDrag } from "../hooks/useResizeDrag";
 
 function useIsNarrow(maxWidth: number) {
   const [narrow, setNarrow] = useState(() => window.innerWidth < maxWidth);
@@ -57,44 +58,11 @@ export function Drawer({
 
   const effectiveWidth = isDrawer || !resizable ? width : currentWidth;
 
-  // Ref keeps current width readable inside the stable callback — same pattern
-  // as AtlasView.startResizeRight — so minWidth/maxWidth/storageKey are the
-  // only deps and the handler isn't recreated on every pixel of a drag.
-  const currentWidthRef = useRef(currentWidth);
-  currentWidthRef.current = currentWidth;
-
-  const startResize = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      const startX = e.clientX;
-      const startWidth = currentWidthRef.current;
-      let latest = startWidth;
-      const prevCursor = document.body.style.cursor;
-      const prevSelect = document.body.style.userSelect;
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-
-      const onMove = (ev: MouseEvent) => {
-        const delta = ev.clientX - startX;
-        latest = Math.max(minWidth, Math.min(maxWidth, startWidth + delta));
-        setCurrentWidth(latest);
-      };
-      const onUp = () => {
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-        document.body.style.cursor = prevCursor;
-        document.body.style.userSelect = prevSelect;
-        if (storageKey) {
-          try {
-            localStorage.setItem(storageKey, String(latest));
-          } catch {}
-        }
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-    },
-    [minWidth, maxWidth, storageKey],
-  );
+  const startResize = useResizeDrag(currentWidth, setCurrentWidth, {
+    min: minWidth,
+    max: maxWidth,
+    storageKey,
+  });
 
   const showHandle = resizable && !isDrawer;
 

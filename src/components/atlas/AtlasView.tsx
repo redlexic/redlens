@@ -7,6 +7,7 @@ import {
   startTransition,
   type ReactElement,
 } from "react";
+import { useResizeDrag } from "../../hooks/useResizeDrag";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { Loading } from "../Loading";
 import { loadAtlas } from "../../lib/docs";
@@ -71,42 +72,12 @@ export function AtlasView({
     return RIGHT_PANEL_DEFAULT;
   });
 
-  // Ref keeps the current width readable inside the stable callback without
-  // adding rightWidth to useCallback's dep array (which would recreate the
-  // handler on every pixel of a drag and allocate mid-gesture closures).
-  const rightWidthRef = useRef(rightWidth);
-  rightWidthRef.current = rightWidth;
-
-  const startResizeRight = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      const startX = e.clientX;
-      const startWidth = rightWidthRef.current;
-      let latest = startWidth;
-      const prevCursor = document.body.style.cursor;
-      const prevSelect = document.body.style.userSelect;
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-      const onMove = (ev: MouseEvent) => {
-        // dragging LEFT (toward viewport-left) widens the right panel
-        const delta = startX - ev.clientX;
-        latest = Math.max(RIGHT_PANEL_MIN, Math.min(RIGHT_PANEL_MAX, startWidth + delta));
-        setRightWidth(latest);
-      };
-      const onUp = () => {
-        window.removeEventListener("mousemove", onMove);
-        window.removeEventListener("mouseup", onUp);
-        document.body.style.cursor = prevCursor;
-        document.body.style.userSelect = prevSelect;
-        try {
-          localStorage.setItem(RIGHT_PANEL_KEY, String(latest));
-        } catch {}
-      };
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onUp);
-    },
-    [],
-  );
+  const startResizeRight = useResizeDrag(rightWidth, setRightWidth, {
+    min: RIGHT_PANEL_MIN,
+    max: RIGHT_PANEL_MAX,
+    storageKey: RIGHT_PANEL_KEY,
+    growsLeft: true,
+  });
   // Grows-only: once expanded, stays expanded across navigations so the user's context
   // (previously visited nodes) doesn't collapse out from under them.
   const seenExpanded = useRef<Set<string>>(new Set());
