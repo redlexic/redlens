@@ -11,7 +11,7 @@ export const DocNoChiclets = memo(function DocNoChiclets({ parts, depths }: Prop
     <span className="atlas-chiclets">
       {parts.map((seg, i) => (
         <span
-          key={i}
+          key={`${i}:${seg}`}
           className="atlas-chiclet"
           style={{ ["--c" as string]: chicletColor(depths[i]) } as React.CSSProperties}
         >

@@ -1,4 +1,4 @@
-import { memo, useRef } from "react";
+import { memo, useMemo, useRef } from "react";
 import { segmentDepths } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
 import { DocNoChiclets } from "../DocNoChiclets";
@@ -54,18 +54,26 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   // ("NR-2"), so derive the chiclet strip from the parent's path plus one
   // trailing chiclet for the NR itself — that way the chiclets reflect the
   // actual nesting position rather than the bare "NR-X" token.
-  const isNR = node.doc_no.startsWith("NR-");
-  const chicletSource = isNR && parentDocNo ? `${parentDocNo}.x` : node.doc_no;
-  const docNoParts = chicletSource.split(".");
-  const docNoDepths = chicletSource.startsWith("NR-") ? [1] : segmentDepths(chicletSource);
+  // Memoised so DocNoChiclets (also memo'd) gets stable array references and
+  // skips re-render when only isSelected/isExpanded changes on this node.
+  const { docNoParts, docNoDepths } = useMemo(() => {
+    const isNR = node.doc_no.startsWith("NR-");
+    const src = isNR && parentDocNo ? `${parentDocNo}.x` : node.doc_no;
+    return {
+      docNoParts: src.split("."),
+      docNoDepths: src.startsWith("NR-") ? [1] : segmentDepths(src),
+    };
+  }, [node.doc_no, parentDocNo]);
   const mouseDownRef = useRef<{ x: number; y: number } | null>(null);
 
   return (
-    <div
+    <article
       id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
       className={`atlas-node relative${isSelected ? " is-selected" : ""}`}
       data-has-hidden={hiddenCount > 0 ? "true" : undefined}
       style={{ ["--row-color" as string]: color } as React.CSSProperties}
+      aria-label={`${node.doc_no} — ${node.title}`}
+      aria-expanded={hasContent ? isExpanded : undefined}
       tabIndex={0}
       onMouseDown={(e: React.MouseEvent) => {
         mouseDownRef.current = { x: e.clientX, y: e.clientY };
@@ -146,6 +154,6 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           <NodeContent content={node.content} onNavigate={onNavigate} />
         </div>
       )}
-    </div>
+    </article>
   );
 });
