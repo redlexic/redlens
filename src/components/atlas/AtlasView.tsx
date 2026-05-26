@@ -23,6 +23,7 @@ import { RightPanel } from "./RightPanel";
 import { JuniorPane } from "./JuniorPane";
 import { ErrorBoundary, PanelError } from "../ErrorBoundary";
 import { DrawerToggle } from "../Drawer";
+import { useExpandingAttr } from "../../hooks/useExpandingAttr";
 import {
   extractLinkedIds,
   buildAncestorsWithSelf,
@@ -207,21 +208,11 @@ export function AtlasView({
     id,
   );
 
-  // Sets data-expanding on the scroll container for 250 ms (> the 220 ms CSS transition)
-  // so @starting-style animates newly inserted nodes. Plain DOM mutation — no React state,
-  // no re-render, no effect on docList's dep array.
-  const expandAnimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const triggerExpandingAnim = useExpandingAttr(scrollContainerRef);
   const handleExpandParent = useCallback((nodeId: string) => {
     expandParent(nodeId);
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    if (expandAnimTimerRef.current !== null) clearTimeout(expandAnimTimerRef.current);
-    el.setAttribute("data-expanding", "true");
-    expandAnimTimerRef.current = setTimeout(() => {
-      el.removeAttribute("data-expanding");
-      expandAnimTimerRef.current = null;
-    }, 250);
-  }, [expandParent]);
+    triggerExpandingAnim();
+  }, [expandParent, triggerExpandingAnim]);
 
   // scrolledRef guards against re-scrolling when only expandedParents changes (depth-6 expand).
   // Reset on every id change so revisiting a node re-checks and scrolls if needed.
