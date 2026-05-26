@@ -51,7 +51,7 @@ jobs:
             echo "Already at latest (${OLD:0:7}). Use force=true to rebuild anyway."
           fi
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v4
         if: steps.atlas.outputs.proceed == 'true'
 
       - uses: actions/setup-node@v4
