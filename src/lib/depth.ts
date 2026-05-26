@@ -91,5 +91,5 @@ export function depthColor(depth: number): string {
 }
 
 export function chicletColor(depth: number): string {
-  return depth === 0 ? "var(--gray)" : `var(--depth-${Math.min(depth, 17)})`;
+  return depth === 0 ? "var(--gray)" : `var(--depth-${Math.min(Math.max(depth, 1), 17)})`;
 }

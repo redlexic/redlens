@@ -4,7 +4,7 @@ import {
   type PreparedTextWithSegments,
 } from "@chenglou/pretext";
 
-const FONT = "10px Inter";
+const FONT = "600 14px Inter";
 
 const preparedCache = new Map<string, PreparedTextWithSegments>();
 
