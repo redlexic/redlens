@@ -10,7 +10,7 @@ PRAGMA foreign_keys = ON;
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS docs (
   id          TEXT PRIMARY KEY,
-  doc_no      TEXT UNIQUE NOT NULL,
+  doc_no      TEXT NOT NULL,
   title       TEXT NOT NULL,
   type        TEXT NOT NULL,
   depth       INTEGER NOT NULL DEFAULT 0,

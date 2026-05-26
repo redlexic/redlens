@@ -255,14 +255,7 @@ fs.writeFileSync(
   // writeBatched is idempotent; the key set is stable so no stale keys accumulate.
   "DROP TRIGGER IF EXISTS docs_ai;\n" +
   "DROP TRIGGER IF EXISTS docs_ad;\n" +
-  "DROP TRIGGER IF EXISTS docs_au;\n" +
-  // Reset all doc_no values to the row's UUID before upserting. When the atlas
-  // renumbers a document, a UUID gets a new doc_no that may already be held by a
-  // different UUID in the DB. The ON CONFLICT(id) upsert can't fire before SQLite
-  // enforces the UNIQUE constraint on doc_no, causing SQLITE_CONSTRAINT_UNIQUE.
-  // Setting doc_no = id (always unique) pre-emptively clears all conflicts so the
-  // subsequent upsert can freely assign the correct doc_nos.
-  "UPDATE docs SET doc_no = id;\n",
+  "DROP TRIGGER IF EXISTS docs_au;\n",
 );
 const files = {
   docs:     path.join(TMP, "_docs.sql"),
@@ -408,6 +401,52 @@ for (const stmt of [
     });
   } catch {
     // Already exists or (for the index) data has a collision — safe to ignore
+  }
+}
+
+// One-time migration: remove UNIQUE constraint from docs.doc_no.
+// doc_no uniqueness is enforced by the atlas itself; having it in D1 causes
+// SQLITE_CONSTRAINT_UNIQUE when docs are renumbered (a doc_no moves to a
+// different UUID). Detected via sqlite_master; runs once and becomes a no-op.
+{
+  const rows = d1Query("SELECT sql FROM sqlite_master WHERE type='table' AND name='docs'");
+  if (rows?.[0]?.sql?.includes("UNIQUE")) {
+    console.log("Migrating docs: removing UNIQUE constraint from doc_no…");
+    const migFile = path.join(TMP, "_mig_docno.sql");
+    fs.writeFileSync(migFile,
+      "DROP TABLE IF EXISTS docs_new;\n" +
+      "CREATE TABLE docs_new (\n" +
+      "  id         TEXT PRIMARY KEY,\n" +
+      "  doc_no     TEXT NOT NULL,\n" +
+      "  title      TEXT NOT NULL,\n" +
+      "  type       TEXT NOT NULL,\n" +
+      "  depth      INTEGER NOT NULL DEFAULT 0,\n" +
+      "  parent_id  TEXT,\n" +
+      "  content    TEXT NOT NULL DEFAULT '',\n" +
+      "  ord        INTEGER NOT NULL DEFAULT 0,\n" +
+      "  atlas_hash TEXT,\n" +
+      "  updated_at TEXT\n" +
+      ");\n" +
+      "INSERT INTO docs_new SELECT id,doc_no,title,type,depth,parent_id,content,ord,atlas_hash,updated_at FROM docs;\n" +
+      "DROP TABLE IF EXISTS docs_fts;\n" +
+      "DROP TABLE docs;\n" +
+      "ALTER TABLE docs_new RENAME TO docs;\n" +
+      "CREATE INDEX IF NOT EXISTS idx_docs_doc_no ON docs(doc_no);\n" +
+      "CREATE INDEX IF NOT EXISTS idx_docs_parent ON docs(parent_id);\n" +
+      "CREATE INDEX IF NOT EXISTS idx_docs_type   ON docs(type);\n" +
+      "CREATE VIRTUAL TABLE IF NOT EXISTS docs_fts USING fts5(\n" +
+      "  id UNINDEXED,\n" +
+      "  doc_no,\n" +
+      "  title,\n" +
+      "  type,\n" +
+      "  content,\n" +
+      "  content=docs,\n" +
+      "  content_rowid=rowid\n" +
+      ");\n",
+    );
+    runFile(migFile);
+    fs.unlinkSync(migFile);
+    console.log("  migration done");
   }
 }
 
