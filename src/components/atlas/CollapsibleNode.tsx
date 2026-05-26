@@ -8,17 +8,15 @@ import { NodeMeta } from "./NodeMeta";
 const DRAG_THRESHOLD_PX = 4;
 
 export const ViewChildrenFill = ({
-  nodeId,
   docNo,
   onExpand,
 }: {
-  nodeId: string;
   docNo: string;
-  onExpand: (id: string) => void;
+  onExpand: () => void;
 }) => (
   <button
     type="button"
-    onClick={() => onExpand(nodeId)}
+    onClick={onExpand}
     className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer"
   >
     view all descendants of {docNo}
