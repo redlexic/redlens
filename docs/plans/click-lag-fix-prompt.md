@@ -33,33 +33,6 @@ In `AtlasView` (the same component that owns `data`, `userToggles`, etc.):
 - Add `selectedId` and `handleNavigate` to the `docList` dependency array; remove `onNavigate` from that array.
 - `onShiftNavigate={onSplitChange}` stays unwrapped — split-pane is not on the perf-critical path.
 
-### 2. Stabilize `expandedSet` reference
-
-The `expandedSet` `useMemo` (around line 148) allocates `new Set(seenExpanded.current)` on every render even when nothing changed, which churns `docList`'s dep array.
-
-Replace it with a stable reference. The callers (`docList`, `CollapsibleNode`) only call `.has()` on it, so return `seenExpanded.current` directly:
-
-```ts
-const expandedSet = useMemo(() => {
-  if (!data || !id) return ATLAS_EMPTY_SET;
-  if (data.atlas.docs[id]) seenExpanded.current.add(id);
-  return seenExpanded.current;
-}, [data, id]);
-```
-
-### 3. Hoist `buildLookup` out of the per-id memo
-
-Inside the right-panel `useMemo` (around line 184) `buildLookup(data.glossary)` runs on every navigation, even though it only depends on `data.glossary`. Move it to its own memo:
-
-```ts
-const glossaryLookup = useMemo(
-  () => (data ? buildLookup(data.glossary) : {}),
-  [data],
-);
-```
-
-Then use `glossaryLookup` inside the existing right-panel `useMemo` instead of calling `buildLookup` again.
-
 ## Forbidden actions
 - MUST NOT virtualize the atlas list, alter the depth-6 affordance, or refactor `JuniorPane`. Virtualization is a separate future task.
 - MUST NOT introduce a `useDeferredValue` hook in addition to `startTransition` — pick one (the plan specifies `startTransition`).
@@ -68,8 +41,6 @@ Then use `glossaryLookup` inside the existing right-panel `useMemo` instead of c
 
 ## Checkpoints (output after each)
 1. ✅ Change 1 applied — show the new `handleNavigate`, the mirror effect, and the updated `docList` dep array.
-2. ✅ Change 2 applied — show the new `expandedSet` body.
-3. ✅ Change 3 applied — show the new `glossaryLookup` memo and the line that consumes it.
 
 ## Stop conditions
 - Stop and ask before deleting any file, adding any import the plan did not specify, or running `pnpm install`.

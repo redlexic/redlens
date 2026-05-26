@@ -5,10 +5,9 @@ RedLens is a Vite + React 19 atlas viewer. Two atlas-shell files violate the rep
 
 | File | Lines | Target |
 |---|---|---|
-| `src/components/atlas/CollapsibleNode.tsx` | 316 | ~150 |
-| `src/components/atlas/AtlasView.tsx` | 384 | ~150 |
+| `src/components/atlas/AtlasView.tsx` | 369 | ~150 |
 
-Neither violation was introduced by the recent UI iteration — `CollapsibleNode` was already at 204 lines and `AtlasView` at 320 lines before commit `32a3db27`. The recent iteration **made both significantly worse** but didn't *cause* the violation. This PR addresses the pre-existing tech debt as a separate cleanup.
+`CollapsibleNode.tsx` is resolved — the meta row was extracted as `NodeMeta.tsx` (conditionally mounted when `isSelected`, 143 lines). `AtlasView.tsx` remains over target.
 
 **Prerequisite**: This PR is intended to land *after* `pr-ready-refactor-prompt.md` so that `CollapsibleNode.tsx`'s inline-style migration has already moved a lot of JSX bulk into CSS. Run that prompt first if it hasn't been landed yet.
 
@@ -19,45 +18,14 @@ The repo is configured to commit as `darkstar-covenant`. **MUST NOT** add `Co-Au
 **Allowed to edit:**
 - `src/components/atlas/CollapsibleNode.tsx`
 - `src/components/atlas/AtlasView.tsx`
-- `src/components/tree/TreeRow.tsx` (non-null narrowing only — commit 3)
-- New: `src/components/atlas/RowMeta.tsx`
-- New: `src/components/atlas/RowMeta.test.tsx`
-- New: `src/components/atlas/AtlasReader.tsx` (if commit 2 needs an extracted sub-component)
+- `src/components/tree/TreeRow.tsx` (non-null narrowing only — commit 2)
+- New: `src/components/atlas/AtlasReader.tsx` (if commit 1 needs an extracted sub-component)
 
 **MUST NOT edit:** `src/index.css` (this PR is structural only — no visual change at all), the build pipeline, `package.json`, atlas data, or anything outside `src/components/atlas/`. MUST NOT change behaviour. MUST NOT introduce new dependencies.
 
-## Three commits — work in this order
+## Two commits — work in this order
 
-### Commit 1 — Extract `<RowMeta>` from `CollapsibleNode.tsx`
-
-The metaRow (type pill + two copy buttons + sky-atlas external link) is a self-contained ~100-line subtree inside `CollapsibleNode.tsx`. Extract it to its own file.
-
-Create `src/components/atlas/RowMeta.tsx`:
-```tsx
-import { useCopyState } from "../../hooks/useCopyState";
-import type { AtlasNode } from "../../types";
-
-interface Props {
-  node: AtlasNode;
-}
-
-export function RowMeta({ node }: Props) {
-  const docNoCopy = useCopyState();
-  const urlCopy = useCopyState();
-  // …type pill, both copy buttons (with the inline-grid flip via .atlas-copy-flip),
-  // and the sky-atlas <a> link. All JSX moved verbatim from the prior metaRow constant.
-}
-```
-
-In `CollapsibleNode.tsx`:
-- Replace the inline `const metaRow = (...)` definition and its JSX usage with `<RowMeta node={node} />`.
-- Drop now-unused imports (`useCopyState`, the SVG-related helpers if any went with it).
-
-Verify the rendered metaRow is byte-for-byte identical via screenshot diff (`pnpm dev` + visual check listed below).
-
-Commit subject: `Extract RowMeta sub-component from CollapsibleNode`.
-
-### Commit 2 — Trim `AtlasView.tsx`
+### Commit 1 — Trim `AtlasView.tsx`
 
 `AtlasView.tsx` is 384 lines and does three loosely-related things: load data + memos, render the left-pane atlas reader, render the right-pane annotations panel + resize handle. The cleanest extraction is to pull the **left-pane** (the scroll container + split-pane toggle button + `docList` + `JuniorPane` mount) into a new `src/components/atlas/AtlasReader.tsx`.
 
@@ -71,18 +39,18 @@ Constraints:
 
 Commit subject: `Extract AtlasReader sub-component from AtlasView`.
 
-### Commit 3 — Narrow `TreeRow.tsx` non-null assertions
+### Commit 2 — Narrow `TreeRow.tsx` non-null assertions
 
-`src/components/tree/TreeRow.tsx` accesses `node!.id` at lines 114, 115, 131, 132, 162, 164. The component already early-returns on `if (!item) return null` (line 110), so the `node!` syntax is a smell — the type narrowing just wasn't carried through. Refactor:
+`src/components/tree/TreeRow.tsx` accesses `node!.id`. The component already early-returns on `if (!item) return null` after the hooks, so the `node!` syntax is a smell — the type narrowing just wasn't carried through. Note: hooks must be called unconditionally, so the early return must stay *after* the `useMemo` calls. The fix is:
 
 ```ts
 const item = visibleNodes[index];
-if (!item) return null;
-const { node, hasChildren } = item;  // narrowed here
-// drop every `node!` below; the destructured `node` is non-null
+const node = item?.node;
+// ...useMemo hooks stay here, using docNo/title/treeDepth derived above...
+if (!item || !node) return null;
+const { hasChildren } = item;
+// drop every `node!` below; node is AtlasNode here
 ```
-
-Move all `const node = item?.node` / `node?.title` access patterns to a single safe destructure after the early-return. Same for any other field referenced via `item?.`.
 
 Commit subject: `Narrow node type in TreeRow to drop non-null assertions`.
 
@@ -93,13 +61,12 @@ Commit subject: `Narrow node type in TreeRow to drop non-null assertions`.
 - MUST NOT introduce new dependencies.
 
 ## Checkpoints (output after each commit)
-After each of the three commits, output:
+After each of the two commits, output:
 1. ✅ Commit N subject — short summary of the diff
 2. `git diff --stat HEAD^ HEAD`
 3. `wc -l` for each touched component file so we can track the slimming progress.
 
 ## Stop conditions
-- Stop and ask if extracting `<RowMeta>` requires importing types/utilities that don't already exist in scope.
 - Stop and ask if `AtlasView` cannot be reduced to under 280 lines without restructuring state (which is out of scope for this PR).
 
 ## Verification
@@ -114,10 +81,8 @@ After all three commits:
    d. Shift-click still opens the split pane; closing it works.
    e. Right panel still renders annotations / glossary / history correctly.
 4. `git diff --stat <previous-PR-tip>..HEAD` — only the four files listed in **Scope** appear, no `src/index.css`, no test config, no data artifacts.
-5. `wc -l src/components/atlas/CollapsibleNode.tsx src/components/atlas/AtlasView.tsx src/components/atlas/RowMeta.tsx src/components/atlas/AtlasReader.tsx` — final lines should be roughly:
-   - `CollapsibleNode.tsx`: ≤ 180 lines
+5. `wc -l src/components/atlas/AtlasView.tsx src/components/atlas/AtlasReader.tsx` — final lines should be roughly:
    - `AtlasView.tsx`: ≤ 280 lines (still over target — flagged for a future PR if reviewers want)
-   - `RowMeta.tsx`: ≤ 100 lines
    - `AtlasReader.tsx`: ≤ 120 lines
 
 Done only when 1–5 all pass.
