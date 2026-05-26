@@ -40,7 +40,9 @@ const ARTIFACTS = [
   "search-index.json",
   "addresses.atlas.json",
   "addresses.json",
-  "chain-state.json",
+  // chain-state.json excluded — its blockNumber increments on every build:snapshot
+  // run, which would change the manifest hash even when atlas content is unchanged.
+  // Block number is read from chain-state.json directly by sync-d1.mjs at sync time.
   "glossary.json",
   "relations.json",
   // Reproducibility check
@@ -73,16 +75,10 @@ for (const name of ARTIFACTS) {
   };
 }
 
-const chainStatePath = path.join(PUBLIC, "chain-state.json");
-const blockNumber = fs.existsSync(chainStatePath)
-  ? (JSON.parse(fs.readFileSync(chainStatePath, "utf8")).block ?? null)
-  : null;
-
 const manifest = {
   generatedAt: new Date().toISOString(),
   redlensCommit: gitRev(ROOT),
   atlasCommit: gitRev(path.join(ROOT, "vendor/next-gen-atlas")),
-  blockNumber,
   artifacts,
 };
 

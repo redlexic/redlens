@@ -136,6 +136,7 @@ CREATE TABLE IF NOT EXISTS node_history (
   doc_id        TEXT NOT NULL,                -- not FK: covers nodes later removed from docs
   date          TEXT NOT NULL,                -- YYYY-MM-DD, sortable
   commit_hash   TEXT NOT NULL,                -- 7-char abbrev
+  commit_seq    INTEGER,                      -- topological position in git log (1000-based); stable across rebases
   change_type   TEXT NOT NULL,                -- added | modified | removed | moved
   pr_number     INTEGER,
   pr_title      TEXT,
@@ -154,3 +155,4 @@ CREATE INDEX IF NOT EXISTS idx_hist_doc       ON node_history(doc_id, date DESC)
 CREATE INDEX IF NOT EXISTS idx_hist_date      ON node_history(date DESC);
 CREATE INDEX IF NOT EXISTS idx_hist_type_date ON node_history(change_type, date DESC);
 CREATE INDEX IF NOT EXISTS idx_hist_pr        ON node_history(pr_number);
+CREATE INDEX IF NOT EXISTS idx_hist_seq       ON node_history(commit_seq);

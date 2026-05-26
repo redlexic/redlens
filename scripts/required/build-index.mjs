@@ -2,7 +2,7 @@
 /**
  * Parses Sky Atlas.md and emits:
  *   public/docs.json          — id → node (uuid, doc_no, title, type, depth, parentId, content, addressRefs)
- *   public/search-index.json  — serialized lunr index
+ *   public/search-index.json  — serialized MiniSearch index
  *   public/addresses.atlas.json — address → { chain }  (minimal; build-graph Phase 2.6 adds annotation)
  *
  * Run: node scripts/required/build-index.mjs
@@ -12,7 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import lunr from "lunr";
+import MiniSearch from "minisearch";
 
 import { sha256, HEADING_RE, parse, cleanContent } from "../lib/atlas-parser.mjs";
 import { ETH_ADDR_RE, SOL_ADDR_RE, normalizeAddress, detectChain } from "../lib/address-chains.mjs";
@@ -53,19 +53,30 @@ function extractAddresses(content) {
 }
 
 // ---------------------------------------------------------------------------
-// Build lunr index
+// Build MiniSearch index
+// KEEP IN SYNC WITH src/workers/search.worker.ts (same processTerm config)
 // ---------------------------------------------------------------------------
 function buildIndex(nodes) {
-  return lunr(function () {
-    this.ref("id");
-    this.field("title", { boost: 10 });
-    this.field("doc_no", { boost: 5 });
-    this.field("type", { boost: 2 });
-    this.field("content");
-    for (const node of nodes) {
-      this.add({ id: node.id, title: node.title, doc_no: node.doc_no, type: node.type, content: node.content });
-    }
+  const ms = new MiniSearch({
+    fields: ["title", "doc_no", "type", "content"],
+    idField: "id",
+    processTerm: (term) => {
+      // Strip leading/trailing non-alphanumeric chars so backtick-wrapped tokens
+      // like `delegatedSigners` index as "delegatedsigners" not "`delegatedsigners`".
+      const lower = term.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "").toLowerCase();
+      return lower.length >= 2 ? lower : null;
+    },
   });
+  ms.addAll(
+    nodes.map((n) => ({
+      id: n.id,
+      title: n.title,
+      doc_no: n.doc_no,
+      type: n.type,
+      content: n.content,
+    })),
+  );
+  return ms.toJSON();
 }
 
 // ---------------------------------------------------------------------------
@@ -112,7 +123,7 @@ const { nodes } = parse(src);
 
 printStats(nodes);
 
-console.log("\nBuilding lunr index…");
+console.log("\nBuilding MiniSearch index…");
 const idx = buildIndex(nodes);
 
 fs.mkdirSync(OUT_DIR, { recursive: true });

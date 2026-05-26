@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useRegisterSW } from "virtual:pwa-register/react";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { useSWUpdate } from "../hooks/useSWUpdate";
 
 const BASE = import.meta.env.BASE_URL;
 const REPO = "https://github.com/Anscharo/redlens";
@@ -8,10 +8,7 @@ const PROVENANCE_HREF = `${BASE}provenance`;
 
 export function Footer() {
   const online = useOnlineStatus();
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW();
+  const { needRefresh, applyUpdate } = useSWUpdate();
   const [block, setBlock] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,8 +24,8 @@ export function Footer() {
 
   return (
     <footer
-      className="shrink-0 border-t flex items-center justify-between gap-0 overflow-hidden"
-      style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px" }}
+      className="fixed bottom-0 left-0 right-0 border-t flex items-center justify-between gap-0 overflow-hidden"
+      style={{ borderColor: "var(--border)", background: "var(--bg)", height: "24px", zIndex: 10 }}
     >
       <div className="flex items-center">
         {!online && (
@@ -41,7 +38,7 @@ export function Footer() {
             as="button"
             color="var(--magenta)"
             title="A new version is available — click to reload"
-            onClick={() => updateServiceWorker(true)}
+            onClick={applyUpdate}
           >
             update available ↻
           </StatusPill>

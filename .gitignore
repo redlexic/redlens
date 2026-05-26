@@ -25,10 +25,9 @@ public/graph.json
 # Intermediate handoff file from build:index → build:addresses
 public/addresses.merged.json
 
-# Vector index — built by build-rag (Workers AI bge-base-en).
-# ~30MB binary; rebuilt fresh on every Sync DBs CI run. Backend-only;
-# kept out of public/ so it never ships in the frontend bundle.
-.cache/atlas-vectors/
+# Vector index — built locally (transformers.js bge-base-en-v1.5).
+# vectors.bin tracked via Git LFS; CI reuses this via incremental hash check.
+# .cache/atlas-vectors/ is committed, not ignored.
 
 # Editor directories and files
 .vscode/*
@@ -54,6 +53,7 @@ note.md
 .cache/processes-audit.md
 .cache/processes-heuristic.json
 .claude/scheduled_tasks.lock
+.claude/worktrees/**
 
 # Personal docs (not checked in)
 docs/ds/

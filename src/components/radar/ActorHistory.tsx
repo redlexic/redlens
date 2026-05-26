@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "../Link";
+import { Tooltip } from "../Tooltip";
 import { loadHistory, type HistoryEntry } from "../../lib/history";
 import type { ActorProfile } from "../../lib/actorIndex";
 import type { AtlasNode } from "../../types";
 import { ROUTES } from "../../lib/routes";
 import { useRadar } from "./RadarContext";
+import { shortenTitle } from "../../lib/shortenTitle";
+import { ROW_COLORS, BORDER } from "./primitiveTable";
 
 type Category = "definition" | "instance" | "param" | "primitive" | "reward";
 type ChangeKind = "lint" | "typo" | "semantic";
@@ -12,9 +15,9 @@ type ChangeKind = "lint" | "typo" | "semantic";
 interface AffectedDoc {
   docId: string;
   docNo: string | null;
+  title: string | null;
   category: Category;
-  /** matched-bullet summary for this doc, when distinct from prTitle */
-  summary?: string;
+  changeType: "added" | "modified" | "removed";
   /** Edit significance for modified entries — lets the UI mute trivial rows */
   changeKind?: ChangeKind;
 }
@@ -22,18 +25,12 @@ interface AffectedDoc {
 interface MergedEntry {
   date: string;
   commitHash: string;
-  changeType: "added" | "modified" | "removed";
   pr?: number;
   prTitle?: string;
   prAuthor?: string;
   prUrl?: string;
   docs: AffectedDoc[];
 }
-
-const SUMMARY_TOOLTIP =
-  "Best guess matching of PR bullets to modified docs using deterministic " +
-  "doc_no/UUID references and ancestor-aware token-overlap fuzzy matching. " +
-  "Might mismatch.";
 
 const CATEGORY_LABEL: Record<Category, string> = {
   definition: "agent definition",
@@ -43,16 +40,24 @@ const CATEGORY_LABEL: Record<Category, string> = {
   reward: "rewards primitive",
 };
 
+const CATEGORY_TOOLTIP: Record<Category, string> = {
+  definition: "The document that defines this agent's role, scope, and authorizations.",
+  instance: "An active instance or invocation of this agent in the governance system.",
+  param: "A document that is the source of a parameter for one of this agent's instances.",
+  primitive: "A primitive that this agent is authorized to own and invoke.",
+  reward: "The rewards primitive linked to this agent's compensation.",
+};
+
 const CHANGE_COLOR: Record<string, string> = {
   added: "var(--depth-6)",
   modified: "var(--tan-3)",
   removed: "var(--red)",
 };
 
-const CHANGE_LABEL: Record<string, string> = {
-  added: "added",
-  modified: "edited",
-  removed: "removed",
+const CHANGE_INDICATOR: Record<string, string> = {
+  added: "+",
+  modified: "~",
+  removed: "−",
 };
 
 function buildDocCategoryMap(profile: ActorProfile): Map<string, Category> {
@@ -92,30 +97,12 @@ function mergeByCommit(
     for (const entry of entries) {
       // "moved" events are renumbering noise (atomization, doc-no reshuffles).
       if (entry.changeType === "moved") continue;
-      // The build script writes summary=bullet.title and description=bullet
-      // body (or pr.title/pr.body for non-bulleted fallback). Display rules:
-      //   - matched bullets: show summary (concise per-edit title — e.g.
-      //     "Update Grove Artifact"). Skip description; it's typically dense
-      //     PR-instruction prose that doesn't read as a summary.
-      //   - SAEP/single-bullet fallback (summary collapses to prTitle): show
-      //     description if it's actually descriptive text — not a bare URL,
-      //     not just the PR title.
-      const summaryUseful =
-        entry.summary && entry.summary !== entry.prTitle ? entry.summary : null;
-      const descIsUrlOnly =
-        entry.description && /^\s*https?:\/\/\S+\s*$/.test(entry.description);
-      const descriptionUseful =
-        !summaryUseful &&
-        entry.description &&
-        entry.description !== entry.prTitle &&
-        !descIsUrlOnly
-          ? entry.description
-          : null;
       const affected: AffectedDoc = {
         docId,
         docNo: docs[docId]?.doc_no ?? null,
+        title: docs[docId]?.title ?? null,
         category,
-        summary: summaryUseful ?? descriptionUseful ?? undefined,
+        changeType: entry.changeType as AffectedDoc["changeType"],
         changeKind: entry.changeKind,
       };
       const existing = byCommit.get(entry.commitHash);
@@ -125,7 +112,6 @@ function mergeByCommit(
         byCommit.set(entry.commitHash, {
           date: entry.date,
           commitHash: entry.commitHash,
-          changeType: entry.changeType as MergedEntry["changeType"],
           pr: entry.pr,
           prTitle: entry.prTitle,
           prAuthor: entry.prAuthor,
@@ -182,101 +168,128 @@ function docHref(docId: string): string {
   return `${ROUTES.ATLAS}?id=${docId}&view=history`;
 }
 
-/** Group docs by summary so a bullet attributed to N docs renders once
- *  with N child rows instead of being repeated. Insertion order is
- *  preserved; summary-less docs share a single trailing group. */
-function groupBySummary(docs: AffectedDoc[]): Array<{ summary?: string; docs: AffectedDoc[] }> {
-  const groups = new Map<string, { summary?: string; docs: AffectedDoc[] }>();
-  for (const d of docs) {
-    const key = d.summary ?? "\0";
-    const existing = groups.get(key);
-    if (existing) existing.docs.push(d);
-    else groups.set(key, { summary: d.summary, docs: [d] });
-  }
-  return [...groups.values()];
-}
-
 function Entry({ entry }: { entry: MergedEntry }) {
-  const color = CHANGE_COLOR[entry.changeType] ?? "var(--tan-3)";
-  const groups = groupBySummary(entry.docs);
+  const [open, setOpen] = useState(false);
+  const prSuffix = entry.pr ? ` — #${entry.pr}` : "";
+  const changeTypes = [...new Set(entry.docs.map((d) => d.changeType))];
   return (
     <div className="border-b py-2" style={{ borderColor: "var(--border)" }}>
-      <div className="text-sm leading-snug mb-1" style={{ color: "var(--tan)" }}>
-        {entry.prTitle ?? "(no PR)"}
-      </div>
-      <div className="flex items-baseline gap-2 flex-wrap mono text-[10px] mb-2">
-        <span style={{ color: "var(--tan-3)" }}>{entry.date}</span>
-        <span style={{ color }}>{CHANGE_LABEL[entry.changeType]}</span>
-        {entry.pr && (
-          <a href={entry.prUrl} target="_blank" rel="noopener noreferrer"
-             className="hover:underline focus-visible:underline" style={{ color: "var(--accent)" }}>
-            #{entry.pr}
-          </a>
-        )}
-        <a href={`https://github.com/sky-ecosystem/next-gen-atlas/commit/${entry.commitHash}`}
-           target="_blank" rel="noopener noreferrer"
-           className="hover:underline focus-visible:underline" style={{ color: "var(--tan-3)" }}>
-          {entry.commitHash}
-        </a>
-        {entry.prAuthor && <span style={{ color: "var(--tan-3)" }}>{entry.prAuthor}</span>}
-      </div>
-      <div className="space-y-2">
-        {groups.map((g, i) => (
-          <DocGroup key={g.summary ?? `__${i}`} summary={g.summary} docs={g.docs} />
-        ))}
-      </div>
+      <button
+        className="w-full text-left flex items-start gap-1.5"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <span className="mono text-[10px] mt-0.5 shrink-0" style={{ color: "var(--tan-3)" }}>
+          {open ? "▾" : "▸"}
+        </span>
+        <div>
+          <div className="mono text-xs font-semibold" style={{ color: "var(--tan)" }}>
+            {entry.date}{prSuffix}
+          </div>
+          {entry.prTitle && (
+            <div className="text-[11px] leading-snug mt-0.5" style={{ color: "var(--tan-3)" }}>
+              {entry.prTitle}
+            </div>
+          )}
+        </div>
+      </button>
+      {open && (
+        <div className="mt-2 ml-4 min-w-0 overflow-hidden">
+          <div className="flex items-baseline gap-2 flex-wrap mono text-[10px] mb-2">
+            {changeTypes.map((ct) => (
+              <span key={ct} style={{ color: CHANGE_COLOR[ct] }}>
+                {CHANGE_INDICATOR[ct]}
+              </span>
+            ))}
+            {entry.pr && (
+              <a href={entry.prUrl} target="_blank" rel="noopener noreferrer"
+                 className="hover:underline focus-visible:underline" style={{ color: "var(--accent)" }}>
+                #{entry.pr}
+              </a>
+            )}
+            <a href={`https://github.com/sky-ecosystem/next-gen-atlas/commit/${entry.commitHash}`}
+               target="_blank" rel="noopener noreferrer"
+               className="hover:underline focus-visible:underline" style={{ color: "var(--tan-3)" }}>
+              {entry.commitHash.slice(0, 7)}
+            </a>
+            {entry.prAuthor && <span style={{ color: "var(--tan-3)" }}>{entry.prAuthor}</span>}
+          </div>
+          <DocTable docs={entry.docs} />
+        </div>
+      )}
     </div>
   );
 }
 
-function DocGroup({ summary, docs }: { summary?: string; docs: AffectedDoc[] }) {
+function DocTable({ docs }: { docs: AffectedDoc[] }) {
   return (
-    <div>
-      {summary && (
-        <div
-          className="text-[11px] italic leading-[14px] mb-1 cursor-help"
-          style={{ color: "var(--tan-2)" }}
-          title={SUMMARY_TOOLTIP}
-        >
-          {summary}
-        </div>
-      )}
-      <ul
-        className={summary ? "space-y-0.5 pl-2 ml-1" : "space-y-0.5"}
-        style={summary ? { borderLeft: "2px solid var(--border)" } : undefined}
-      >
-        {docs.map((d) => (
-          <li key={d.docId}
-              className="mono text-[10px] flex items-baseline gap-2 flex-wrap"
-              style={{ color: "var(--tan-3)" }}>
-            {d.docNo && (
-              <Link to={docHref(d.docId)}
-                    className="hover:underline focus-visible:underline"
-                    style={{ color: "var(--accent)" }}>
-                {d.docNo}
-              </Link>
-            )}
-            <Link to={docHref(d.docId)} title={d.docId}
-                  className="hover:underline focus-visible:underline"
-                  style={{ color: "var(--accent)" }}>
-              {d.docId.split("-").slice(0, 2).join("-")}
-            </Link>
-            <span className="px-1 rounded"
-                  style={{ background: "var(--hover)", color: "var(--tan-2)" }}>
-              {CATEGORY_LABEL[d.category]}
+    <table className="w-full mono text-[10px]" style={{ borderCollapse: "collapse", tableLayout: "fixed" }}>
+      <colgroup>
+        <col style={{ width: "12rem" }} />
+        <col />
+        <col style={{ width: "9rem" }} />
+        <col style={{ width: "4rem" }} />
+      </colgroup>
+      <thead>
+        <tr style={{ color: "var(--tan-3)", borderBottom: BORDER }}>
+          <th className="text-left py-0.5 pr-3 font-normal">doc #</th>
+          <th className="text-left py-0.5 pr-3 font-normal">doc title</th>
+          <th className="text-left py-0.5 pr-3 font-normal">relevance</th>
+          <th className="text-left py-0.5 font-normal">edit type</th>
+        </tr>
+      </thead>
+      <tbody>
+        {docs.map((d, i) => <DocRow key={d.docId} doc={d} rowIndex={i} />)}
+      </tbody>
+    </table>
+  );
+}
+
+function editTooltip(changeType: AffectedDoc["changeType"], changeKind?: ChangeKind): string {
+  const base = `${changeType} doc`;
+  if (!changeKind || changeKind === "semantic") return base;
+  const detail = changeKind === "lint" ? "whitespace / formatting only" : "small letter-level edit";
+  return `${base}  ·  ${changeKind} (${detail})`;
+}
+
+function DocRow({ doc: d, rowIndex }: { doc: AffectedDoc; rowIndex: number }) {
+  return (
+    <tr style={{ background: ROW_COLORS[rowIndex % 2] }}>
+      <td className="py-0.5 pr-3" style={{ verticalAlign: "middle", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {d.docNo ? (
+          <Link to={docHref(d.docId)} className="hover:underline focus-visible:underline"
+                style={{ color: "var(--accent)" }}>
+            {d.docNo}
+          </Link>
+        ) : (
+          <span style={{ color: "var(--tan-3)" }}>—</span>
+        )}
+      </td>
+      <td className="py-0.5 pr-3" style={{ color: "var(--tan-2)", verticalAlign: "middle", overflow: "hidden" }}>
+        <span className="block truncate">
+          {d.title ? shortenTitle(d.title, 48) : ""}
+        </span>
+      </td>
+      <td className="py-0.5 pr-3" style={{ verticalAlign: "middle", overflow: "hidden" }}>
+        <Tooltip content={CATEGORY_TOOLTIP[d.category]}>
+          <span className="px-1 rounded cursor-help"
+                style={{ background: "var(--hover)", color: "var(--tan-2)" }}>
+            {CATEGORY_LABEL[d.category]}
+          </span>
+        </Tooltip>
+      </td>
+      <td className="py-0.5" style={{ verticalAlign: "middle", overflow: "hidden" }}>
+        <Tooltip content={editTooltip(d.changeType, d.changeKind)}>
+          <span className="flex items-center gap-1.5 cursor-help">
+            <span style={{ color: CHANGE_COLOR[d.changeType] }}>
+              {CHANGE_INDICATOR[d.changeType]}
             </span>
             {d.changeKind && d.changeKind !== "semantic" && (
-              <span className="px-1 rounded"
-                    style={{ background: "transparent", color: "var(--tan-3)" }}
-                    title={d.changeKind === "lint"
-                      ? "Whitespace / formatting change only"
-                      : "Small letter-level edit (likely typo / spelling)"}>
-                {d.changeKind}
-              </span>
+              <span style={{ color: "var(--tan-3)" }}>{d.changeKind}</span>
             )}
-          </li>
-        ))}
-      </ul>
-    </div>
+          </span>
+        </Tooltip>
+      </td>
+    </tr>
   );
 }

@@ -4,17 +4,19 @@ import { SearchResult } from "./SearchResult";
 import { SearchHints } from "./SearchHints";
 import type { SearchHit, GraphEntity } from "../types";
 import type { SearchState } from "../hooks/useSearch";
+import type { SearchMode } from "../hooks/useSearchInput";
 import { useUrlState, urlInt } from "../hooks/useUrlState";
 import { useScrollRestore } from "../hooks/useScrollRestore";
 import { loadGraph } from "../lib/graph";
-import { matchParticipants } from "../lib/search";
-import { entityHref } from "../lib/routes";
+import { matchParticipants, buildParticipantLinks } from "../lib/search";
 import { ENTITY_TYPE_LABEL, ENTITY_TYPE_COLOR, SUBTYPE_LABEL } from "../lib/entityGraph";
 
 interface Props {
   state: SearchState;
   query: string;
+  mode: SearchMode;
   onHintClick: (query: string) => void;
+  onBroadSearch: (query: string) => void;
 }
 const PAGE_SIZE = 500;
 const ENTITY_CAP = 6;
@@ -24,7 +26,9 @@ const visibleCodec = urlInt(PAGE_SIZE);
 export const SearchResults = memo(function SearchResults({
   state,
   query,
+  mode,
   onHintClick,
+  onBroadSearch,
 }: Props) {
   const hits = state.status === "done" ? state.hits : empty;
   const [visible, setVisible] = useUrlState("n", visibleCodec);
@@ -38,15 +42,37 @@ export const SearchResults = memo(function SearchResults({
     }
   }, [query, setVisible]);
 
-  const [participants, setParticipants] = useState<GraphEntity[] | null>(null);
+  const [graph, setGraph] = useState<{ participants: GraphEntity[]; edges: import("../types").RelationEdge[] } | null>(null);
   useEffect(() => {
-    loadGraph().then((g) => setParticipants(g.participants));
+    loadGraph().then((g) => setGraph({ participants: g.participants, edges: g.edges }));
   }, []);
 
+  const participantLinks = useMemo(
+    () => (graph ? buildParticipantLinks(graph.participants, graph.edges) : new Map<string, string>()),
+    [graph],
+  );
+
   const entityHits = useMemo(() => {
-    if (!participants || !query.trim() || query.startsWith("/")) return [];
-    return matchParticipants(query, participants).slice(0, ENTITY_CAP);
-  }, [participants, query]);
+    if (!graph || !query.trim() || query.startsWith("/")) return [];
+    return matchParticipants(query, graph.participants)
+      .filter(({ participant }) => participantLinks.has(participant.id))
+      .slice(0, ENTITY_CAP);
+  }, [graph, participantLinks, query]);
+
+  const noResults = state.status === "done" && hits.length === 0;
+  // Query is non-broad when mode pill is phrase/strict, or user typed explicit quotes
+  const isNonBroad = mode !== "broad" || query.includes('"') || query.includes("'");
+  const strippedQuery = query.replace(/["']/g, "").replace(/\s+/g, " ").trim();
+  const suggestBroad = noResults && isNonBroad && strippedQuery;
+  const suggestFuzzy =
+    noResults && !isNonBroad && !query.includes("~")
+      ? query
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((w) => (w.includes(":") || w.startsWith("-") ? w : `${w}~2`))
+          .join(" ")
+      : null;
 
   const displayed = hits.slice(0, visible);
   const remaining = hits.length - displayed.length;
@@ -68,7 +94,7 @@ export const SearchResults = memo(function SearchResults({
               {entityHits.map(({ participant }) => (
                 <li key={participant.id}>
                   <Link
-                    to={entityHref(participant.id)}
+                    to={participantLinks.get(participant.id)!}
                     className="search-result-link px-4 py-3 flex items-center gap-3"
                   >
                     <span
@@ -88,11 +114,33 @@ export const SearchResults = memo(function SearchResults({
             </ul>
           </>
         )}
-        {state.status === "done" && (
+        {(state.status === "searching" || state.status === "done") && (
           <div className="px-4 py-2 text-xs border-b mono text-tan-3 border-border">
-            {hits.length === 0
-              ? `no results for "${state.query}"`
-              : `${displayed.length < hits.length ? `${displayed.length} of ` : ""}${hits.length} result${hits.length !== 1 ? "s" : ""} · ${state.durationMs.toFixed(0)}ms`}
+            {state.status === "searching"
+              ? "searching…"
+              : hits.length === 0
+                ? `no results for "${state.query}"`
+                : `${displayed.length < hits.length ? `${displayed.length} of ` : ""}${hits.length} result${hits.length !== 1 ? "s" : ""} · ${state.durationMs.toFixed(0)}ms`}
+          </div>
+        )}
+        {suggestBroad && (
+          <div className="px-4 py-2 border-b border-border">
+            <button
+              onClick={() => onBroadSearch(strippedQuery)}
+              className="text-xs mono text-tan-3 hover:text-accent"
+            >
+              try broad: {strippedQuery}
+            </button>
+          </div>
+        )}
+        {suggestFuzzy && (
+          <div className="px-4 py-2 border-b border-border">
+            <button
+              onClick={() => onHintClick(suggestFuzzy)}
+              className="text-xs mono text-tan-3 hover:text-accent"
+            >
+              try fuzzy: {suggestFuzzy}
+            </button>
           </div>
         )}
         {displayed.length > 0 && (
