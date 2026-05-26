@@ -405,47 +405,12 @@ for (const stmt of [
 }
 
 // One-time migration: remove UNIQUE constraint from docs.doc_no.
-// doc_no uniqueness is enforced by the atlas itself; having it in D1 causes
-// SQLITE_CONSTRAINT_UNIQUE when docs are renumbered (a doc_no moves to a
-// different UUID). Detected via sqlite_master; runs once and becomes a no-op.
+// Detected via sqlite_master; runs once and becomes a no-op thereafter.
 {
   const rows = d1Query("SELECT sql FROM sqlite_master WHERE type='table' AND name='docs'");
   if (rows?.[0]?.sql?.includes("UNIQUE")) {
     console.log("Migrating docs: removing UNIQUE constraint from doc_no…");
-    const migFile = path.join(TMP, "_mig_docno.sql");
-    fs.writeFileSync(migFile,
-      "DROP TABLE IF EXISTS docs_new;\n" +
-      "CREATE TABLE docs_new (\n" +
-      "  id         TEXT PRIMARY KEY,\n" +
-      "  doc_no     TEXT NOT NULL,\n" +
-      "  title      TEXT NOT NULL,\n" +
-      "  type       TEXT NOT NULL,\n" +
-      "  depth      INTEGER NOT NULL DEFAULT 0,\n" +
-      "  parent_id  TEXT,\n" +
-      "  content    TEXT NOT NULL DEFAULT '',\n" +
-      "  ord        INTEGER NOT NULL DEFAULT 0,\n" +
-      "  atlas_hash TEXT,\n" +
-      "  updated_at TEXT\n" +
-      ");\n" +
-      "INSERT INTO docs_new SELECT id,doc_no,title,type,depth,parent_id,content,ord,atlas_hash,updated_at FROM docs;\n" +
-      "DROP TABLE IF EXISTS docs_fts;\n" +
-      "DROP TABLE docs;\n" +
-      "ALTER TABLE docs_new RENAME TO docs;\n" +
-      "CREATE INDEX IF NOT EXISTS idx_docs_doc_no ON docs(doc_no);\n" +
-      "CREATE INDEX IF NOT EXISTS idx_docs_parent ON docs(parent_id);\n" +
-      "CREATE INDEX IF NOT EXISTS idx_docs_type   ON docs(type);\n" +
-      "CREATE VIRTUAL TABLE IF NOT EXISTS docs_fts USING fts5(\n" +
-      "  id UNINDEXED,\n" +
-      "  doc_no,\n" +
-      "  title,\n" +
-      "  type,\n" +
-      "  content,\n" +
-      "  content=docs,\n" +
-      "  content_rowid=rowid\n" +
-      ");\n",
-    );
-    runFile(migFile);
-    fs.unlinkSync(migFile);
+    runFile(path.join(MCP_DIR, "migrations/001-drop-unique-doc-no.sql"));
     console.log("  migration done");
   }
 }
