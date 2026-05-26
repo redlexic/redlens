@@ -788,6 +788,12 @@
     "isContract": true,
     "isProxy": false
   },
+  "0xb0c424116172b55cbb6dd3136f5989f7959e5b91": {
+    "chain": "ethereum",
+    "etherscanName": "VaultV2",
+    "isContract": true,
+    "isProxy": false
+  },
   "0xfe6eb3b609a7c8352a241f7f3a21cea4e9209b8f": {
     "chain": "ethereum",
     "etherscanName": "ERC1967Proxy",
