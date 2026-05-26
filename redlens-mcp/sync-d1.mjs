@@ -406,9 +406,12 @@ for (const stmt of [
 
 // One-time migration: remove UNIQUE constraint from docs.doc_no.
 // Detected via sqlite_master; runs once and becomes a no-op thereafter.
+// On a brand-new DB docs doesn't exist yet → sql is "" → skipped; schema.sql
+// creates it without UNIQUE anyway.
 {
   const rows = d1Query("SELECT sql FROM sqlite_master WHERE type='table' AND name='docs'");
-  if (rows?.[0]?.sql?.includes("UNIQUE")) {
+  const docsTableSql = rows?.[0]?.sql ?? "";
+  if (docsTableSql.includes("UNIQUE")) {
     console.log("Migrating docs: removing UNIQUE constraint from doc_no…");
     runFile(path.join(MCP_DIR, "migrations/001-drop-unique-doc-no.sql"));
     console.log("  migration done");
