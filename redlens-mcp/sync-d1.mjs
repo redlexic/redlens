@@ -255,7 +255,14 @@ fs.writeFileSync(
   // writeBatched is idempotent; the key set is stable so no stale keys accumulate.
   "DROP TRIGGER IF EXISTS docs_ai;\n" +
   "DROP TRIGGER IF EXISTS docs_ad;\n" +
-  "DROP TRIGGER IF EXISTS docs_au;\n",
+  "DROP TRIGGER IF EXISTS docs_au;\n" +
+  // Reset all doc_no values to the row's UUID before upserting. When the atlas
+  // renumbers a document, a UUID gets a new doc_no that may already be held by a
+  // different UUID in the DB. The ON CONFLICT(id) upsert can't fire before SQLite
+  // enforces the UNIQUE constraint on doc_no, causing SQLITE_CONSTRAINT_UNIQUE.
+  // Setting doc_no = id (always unique) pre-emptively clears all conflicts so the
+  // subsequent upsert can freely assign the correct doc_nos.
+  "UPDATE docs SET doc_no = id;\n",
 );
 const files = {
   docs:     path.join(TMP, "_docs.sql"),
