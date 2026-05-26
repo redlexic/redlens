@@ -21,7 +21,6 @@ export interface TreeRowData {
   focusedIndex: number;
   expandedIds: Set<string>;
   sidebarWidth: number;
-  pulseId?: string | null;
   onNavigate: (id: string) => void;
   onToggle: (id: string, e: React.MouseEvent) => void;
   onShiftNavigate?: (id: string) => void;
@@ -56,7 +55,6 @@ export function TreeRow({
   focusedIndex,
   expandedIds,
   sidebarWidth,
-  pulseId,
   onNavigate,
   onToggle,
   onShiftNavigate,
@@ -91,7 +89,6 @@ export function TreeRow({
   const { hasChildren } = item;
   const isSelected = index === selectedIndex;
   const isFocused = index === focusedIndex;
-  const isPulse = pulseId === node!.id;
   const isExpanded = expandedIds.has(node!.id);
   const depthVar = `var(--depth-${Math.min(Math.max(treeDepth, 1), 17)})`;
   const selectedBar = `color-mix(in srgb, ${depthVar} 80%, var(--row-bar-tint))`;
@@ -103,8 +100,9 @@ export function TreeRow({
 
   return (
     <div
+      data-node-id={node!.id}
       style={{ ...style, ...ROW_LAYOUT_STYLE, boxShadow }}
-      className={`tree-row ${isSelected ? "is-selected" : ""} ${isFocused ? "is-focused" : ""} ${isPulse ? "is-pulse" : ""}`}
+      className={`tree-row ${isSelected ? "is-selected" : ""} ${isFocused ? "is-focused" : ""}`}
       onClick={(e) => {
         if (e.shiftKey && onShiftNavigate) {
           e.preventDefault();
