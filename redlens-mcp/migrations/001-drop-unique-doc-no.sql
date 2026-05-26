@@ -4,7 +4,26 @@
 -- different UUID, colliding before ON CONFLICT(id) can fire).
 --
 -- SQLite does not support DROP CONSTRAINT, so we rebuild the table.
--- Guard: only run this file when sqlite_master still shows UNIQUE on doc_no.
+--
+-- Safe to run directly (without the runner):
+--   • Fresh DB: CREATE TABLE IF NOT EXISTS ensures docs exists (0 rows) so the
+--     INSERT below doesn't error on a missing table.
+--   • Already migrated: rebuilds an already-correct table (wastes ~10k writes
+--     but produces a correct result). The runner's schema_migrations check
+--     prevents this waste in normal operation.
+
+CREATE TABLE IF NOT EXISTS docs (
+  id         TEXT PRIMARY KEY,
+  doc_no     TEXT NOT NULL,
+  title      TEXT NOT NULL,
+  type       TEXT NOT NULL,
+  depth      INTEGER NOT NULL DEFAULT 0,
+  parent_id  TEXT,
+  content    TEXT NOT NULL DEFAULT '',
+  ord        INTEGER NOT NULL DEFAULT 0,
+  atlas_hash TEXT,
+  updated_at TEXT
+);
 
 DROP TABLE IF EXISTS _docs_migrate;
 CREATE TABLE _docs_migrate (
