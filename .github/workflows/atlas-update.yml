@@ -157,6 +157,7 @@ jobs:
     needs: build
     if: needs.build.outputs.proceed == 'true'
     runs-on: ubuntu-latest
+    environment: atlas-update-main-bypass
     steps:
       - uses: actions/checkout@v5
         with:
@@ -221,8 +222,11 @@ jobs:
             echo "PR already exists for $BRANCH."
           fi
 
-          # Enable auto-merge; merges automatically once required CI checks pass.
-          gh pr merge "$BRANCH" --auto --rebase
+          # Merge immediately via the bot token — the bot is a bypass actor in
+          # branch protection, so CI checks are not required. The build job
+          # above already ran the equivalent (type-check + bundle + snapshots).
+          # --auto would block forever because bot-created PRs don't trigger CI.
+          gh pr merge "$BRANCH" --rebase
 
           # Tag the atlas SHA so "what was deployed when X happened" is
           # answerable by atlas version.
