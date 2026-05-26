@@ -71,11 +71,17 @@ export function AtlasView({
     return RIGHT_PANEL_DEFAULT;
   });
 
+  // Ref keeps the current width readable inside the stable callback without
+  // adding rightWidth to useCallback's dep array (which would recreate the
+  // handler on every pixel of a drag and allocate mid-gesture closures).
+  const rightWidthRef = useRef(rightWidth);
+  rightWidthRef.current = rightWidth;
+
   const startResizeRight = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
       const startX = e.clientX;
-      const startWidth = rightWidth;
+      const startWidth = rightWidthRef.current;
       let latest = startWidth;
       const prevCursor = document.body.style.cursor;
       const prevSelect = document.body.style.userSelect;
@@ -99,7 +105,7 @@ export function AtlasView({
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
     },
-    [rightWidth],
+    [],
   );
   // Grows-only: once expanded, stays expanded across navigations so the user's context
   // (previously visited nodes) doesn't collapse out from under them.

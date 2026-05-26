@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { HEADER_OFFSET } from "../lib/layout";
 
 function useIsNarrow(maxWidth: number) {
@@ -57,35 +57,44 @@ export function Drawer({
 
   const effectiveWidth = isDrawer || !resizable ? width : currentWidth;
 
-  const startResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startWidth = currentWidth;
-    let latest = startWidth;
-    const prevCursor = document.body.style.cursor;
-    const prevSelect = document.body.style.userSelect;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
+  // Ref keeps current width readable inside the stable callback — same pattern
+  // as AtlasView.startResizeRight — so minWidth/maxWidth/storageKey are the
+  // only deps and the handler isn't recreated on every pixel of a drag.
+  const currentWidthRef = useRef(currentWidth);
+  currentWidthRef.current = currentWidth;
 
-    const onMove = (ev: MouseEvent) => {
-      const delta = ev.clientX - startX;
-      latest = Math.max(minWidth, Math.min(maxWidth, startWidth + delta));
-      setCurrentWidth(latest);
-    };
-    const onUp = () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-      document.body.style.cursor = prevCursor;
-      document.body.style.userSelect = prevSelect;
-      if (storageKey) {
-        try {
-          localStorage.setItem(storageKey, String(latest));
-        } catch {}
-      }
-    };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
+  const startResize = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = currentWidthRef.current;
+      let latest = startWidth;
+      const prevCursor = document.body.style.cursor;
+      const prevSelect = document.body.style.userSelect;
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const onMove = (ev: MouseEvent) => {
+        const delta = ev.clientX - startX;
+        latest = Math.max(minWidth, Math.min(maxWidth, startWidth + delta));
+        setCurrentWidth(latest);
+      };
+      const onUp = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        document.body.style.cursor = prevCursor;
+        document.body.style.userSelect = prevSelect;
+        if (storageKey) {
+          try {
+            localStorage.setItem(storageKey, String(latest));
+          } catch {}
+        }
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    [minWidth, maxWidth, storageKey],
+  );
 
   const showHandle = resizable && !isDrawer;
 
