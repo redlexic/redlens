@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback, useMemo, type ReactElement } from "react";
 import { buildAncestors, type LoadedData } from "../../lib/atlasHelpers";
-import { CollapsibleNode, ViewChildrenFill } from "./CollapsibleNode";
+import { CollapsibleNode } from "./CollapsibleNode";
+
+const ViewChildrenFill = ({ docNo, onExpand }: { docNo: string; onExpand: () => void }) => (
+  <button
+    type="button"
+    onClick={onExpand}
+    className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer"
+  >
+    view all descendants of {docNo}
+  </button>
+);
 import { type FlatEntry } from "../../lib/atlasHelpers";
 import { depthColor, realDepth } from "../../lib/depth";
 
