@@ -50,7 +50,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   onShiftNavigate?: (id: string) => void;
   idPrefix?: string;
 }) {
-  const { node, depth, color, indentPadding, hasContent } = entry;
+  const { node, depth, color, hasContent } = entry;
   const HeadingTag = `h${Math.min(depth, 6)}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   // NR-X nodes are leaves attached to regular tree nodes. The doc_no is opaque
   // ("NR-2"), so derive the chiclet strip from the parent's path plus one

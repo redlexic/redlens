@@ -16,7 +16,7 @@ import { getEdges, type EdgeResult } from "../../lib/graph";
 import { setAddressMap } from "../../lib/addressMap";
 import { loadGlossary, buildLookup, type GlossaryEntry } from "../../lib/glossary";
 import { type AtlasNode, type AddressInfo } from "../../types";
-import { CollapsibleNode, ViewChildrenFill } from "./CollapsibleNode";
+import { CollapsibleNode } from "./CollapsibleNode";
 import { flattenTree } from "../../lib/atlasHelpers";
 import { useDepth6Expand } from "./useDepth6Expand";
 import { RightPanel } from "./RightPanel";
