@@ -65,25 +65,23 @@ export function TreeRow({
   const docNo = node?.doc_no ?? "";
   const treeDepth = item?.treeDepth ?? 0;
 
-  // chiclet width = ~7 px/char + ~6 px (padding+border) per segment, no dots
-  const docNumWidth = docNo
-    .split(".")
-    .reduce((sum, seg) => sum + Math.max(13, seg.length * 7 + 6), 0);
-  const availableWidth = sidebarWidth - 5 - docNumWidth - TOGGLE_WIDTH - PAD_X - 6;
+  const docNoSegments = useMemo(() => {
+    if (!docNo) return { parts: [] as string[], depths: [] as number[], width: 0 };
+    const parts = docNo.split(".");
+    // NR-X nodes have a single opaque token; colour it at the node's actual tree depth
+    // rather than letting segmentDepths fall back to 1.
+    const depths = docNo.startsWith("NR-") ? [treeDepth] : segmentDepths(docNo);
+    // chiclet width = ~7 px/char + ~6 px (padding+border) per segment, no dots
+    const width = parts.reduce((sum, seg) => sum + Math.max(13, seg.length * 7 + 6), 0);
+    return { parts, depths, width };
+  }, [docNo, treeDepth]);
+
+  const availableWidth = sidebarWidth - 5 - docNoSegments.width - TOGGLE_WIDTH - PAD_X - 6;
 
   const displayTitle = useMemo(
     () => (title ? truncateTitle(title, Math.max(availableWidth, 20)) : ""),
     [title, availableWidth],
   );
-
-  const docNoSegments = useMemo(() => {
-    if (!docNo) return { parts: [] as string[], depths: [] as number[] };
-    const parts = docNo.split(".");
-    // NR-X nodes have a single opaque token; colour it at the node's actual tree depth
-    // rather than letting segmentDepths fall back to 1.
-    const depths = docNo.startsWith("NR-") ? [treeDepth] : segmentDepths(docNo);
-    return { parts, depths };
-  }, [docNo, treeDepth]);
 
   if (!item) return null;
   const { hasChildren } = item;
