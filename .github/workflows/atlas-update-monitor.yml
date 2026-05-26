@@ -1,0 +1,102 @@
+name: Atlas Update Monitor
+
+on:
+  schedule:
+    # Every 30 minutes. Exits early if no stuck atlas-update PR is found.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to investigate (leave empty to auto-detect)"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find stuck atlas-update PR
+        id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            echo "pr=${{ inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Only investigate PRs that have been open for >20 minutes so CI has
+          # time to run and (ideally) auto-merge before we intervene.
+          CUTOFF=$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+            || date -u -v-20M +%Y-%m-%dT%H:%M:%SZ)   # macOS fallback
+
+          PR=$(gh pr list \
+            --label atlas-update \
+            --state open \
+            --json number,createdAt \
+            --jq --arg cutoff "$CUTOFF" \
+            '[.[] | select(.createdAt < $cutoff)] | sort_by(.createdAt) | .[0].number // empty')
+
+          if [ -z "$PR" ]; then
+            echo "No stuck atlas-update PRs found — nothing to do."
+          else
+            echo "Found stuck PR #${PR}"
+          fi
+          echo "pr=${PR}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git auth for potential rebase/push
+        if: steps.find.outputs.pr != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin \
+            https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+
+      - name: Investigate and heal
+        if: steps.find.outputs.pr != ''
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            Atlas update PR #${{ steps.find.outputs.pr }} has been open for over 20 minutes without auto-merging. Your job is to get it merged.
+
+            Investigate, then fix the first applicable issue:
+
+            1. Check current status:
+               gh pr view ${{ steps.find.outputs.pr }} --json state,mergeable,autoMergeRequest,headRefName
+               gh pr checks ${{ steps.find.outputs.pr }}
+
+            2. Apply the appropriate fix:
+               a. Auto-merge not enabled → re-enable it:
+                  gh pr merge ${{ steps.find.outputs.pr }} --auto --rebase
+               b. Checks failing with transient/infra errors (runner setup, action download) → rerun:
+                  gh run rerun <run-id> --failed
+               c. Merge conflict → rebase onto main:
+                  git fetch origin
+                  git checkout <branch>
+                  git rebase origin/main
+                  git push -f origin <branch>
+               d. Real CI failure → examine logs:
+                  gh run view <run-id> --log-failed
+                  Identify root cause, push a targeted fix commit to the PR branch.
+
+            3. Only if you have exhausted the above and the PR still cannot merge:
+               Create a GitHub issue with:
+               - Title: "⚠️ Atlas update PR #${{ steps.find.outputs.pr }} needs attention"
+               - Body: clear diagnosis of what is wrong, what you tried, and what a human needs to do. Mention @anscharo.
+
+            Rules:
+            - Do NOT close the PR.
+            - Do NOT open a new PR.
+            - Do NOT push to main directly.
