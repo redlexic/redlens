@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 import type { RefObject } from "react";
-import { ROW_PULSE_MS } from "./usePulseOnChange";
+
+// Kept in sync with the --row-pulse-ms CSS variable; falls back to 700 ms.
+const ROW_PULSE_MS = (() => {
+  if (typeof window === "undefined") return 700;
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--row-pulse-ms").trim();
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 700;
+})();
 
 // Toggles `is-pulse` on the tree row matching `[data-node-id="${nodeId}"]` via
 // direct DOM classList mutation rather than React state. Keeping nodeId out of
