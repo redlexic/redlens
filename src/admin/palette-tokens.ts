@@ -56,6 +56,9 @@ export const PALETTE_TOKENS: readonly PaletteToken[] = [
   { name: "red", label: "Red", group: "brand", alpha: false, defaultValue: "#a63228" },
   { name: "red-dim", label: "Red Dim", group: "brand", alpha: false, defaultValue: "#753021" },
   { name: "accent", label: "Accent", group: "brand", alpha: false, defaultValue: "#c67267" },
+  { name: "magenta", label: "Magenta", group: "brand", alpha: false, defaultValue: "#c61f7c" },
+  { name: "terminal-green", label: "Terminal Green", group: "brand", alpha: false, defaultValue: "#399930" },
+  { name: "lily-green", label: "Lily Green", group: "brand", alpha: false, defaultValue: "#ecffea" },
 
   // ─── Text ───
   { name: "gray", label: "Gray", group: "text", alpha: false, defaultValue: "#9a8a80" },
