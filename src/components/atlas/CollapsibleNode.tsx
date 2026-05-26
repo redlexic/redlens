@@ -7,22 +7,6 @@ import { NodeMeta } from "./NodeMeta";
 
 const DRAG_THRESHOLD_PX = 4;
 
-export const ViewChildrenFill = ({
-  docNo,
-  onExpand,
-}: {
-  docNo: string;
-  onExpand: () => void;
-}) => (
-  <button
-    type="button"
-    onClick={onExpand}
-    className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer"
-  >
-    view all descendants of {docNo}
-  </button>
-);
-
 const TITLE_CLASS = "text-xl font-bold";
 
 export const CollapsibleNode = memo(function CollapsibleNode({
