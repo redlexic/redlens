@@ -365,7 +365,7 @@ function search(q: string): SearchHit[] {
       chainlogOnly.push(chainlogHit);
     }
   }
-  const searchOnly = scopedHits.filter((h) => !chainlogHits.has(h.id));
+  const searchOnly = hits.filter((h: SearchHit) => !chainlogHits.has(h.id));
 
   both.sort((a, b) => b.score - a.score);
   searchOnly.sort((a, b) => b.score - a.score);
