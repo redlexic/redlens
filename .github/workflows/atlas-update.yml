@@ -222,7 +222,7 @@ jobs:
           fi
 
           # Enable auto-merge; merges automatically once required CI checks pass.
-          gh pr merge "$BRANCH" --auto --squash
+          gh pr merge "$BRANCH" --auto --merge
 
           # Tag the atlas SHA so "what was deployed when X happened" is
           # answerable by atlas version.
