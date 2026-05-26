@@ -1,9 +1,9 @@
 import { memo, useRef } from "react";
 import { segmentDepths } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
-import { useCopyState } from "../../hooks/useCopyState";
 import { DocNoChiclets } from "../DocNoChiclets";
 import { NodeContent } from "../NodeContent";
+import { NodeMeta } from "./NodeMeta";
 
 const DRAG_THRESHOLD_PX = 4;
 
@@ -60,95 +60,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   const chicletSource = isNR && parentDocNo ? `${parentDocNo}.x` : node.doc_no;
   const docNoParts = chicletSource.split(".");
   const docNoDepths = chicletSource.startsWith("NR-") ? [1] : segmentDepths(chicletSource);
-  const urlCopy = useCopyState();
-  const docNoCopy = useCopyState();
   const mouseDownRef = useRef<{ x: number; y: number } | null>(null);
-
-  const handleCopyUrl = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const url = `${window.location.origin}${import.meta.env.BASE_URL}atlas?id=${node.id}`;
-    urlCopy.copy(url);
-  };
-
-  const handleCopyDocNo = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    docNoCopy.copy(node.doc_no);
-  };
-
-  const metaRow = (
-    <div className="flex items-center gap-3 shrink-0">
-      <span className="atlas-type-pill">{node.type}</span>
-      <button
-        type="button"
-        onClick={handleCopyDocNo}
-        title={docNoCopy.copied ? "Copied!" : `Copy ${node.doc_no}`}
-        className="atlas-copy-btn"
-        data-copied={docNoCopy.copied ? "true" : undefined}
-      >
-        <svg
-          width="11"
-          height="11"
-          viewBox="0 0 12 12"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          <rect x="4" y="4" width="7" height="7" rx="1" />
-          <path d="M1 8V2C1 1.45 1.45 1 2 1H8" />
-        </svg>
-        <span className="atlas-copy-flip" data-flipped={docNoCopy.copied ? "true" : undefined}>
-          <span className="label">{node.doc_no}</span>
-          <span className="flipped">copied</span>
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={handleCopyUrl}
-        title={urlCopy.copied ? "Copied!" : `Copy link · ${node.id}`}
-        className="atlas-copy-btn"
-        data-copied={urlCopy.copied ? "true" : undefined}
-      >
-        <svg
-          width="11"
-          height="11"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-        </svg>
-        <span className="atlas-copy-flip" data-flipped={urlCopy.copied ? "true" : undefined}>
-          <span className="label">{`${node.id.slice(0, 3)}…${node.id.slice(-3)}`}</span>
-          <span className="flipped">copied</span>
-        </span>
-      </button>
-      <a
-        href={`https://sky-atlas.io/#${node.id}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Open on Sky Atlas"
-        className="atlas-external-link shrink-0 inline-flex items-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <img
-          src={`${import.meta.env.BASE_URL}sky.png`}
-          alt=""
-          aria-hidden="true"
-          width={14}
-          height={14}
-          className="block"
-        />
-      </a>
-    </div>
-  );
 
   return (
     <div
@@ -206,7 +118,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
           </HeadingTag>
         </div>
       </div>
-      <div className="atlas-node-meta">{metaRow}</div>
+      {isSelected && <div className="atlas-node-meta"><NodeMeta node={node} /></div>}
 
       {hiddenCount > 0 && onExpandChildren && (
         <button
