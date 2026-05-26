@@ -344,25 +344,24 @@ mark {
 .atlas-node[data-has-hidden="true"] {
   border-bottom: 1px solid var(--border);
 }
-/* Rows newly revealed by an expansion event get a brief fade-in.
-   The class is applied only while the row's parent is in the
-   `recentlyExpanded` set (~350ms), then removed. */
-.atlas-node-fresh {
-  animation: atlas-node-appear 220ms ease-out;
+/* Rows newly revealed by a user-initiated expand animate in.
+   data-expanding is set on .atlas-scroll for 250 ms by handleExpandParent
+   in AtlasView — a plain DOM mutation, no React state, no re-render.
+   @starting-style fires only for elements inserted while the attribute is
+   present, so initial-load nodes and navigation-triggered auto-expansions
+   are unaffected. */
+[data-expanding] .atlas-node {
+  transition: background-color 0.1s, opacity 220ms ease-out, transform 220ms ease-out;
 }
-@keyframes atlas-node-appear {
-  from {
+@starting-style {
+  [data-expanding] .atlas-node {
     opacity: 0;
     transform: translateY(-3px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .atlas-node-fresh {
-    animation: none;
+  [data-expanding] .atlas-node {
+    transition: background-color 0.1s;
   }
   .tree-row.is-pulse {
     animation: none;

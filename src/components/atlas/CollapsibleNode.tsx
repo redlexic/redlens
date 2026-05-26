@@ -32,7 +32,6 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   isSelected,
   isExpanded,
   hiddenCount = 0,
-  fresh = false,
   parentDocNo,
   onExpandChildren,
   onNavigate,
@@ -44,7 +43,6 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   isSelected: boolean;
   isExpanded: boolean;
   hiddenCount?: number;
-  fresh?: boolean;
   parentDocNo?: string;
   onExpandChildren?: (id: string) => void;
   onNavigate: (id: string) => void;
@@ -52,7 +50,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   onShiftNavigate?: (id: string) => void;
   idPrefix?: string;
 }) {
-  const { node, depth, color, indentPadding, hasContent } = entry;
+  const { node, depth, color, hasContent } = entry;
   const HeadingTag = `h${Math.min(depth, 6)}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   // NR-X nodes are leaves attached to regular tree nodes. The doc_no is opaque
   // ("NR-2"), so derive the chiclet strip from the parent's path plus one
@@ -155,7 +153,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   return (
     <div
       id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
-      className={`atlas-node relative${fresh ? " atlas-node-fresh" : ""}${isSelected ? " is-selected" : ""}`}
+      className={`atlas-node relative${isSelected ? " is-selected" : ""}`}
       data-has-hidden={hiddenCount > 0 ? "true" : undefined}
       style={{ ["--row-color" as string]: color } as React.CSSProperties}
       tabIndex={0}

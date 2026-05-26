@@ -16,7 +16,7 @@ import { getEdges, type EdgeResult } from "../../lib/graph";
 import { setAddressMap } from "../../lib/addressMap";
 import { loadGlossary, buildLookup, type GlossaryEntry } from "../../lib/glossary";
 import { type AtlasNode, type AddressInfo } from "../../types";
-import { CollapsibleNode, ViewChildrenFill } from "./CollapsibleNode";
+import { CollapsibleNode } from "./CollapsibleNode";
 import { flattenTree } from "../../lib/atlasHelpers";
 import { useDepth6Expand } from "./useDepth6Expand";
 import { RightPanel } from "./RightPanel";
@@ -202,10 +202,26 @@ export function AtlasView({
     });
   }, []);
 
-  const { expandedParents, recentlyExpanded, hiddenCount, expandParent } = useDepth6Expand(
+  const { expandedParents, hiddenCount, expandParent } = useDepth6Expand(
     data?.flatNodes ?? [],
     id,
   );
+
+  // Sets data-expanding on the scroll container for 250 ms (> the 220 ms CSS transition)
+  // so @starting-style animates newly inserted nodes. Plain DOM mutation — no React state,
+  // no re-render, no effect on docList's dep array.
+  const expandAnimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleExpandParent = useCallback((nodeId: string) => {
+    expandParent(nodeId);
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    if (expandAnimTimerRef.current !== null) clearTimeout(expandAnimTimerRef.current);
+    el.setAttribute("data-expanding", "true");
+    expandAnimTimerRef.current = setTimeout(() => {
+      el.removeAttribute("data-expanding");
+      expandAnimTimerRef.current = null;
+    }, 250);
+  }, [expandParent]);
 
   // scrolledRef guards against re-scrolling when only expandedParents changes (depth-6 expand).
   // Reset on every id change so revisiting a node re-checks and scrolls if needed.
@@ -232,7 +248,6 @@ export function AtlasView({
     for (const entry of data.flatNodes) {
       if (entry.depth >= 6 && !expandedParents.has(entry.node.parentId ?? "")) continue;
       const gatedCount = expandedParents.has(entry.node.id) ? 0 : (hiddenCount.get(entry.node.id) ?? 0);
-      const fresh = recentlyExpanded.has(entry.node.parentId ?? "");
       const parentDocNo = entry.node.parentId
         ? data.atlas.docs[entry.node.parentId]?.doc_no
         : undefined;
@@ -243,9 +258,8 @@ export function AtlasView({
           isSelected={entry.node.id === id}
           isExpanded={expandedSet.has(entry.node.id) !== userToggles.has(entry.node.id)}
           hiddenCount={gatedCount}
-          fresh={fresh}
           parentDocNo={parentDocNo}
-          onExpandChildren={expandParent}
+          onExpandChildren={handleExpandParent}
           onNavigate={onNavigate}
           onToggle={handleToggle}
           onShiftNavigate={onSplitChange}
@@ -262,8 +276,7 @@ export function AtlasView({
     handleToggle,
     expandedParents,
     hiddenCount,
-    recentlyExpanded,
-    expandParent,
+    handleExpandParent,
     onSplitChange,
   ]);
 
