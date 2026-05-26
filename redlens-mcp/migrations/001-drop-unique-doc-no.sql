@@ -6,8 +6,8 @@
 -- SQLite does not support DROP CONSTRAINT, so we rebuild the table.
 -- Guard: only run this file when sqlite_master still shows UNIQUE on doc_no.
 
-DROP TABLE IF EXISTS docs_new;
-CREATE TABLE docs_new (
+DROP TABLE IF EXISTS _docs_migrate;
+CREATE TABLE _docs_migrate (
   id         TEXT PRIMARY KEY,
   doc_no     TEXT NOT NULL,
   title      TEXT NOT NULL,
@@ -19,10 +19,10 @@ CREATE TABLE docs_new (
   atlas_hash TEXT,
   updated_at TEXT
 );
-INSERT INTO docs_new SELECT id,doc_no,title,type,depth,parent_id,content,ord,atlas_hash,updated_at FROM docs;
+INSERT INTO _docs_migrate SELECT id,doc_no,title,type,depth,parent_id,content,ord,atlas_hash,updated_at FROM docs;
 DROP TABLE IF EXISTS docs_fts;
 DROP TABLE docs;
-ALTER TABLE docs_new RENAME TO docs;
+ALTER TABLE _docs_migrate RENAME TO docs;
 CREATE INDEX IF NOT EXISTS idx_docs_doc_no ON docs(doc_no);
 CREATE INDEX IF NOT EXISTS idx_docs_parent ON docs(parent_id);
 CREATE INDEX IF NOT EXISTS idx_docs_type   ON docs(type);
