@@ -50,7 +50,6 @@ export interface FlatEntry {
   node: AtlasNode;
   depth: number;
   color: string;
-  indentPadding: number;
   hasContent: boolean;
 }
 
@@ -63,7 +62,6 @@ export function flattenTree(byParent: Map<string | null, AtlasNode[]>): FlatEntr
         node,
         depth,
         color: depthColor(depth),
-        indentPadding: (depth - 1) * 7,
         hasContent: !!node.content,
       });
       walk(node.id, node.doc_no);

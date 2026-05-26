@@ -103,7 +103,6 @@ export function JuniorPane({
       result.push(
         <ViewChildrenFill
           key="bottom"
-          nodeId={splitId}
           docNo={docNo}
           onExpand={() => setShowMore(true)}
         />,

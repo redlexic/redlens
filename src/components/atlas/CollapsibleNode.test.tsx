@@ -24,7 +24,6 @@ const baseEntry: FlatEntry = {
   node: baseNode,
   depth: 3,
   color: "var(--depth-3)",
-  indentPadding: 14,
   hasContent: true,
 };
 

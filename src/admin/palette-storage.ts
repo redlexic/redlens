@@ -12,6 +12,11 @@ interface PaletteOverridesV1 {
   values: Record<string, string>;
 }
 
+// Built once at module load; used to whitelist keys from localStorage so that
+// a tampered store (e.g. from a compromised extension) can't inject arbitrary
+// CSS custom properties via applyOverrides.
+const ALLOWED_TOKEN_NAMES = new Set(PALETTE_TOKENS.map((t) => t.name));
+
 export function readOverrides(): Record<string, string> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -20,7 +25,11 @@ export function readOverrides(): Record<string, string> {
     if (parsed?.v !== SCHEMA_VERSION || typeof parsed.values !== "object" || parsed.values === null) {
       return {};
     }
-    return parsed.values;
+    const safe: Record<string, string> = {};
+    for (const [k, v] of Object.entries(parsed.values)) {
+      if (ALLOWED_TOKEN_NAMES.has(k) && typeof v === "string") safe[k] = v;
+    }
+    return safe;
   } catch {
     return {};
   }
