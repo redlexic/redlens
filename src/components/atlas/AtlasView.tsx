@@ -158,6 +158,13 @@ export function AtlasView({
     return buildAncestorsWithSelf(data.atlas.docs, data.atlas.docNoToId, id);
   }, [data, id]);
 
+  // Glossary lookup is stable once data loads — separate memo so it isn't
+  // rebuilt on every navigation (the outer memo re-runs on every id change).
+  const glossaryLookup = useMemo(
+    () => (data ? buildLookup(data.glossary) : {}),
+    [data],
+  );
+
   const { linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {
     const empty = {
       linkedNodes: [] as AtlasNode[],
@@ -180,11 +187,10 @@ export function AtlasView({
       const val = data.chainState.values[ref];
       if (val) cv[ref] = val;
     }
-    const lookup = buildLookup(data.glossary);
     const contentLower = target.content.toLowerCase();
     const seen = new Set<GlossaryEntry[]>();
     const glossaryTerms: GlossaryEntry[][] = [];
-    for (const entries of Object.values(lookup)) {
+    for (const entries of Object.values(glossaryLookup)) {
       if (!seen.has(entries) && entries.some((e) => contentLower.includes(e.term.toLowerCase()))) {
         seen.add(entries);
         glossaryTerms.push(entries);
@@ -192,7 +198,7 @@ export function AtlasView({
     }
     glossaryTerms.sort((a, b) => a[0].term.localeCompare(b[0].term));
     return { linkedNodes, targetAddresses, chainValues: cv, glossaryTerms };
-  }, [data, id]);
+  }, [data, id, glossaryLookup]);
 
   const handleToggle = useCallback((nodeId: string) => {
     setUserToggles((prev) => {
