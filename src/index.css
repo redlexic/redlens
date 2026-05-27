@@ -171,7 +171,7 @@ mark {
 .tree-row {
   cursor: pointer;
   white-space: nowrap;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   font-weight: 600;
   transition: background-color 0.1s;
@@ -380,13 +380,14 @@ mark {
     animation: none;
   }
 }
+
 .atlas-node.is-selected {
   background-color: var(--atlas-row-selected);
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--row-color) 80%, var(--row-bar-tint));
 }
 .atlas-node:not(.is-selected):hover,
 .atlas-node:not(.is-selected):focus-visible {
-  background-color: var(--node-hover);
+  background-color: color-mix(in srgb, var(--bg-alt) 22%, var(--atlas-row-selected));
   outline: none;
   box-shadow: inset 3px 1px 0px var(--bg);
 }
