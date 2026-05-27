@@ -100,7 +100,7 @@ export const CollapsibleNode = memo(function CollapsibleNode({
       }}
     >
       {/* data-row-bar: marker the outer onClick uses to distinguish title-bar clicks from body clicks (see handler above). */}
-      <div data-row-bar className="flex items-center gap-2">
+      <div data-row-bar className="flex items-center gap-2 pl-3">
         <DocNoChiclets parts={docNoParts} depths={docNoDepths} />
         <div className="atlas-node-title flex items-center gap-2 py-1.5 flex-1 min-w-0">
           <HeadingTag className={TITLE_CLASS}>

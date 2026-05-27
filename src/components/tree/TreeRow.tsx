@@ -5,9 +5,9 @@ import type { AtlasNode } from "../../types";
 import { truncateTitle } from "../../lib/treeUtils";
 import { DocNoChiclets } from "../DocNoChiclets";
 
-export const ROW_HEIGHT = 25;
-const TOGGLE_WIDTH = 14;
-const PAD_X = 6;
+export const ROW_HEIGHT = 26;
+const TOGGLE_WIDTH = 12;
+const PAD_X = 3;
 
 export interface VisibleNode {
   node: AtlasNode;
@@ -30,14 +30,16 @@ const TOGGLE_BASE: React.CSSProperties = {
   width: TOGGLE_WIDTH,
   textAlign: "center",
   flexShrink: 0,
-  fontSize: 10,
+  fontSize: 16,
   userSelect: "none",
 };
 const TITLE_BASE: React.CSSProperties = {
   flex: 1,
+  marginLeft: 5,
+  fontSize: 13,
   overflow: "hidden",
   whiteSpace: "nowrap",
-  letterSpacing: "0.035em",
+  letterSpacing: "0.05em",
 };
 const ROW_LAYOUT_STYLE: React.CSSProperties = {
   paddingLeft: 5,
@@ -108,7 +110,7 @@ export function TreeRow({
         } else onNavigate(node.id);
       }}
     >
-      <DocNoChiclets parts={docNoSegments.parts} depths={docNoSegments.depths} />
+      
       <span
         className="tree-toggle"
         style={{ ...TOGGLE_BASE, color: hasChildren ? "var(--tan-3)" : "transparent" }}
@@ -116,8 +118,8 @@ export function TreeRow({
       >
         {hasChildren ? (isExpanded ? "\u25BE" : "\u25B8") : "\u00B7"}
       </span>
+      <DocNoChiclets parts={docNoSegments.parts} depths={docNoSegments.depths} />
       <span
-        className="tree-title"
         style={{ ...TITLE_BASE, color: "var(--tan)" }}
         title={node.doc_no + " \u2014 " + node.title}
       >
