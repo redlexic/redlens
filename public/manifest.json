@@ -1,35 +1,35 @@
 {
-  "generatedAt": "2026-05-27T11:17:39.636Z",
-  "redlensCommit": "85a0b59d05944e37e65d1ea87e6d25cf6b16c7cc",
-  "atlasCommit": "4e66552ed949b77c5727c04fc05e313a27566743",
+  "generatedAt": "2026-05-27T11:31:51.653Z",
+  "redlensCommit": "c723d89c20418f325930d0f15d9f7dc8627ef6a5",
+  "atlasCommit": "f5d4d29c00dffe7c14be8fb48493560865382231",
   "artifacts": {
     "docs.json": {
-      "sha256": "230815e37e3a83ec00505ad3b504249f756393a1c7f020276b2693a7c5978389",
-      "bytes": 5814850
+      "sha256": "8fbcecc4ff5ec13d4139911b58b00ac849b1137b85fe50e70563b99063004e82",
+      "bytes": 5827292
     },
     "search-index.json": {
-      "sha256": "466cc080dbfb3b325980942427fe533e3d4e950bff83ab1afaac50c6c388e337",
-      "bytes": 3299263
+      "sha256": "b84e738c253b2ec4d762255e8fa5030c0268a1220d5fc8272011664a603607e8",
+      "bytes": 3305233
     },
     "addresses.atlas.json": {
-      "sha256": "6e029967ef5c2495302db0fc368b7665b0cb11a95bc455896ae46e23f1288fb1",
-      "bytes": 52005
+      "sha256": "797274784e6b8f786fbf073f5bc2ba194feb443365647e4f311fd4a969fe5afc",
+      "bytes": 52145
     },
     "addresses.json": {
-      "sha256": "b962f26df6f80781ac9ac600af44f7145d16515401b8b64996170003daba17cb",
-      "bytes": 53933
+      "sha256": "cc979d50418f488ddd96bc9882e2730b5ac135336bece9ff9874b7fe21e0dff7",
+      "bytes": 54090
     },
     "glossary.json": {
-      "sha256": "a803c181acdd84079d86b95845e664d3e0a9d6f7b254f36e2c3288ddf23fcb5f",
-      "bytes": 51724
+      "sha256": "9e051c176f4012602c3db9a2b984a1ef75d1b9eb8a17e29e6681a86b99a7a39e",
+      "bytes": 52803
     },
     "relations.json": {
-      "sha256": "5cedb968ba5a636a7b021ecf727d26b25bc97fcd81ac9bc4181d36ed51e4db64",
-      "bytes": 1045919
+      "sha256": "f331f28a1036853cc3e42c440afec8338c086b083ddacc844fb429d790486c35",
+      "bytes": 1050491
     },
     "graph.json": {
-      "sha256": "3ce86025284803853e9c422e17abb7e383e4a48f09fd915a017822645e2480ee",
-      "bytes": 3572315
+      "sha256": "e79f60ddc098e64ba42d09c9415c43d528ee9c34504fa4df6ce589978f824c30",
+      "bytes": 3584546
     }
   }
 }
