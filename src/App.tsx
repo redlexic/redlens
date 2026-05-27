@@ -133,7 +133,7 @@ export default function App() {
             <Drawer
               open={treeOpen}
               onClose={() => setTreeOpen(false)}
-              width={242}
+              defaultWidth={242}
               resizable
               minWidth={180}
               maxWidth={600}

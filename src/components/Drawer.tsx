@@ -18,7 +18,7 @@ interface DrawerProps {
   open: boolean;
   onClose: () => void;
   breakpoint?: number;
-  width?: number;
+  defaultWidth?: number;
   /** Desktop layout. "static" keeps the sidebar in flex flow (fixed-shell
    *  routes). "sticky" pins it to the viewport below the header so it stays
    *  visible while the window scrolls (window-scroll routes). */
@@ -34,7 +34,7 @@ export function Drawer({
   open,
   onClose,
   breakpoint = 1050,
-  width = 220,
+  defaultWidth: defaultWidth = 220,
   desktopMode = "static",
   resizable = false,
   minWidth = 180,
@@ -45,7 +45,7 @@ export function Drawer({
   const isDrawer = useIsNarrow(breakpoint);
 
   const [currentWidth, setCurrentWidth] = useState(() => {
-    if (!resizable || !storageKey) return width;
+    if (!resizable || !storageKey) return defaultWidth;
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) {
@@ -53,10 +53,10 @@ export function Drawer({
         if (Number.isFinite(n) && n >= minWidth && n <= maxWidth) return n;
       }
     } catch {}
-    return width;
+    return defaultWidth;
   });
 
-  const effectiveWidth = isDrawer || !resizable ? width : currentWidth;
+  const effectiveWidth = isDrawer || !resizable ? defaultWidth : currentWidth;
 
   const startResize = useResizeDrag(currentWidth, setCurrentWidth, {
     min: minWidth,
