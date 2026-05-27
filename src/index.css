@@ -194,7 +194,7 @@ mark {
     background-color: var(--row-pulse-flash);
   }
   100% {
-    background-color: var(--row-selected);
+    background-color: color-mix(in srgb, var(--row-color) 15%, var(--row-selected));
   }
 }
 .tree-toggle {

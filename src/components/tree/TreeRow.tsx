@@ -101,7 +101,7 @@ export function TreeRow({
   return (
     <div
       data-node-id={node!.id}
-      style={{ ...style, ...ROW_LAYOUT_STYLE, boxShadow }}
+      style={{ ...style, ...ROW_LAYOUT_STYLE, boxShadow, ["--row-color" as string]: depthVar }}
       className={`tree-row ${isSelected ? "is-selected" : ""} ${isFocused ? "is-focused" : ""}`}
       onClick={(e) => {
         if (e.shiftKey && onShiftNavigate) {
