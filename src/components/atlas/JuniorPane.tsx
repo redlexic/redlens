@@ -152,7 +152,9 @@ export function JuniorPane({
                   onShiftNavigate(a.id);
                 }}
                 className="hover:text-tan"
-                style={{ color: depthColor(realDepth(a.doc_no)) }}
+                style={{ 
+                  color:  `var(--tan3)`,
+                }}
               >
                 {a.title}
               </a>
@@ -161,7 +163,7 @@ export function JuniorPane({
           {node && (
             <span>
               {ancestors.length > 0 && <span> / </span>}
-              <span style={{ color: depthColor(realDepth(node.doc_no)) }}>{node.title}</span>
+              <span style={{ color: `color-mix(in srgb,${depthColor(realDepth(node.doc_no))} 75%, white)` }}>{node.title}</span>
             </span>
           )}
         </span>

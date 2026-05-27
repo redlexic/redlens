@@ -26,7 +26,7 @@
   /* ─── Row state overlays (translucent white) ─── */
   --row-hover: rgba(255, 255, 255, 0.1);
   --row-selected: rgba(255, 255, 255, 0.08);
-  --row-focused: rgba(255, 255, 255, 0.04);
+  --row-focused: rgba(255, 255, 255, 0.06);
   --atlas-row-selected: #1f1f1f;
   --row-pulse-flash: rgba(255, 255, 255, 0.28);
   --row-bar-tint: white; /* mix target for the selected red-bar tint; overridden in light theme */
@@ -178,13 +178,13 @@ mark {
   border-radius: 2px;
 }
 .tree-row:hover {
-  background: var(--row-hover);
+  background-color: color-mix(in srgb, var(--row-color) 8%, var(--row-hover));
 }
 .tree-row.is-selected {
-  background: var(--row-selected);
+  background-color: color-mix(in srgb, var(--row-color) 15%, var(--row-selected));
 }
 .tree-row.is-focused {
-  background: var(--row-focused);
+  background: color-mix(in srgb, var(--row-color) 8%, var(--row-focused));
 }
 .tree-row.is-pulse {
   animation: tree-row-pulse var(--row-pulse-ms) ease-out;
@@ -235,8 +235,8 @@ mark {
 }
 .breadcrumb-link:hover,
 .breadcrumb-link:focus-visible {
-  background-color: color-mix(in srgb, var(--crumb-color) 25%, transparent);
-  color: var(--crumb-color);
+  background-color: color-mix(in srgb, var(--crumb-color) 70%, white);
+  color: color-mix(in srgb, var(--crumb-color) 10%, var(--bg));
 }
 .breadcrumb-link:focus-visible .short {
   display: none;
