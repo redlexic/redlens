@@ -61,6 +61,7 @@ export function AtlasView({
   const [data, setData] = useState<LoadedData | null>(null);
   const [userToggles, setUserToggles] = useState<Set<string>>(new Set());
   const [graphEdges, setGraphEdges] = useState<EdgeResult>(EMPTY_EDGES);
+  const [selectedId, setSelectedId] = useState<string | null>(id);
   const [rightWidth, setRightWidth] = useState(() => {
     try {
       const raw = localStorage.getItem(RIGHT_PANEL_KEY);
@@ -177,6 +178,17 @@ export function AtlasView({
     return { linkedNodes, targetAddresses, chainValues: cv, glossaryTerms };
   }, [data, id, glossaryLookup]);
 
+  // Mirror external URL-driven changes (back/forward, sidebar nav) into local state.
+  // we use local state as it means ui updates faster (optimistically) than when we wait for the url change event. 
+  useEffect(() => { setSelectedId(id); }, [id]);
+
+  // Flip selection optimistically so the CSS class updates in the current frame,
+  // then defer the URL update (and its cascade) as a transition.
+  const handleNavigate = useCallback((nid: string) => {
+    setSelectedId(nid); // this is a performance / optimstic flow update
+    startTransition(() => onNavigate(nid));
+  }, [onNavigate]);
+
   const handleToggle = useCallback((nodeId: string) => {
     setUserToggles((prev) => {
       const next = new Set(prev);
@@ -229,12 +241,12 @@ export function AtlasView({
         <CollapsibleNode
           key={entry.node.id}
           entry={entry}
-          isSelected={entry.node.id === id}
+          isSelected={entry.node.id === selectedId}
           isExpanded={expandedSet.has(entry.node.id) !== userToggles.has(entry.node.id)}
           hiddenCount={gatedCount}
           parentDocNo={parentDocNo}
           onExpandChildren={handleExpandParent}
-          onNavigate={onNavigate}
+          onNavigate={handleNavigate}
           onToggle={handleToggle}
           onShiftNavigate={onSplitChange}
         />,
@@ -244,9 +256,10 @@ export function AtlasView({
   }, [
     data,
     id,
+    selectedId,
     expandedSet,
     userToggles,
-    onNavigate,
+    handleNavigate,
     handleToggle,
     expandedParents,
     hiddenCount,
@@ -309,13 +322,13 @@ export function AtlasView({
           )}
           <div ref={scrollContainerRef} className="atlas-scroll overflow-y-auto flex-1" style={{ minHeight: 0 }}>
             <div className="mx-auto py-2">
-              <ErrorBoundary key={id} fallback={<PanelError />}>
+              <ErrorBoundary resetKey={id} fallback={<PanelError />}>
                 {docList}
               </ErrorBoundary>
             </div>
           </div>
           {splitId && data && (
-            <ErrorBoundary key={splitId} fallback={<PanelError />}>
+            <ErrorBoundary resetKey={splitId} fallback={<PanelError />}>
               <JuniorPane
                 splitId={splitId}
                 data={data}
@@ -343,7 +356,7 @@ export function AtlasView({
                 zIndex: 10,
               }}
             />
-            <ErrorBoundary key={id} fallback={(_, reset) => <PanelError reset={reset} />}>
+            <ErrorBoundary resetKey={id} fallback={(_, reset) => <PanelError reset={reset} />}>
               <RightPanel
                 id={id}
                 linkedNodes={linkedNodes}
