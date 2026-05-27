@@ -255,7 +255,6 @@ export function AtlasView({
     return items;
   }, [
     data,
-    id,
     selectedId,
     expandedSet,
     userToggles,
