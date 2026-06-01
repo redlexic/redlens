@@ -8,6 +8,8 @@ import { config } from "./config.ts";
 import { loadIndexes } from "./indexes.ts";
 import { createMcpServer } from "./mcp.ts";
 import { startUpdater, startBootEmbeddings } from "./atlas-updater.ts";
+import { handleAuth } from "./auth.ts";
+import { handleChat } from "./chat.ts";
 
 const t0 = performance.now();
 const ix = loadIndexes();
@@ -43,6 +45,11 @@ const server = Bun.serve({
         { headers: CORS },
       );
     }
+
+    // Auth routes own their own Set-Cookie / Location headers; CORS is moot
+    // (same-origin browser navigation + same-origin fetch), so don't re-wrap.
+    if (pathname.startsWith("/api/auth/")) return handleAuth(req, pathname);
+    if (pathname === "/api/chat") return handleChat(req);
 
     if (pathname === config.mcpPath) {
       if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: CORS });

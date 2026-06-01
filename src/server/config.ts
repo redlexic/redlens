@@ -3,9 +3,21 @@
 import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dir, "../..");
+const port = Number(process.env.PORT ?? 3000);
 
 export const config = {
-  port: Number(process.env.PORT ?? 3000),
+  port,
+
+  // Public origin used to build the OAuth redirect URI and post-login redirects.
+  // Railway sets RAILWAY_PUBLIC_DOMAIN; locally we fall back to the bound port.
+  appUrl:
+    process.env.APP_URL ??
+    (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : `http://localhost:${port}`),
+
+  // GitHub OAuth (arctic) + stateless JWT session cookie.
+  githubClientId: process.env.GITHUB_CLIENT_ID ?? "",
+  githubClientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
+  jwtSecret: process.env.CHAT_JWT_SECRET ?? "",
 
   // Postgres. Local default points at the docker-compose service.
   databaseUrl:
@@ -17,6 +29,11 @@ export const config = {
   openrouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
   openrouterBaseUrl: process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1",
   embedModel: process.env.EMBED_MODEL ?? "qwen/qwen3-embedding-8b",
+
+  // Chat LLM (OpenRouter via the openai SDK). One model for all users; swap via env.
+  chatModel: process.env.CHAT_MODEL ?? "qwen/qwen3-32b",
+  // Hard server-side cap on agentic tool rounds (system-prompt budget is advisory).
+  chatMaxIterations: Number(process.env.CHAT_MAX_ITERATIONS ?? 6),
 
   // MCP transport mount path (streamable HTTP, no auth this phase).
   mcpPath: process.env.MCP_PATH ?? "/mcp",

@@ -48,12 +48,15 @@
     "@chenglou/pretext": "^0.0.5",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@xyflow/react": "^12.10.2",
+    "arctic": "^3.7.0",
     "graphology": "^0.26.0",
     "graphology-layout-forceatlas2": "^0.10.1",
     "graphology-layout-noverlap": "^0.4.2",
     "graphology-traversal": "^0.3.1",
+    "jose": "^6.2.3",
     "katex": "^0.16.45",
     "minisearch": "^7.2.0",
+    "openai": "^6.39.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-markdown": "^10.1.0",
@@ -64,7 +67,8 @@
     "unist-util-visit": "^5.1.0",
     "workbox-window": "^7.4.1",
     "wouter": "^3.9.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",
