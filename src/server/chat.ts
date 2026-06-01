@@ -12,6 +12,7 @@ import { getSessionUser } from "./session.ts";
 import { getModel, openrouterStream } from "./llm.ts";
 import { runChat, type ChatEvent } from "./chat-loop.ts";
 import { buildSystemPrompt, type PageContext } from "./system-prompt.ts";
+import { getWindowUsage } from "./rate-limit.ts";
 
 type Msg = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -60,6 +61,26 @@ export async function handleChat(req: Request): Promise<Response> {
   if (!body.message?.trim()) return json({ error: "empty_message" }, 400);
 
   const userId = session.user.id;
+
+  // Hard rate-limit gate on the user's token window — check BEFORE creating a
+  // conversation or spending any LLM tokens. The 429 tells the user exactly how
+  // many tokens they've used and when the window resets (+ Retry-After header).
+  const usage = await getWindowUsage(userId);
+  if (usage.exceeded) {
+    const retryAfter = Math.max(0, Math.ceil((Date.parse(usage.resetsAt) - Date.now()) / 1000));
+    return new Response(
+      JSON.stringify({
+        error: "rate_limited",
+        message: `Usage limit reached — ${usage.tokens.toLocaleString()} of ${usage.limit.toLocaleString()} tokens used this window. Resets at ${usage.resetsAt}.`,
+        tokensUsed: usage.tokens,
+        limit: usage.limit,
+        resetsAt: usage.resetsAt,
+        window: usage,
+      }),
+      { status: 429, headers: { "content-type": "application/json", "retry-after": String(retryAfter) } },
+    );
+  }
+
   const convId = await resolveConversation(userId, body);
   if (!convId) return json({ error: "conversation_not_found" }, 404);
 
