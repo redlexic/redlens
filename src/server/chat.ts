@@ -34,7 +34,10 @@ async function resolveConversation(userId: string, body: ChatBody): Promise<stri
     `) as { id: string }[];
     return owned[0]?.id ?? null;
   }
-  const pc = body.pageContext ? JSON.stringify(body.pageContext) : null;
+  // Pass the RAW object (not JSON.stringify'd) + ::jsonb cast — Bun JSON-encodes
+  // the value once for the cast; pre-stringifying double-encodes it into a jsonb
+  // string scalar. Matches the jsonb pattern in sync.ts.
+  const pc = body.pageContext ?? null;
   const created = (await sql`
     INSERT INTO conversations (user_id, model, page_context, title)
     VALUES (${userId}, ${getModel()}, ${pc}::jsonb, ${body.message.slice(0, 60)})
@@ -105,10 +108,11 @@ export async function handleChat(req: Request): Promise<Response> {
 }
 
 async function persistAssistant(convId: string, done: Extract<ChatEvent, { type: "done" }>, latencyMs: number): Promise<void> {
-  const toolCallsJson = done.toolCalls.length ? JSON.stringify(done.toolCalls) : null;
+  // Raw array + ::jsonb (see resolveConversation note) — not JSON.stringify'd.
+  const toolCalls = done.toolCalls.length ? done.toolCalls : null;
   await sql`
     INSERT INTO messages (conversation_id, role, content, tool_calls, input_tokens, output_tokens, generation_id, latency_ms)
-    VALUES (${convId}, 'assistant', ${done.content}, ${toolCallsJson}::jsonb,
+    VALUES (${convId}, 'assistant', ${done.content}, ${toolCalls}::jsonb,
             ${done.usage.input}, ${done.usage.output}, ${done.generationId}, ${latencyMs})
   `;
   await sql`

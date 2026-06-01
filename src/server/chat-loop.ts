@@ -35,6 +35,11 @@ export interface ToolCallRecord {
 
 export type ChatEvent =
   | { type: "token"; text: string }
+  // Discard any answer tokens streamed in the round just ended — it turned out
+  // to be a tool round, and some models leak <tool_call> sentinel fragments as
+  // content before the structured call. The client resets its live answer
+  // buffer on `clear`; done.content is the authoritative final answer.
+  | { type: "clear" }
   | { type: "tool_call"; name: string; args: Record<string, unknown> }
   | { type: "tool_result"; name: string; ok: boolean; bytes: number }
   | {
@@ -115,6 +120,8 @@ export async function* runChat(opts: {
 
     // A tool round (never on the forced-text final iteration).
     if (finishReason === "tool_calls" && pending.size > 0 && !last) {
+      // This round's streamed content was pre-tool noise — tell the client to drop it.
+      if (content) yield { type: "clear" };
       const calls = [...pending.values()];
       msgs.push({
         role: "assistant",

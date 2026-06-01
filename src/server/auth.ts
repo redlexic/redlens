@@ -67,7 +67,7 @@ async function resolveEmail(gh: GithubUser, token: string): Promise<string | nul
   }
 }
 
-async function upsertUser(providerId: string, email: string | null, name: string | null, avatar: string): Promise<SessionUser> {
+export async function upsertUser(providerId: string, email: string | null, name: string | null, avatar: string): Promise<SessionUser> {
   const rows = (await sql`
     INSERT INTO users (provider, provider_id, email, name, avatar_url)
     VALUES ('github', ${providerId}, ${email}, ${name}, ${avatar})

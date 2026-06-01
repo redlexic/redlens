@@ -62,18 +62,26 @@ test("plain answer: streams tokens, no tools, terminal done carries usage + gen 
   }
 });
 
-test("tool round: executes atlas_describe, then answers", async () => {
+test("tool round: leaked pre-tool content triggers clear, then executes + answers", async () => {
   const rounds = [
-    [toolChunk("atlas_describe", "{}"), finishChunk("tool_calls")],
+    // Model leaks a <tool_call> sentinel fragment as content before the call.
+    [textChunk("ool_call>"), toolChunk("atlas_describe", "{}"), finishChunk("tool_calls")],
     [textChunk("Done."), finishChunk("stop"), usageChunk(200, 10)],
   ];
   const events = await collect(runChat({ ix, messages: [userMsg], stream: fakeStream(rounds, []) }));
 
-  const call = events.find((e) => e.type === "tool_call");
+  // A clear must be emitted to discard the junk, and it must precede the tool_call.
+  const clearIdx = events.findIndex((e) => e.type === "clear");
+  const callIdx = events.findIndex((e) => e.type === "tool_call");
+  expect(clearIdx).toBeGreaterThanOrEqual(0);
+  expect(clearIdx).toBeLessThan(callIdx);
+
+  const call = events[callIdx];
   const result = events.find((e) => e.type === "tool_result");
   expect(call && call.type === "tool_call" && call.name).toBe("atlas_describe");
   expect(result && result.type === "tool_result" && result.ok).toBe(true);
   const done = events.at(-1)!;
+  // done.content is the clean final round only — no leaked sentinel.
   expect(done.type === "done" && done.content).toBe("Done.");
   expect(done.type === "done" && done.toolCalls).toHaveLength(1);
 });
