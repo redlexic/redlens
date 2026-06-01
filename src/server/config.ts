@@ -38,7 +38,7 @@ export const config = {
   // Per-user rolling token window — the HARD rate-limit gate. Counts
   // input+output tokens over the trailing `rateLimitWindowMinutes`; once the sum
   // reaches the limit, /api/chat returns 429 until enough usage ages out.
-  rateLimitTokensPerWindow: Number(process.env.RATE_LIMIT_TOKENS_PER_WINDOW ?? 50000),
+  rateLimitTokensPerWindow: Number(process.env.RATE_LIMIT_TOKENS_PER_WINDOW ?? 500000),
   rateLimitWindowMinutes: Number(process.env.RATE_LIMIT_WINDOW_MINUTES ?? 120),
 
   // MCP transport mount path (streamable HTTP, no auth this phase).
