@@ -9,7 +9,7 @@ import { sql, toVectorLiteral } from "./db.ts";
 import { config } from "./config.ts";
 import { runMigrations } from "./migrate.ts";
 import { buildEmbedText, contentHash } from "./embed-text.ts";
-import { embedBatch } from "./embed.ts";
+import { embedBatch, EMBED_DIM } from "./embed.ts";
 import type { AtlasNode } from "./indexes.ts";
 
 // Per-request embedding batch size (how many texts per OpenRouter call). There
@@ -17,21 +17,44 @@ import type { AtlasNode } from "./indexes.ts";
 // docs, so we always embed the whole stale set.
 const BATCH = Number(process.env.EMBED_BATCH ?? 50);
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Retry transient embedding failures (flaky OpenRouter) with exponential backoff.
+// Per-batch upserts mean partial progress already persists; a batch that still
+// fails after retries is skipped (stays stale, retried next run) rather than
+// aborting the whole reconcile. See docs/plans/atlas-runtime-freshness-inprocess.md.
+async function withRetry<T>(fn: () => Promise<T>, attempts: number): Promise<T> {
+  let lastErr: unknown;
+  for (let a = 1; a <= attempts; a++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (a < attempts) {
+        const delay = 1000 * 2 ** (a - 1);
+        console.warn(`  embed attempt ${a}/${attempts} failed (${(e as Error).message}); retry in ${delay}ms`);
+        await sleep(delay);
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function main() {
   await runMigrations();
 
-  // Guard: the embedding column dimension is fixed in the migration, but
-  // config.embedDim is env-configurable. A mismatch would make every INSERT fail
+  // Guard: the EMBED_DIM code constant must match the column's fixed dimension
+  // (both are locked to the migration). A mismatch would make every INSERT fail
   // (or query-time `<=>` fail) deep in the run — fail fast and clearly instead.
   const colRows = (await sql.unsafe(
     `SELECT format_type(atttypid, atttypmod) AS t FROM pg_attribute
      WHERE attrelid = 'atlas_doc_embeddings'::regclass AND attname = 'embedding'`,
   )) as { t: string }[];
   const colDim = Number(colRows[0]?.t?.match(/vector\((\d+)\)/)?.[1]);
-  if (colDim && colDim !== config.embedDim) {
+  if (colDim && colDim !== EMBED_DIM) {
     throw new Error(
-      `EMBED_DIM=${config.embedDim} but atlas_doc_embeddings.embedding is vector(${colDim}). ` +
-        `Set EMBED_DIM=${colDim} or add a migration to change the column dimension.`,
+      `EMBED_DIM=${EMBED_DIM} (embed.ts) but atlas_doc_embeddings.embedding is vector(${colDim}). ` +
+        `Update EMBED_DIM to ${colDim} or add a migration to change the column dimension.`,
     );
   }
 
@@ -62,10 +85,18 @@ async function main() {
   }
 
   let done = 0;
+  let skipped = 0;
   for (let i = 0; i < total; i += BATCH) {
     const slice = queue.slice(i, Math.min(i + BATCH, total));
-    const vecs = await embedBatch(slice.map((s) => s.text));
-    if (i === 0) console.log(`  vector dim from provider: ${vecs[0].length}`);
+    let vecs: number[][];
+    try {
+      vecs = await withRetry(() => embedBatch(slice.map((s) => s.text)), 3);
+    } catch (e) {
+      skipped += slice.length;
+      console.warn(`  batch @${i} (${slice.length} docs) failed after retries: ${(e as Error).message} — skipping; retried next run`);
+      continue;
+    }
+    if (done === 0 && vecs[0]) console.log(`  vector dim from provider: ${vecs[0].length}`);
 
     const params: unknown[] = [];
     const valuesSql = slice
@@ -84,7 +115,9 @@ async function main() {
     done += slice.length;
     if (done % 500 < BATCH || done === total) console.log(`  ${done}/${total}`);
   }
-  console.log(`sync:embeddings — done (${done} vectors, atlas ${atlasSha.slice(0, 12)})`);
+  console.log(
+    `sync:embeddings — done (${done} vectors${skipped ? `, ${skipped} skipped (retry next run)` : ""}, atlas ${atlasSha.slice(0, 12)})`,
+  );
   await sql.end();
 }
 

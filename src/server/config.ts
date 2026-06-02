@@ -12,12 +12,11 @@ export const config = {
     process.env.DATABASE_URL ??
     "postgres://redlens:redlens@localhost:5432/redlens",
 
-  // OpenRouter embeddings (semantic search). Native dim is 4096; we slice to
-  // embedDim and L2-renormalize (HNSW caps indexed vectors at 2000 dims).
+  // OpenRouter embeddings (semantic search). The embedding dimension is a code
+  // constant (EMBED_DIM in embed.ts), NOT env — it's locked to the DB migration.
   openrouterApiKey: process.env.OPENROUTER_API_KEY ?? "",
   openrouterBaseUrl: process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1",
   embedModel: process.env.EMBED_MODEL ?? "qwen/qwen3-embedding-8b",
-  embedDim: Number(process.env.EMBED_DIM ?? 1024),
 
   // MCP transport mount path (streamable HTTP, no auth this phase).
   mcpPath: process.env.MCP_PATH ?? "/mcp",

@@ -27,6 +27,7 @@
     "build": "pnpm build:index && pnpm build:glossary && pnpm build:addresses && pnpm build:snapshot && pnpm build:graph && pnpm build:manifest && pnpm run build:ts && vite build",
     "build:server": "pnpm build:index && pnpm build:graph && pnpm build:rag",
     "start": "bun src/server/index.ts",
+    "refresh:atlas-build": "bun scripts/required/refresh-atlas-build.mjs",
     "sync:atlas": "bun src/server/sync.ts",
     "sync:embeddings": "bun src/server/sync-embeddings.ts",
     "db:up": "docker-compose up -d",

@@ -1,3 +1,10 @@
+# In-process atlas self-updater (Alternative A — docs/plans/atlas-runtime-freshness-inprocess.md)
+# runtime requirements, satisfied here: `git` is in the runtime image (setup
+# nixPkgs below), build-script deps are installed (install phase), and the atlas
+# submodule — including its .git metadata — is populated in the build phase and
+# must survive into the runtime image so the running container can `git fetch
+# origin main` + rebuild. Enable at runtime via env ATLAS_UPDATE_ENABLED=1
+# (optional ATLAS_UPDATE_INTERVAL_MS); unset → no updater (redeploy design).
 [phases.setup]
 nixPkgs = ["bun", "git"]
 

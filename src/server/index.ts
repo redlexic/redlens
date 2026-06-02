@@ -7,6 +7,7 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { config } from "./config.ts";
 import { loadIndexes } from "./indexes.ts";
 import { createMcpServer } from "./mcp.ts";
+import { startUpdater, startBootEmbeddings } from "./atlas-updater.ts";
 
 const t0 = performance.now();
 const ix = loadIndexes();
@@ -63,3 +64,9 @@ const server = Bun.serve({
 });
 
 console.log(`listening on :${server.port}  (mcp: POST ${config.mcpPath})`);
+
+// Refresh embeddings on boot (first deploy + every redeploy), detached + best-effort.
+startBootEmbeddings();
+
+// In-process atlas freshness updater (no-op unless ATLAS_UPDATE_ENABLED is set).
+startUpdater();

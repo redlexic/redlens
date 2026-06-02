@@ -55,10 +55,12 @@ export interface Ancestor {
   depth: number;
 }
 
-// KEEP IN SYNC with src/workers/search.worker.ts MINISEARCH_OPTIONS.
+// KEEP IN SYNC with src/workers/search.worker.ts AND scripts/required/build-index.mjs
+// MINISEARCH_OPTIONS: the server deserializes the prebuilt search-index.json via
+// loadJSON, which requires options identical to the build. No storeFields —
+// lexical search reads only id+score (search.ts) and resolves docs via docMap.
 const MINISEARCH_OPTIONS: ConstructorParameters<typeof MiniSearch>[0] = {
   fields: ["title", "doc_no", "type", "content"],
-  storeFields: ["title", "doc_no", "type"],
   idField: "id",
   processTerm: (term) => {
     const lower = term.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, "").toLowerCase();
@@ -85,12 +87,50 @@ function readJson<T>(file: string): T {
   return JSON.parse(readFileSync(join(config.publicDir, file), "utf8")) as T;
 }
 
-export function loadIndexes(): Indexes {
-  if (state) return state;
+export interface Artifacts {
+  docs: AtlasNode[];
+  entities: Entity[];
+  edges: Edge[];
+  meta: Record<string, string | null>;
+  // Serialized MiniSearch index (build-index `toJSON`). null → build from docs.
+  searchIndexJson: string | null;
+}
 
+export function readArtifactsFromDisk(): Artifacts {
   const rawDocs = readJson<Record<string, AtlasNode>>("docs.json");
-  const docs = Object.values(rawDocs);
+  const graphJson = readJson<{ meta?: Record<string, unknown>; entities: Entity[]; edges: Edge[] }>("graph.json");
 
+  let searchIndexJson: string | null = null;
+  try {
+    searchIndexJson = readFileSync(join(config.publicDir, "search-index.json"), "utf8");
+  } catch {
+    searchIndexJson = null; // fall back to building from docs
+  }
+
+  let meta: Record<string, string | null> = {};
+  try {
+    const m = readJson<{ atlasCommit?: string; redlensCommit?: string; generatedAt?: string }>("manifest.json");
+    meta = {
+      atlasCommit: m.atlasCommit ?? null,
+      redlensCommit: m.redlensCommit ?? null,
+      generatedAt: m.generatedAt ?? null,
+    };
+  } catch {
+    meta = {};
+  }
+  return { docs: Object.values(rawDocs), entities: graphJson.entities, edges: graphJson.edges, meta, searchIndexJson };
+}
+
+// Pure builder: construct the full in-memory index set from artifact arrays.
+// Shared by the boot load and any full rebuild + setIndexes (the in-process
+// self-updater's full-rebuild path — see docs/plans/atlas-runtime-freshness-inprocess.md).
+export function buildIndexes(
+  docs: AtlasNode[],
+  entities: Entity[],
+  edges: Edge[],
+  meta: Record<string, string | null>,
+  searchIndexJson?: string | null,
+): Indexes {
   const docMap = new Map<string, AtlasNode>();
   const byDocNo = new Map<string, AtlasNode>();
   const childrenIndex = new Map<string, AtlasNode[]>();
@@ -105,22 +145,37 @@ export function loadIndexes(): Indexes {
   }
   for (const arr of childrenIndex.values()) arr.sort((a, b) => a.order - b.order);
 
-  const mini = new MiniSearch(MINISEARCH_OPTIONS);
-  mini.addAll(docs);
+  // Prefer the prebuilt serialized index (cheap deserialize, no re-tokenization);
+  // fall back to building from docs (tests / synthetic sets with no artifact).
+  let mini: MiniSearch;
+  if (searchIndexJson) {
+    mini = MiniSearch.loadJSON(searchIndexJson, MINISEARCH_OPTIONS);
+  } else {
+    mini = new MiniSearch(MINISEARCH_OPTIONS);
+    mini.addAll(docs);
+  }
 
-  const graphJson = readJson<{ meta?: Record<string, unknown>; entities: Entity[]; edges: Edge[] }>("graph.json");
-  const entities = graphJson.entities;
-  const edges = graphJson.edges;
+  const { graph, entityBySlug, entityById } = buildGraph(docs, entities, edges);
 
+  return { docMap, byDocNo, childrenIndex, mini, graph, entities, edges, entityBySlug, entityById, meta };
+}
+
+// graphology + entity lookup maps from the entity/edge arrays. Extracted so the
+// in-place updater can rebuild the graph from a fresh graph.json and reassign it
+// on the live indexes (relation extraction happens in the build subprocess; this
+// in-memory construction is cheap). Every addressable thing is a node; edges
+// carry full attrs so query_atlas can filter on edge_type + endpoint node-type.
+export function buildGraph(
+  docs: AtlasNode[],
+  entities: Entity[],
+  edges: Edge[],
+): { graph: MultiDirectedGraph; entityBySlug: Map<string, Entity>; entityById: Map<string, Entity> } {
   const entityBySlug = new Map<string, Entity>();
   const entityById = new Map<string, Entity>();
   for (const e of entities) {
     entityBySlug.set(e.slug, e);
     entityById.set(e.id, e);
   }
-
-  // graphology: every addressable thing is a node; edges carry full attrs so
-  // query_atlas can filter on edge_type + endpoint node-type during traversal.
   const graph = new MultiDirectedGraph();
   for (const d of docs) graph.addNode(d.id, { _nt: "doc" });
   for (const e of entities) if (!graph.hasNode(e.id)) graph.addNode(e.id, { _nt: "entity" });
@@ -136,21 +191,33 @@ export function loadIndexes(): Indexes {
       to_type: edge.to_type,
     });
   }
+  return { graph, entityBySlug, entityById };
+}
 
-  let meta: Record<string, string | null> = {};
-  try {
-    const m = readJson<{ atlasCommit?: string; redlensCommit?: string; generatedAt?: string }>("manifest.json");
-    meta = {
-      atlasCommit: m.atlasCommit ?? null,
-      redlensCommit: m.redlensCommit ?? null,
-      generatedAt: m.generatedAt ?? null,
-    };
-  } catch {
-    meta = {};
-  }
-
-  state = { docMap, byDocNo, childrenIndex, mini, graph, entities, edges, entityBySlug, entityById, meta };
+export function loadIndexes(): Indexes {
+  if (state) return state;
+  const { docs, entities, edges, meta, searchIndexJson } = readArtifactsFromDisk();
+  state = buildIndexes(docs, entities, edges, meta, searchIndexJson);
   return state;
+}
+
+// Atomically replace the live index set. A plain reference assignment — atomic on
+// the single-threaded event loop: in-flight requests holding the prior reference
+// keep a consistent snapshot; new requests see the new set. This is the swap half
+// of the in-process self-updater's full-rebuild path.
+export function setIndexes(ix: Indexes): void {
+  state = ix;
+}
+
+// Full rebuild from freshly-regenerated on-disk artifacts, then atomic swap. The
+// self-updater's correct, ship-first path (no per-doc diffing). `meta.atlasCommit`
+// advances automatically because it's re-read from the rebuilt manifest.json —
+// the convergence signal the drift checker compares against.
+export function rebuildFromDisk(): Indexes {
+  const { docs, entities, edges, meta, searchIndexJson } = readArtifactsFromDisk();
+  const ix = buildIndexes(docs, entities, edges, meta, searchIndexJson);
+  setIndexes(ix);
+  return ix;
 }
 
 export function getIndexes(): Indexes {
