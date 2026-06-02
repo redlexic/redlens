@@ -1,0 +1,9 @@
+# Keep the build context lean — but do NOT exclude .git / .gitmodules / vendor:
+# the submodule init at build time and the runtime `git fetch` both need them.
+node_modules
+redlens-mcp/node_modules
+dist
+.cache
+*.log
+.env.local
+.DS_Store
