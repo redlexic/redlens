@@ -1,133 +1,264 @@
-# Deployment & Handoff Runbook
+# RedLens Deployment Runbook
 
-Standing up Redline Atlas on Railway. The system is **one web service + a
-Postgres** in a Railway project, plus the **`atlas-update.yml` GitHub workflow**
-(required — see §5).
+Stand up the full RedLens app (reader SPA + MCP endpoint + chat/OAuth + live
+atlas updates). Follow the steps in order.
 
-The web service serves the reader SPA, the MCP endpoint, `/health`, and the
-chat/OAuth endpoints, and runs an **in-process self-updater** that keeps the atlas
-text fresh between deploys (polls upstream, hot-swaps in memory, no restart).
-Design detail: [plans/atlas-runtime-freshness-inprocess.md](plans/atlas-runtime-freshness-inprocess.md).
+Deployment has **two parts**: **Railway** hosts the app (Part 1), and **GitHub**
+runs the hourly atlas-update workflow that keeps the repo's artifacts and history
+current (Part 2). Both are required.
 
-The web service builds from a **`Dockerfile`** (`railway.toml` sets
-`builder = "DOCKERFILE"`). The Dockerfile clones the atlas itself — Railway strips `.git` and doesn't recurse
-submodules, so a build-time `git submodule update` can't work.
+For what this service *is* and how it differs from the GitHub Pages static
+reader, see the [Deployment section of the README](../README.md#deployment).
 
-## 0. Prerequisites
+---
 
-- GitHub repo access + a Railway account, and the **Railway CLI** (`railway`,
-  logged in: `railway login`).
-- **OpenRouter API key** (embeddings + chat).
-- For chat login only: a **GitHub OAuth app** (client id/secret) + a generated **JWT secret**.
+# Part 1 — Railway (the app)
 
-## 1. Project, Postgres, and wiring — via the CLI
+## 1. Prerequisites
 
-Railway's **managed Postgres already includes `pgvector`** — no special image or
-template needed. The first migration runs `CREATE EXTENSION IF NOT EXISTS vector`.
+Before you start, make sure you have:
+
+1. **A GitHub account** with **admin** access to this repo *(you'll connect it to
+   Railway here, and install a bot in Part 2).*
+2. **A Railway account** — sign up at [railway.com](https://railway.com).
+3. **The Railway CLI**, logged in:
+   ```bash
+   npm i -g @railway/cli   # or: brew install railway
+   railway login
+   ```
+4. **An OpenRouter account** with credits — required for semantic search
+   embeddings (and chat, if you enable it). Setup in step 3a.
+
+## 2. Create the project, service, and database
+
+a. **Create the project from this GitHub repo.** Go to
+   [railway.com/new](https://railway.com/new) → **Deploy from GitHub repo**.
+   Authorize the Railway GitHub App for this repository if prompted, then select
+   it. Railway creates a **web service that auto-deploys on every push to
+   `main`**. This runbook calls the service `redline-atlas`.
+
+b. **Add managed Postgres.** On the project canvas: **New → Database → Add
+   PostgreSQL**. *Railway's managed Postgres already includes `pgvector`, so no
+   special image is needed — the first migration runs `CREATE EXTENSION IF NOT
+   EXISTS vector` itself.*
+
+c. **Link the CLI to the project** so the next steps can set variables. From the
+   repo root, pick the project + environment when prompted:
+   ```bash
+   railway link
+   ```
+
+d. **Wire `DATABASE_URL` to Postgres** with a reference variable:
+   ```bash
+   railway variables --set 'DATABASE_URL=${{Postgres.DATABASE_URL}}' --service redline-atlas
+   ```
+   *This is the single most common failure — Railway does **not** auto-inject the
+   database URL. If your Postgres service has a non-default name, match it:
+   `${{<ServiceName>.DATABASE_URL}}`. Skipping this makes the container crash-loop
+   on `ERR_POSTGRES_CONNECTION_CLOSED`.*
+
+## 3. Set the required environment variables
+
+`PORT` is injected by Railway automatically.
+
+### 3a. Get an OpenRouter API key
+
+1. Go to [openrouter.ai](https://openrouter.ai) and sign in.
+2. Add credits: **Settings → Credits → Add Credits** *(embeddings and chat both
+   draw from this balance).*
+3. Go to [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) →
+   **Create Key** → copy the value *(it starts with `sk-or-`)*.
+
+### 3b. Set the variables
 
 ```bash
-# Link this repo to a Railway project + environment (interactive: pick/create).
-railway link
-
-# Provision managed Postgres (service is named "Postgres" by default).
-railway add -d postgres
-
-# Deploy the repo as the web service if it isn't already one (interactive),
-# then note its service name (this runbook uses "redline-atlas").
-railway status        # shows project, environment, and services
-
-# ── The load-bearing step ──────────────────────────────────────────────────
-# Railway does NOT auto-inject the DB URL into the web service. You MUST point
-# the web service's DATABASE_URL at the Postgres service via a reference
-# variable (resolves to the PRIVATE host postgres.railway.internal — no SSL).
-# Skipping this is the #1 failure: DATABASE_URL falls back to the localhost
-# default and the container crash-loops on ERR_POSTGRES_CONNECTION_CLOSED.
-railway variables --set 'DATABASE_URL=${{Postgres.DATABASE_URL}}' --service redline-atlas
+railway variables --set 'OPENROUTER_API_KEY=sk-or-...' --service redline-atlas
+railway variables --set 'ATLAS_UPDATE_ENABLED=1'       --service redline-atlas
 ```
 
-If the Postgres service has a non-default name, match it in the reference:
-`${{<ServiceName>.DATABASE_URL}}`.
+| Variable | Value | Source |
+|---|---|---|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | Set in step 2d |
+| `OPENROUTER_API_KEY` | `sk-or-…` | OpenRouter, step 3a |
+| `ATLAS_UPDATE_ENABLED` | `1` | Enables the in-process atlas updater |
 
-## 2. Environment variables
+*You can also set these in the dashboard under the web service → **Variables**
+tab instead of the CLI.*
 
-Set on the **web service** (`PORT` is injected by Railway):
+## 4. Configure the service and deploy
+
+a. **Service settings** (web service → **Settings**):
+   - **Memory:** ~1 GB RAM.
+   - **Replicas:** **1** *(the in-process updater is single-container by
+     design — do not scale out).*
+
+b. **Generate the public URL.** Web service → **Settings → Networking →
+   Generate Domain**. Note the domain *(e.g.
+   `redline-atlas-production.up.railway.app`)* — you'll need it for OAuth in
+   step 6.
+
+c. **Deploy.** Railway redeploys automatically whenever you push to `main` or
+   change a variable. To deploy now, either push to `main` or open the service's
+   **Deployments** tab and click **Deploy**.
+
+   *The Docker build clones the atlas (`--branch main`), runs the atlas's
+   `sync/compose.py` to synthesize `Sky Atlas.md`, and builds all artifacts. The
+   start command waits for Postgres, runs migrations + sync, serves, kicks off
+   embeddings in the background, and starts the updater.*
+
+## 5. Verify
+
+a. **Health check:**
+   ```bash
+   curl https://<your-domain>/health
+   # → { "status": "ok", "atlas_sha": "...", "docs": N }
+   ```
+
+b. **Boot logs** — `railway logs --service redline-atlas` (or the service's
+   **Deployments → View Logs**). Look for `db: connected …`, `sync:atlas — done`,
+   and `listening on :8080`.
+
+c. **Open the site** in a browser. Search works immediately (lexical). Semantic
+   search fills in once embeddings finish in the background *(the first run
+   embeds the whole atlas and takes a few minutes).*
+
+d. **Atlas auto-update:** when upstream advances, the logs show
+   `atlas-updater: … updated → live now <sha>` and `/health.atlas_sha` advances
+   with no redeploy.
+
+## 6. (Optional) Enable chat login — GitHub and Google OAuth
+
+The chat widget and profile button only appear when these variables are set. You
+can enable GitHub, Google, or both. All callback URLs use the domain from
+step 4b.
+
+### 6a. Generate the JWT session secret
 
 ```bash
-railway variables --set 'OPENROUTER_API_KEY=sk-or-...'  --service redline-atlas
-railway variables --set 'ATLAS_UPDATE_ENABLED=1'        --service redline-atlas
-# Chat build only:
-railway variables --set 'CHAT_JWT_SECRET=<openssl rand -hex 32>'      --service redline-atlas
-railway variables --set 'GITHUB_CLIENT_ID=...'                        --service redline-atlas
-railway variables --set 'GITHUB_CLIENT_SECRET=...'                    --service redline-atlas
-# Optional: RATE_LIMIT_TOKENS_PER_WINDOW (default 500000), RATE_LIMIT_WINDOW_MINUTES (120)
+openssl rand -hex 32
+```
+Keep the output for `CHAT_JWT_SECRET` below.
+
+### 6b. Create a GitHub OAuth app
+
+1. Go to [github.com/settings/developers](https://github.com/settings/developers)
+   → **OAuth Apps** → **New OAuth App** *(or an org's Settings → Developer
+   settings → OAuth Apps).*
+2. Fill in:
+   - **Application name:** anything, e.g. `RedLens Atlas`.
+   - **Homepage URL:** `https://<your-domain>`.
+   - **Authorization callback URL:** `https://<your-domain>/api/auth/github/callback`.
+3. Click **Register application**.
+4. Copy the **Client ID**.
+5. Click **Generate a new client secret** and copy it *(shown only once).*
+
+### 6c. Create a Google OAuth app
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com) and select
+   or create a project.
+2. **APIs & Services → OAuth consent screen:** choose **External**, set an app
+   name and support email, and save. *(While the app is in "Testing", add your
+   own Google account under **Test users** or sign-in will be refused.)*
+3. **APIs & Services → Credentials → Create Credentials → OAuth client ID:**
+   - **Application type:** Web application.
+   - **Authorized redirect URIs → Add URI:**
+     `https://<your-domain>/api/auth/google/callback`
+     *(add `http://localhost:3000/api/auth/google/callback` too if you want
+     local login).*
+4. Click **Create** and copy the **Client ID** and **Client secret**.
+
+### 6d. Set the chat variables
+
+```bash
+railway variables --set 'CHAT_JWT_SECRET=<from 6a>'        --service redline-atlas
+# GitHub login:
+railway variables --set 'GITHUB_CLIENT_ID=<from 6b>'       --service redline-atlas
+railway variables --set 'GITHUB_CLIENT_SECRET=<from 6b>'   --service redline-atlas
+# Google login:
+railway variables --set 'GOOGLE_CLIENT_ID=<from 6c>'       --service redline-atlas
+railway variables --set 'GOOGLE_CLIENT_SECRET=<from 6c>'   --service redline-atlas
 ```
 
-| Purpose | Vars |
+*`CHAT_JWT_SECRET` is required for any login. Add only the GitHub vars, only the
+Google vars, or both. Setting a variable triggers a redeploy.*
+
+*If you later move to a custom domain, set `APP_URL=https://<custom-domain>` so
+the OAuth redirect URIs match, and update the callback URLs in steps 6b/6c.*
+
+---
+
+# Part 2 — GitHub (atlas-update workflow)
+
+`.github/workflows/atlas-update.yml` runs hourly on this repo. It pulls the atlas
+submodule, rebuilds all artifacts **including `history/*.json`**, opens a PR, and
+auto-merges it — and the merge to `main` is what Railway auto-deploys.
+
+*The in-process updater (Part 1) keeps the running atlas text fresh between
+deploys but does not refresh history — so this workflow is what keeps the history
+view current. Leave it enabled.*
+
+## 7. Install the bot (GitHub App)
+
+The workflow commits, opens a PR, and merges it **without waiting for CI** — which
+the default `GITHUB_TOKEN` cannot do under branch protection. So it runs as a
+**GitHub App ("bot")** that you install on this repo. Do this once:
+
+a. **Create the App:** [github.com/settings/apps](https://github.com/settings/apps)
+   → **New GitHub App**. Under **Repository permissions** grant:
+   - **Contents:** Read & write
+   - **Pull requests:** Read & write
+   - **Issues:** Read & write
+
+b. **Generate a private key:** on the App's page → **Private keys → Generate a
+   private key** → a `.pem` file downloads. Note the App's numeric **App ID** too.
+
+c. **Install the App on this repo:** App page → **Install App** → select this repo.
+
+d. **Make the bot a branch-protection bypass actor** so it can auto-merge: repo
+   **Settings → Branches →** the `main` rule **→ Allow specified actors to bypass
+   required pull requests →** add the App.
+
+## 8. Add the workflow secrets
+
+The workflow reads its `environment: CI`, so add these under repo **Settings →
+Environments → CI** *(or as repo-level secrets)*:
+
+| Secret | Value |
 |---|---|
-| **Required** | `DATABASE_URL` (reference, §1), `OPENROUTER_API_KEY` |
-| **Atlas auto-update** | `ATLAS_UPDATE_ENABLED=1` |
-| **Chat** (optional) | `CHAT_JWT_SECRET` (+ `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` for login) |
+| `ATLAS_BOT_APP_ID` | the App ID from step 7b |
+| `ATLAS_BOT_PRIVATE_KEY` | full contents of the `.pem` from step 7b |
+| `ETHERSCAN_API_KEY` | [etherscan.io/apidashboard](https://etherscan.io/apidashboard) *(artifact build)* |
+| `ETH_RPC_URL` | an Ethereum RPC URL *(artifact build)* |
 
-Sensible defaults that rarely need changing: `EMBED_MODEL`, `CHAT_MODEL`,
-`ATLAS_UPDATE_INTERVAL_MS` (5 min). Inspect what's set with
-`railway variables --service redline-atlas --kv`.
-
-**Service settings:** ~1 GB RAM and a **single replica** (the updater is
-single-container by design).
-
-## 3. Deploy & verify
-
-The Docker build clones the atlas (`--branch main`), runs the atlas's
-`sync/compose.py` (needs python3 — in the image) to synthesize `Sky Atlas.md`, and
-builds all artifacts. The start command waits for Postgres, migrates + syncs,
-serves, kicks `sync:embeddings` in the background, and starts the updater.
-
-```bash
-railway domain --service redline-atlas         # generate/print the public URL
-curl https://<domain>/health             # → { "status": "ok", "atlas_sha": "...", "docs": N }
-railway logs --service redline-atlas           # boot logs: "db: connected …", "sync:atlas — done", "listening on :8080"
-```
-
-1. `GET /health` returns `{ status, atlas_sha, docs }`.
-2. Search works immediately (lexical); semantic search fills in once embeddings
-   finish in the background (the first run embeds the whole atlas — takes a while).
-3. With `ATLAS_UPDATE_ENABLED=1`, when upstream advances the logs show
-   `atlas-updater: … updated → live now <sha>` and `/health.atlas_sha` advances —
-   no redeploy.
-
-## 4. Frontend base path
-
-The SPA must build with the apex base (`/`), not the GH-Pages base (`/redlens/`).
-The Dockerfile sets `RAILWAY_ENVIRONMENT=production` during the build so
-`vite.config.ts` picks `/`. If the browser shows "module script MIME type" errors,
-the bundle built with the wrong base — verify with
-`curl https://<domain>/ | grep assets` (must be `/assets/…`, not `/redlens/assets/…`).
-
-## 5. Keep `atlas-update.yml` running (required — keeps history current)
-
-The GitHub workflow pulls the submodule, rebuilds artifacts **including
-`history/*.json`**, and opens a PR; merging it updates the repo baseline and
-redeploys. The in-process updater keeps the running atlas text fresh between
-deploys but **does not refresh history** — so `atlas-update.yml` is what keeps the
-history view current (until history is moved into the live loop).
+---
 
 ## Ongoing operation
 
-- Atlas text refreshes automatically (~5 min after an upstream commit), no redeploy.
-- History stays current via `atlas-update.yml` merges.
-- On-chain data (`addresses.json`, `chain-state.json`) refreshes on its own cadence
-  via `build:addresses` / `build:snapshot` (need Etherscan / RPC keys); not part of
-  the atlas loop.
+- **Atlas text** refreshes automatically (~5 min after an upstream commit), no
+  redeploy.
+- **History** stays current via the atlas-update workflow's merges (Part 2).
+- **On-chain data** (`addresses.json`, `chain-state.json`) refreshes on its own
+  cadence via `build:addresses` / `build:snapshot` *(needs Etherscan / RPC keys;
+  not part of the atlas loop).*
 
-## Gotchas
+## Troubleshooting
 
-- **`DATABASE_URL` is NOT auto-wired** — set the `${{Postgres.DATABASE_URL}}`
-  reference on the web service (§1), or it crash-loops on the localhost default.
-- **Railway's managed Postgres has `pgvector`** — `railway add -d postgres` is
-  enough; no special image needed.
-- **Builder must be `DOCKERFILE`** — Nixpacks/Railpack can't carry git + python3 +
-  the atlas checkout the runtime updater needs.
-- **Single replica, ~1 GB RAM.**
-- **`ATLAS_UPDATE_ENABLED` is off unless set** — without it the atlas only refreshes
-  on a redeploy.
-- **Vite base** — the bundle must build with `/` (handled by the Dockerfile, §4).
+- **Container crash-loops on `ERR_POSTGRES_CONNECTION_CLOSED`** — `DATABASE_URL`
+  isn't wired. Re-check step 2d.
+- **Semantic search returns nothing** — `OPENROUTER_API_KEY` is missing or out of
+  credits; lexical search still works. Check the key and your OpenRouter balance.
+- **Atlas never updates without a redeploy** — `ATLAS_UPDATE_ENABLED` isn't set
+  to `1` (step 3b).
+- **atlas-update PRs open but never merge** — the bot isn't a branch-protection
+  bypass actor (step 7d), or the `ATLAS_BOT_*` secrets are missing (step 8).
+- **Blank page / "module script MIME type" errors** — the bundle built with the
+  wrong base path. The Dockerfile sets `RAILWAY_ENVIRONMENT=production` so
+  `vite.config.ts` picks `/`; verify with
+  `curl https://<your-domain>/ | grep assets` *(must reference `/assets/…`, not
+  `/redlens/assets/…`).*
+- **OAuth fails with a redirect-URI mismatch** — the callback URL registered with
+  the provider must exactly match `https://<your-domain>/api/auth/<provider>/callback`.
+  On a custom domain, set `APP_URL` (step 6d) and re-check the provider config.
+- **Build fails on git/python/submodule** — the builder must be `DOCKERFILE`
+  (set in `railway.toml`); Nixpacks/Railpack can't carry git + python3 + the
+  atlas checkout the runtime updater needs.
