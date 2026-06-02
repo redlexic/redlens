@@ -1,5 +1,6 @@
-# Keep the build context lean — but do NOT exclude .git / .gitmodules / vendor:
-# the submodule init at build time and the runtime `git fetch` both need them.
+# Keep the build context lean. The atlas is cloned fresh in the Dockerfile (the
+# submodule + .git aren't used at build — Railway strips .git anyway), so exclude
+# both vendor/next-gen-atlas and .git.
 node_modules
 redlens-mcp/node_modules
 dist
@@ -7,3 +8,5 @@ dist
 *.log
 .env.local
 .DS_Store
+.git
+vendor/next-gen-atlas

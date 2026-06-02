@@ -1,12 +1,11 @@
 # RedLens Atlas — single-stage image (deliberately NOT multi-stage / slim).
-# The in-process atlas updater (src/server/atlas-refresh.ts) re-runs
-# build-index/build-graph and does `git fetch origin main` at RUNTIME, so the
-# final image MUST carry: bun, git, the build scripts, node_modules, and the
-# atlas submodule INCLUDING its .git. A slim runtime stage would break the
-# updater — that's why this is one stage.
+# The in-process atlas updater re-runs build-index/build-graph and `git fetch` at
+# RUNTIME, so the final image MUST carry: bun, git, python3, the build scripts,
+# node_modules, and a real atlas git checkout. A slim runtime stage would break
+# the updater — that's why this is one stage.
 FROM oven/bun:1.3
 
-# git: submodule init at build time + the runtime self-update fetch.
+# git: clone the atlas at build time + the runtime self-update fetch.
 # python3: build-index runs the atlas's sync/compose.py (stdlib only) to
 #   synthesize the monolithic "Sky Atlas.md" from content/** — it is generated,
 #   not committed, so the updater needs python3 at RUNTIME too.
@@ -20,14 +19,18 @@ WORKDIR /app
 COPY package.json ./
 RUN bun install
 
-# Then the repo. .git + .gitmodules are required here (submodule init at build,
-# `git fetch` at runtime); node_modules/dist are excluded via .dockerignore.
+# Then the repo (node_modules/dist/.git/vendor excluded via .dockerignore).
 COPY . .
 
-# Populate the atlas submodule WITH its .git metadata, then build the lean
-# artifact set (build:railway skips the Etherscan/RPC passes — committed
-# artifacts ship in the image).
-RUN git submodule update --init --recursive \
+# Railway strips .git from the Docker build context, so `git submodule update`
+# cannot work here. Clone the atlas directly — this also gives the runtime
+# updater a clean origin/main to `git fetch` into. Tracks main (matches the
+# in-process-updater design); to pin a version, `git checkout <sha>` after clone.
+# Then build the lean artifact set (build:railway skips the Etherscan/RPC passes
+# — those artifacts are committed and ship in the image).
+RUN rm -rf vendor/next-gen-atlas \
+ && git clone --depth 1 --single-branch --branch main \
+      https://github.com/sky-ecosystem/next-gen-atlas vendor/next-gen-atlas \
  && bun run build:railway
 
 ENV PORT=3000
