@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { GitHubMark } from "./glyphs";
+import { GitHubMark, GoogleMark } from "./glyphs";
 import { useAuth } from "./auth";
 import { usePrefs, type ChatPrefs } from "./usePrefs";
 
-// NavBar profile control. Signed-out: a mono "sign in" pill (shared openAuth).
+// NavBar profile control. Signed-out: a mono "sign in" pill → dropdown with a
+// provider choice (GitHub / Google), both routing through the shared openAuth.
 // Signed-in: avatar → dropdown with name, a Preferences sub-panel (tool-traces
 // + reduce-motion switches, persisted to localStorage), and Sign out.
 // Per the FE handoff we omit the GitHub @handle (not returned by /api/auth/me).
@@ -28,9 +29,22 @@ export function ProfileButton() {
 
   if (!user) {
     return (
-      <button className="rlc-signin" onClick={openAuth} title="Sign in with GitHub">
-        <GitHubMark /> sign in
-      </button>
+      <div ref={ref} className="relative shrink-0">
+        <button className="rlc-signin" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}>
+          sign in
+        </button>
+        {open && (
+          <div className="rlc-menu" role="menu">
+            <button className="rlc-menu-item justify-start" onClick={() => openAuth("github")}>
+              <GitHubMark /> <span>Continue with GitHub</span>
+            </button>
+            <div className="border-t border-border" />
+            <button className="rlc-menu-item justify-start" onClick={() => openAuth("google")}>
+              <GoogleMark /> <span>Continue with Google</span>
+            </button>
+          </div>
+        )}
+      </div>
     );
   }
 

@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { apiUrl, type AuthUser } from "./api";
 
+export type AuthProvider = "github" | "google";
+
 interface AuthState {
   user: AuthUser | null;
   loading: boolean;
-  openAuth: () => void; // full-page redirect to GitHub OAuth
+  openAuth: (provider?: AuthProvider) => void; // full-page redirect to OAuth
   signOut: () => Promise<void>;
 }
 
@@ -29,8 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const openAuth = () => {
-    window.location.href = apiUrl("auth/github");
+  const openAuth = (provider: AuthProvider = "github") => {
+    window.location.href = apiUrl(`auth/${provider}`);
   };
 
   const signOut = async () => {

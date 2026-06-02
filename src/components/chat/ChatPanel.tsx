@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { SparkMark, GitHubMark, DockRightIcon, FloatIcon } from "./glyphs";
+import { SparkMark, GitHubMark, GoogleMark, DockRightIcon, FloatIcon } from "./glyphs";
 import { Message } from "./Message";
 import { Composer } from "./Composer";
 import { useChatStream } from "./useChatStream";
@@ -108,7 +108,7 @@ export function ChatPanel({
             </div>
             <p className="rlc-empty-body">
               The agent reads the page you're on and cites atlas docs as it answers. Conversations are saved to your
-              account. Sign in with GitHub to start.
+              account. Sign in with GitHub or Google to start.
             </p>
             <div className="rlc-starters-locked">
               {STARTERS.map((s) => (
@@ -150,9 +150,12 @@ export function ChatPanel({
       </div>
 
       {!authed ? (
-        <div className="rlc-composer">
-          <button className="rlc-signin w-full justify-center p-[11px]" onClick={openAuth}>
+        <div className="rlc-composer flex flex-col gap-[7px]">
+          <button className="rlc-signin w-full justify-center p-[11px]" onClick={() => openAuth("github")}>
             <GitHubMark /> sign in with github to ask
+          </button>
+          <button className="rlc-signin w-full justify-center p-[11px]" onClick={() => openAuth("google")}>
+            <GoogleMark /> sign in with google to ask
           </button>
         </div>
       ) : (

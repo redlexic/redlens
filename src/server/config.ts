@@ -14,9 +14,11 @@ export const config = {
     process.env.APP_URL ??
     (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : `http://localhost:${port}`),
 
-  // GitHub OAuth (arctic) + stateless JWT session cookie.
+  // GitHub + Google OAuth (arctic) + stateless JWT session cookie.
   githubClientId: process.env.GITHUB_CLIENT_ID ?? "",
   githubClientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
   jwtSecret: process.env.CHAT_JWT_SECRET ?? "",
 
   // Postgres. Local default points at the docker-compose service.

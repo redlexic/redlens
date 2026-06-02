@@ -9,6 +9,7 @@ import { config } from "./config.ts";
 
 export const SESSION_COOKIE = "sky_session";
 export const STATE_COOKIE = "sky_oauth_state";
+export const VERIFIER_COOKIE = "sky_oauth_verifier"; // PKCE code_verifier (Google)
 
 const SESSION_TTL_S = 7 * 24 * 60 * 60; // 7 days
 const REFRESH_THRESHOLD_S = 24 * 60 * 60; // reissue when < 24h remains
@@ -84,3 +85,5 @@ export const sessionCookie = (token: string): string => serializeCookie(SESSION_
 export const clearSessionCookie = (): string => serializeCookie(SESSION_COOKIE, "", 0);
 export const stateCookie = (state: string): string => serializeCookie(STATE_COOKIE, state, STATE_TTL_S);
 export const clearStateCookie = (): string => serializeCookie(STATE_COOKIE, "", 0);
+export const verifierCookie = (verifier: string): string => serializeCookie(VERIFIER_COOKIE, verifier, STATE_TTL_S);
+export const clearVerifierCookie = (): string => serializeCookie(VERIFIER_COOKIE, "", 0);

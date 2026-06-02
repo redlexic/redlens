@@ -1,12 +1,14 @@
-// GitHub OAuth (arctic) + the /api/auth/* routes. The session itself is a
-// stateless JWT cookie (see session.ts); this module only mints it after a
+// GitHub + Google OAuth (arctic) + the /api/auth/* routes. The session itself is
+// a stateless JWT cookie (see session.ts); this module only mints it after a
 // successful OAuth round-trip and exposes /me + /signout.
 //
 //   GET  /api/auth/github           → 302 to GitHub, CSRF state in a cookie
 //   GET  /api/auth/github/callback  → verify state, exchange code, upsert user, set session
+//   GET  /api/auth/google           → 302 to Google, CSRF state + PKCE verifier in cookies
+//   GET  /api/auth/google/callback  → verify state, exchange code (PKCE), upsert user, set session
 //   GET  /api/auth/me               → { id, name, avatarUrl, provider, email } | 401
 //   POST /api/auth/signout          → clear session cookie
-import { GitHub } from "arctic";
+import { GitHub, Google, decodeIdToken, generateCodeVerifier } from "arctic";
 import { sql } from "./db.ts";
 import { config } from "./config.ts";
 import {
@@ -16,15 +18,23 @@ import {
   clearSessionCookie,
   stateCookie,
   clearStateCookie,
+  verifierCookie,
+  clearVerifierCookie,
   parseCookies,
   STATE_COOKIE,
+  VERIFIER_COOKIE,
   type SessionUser,
 } from "./session.ts";
 
-const SCOPES = ["read:user", "user:email"];
+const GITHUB_SCOPES = ["read:user", "user:email"];
+const GOOGLE_SCOPES = ["openid", "profile", "email"];
 
 function github(): GitHub {
   return new GitHub(config.githubClientId, config.githubClientSecret, `${config.appUrl}/api/auth/github/callback`);
+}
+
+function google(): Google {
+  return new Google(config.googleClientId, config.googleClientSecret, `${config.appUrl}/api/auth/google/callback`);
 }
 
 function redirect(location: string, cookies: string[] = []): Response {
@@ -67,15 +77,23 @@ async function resolveEmail(gh: GithubUser, token: string): Promise<string | nul
   }
 }
 
-export async function upsertUser(providerId: string, email: string | null, name: string | null, avatar: string): Promise<SessionUser> {
+// provider+provider_id is the identity key (UNIQUE) — the same human signing in
+// with GitHub and with Google gets two distinct rows. No email-based linking.
+export async function upsertUser(
+  provider: string,
+  providerId: string,
+  email: string | null,
+  name: string | null,
+  avatar: string | null,
+): Promise<SessionUser> {
   const rows = (await sql`
     INSERT INTO users (provider, provider_id, email, name, avatar_url)
-    VALUES ('github', ${providerId}, ${email}, ${name}, ${avatar})
+    VALUES (${provider}, ${providerId}, ${email}, ${name}, ${avatar})
     ON CONFLICT (provider, provider_id)
     DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, avatar_url = EXCLUDED.avatar_url
     RETURNING id
   `) as { id: string }[];
-  return { id: rows[0].id, provider: "github" };
+  return { id: rows[0].id, provider };
 }
 
 export async function handleAuth(req: Request, pathname: string): Promise<Response> {
@@ -84,7 +102,7 @@ export async function handleAuth(req: Request, pathname: string): Promise<Respon
   if (sub === "github" && req.method === "GET") {
     if (!config.githubClientId || !config.githubClientSecret) return json({ error: "oauth_not_configured" }, 500);
     const state = crypto.randomUUID();
-    return redirect(github().createAuthorizationURL(state, SCOPES).toString(), [stateCookie(state)]);
+    return redirect(github().createAuthorizationURL(state, GITHUB_SCOPES).toString(), [stateCookie(state)]);
   }
 
   if (sub === "github/callback" && req.method === "GET") {
@@ -100,10 +118,56 @@ export async function handleAuth(req: Request, pathname: string): Promise<Respon
       const token = tokens.accessToken();
       const gh = await ghFetch<GithubUser>("/user", token);
       const email = await resolveEmail(gh, token);
-      const user = await upsertUser(String(gh.id), email, gh.name ?? gh.login, gh.avatar_url);
+      const user = await upsertUser("github", String(gh.id), email, gh.name ?? gh.login, gh.avatar_url);
       return redirect(`${config.appUrl}/`, [sessionCookie(await signSession(user)), clearStateCookie()]);
     } catch {
       return json({ error: "oauth_exchange_failed" }, 400, [clearStateCookie()]);
+    }
+  }
+
+  if (sub === "google" && req.method === "GET") {
+    if (!config.googleClientId || !config.googleClientSecret) return json({ error: "oauth_not_configured" }, 500);
+    // Google requires PKCE: the code_verifier rides a cookie across the round-trip.
+    // arctic's generateCodeVerifier() yields an RFC 7636-compliant value (a UUID would be rejected).
+    const state = crypto.randomUUID();
+    const verifier = generateCodeVerifier();
+    return redirect(google().createAuthorizationURL(state, verifier, GOOGLE_SCOPES).toString(), [
+      stateCookie(state),
+      verifierCookie(verifier),
+    ]);
+  }
+
+  if (sub === "google/callback" && req.method === "GET") {
+    const url = new URL(req.url);
+    const code = url.searchParams.get("code");
+    const state = url.searchParams.get("state");
+    const cookies = parseCookies(req.headers.get("cookie"));
+    const cookieState = cookies[STATE_COOKIE];
+    const verifier = cookies[VERIFIER_COOKIE];
+    const clear = [clearStateCookie(), clearVerifierCookie()];
+    if (!code || !state || !cookieState || state !== cookieState || !verifier) {
+      return json({ error: "invalid_oauth_state" }, 400, clear);
+    }
+    try {
+      const tokens = await google().validateAuthorizationCode(code, verifier);
+      // Claims come straight from the id_token (delivered over TLS from Google's
+      // token endpoint, so no separate signature verification — arctic's pattern).
+      const claims = decodeIdToken(tokens.idToken()) as {
+        sub: string;
+        email?: string;
+        name?: string;
+        picture?: string;
+      };
+      const user = await upsertUser(
+        "google",
+        claims.sub,
+        claims.email ?? null,
+        claims.name ?? claims.email ?? null,
+        claims.picture ?? null,
+      );
+      return redirect(`${config.appUrl}/`, [sessionCookie(await signSession(user)), ...clear]);
+    } catch {
+      return json({ error: "oauth_exchange_failed" }, 400, clear);
     }
   }
 

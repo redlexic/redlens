@@ -57,6 +57,9 @@ const base =
 
 export default defineConfig({
   base,
+  // Don't wipe the terminal on boot/restart — keeps the Bun server's logs
+  // (which run alongside vite in `pnpm dev`) visible.
+  clearScreen: false,
   // Dev only: proxy /api to the Bun server (src/server/index.ts, :3000) so the
   // chat widget's same-origin fetches reach the backend during `pnpm dev`.
   // In prod the Bun server serves both dist/ and /api on one origin, so no
