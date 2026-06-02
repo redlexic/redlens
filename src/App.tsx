@@ -16,6 +16,7 @@ import { HomePage } from "./components/HomePage";
 import { DevPanel } from "./DevPanel";
 import { Footer } from "./components/Footer";
 import { ErrorBoundary, PanelError } from "./components/ErrorBoundary";
+import { ChatWidget } from "./components/chat/ChatWidget";
 
 // Retries a failed dynamic import once before propagating the error.
 // Silently handles transient "Failed to fetch dynamically imported module"
@@ -110,7 +111,7 @@ export default function App() {
 
   return (
     <div
-      className={`flex flex-col pb-6 ${windowScroll ? "min-h-dvh" : "h-dvh"}`}
+      className={`app-shell flex flex-col pb-6 ${windowScroll ? "min-h-dvh" : "h-dvh"}`}
       style={{ background: "var(--bg)" }}
     >
       <SearchBar
@@ -236,6 +237,7 @@ export default function App() {
         </div>
       </div>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }

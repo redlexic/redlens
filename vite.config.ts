@@ -57,6 +57,18 @@ const base =
 
 export default defineConfig({
   base,
+  // Dev only: proxy /api to the Bun server (src/server/index.ts, :3000) so the
+  // chat widget's same-origin fetches reach the backend during `pnpm dev`.
+  // In prod the Bun server serves both dist/ and /api on one origin, so no
+  // proxy is needed (and base is "/", making BASE_URL + "api/…" === /api/…).
+  server: {
+    proxy: {
+      "/api": {
+        target: `http://localhost:${process.env.API_PORT ?? 3000}`,
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     {
       name: "redirect-root",
