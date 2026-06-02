@@ -28,10 +28,14 @@ COPY . .
 # in-process-updater design); to pin a version, `git checkout <sha>` after clone.
 # Then build the lean artifact set (build:railway skips the Etherscan/RPC passes
 # — those artifacts are committed and ship in the image).
+# RAILWAY_ENVIRONMENT forces the Vite base to apex "/" (vite.config.ts). Railway
+# does NOT inject its runtime vars into the Docker build, so without this the
+# bundle builds with the GH-Pages base "/redlens/" and every asset 404s → SPA
+# fallback serves index.html as text/html → "module script MIME type" errors.
 RUN rm -rf vendor/next-gen-atlas \
  && git clone --depth 1 --single-branch --branch main \
       https://github.com/sky-ecosystem/next-gen-atlas vendor/next-gen-atlas \
- && bun run build:railway
+ && RAILWAY_ENVIRONMENT=production bun run build:railway
 
 ENV PORT=3000
 EXPOSE 3000
