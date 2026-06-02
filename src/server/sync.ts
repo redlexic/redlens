@@ -10,7 +10,7 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
-import { sql } from "./db.ts";
+import { sql, waitForDb } from "./db.ts";
 import { config } from "./config.ts";
 import { runMigrations } from "./migrate.ts";
 import { contentHash } from "./embed-text.ts";
@@ -35,6 +35,7 @@ async function chunked<T>(rows: T[], size: number, fn: (chunk: T[]) => Promise<v
 
 async function main() {
   const startedAt = new Date();
+  await waitForDb(); // tolerate Railway's private-network / fresh-PG boot lag
   await runMigrations();
 
   const manifest = readJson<{ atlasCommit?: string }>("manifest.json");
