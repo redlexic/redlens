@@ -237,7 +237,7 @@ export default function App() {
         </div>
       </div>
       <Footer />
-      <ChatWidget />
+      {__CHAT_ENABLED__ && <ChatWidget />}
     </div>
   );
 }

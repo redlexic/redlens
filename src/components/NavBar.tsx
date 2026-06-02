@@ -19,7 +19,7 @@ export function NavBar({ activePage }: NavBarProps) {
       <NavLink page="reports" active={activePage === "reports"}>
         Reports
       </NavLink>
-      <ProfileButton />
+      {__CHAT_ENABLED__ && <ProfileButton />}
     </div>
   );
 }

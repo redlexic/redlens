@@ -20,6 +20,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // No /api backend on static deploys (GH Pages / CF Pages) — skip the boot
+    // probe entirely; the chat UI + profile button aren't mounted there anyway.
+    if (!__CHAT_ENABLED__) {
+      setLoading(false);
+      return;
+    }
     let alive = true;
     fetch(apiUrl("auth/me"), { credentials: "same-origin" })
       .then((res) => (res.ok ? (res.json() as Promise<AuthUser>) : null))

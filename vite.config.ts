@@ -55,8 +55,18 @@ const base =
     ? "/"
     : "/redlens/";
 
-export default defineConfig({
-  base,
+export default defineConfig(({ command }) => {
+  // The chat widget + auth/profile button need the Bun /api backend, which only
+  // exists on Railway (and locally via the dev proxy). GH Pages / CF Pages are
+  // static-only, so hide both there. Auto-derived from the deploy signals;
+  // VITE_CHAT_ENABLED=0|1 overrides for one-off builds.
+  const chatEnabled =
+    process.env.VITE_CHAT_ENABLED != null
+      ? process.env.VITE_CHAT_ENABLED === "1" || process.env.VITE_CHAT_ENABLED === "true"
+      : command === "serve" || !!process.env.RAILWAY_ENVIRONMENT;
+
+  return {
+    base,
   // Don't wipe the terminal on boot/restart — keeps the Bun server's logs
   // (which run alongside vite in `pnpm dev`) visible.
   clearScreen: false,
@@ -155,11 +165,13 @@ export default defineConfig({
       },
     }),
   ],
-  define: {
-    __COMMIT_HASH__: JSON.stringify(commitHash),
-    __ATLAS_COMMIT__: JSON.stringify(atlasCommit),
-    __BUILD_TIME__: JSON.stringify(buildTime),
-    __NODE_COUNT__: JSON.stringify(nodeCount),
-    __ARTIFACT_HASHES__: JSON.stringify(artifactHashes),
-  },
+    define: {
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+      __ATLAS_COMMIT__: JSON.stringify(atlasCommit),
+      __BUILD_TIME__: JSON.stringify(buildTime),
+      __NODE_COUNT__: JSON.stringify(nodeCount),
+      __ARTIFACT_HASHES__: JSON.stringify(artifactHashes),
+      __CHAT_ENABLED__: JSON.stringify(chatEnabled),
+    },
+  };
 });
