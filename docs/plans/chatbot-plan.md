@@ -84,7 +84,7 @@
   **minisearch FTS** — built from `docs.json` at boot:
   - Fields: `title^3`, `content`, `type^2`, `doc_no`
   - Active maintenance, BM25 ranking, fuzzy matching, faceting
-  - Replaces lunr (frontend) and Postgres FTS (planned) — one library, in-process, sub-ms queries
+  - Replaces MiniSearch (frontend) and Postgres FTS (planned) — one library, in-process, sub-ms queries
   - ~15–25 MB
 
   **Doc content map** — `Map<uuid, { title, doc_no, type, content, parent_id, depth }>` from `docs.json`:

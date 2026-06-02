@@ -1,10 +1,16 @@
 // OpenRouter embeddings client. ONE path for both document and query embedding
 // (a mismatch would silently wreck rankings). Qwen3-embedding-8b's native dim is
 // 4096; we request `dimensions` and also slice + L2-renormalize client-side so
-// we always end up with an exactly-embedDim unit vector regardless of whether
+// we always end up with an exactly-EMBED_DIM unit vector regardless of whether
 // the server honors the param. HNSW caps indexed vectors at 2000 dims — 1024 is
 // safe and load-bearing.
 import { config } from "./config.ts";
+
+// Embedding dimension. A CODE CONSTANT, not env-configurable: it MUST equal the
+// `vector(N)` in migrations/001_init_atlas.sql and the built HNSW index. Changing
+// it requires a new migration that rebuilds the column + index — not a flag.
+// sync-embeddings.ts guards that the live column matches this value.
+export const EMBED_DIM = 1024;
 
 interface EmbedResponse {
   data: { embedding: number[]; index: number }[];
@@ -27,7 +33,7 @@ export async function embedBatch(texts: string[], attempt = 0): Promise<number[]
         authorization: `Bearer ${config.openrouterApiKey}`,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ model: config.embedModel, input: texts, dimensions: config.embedDim }),
+      body: JSON.stringify({ model: config.embedModel, input: texts, dimensions: EMBED_DIM }),
     });
     if (!res.ok) {
       throw new Error(`embeddings ${res.status}: ${(await res.text().catch(() => "")).slice(0, 300)}`);
@@ -38,7 +44,7 @@ export async function embedBatch(texts: string[], attempt = 0): Promise<number[]
     }
     // Map by the response `index` field, not array position.
     const out = new Array<number[]>(texts.length);
-    for (const d of json.data) out[d.index] = sliceNormalize(d.embedding, config.embedDim);
+    for (const d of json.data) out[d.index] = sliceNormalize(d.embedding, EMBED_DIM);
     return out;
   } catch (err) {
     if (attempt >= 4) throw err;
