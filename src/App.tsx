@@ -153,7 +153,7 @@ export default function App() {
             resetKey={location}
             fallback={(error) => (
               <div className="flex flex-col items-center justify-center flex-1 py-24 gap-4">
-                <p className="text-sm mono" style={{ color: "var(--red)" }}>page failed to load</p>
+                <p className="text-sm mono" style={{ color: "var(--error-text)" }}>page failed to load</p>
                 <p className="text-xs mono text-tan-3 text-center max-w-md">{error.message}</p>
               </div>
             )}
