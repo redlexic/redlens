@@ -128,10 +128,16 @@ d. **Atlas auto-update:** when upstream advances, the logs show
 
 ## 6. (Optional) Enable chat login — GitHub and Google OAuth
 
-Chat + auth ship **disabled** by default — the merged image exposes no chat UI
-and no `/api/auth` · `/api/chat` · `/api/usage` routes until you opt in. Turning
-it on takes **two** switches, because the UI flag is baked into the bundle at
-build time while the routes are gated at runtime:
+**Skip this whole section unless you want chat.** None of the variables it
+introduces — `CHAT_ENABLED`, `CHAT_JWT_SECRET`, and the GitHub/Google OAuth
+credentials — are needed to run RedLens. The reader SPA, `/mcp`, and the atlas
+updater all work with just the step-3 variables; leave the chat vars unset and
+nothing breaks. Only come back here when you actually want to turn chat on.
+
+When you do, chat + auth ship **disabled** by default — the merged image exposes
+no chat UI and no `/api/auth` · `/api/chat` · `/api/usage` routes until you opt
+in. Turning it on takes **two** switches, because the UI flag is baked into the
+bundle at build time while the routes are gated at runtime:
 
 - **`VITE_CHAT_ENABLED=1`** — a **build arg** (`--build-arg VITE_CHAT_ENABLED=1`,
   wired through the Dockerfile). Runtime Railway variables can't reach the Vite
