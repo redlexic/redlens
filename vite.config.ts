@@ -57,6 +57,11 @@ const base =
 
 export default defineConfig({
   base,
+  server: {
+    watch: {
+      ignored: ["**/vendor/next-gen-atlas/**", "**/.cache/**", "**/public/history/**"],
+    },
+  },
   plugins: [
     {
       name: "redirect-root",

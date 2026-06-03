@@ -1,48 +1,21 @@
-import { memo } from "react";
-import { depthColor } from "../../lib/depth";
+import { memo, useMemo, useRef } from "react";
+import { segmentDepths } from "../../lib/depth";
 import { type FlatEntry } from "../../lib/atlasHelpers";
-import { HEADER_OFFSET } from "../../lib/layout";
+import { DocNoChiclets } from "../DocNoChiclets";
 import { NodeContent } from "../NodeContent";
+import { NodeMeta } from "./NodeMeta";
 
-export const ViewChildrenFill = ({
-  nodeId,
-  docNo,
-  onExpand,
-}: {
-  nodeId: string;
-  docNo: string;
-  onExpand: (id: string) => void;
-}) => (
-  <button
-    type="button"
-    onClick={() => onExpand(nodeId)}
-    className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer"
-  >
-    view all descendants of {docNo}
-  </button>
-);
+const DRAG_THRESHOLD_PX = 4;
 
-const DEPTH_HEADING: Record<number, string> = {
-  1: "text-2xl font-bold",
-  2: "text-xl font-bold",
-  3: "text-lg font-bold",
-  4: "text-base font-semibold",
-  5: "text-sm font-semibold",
-  6: "text-sm font-semibold",
-  7: "text-sm font-medium",
-  8: "text-sm font-medium",
-  9: "text-xs font-medium",
-  10: "text-xs font-medium",
-  11: "text-xs font-normal",
-  12: "text-xs font-normal",
-};
-
-const BORDER_WIDTH = 3;
+const TITLE_CLASS = "text-xl font-bold";
 
 export const CollapsibleNode = memo(function CollapsibleNode({
   entry,
   isSelected,
   isExpanded,
+  hiddenCount = 0,
+  parentDocNo,
+  onExpandChildren,
   onNavigate,
   onToggle,
   onShiftNavigate,
@@ -51,154 +24,120 @@ export const CollapsibleNode = memo(function CollapsibleNode({
   entry: FlatEntry;
   isSelected: boolean;
   isExpanded: boolean;
+  hiddenCount?: number;
+  parentDocNo?: string;
+  onExpandChildren?: (id: string) => void;
   onNavigate: (id: string) => void;
   onToggle: (id: string) => void;
   onShiftNavigate?: (id: string) => void;
   idPrefix?: string;
 }) {
-  const { node, depth, color, indentPadding, hasContent } = entry;
+  const { node, depth, color, hasContent } = entry;
   const HeadingTag = `h${Math.min(depth, 6)}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  // NR-X nodes are leaves attached to regular tree nodes. The doc_no is opaque
+  // ("NR-2"), so derive the chiclet strip from the parent's path plus one
+  // trailing chiclet for the NR itself — that way the chiclets reflect the
+  // actual nesting position rather than the bare "NR-X" token.
+  // Memoised so DocNoChiclets (also memo'd) gets stable array references and
+  // skips re-render when only isSelected/isExpanded changes on this node.
+  const { docNoParts, docNoDepths } = useMemo(() => {
+    const isNR = node.doc_no.startsWith("NR-");
+    const src = isNR && parentDocNo ? `${parentDocNo}.x` : node.doc_no;
+    return {
+      docNoParts: src.split("."),
+      docNoDepths: src.startsWith("NR-") ? [1] : segmentDepths(src),
+    };
+  }, [node.doc_no, parentDocNo]);
+  const mouseDownRef = useRef<{ x: number; y: number } | null>(null);
 
   return (
-    <div
+    <article
       id={idPrefix ? `${idPrefix}-${node.id}` : node.id}
-      className="atlas-node relative"
+      className={`atlas-node relative${isSelected ? " is-selected" : ""}`}
+      data-has-hidden={hiddenCount > 0 ? "true" : undefined}
+      style={{ ["--row-color" as string]: color } as React.CSSProperties}
+      aria-label={`${node.doc_no} — ${node.title}`}
+      aria-expanded={hasContent ? isExpanded : undefined}
       tabIndex={0}
+      onMouseDown={(e: React.MouseEvent) => {
+        mouseDownRef.current = { x: e.clientX, y: e.clientY };
+      }}
       onClick={(e: React.MouseEvent) => {
         if ((e.target as Element).closest('a, button, [role="button"]')) return;
+        // Drag-text-select fires a click on mouseup — skip those so selecting
+        // a paragraph doesn't also toggle or navigate the row.
+        const down = mouseDownRef.current;
+        mouseDownRef.current = null;
+        if (down) {
+          const dx = Math.abs(e.clientX - down.x);
+          const dy = Math.abs(e.clientY - down.y);
+          if (dx > DRAG_THRESHOLD_PX || dy > DRAG_THRESHOLD_PX) return;
+        }
+        // inRowBar = click landed on the title row (chiclets/title), not the expanded body. See data-row-bar attr below.
+        const inRowBar = !!(e.target as Element).closest("[data-row-bar]");
         if (e.shiftKey && onShiftNavigate) {
           e.preventDefault();
           onShiftNavigate(node.id);
-        } else {
-          onNavigate(node.id);
+          return;
         }
+        if (!isSelected) {
+          // Click anywhere on the row (title or body) selects it.
+          onNavigate(node.id);
+          return;
+        }
+        // Already selected: only title-bar clicks toggle the body. Body clicks do nothing.
+        if (inRowBar && hasContent) onToggle(node.id);
       }}
       onKeyDown={(e: React.KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onNavigate(node.id);
+          if (isSelected && hasContent) {
+            onToggle(node.id);
+          } else {
+            onNavigate(node.id);
+          }
         }
       }}
-      style={{
-        padding: 4,
-        boxShadow: isSelected ? `inset ${BORDER_WIDTH}px 0 0 ${color}` : undefined,
-        borderTop: isSelected ? `${BORDER_WIDTH}px solid ${color}` : undefined,
-        scrollMarginTop: HEADER_OFFSET,
-      }}
     >
-      {depth > 1 && (
-        <span className="absolute flex items-center" style={{ left: BORDER_WIDTH + 4, top: 4 }}>
-          {Array.from({ length: depth }, (_, i) => (
-            <span
-              key={i}
-              style={{
-                width: 4,
-                textAlign: "center",
-                color: depthColor(i + 1),
-                fontSize: i === depth - 1 ? 11 : 8,
-                lineHeight: 1,
-              }}
-            >
-              {"\u2022"}
-            </span>
-          ))}
-        </span>
-      )}
-      <div
-        className="flex items-center gap-2"
-        style={{ paddingLeft: isSelected ? indentPadding - BORDER_WIDTH : indentPadding }}
-      >
-        <span
-          role={hasContent ? "button" : undefined}
-          tabIndex={hasContent ? 0 : undefined}
-          aria-expanded={hasContent ? isExpanded : undefined}
-          aria-label={hasContent ? `Toggle ${node.title}` : undefined}
-          className="atlas-toggle text-[11px] w-3 text-center shrink-0"
-          style={{ color: hasContent ? "var(--tan-3)" : "transparent", display: "inline-flex" }}
-          onClick={
-            hasContent
-              ? (e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  onToggle(node.id);
-                }
-              : undefined
-          }
-          onKeyDown={
-            hasContent
-              ? (e: React.KeyboardEvent) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onToggle(node.id);
-                  }
-                }
-              : undefined
-          }
-        >
-          {hasContent ? (isExpanded ? "\u25BE" : "\u25B8") : "\u00B7"}
-        </span>
-        <div className="atlas-node-title flex items-center gap-2 py-1.5">
-          <HeadingTag
-            className={DEPTH_HEADING[depth] ?? "text-sm font-medium"}
-            style={{ color: isSelected ? "var(--tan)" : "var(--tan-2)" }}
-          >
+      {/* data-row-bar: marker the outer onClick uses to distinguish title-bar clicks from body clicks (see handler above). */}
+      <div data-row-bar className="flex items-center gap-2 pl-3">
+        <DocNoChiclets parts={docNoParts} depths={docNoDepths} />
+        <div className="atlas-node-title flex items-center gap-2 py-1.5 flex-1 min-w-0">
+          <HeadingTag className={TITLE_CLASS}>
             {node.title}
           </HeadingTag>
-          <span className="text-[10px] mono text-tan-3">{node.id}</span>
         </div>
       </div>
+      {isSelected && <div className="atlas-node-meta"><NodeMeta node={node} /></div>}
 
-      {isExpanded && hasContent && (
-        <div
-          className="pb-3 mt-2"
-          style={{
-            // ensure at least 7 px are to the left
-            marginLeft: Math.max(
-              (isSelected ? indentPadding - BORDER_WIDTH : indentPadding) + 7,
-              7,
-            ),
-            boxShadow: `inset 1px 0 0 var(--border)`,
-            paddingLeft: 18,
+      {hiddenCount > 0 && onExpandChildren && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onExpandChildren(node.id);
           }}
+          title={`View ${hiddenCount} hidden ${hiddenCount === 1 ? "section" : "sections"} under ${node.doc_no}`}
+          aria-label={`View ${hiddenCount} hidden sections`}
+          className="view-children-affordance"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <span
-              className="text-[11px] font-medium px-1.5 py-0.5 rounded mono"
-              style={{
-                background: "var(--surface)",
-                color,
-                border: `1px solid color-mix(in srgb, ${color} 40%, transparent)`,
-              }}
-            >
-              {node.type}
-            </span>
-            <span className="mono text-[10px] shrink-0" style={{ color }}>
-              {node.doc_no}
-            </span>
-            <a
-              href={`https://sky-atlas.io/#${node.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open on Sky Atlas"
-              className="atlas-external-link shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 12 12"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M4.5 1.5H2a.5.5 0 00-.5.5v8a.5.5 0 00.5.5h8a.5.5 0 00.5-.5V7.5" />
-                <path d="M7 1.5h3.5V5M7 5.5l4-4" />
-              </svg>
-            </a>
-          </div>
+          <span>{hiddenCount} hidden</span>
+          <svg
+            width="8"
+            height="5"
+            viewBox="0 0 8 5"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M0 0 L8 0 L4 5 Z" />
+          </svg>
+        </button>
+      )}
+      {isExpanded && hasContent && (
+        <div className="atlas-node-body">
           <NodeContent content={node.content} onNavigate={onNavigate} />
         </div>
       )}
-    </div>
+    </article>
   );
 });

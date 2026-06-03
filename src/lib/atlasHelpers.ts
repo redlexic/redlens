@@ -36,11 +36,20 @@ export function buildAncestors(
   return ancestors;
 }
 
+export function buildAncestorsWithSelf(
+  docs: Record<string, AtlasNode>,
+  docNoToId: Map<string, string>,
+  nodeId: string,
+): AtlasNode[] {
+  const chain = buildAncestors(docs, docNoToId, nodeId);
+  const self = docs[nodeId];
+  return self ? [...chain, self] : chain;
+}
+
 export interface FlatEntry {
   node: AtlasNode;
   depth: number;
   color: string;
-  indentPadding: number;
   hasContent: boolean;
 }
 
@@ -53,7 +62,6 @@ export function flattenTree(byParent: Map<string | null, AtlasNode[]>): FlatEntr
         node,
         depth,
         color: depthColor(depth),
-        indentPadding: (depth - 1) * 7,
         hasContent: !!node.content,
       });
       walk(node.id, node.doc_no);

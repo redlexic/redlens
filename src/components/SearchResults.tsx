@@ -99,7 +99,7 @@ export const SearchResults = memo(function SearchResults({
                   >
                     <span
                       className="inline-block w-2.5 h-2.5 rounded-full shrink-0 mr-3"
-                      style={{ background: ENTITY_TYPE_COLOR[participant.et] ?? "#888" }}
+                      style={{ background: ENTITY_TYPE_COLOR[participant.et] ?? "var(--entity-fallback)" }}
                     />
                     <span className="text-sm font-semibold text-tan">{participant.name}</span>
                     <span className="mono text-[10px] text-tan-3 ml-4">

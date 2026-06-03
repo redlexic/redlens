@@ -7,6 +7,7 @@ import {
   startTransition,
   type ReactElement,
 } from "react";
+import { useResizeDrag } from "../../hooks/useResizeDrag";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { Loading } from "../Loading";
 import { loadAtlas } from "../../lib/docs";
@@ -16,16 +17,17 @@ import { getEdges, type EdgeResult } from "../../lib/graph";
 import { setAddressMap } from "../../lib/addressMap";
 import { loadGlossary, buildLookup, type GlossaryEntry } from "../../lib/glossary";
 import { type AtlasNode, type AddressInfo } from "../../types";
-import { CollapsibleNode, ViewChildrenFill } from "./CollapsibleNode";
+import { CollapsibleNode } from "./CollapsibleNode";
 import { flattenTree } from "../../lib/atlasHelpers";
 import { useDepth6Expand } from "./useDepth6Expand";
 import { RightPanel } from "./RightPanel";
 import { JuniorPane } from "./JuniorPane";
 import { ErrorBoundary, PanelError } from "../ErrorBoundary";
 import { DrawerToggle } from "../Drawer";
+import { useExpandingAttr } from "../../hooks/useExpandingAttr";
 import {
   extractLinkedIds,
-  buildAncestors,
+  buildAncestorsWithSelf,
   ATLAS_GRID_STYLE,
   ATLAS_LEFT_PANE_STYLE,
   ATLAS_EMPTY_SET,
@@ -33,6 +35,11 @@ import {
 } from "../../lib/atlasHelpers";
 
 const EMPTY_EDGES: EdgeResult = { outbound: [], inbound: [] };
+
+const RIGHT_PANEL_KEY = "redlens:right-panel-width";
+const RIGHT_PANEL_MIN = 260; // keeps annotations / glossary / history tabs visible
+const RIGHT_PANEL_MAX = 800;
+const RIGHT_PANEL_DEFAULT = 420;
 
 export function AtlasView({
   id,
@@ -54,6 +61,24 @@ export function AtlasView({
   const [data, setData] = useState<LoadedData | null>(null);
   const [userToggles, setUserToggles] = useState<Set<string>>(new Set());
   const [graphEdges, setGraphEdges] = useState<EdgeResult>(EMPTY_EDGES);
+  const [selectedId, setSelectedId] = useState<string | null>(id);
+  const [rightWidth, setRightWidth] = useState(() => {
+    try {
+      const raw = localStorage.getItem(RIGHT_PANEL_KEY);
+      if (raw) {
+        const n = parseInt(raw, 10);
+        if (Number.isFinite(n) && n >= RIGHT_PANEL_MIN && n <= RIGHT_PANEL_MAX) return n;
+      }
+    } catch {}
+    return RIGHT_PANEL_DEFAULT;
+  });
+
+  const startResizeRight = useResizeDrag(rightWidth, setRightWidth, {
+    min: RIGHT_PANEL_MIN,
+    max: RIGHT_PANEL_MAX,
+    storageKey: RIGHT_PANEL_KEY,
+    growsLeft: true,
+  });
   // Grows-only: once expanded, stays expanded across navigations so the user's context
   // (previously visited nodes) doesn't collapse out from under them.
   const seenExpanded = useRef<Set<string>>(new Set());
@@ -108,8 +133,15 @@ export function AtlasView({
 
   const ancestors = useMemo(() => {
     if (!data || !id) return [];
-    return buildAncestors(data.atlas.docs, data.atlas.docNoToId, id);
+    return buildAncestorsWithSelf(data.atlas.docs, data.atlas.docNoToId, id);
   }, [data, id]);
+
+  // Glossary lookup is stable once data loads — separate memo so it isn't
+  // rebuilt on every navigation (the outer memo re-runs on every id change).
+  const glossaryLookup = useMemo(
+    () => (data ? buildLookup(data.glossary) : {}),
+    [data],
+  );
 
   const { linkedNodes, targetAddresses, chainValues, glossaryTerms } = useMemo(() => {
     const empty = {
@@ -133,11 +165,10 @@ export function AtlasView({
       const val = data.chainState.values[ref];
       if (val) cv[ref] = val;
     }
-    const lookup = buildLookup(data.glossary);
     const contentLower = target.content.toLowerCase();
     const seen = new Set<GlossaryEntry[]>();
     const glossaryTerms: GlossaryEntry[][] = [];
-    for (const entries of Object.values(lookup)) {
+    for (const entries of Object.values(glossaryLookup)) {
       if (!seen.has(entries) && entries.some((e) => contentLower.includes(e.term.toLowerCase()))) {
         seen.add(entries);
         glossaryTerms.push(entries);
@@ -145,7 +176,18 @@ export function AtlasView({
     }
     glossaryTerms.sort((a, b) => a[0].term.localeCompare(b[0].term));
     return { linkedNodes, targetAddresses, chainValues: cv, glossaryTerms };
-  }, [data, id]);
+  }, [data, id, glossaryLookup]);
+
+  // Mirror external URL-driven changes (back/forward, sidebar nav) into local state.
+  // we use local state as it means ui updates faster (optimistically) than when we wait for the url change event. 
+  useEffect(() => { setSelectedId(id); }, [id]);
+
+  // Flip selection optimistically so the CSS class updates in the current frame,
+  // then defer the URL update (and its cascade) as a transition.
+  const handleNavigate = useCallback((nid: string) => {
+    setSelectedId(nid); // this is a performance / optimstic flow update
+    startTransition(() => onNavigate(nid));
+  }, [onNavigate]);
 
   const handleToggle = useCallback((nodeId: string) => {
     setUserToggles((prev) => {
@@ -156,10 +198,16 @@ export function AtlasView({
     });
   }, []);
 
-  const { expandedParents, hasDeepChildren, expandParent } = useDepth6Expand(
+  const { expandedParents, hiddenCount, expandParent } = useDepth6Expand(
     data?.flatNodes ?? [],
     id,
   );
+
+  const triggerExpandingAnim = useExpandingAttr(scrollContainerRef);
+  const handleExpandParent = useCallback((nodeId: string) => {
+    expandParent(nodeId);
+    triggerExpandingAnim();
+  }, [expandParent, triggerExpandingAnim]);
 
   // scrolledRef guards against re-scrolling when only expandedParents changes (depth-6 expand).
   // Reset on every id change so revisiting a node re-checks and scrolls if needed.
@@ -185,39 +233,36 @@ export function AtlasView({
     const items: ReactElement[] = [];
     for (const entry of data.flatNodes) {
       if (entry.depth >= 6 && !expandedParents.has(entry.node.parentId ?? "")) continue;
+      const gatedCount = expandedParents.has(entry.node.id) ? 0 : (hiddenCount.get(entry.node.id) ?? 0);
+      const parentDocNo = entry.node.parentId
+        ? data.atlas.docs[entry.node.parentId]?.doc_no
+        : undefined;
       items.push(
         <CollapsibleNode
           key={entry.node.id}
           entry={entry}
-          isSelected={entry.node.id === id}
+          isSelected={entry.node.id === selectedId}
           isExpanded={expandedSet.has(entry.node.id) !== userToggles.has(entry.node.id)}
-          onNavigate={onNavigate}
+          hiddenCount={gatedCount}
+          parentDocNo={parentDocNo}
+          onExpandChildren={handleExpandParent}
+          onNavigate={handleNavigate}
           onToggle={handleToggle}
           onShiftNavigate={onSplitChange}
         />,
       );
-      if (hasDeepChildren.has(entry.node.id) && !expandedParents.has(entry.node.id)) {
-        items.push(
-          <ViewChildrenFill
-            key={`fill-${entry.node.id}`}
-            nodeId={entry.node.id}
-            docNo={entry.node.doc_no}
-            onExpand={expandParent}
-          />,
-        );
-      }
     }
     return items;
   }, [
     data,
-    id,
+    selectedId,
     expandedSet,
     userToggles,
-    onNavigate,
+    handleNavigate,
     handleToggle,
     expandedParents,
-    hasDeepChildren,
-    expandParent,
+    hiddenCount,
+    handleExpandParent,
     onSplitChange,
   ]);
 
@@ -244,11 +289,11 @@ export function AtlasView({
         {id && <Breadcrumbs ancestors={ancestors} />}
       </div>
       <div
-        className="flex-1 min-[750px]:grid min-[750px]:grid-cols-[3fr_2fr]"
+        className="flex-1 flex"
         style={ATLAS_GRID_STYLE}
       >
         <div
-          className="relative flex flex-col overflow-hidden"
+          className="relative flex flex-col overflow-hidden flex-1 min-w-0"
           style={{ ...ATLAS_LEFT_PANE_STYLE, minHeight: 0 }}
         >
           {id && !splitId && (
@@ -274,15 +319,15 @@ export function AtlasView({
               </svg>
             </button>
           )}
-          <div ref={scrollContainerRef} className="overflow-y-auto flex-1" style={{ minHeight: 0 }}>
-            <div className="mx-auto px-3 py-2">
-              <ErrorBoundary key={id} fallback={<PanelError />}>
+          <div ref={scrollContainerRef} className="atlas-scroll overflow-y-auto flex-1" style={{ minHeight: 0 }}>
+            <div className="mx-auto py-2">
+              <ErrorBoundary resetKey={id} fallback={<PanelError />}>
                 {docList}
               </ErrorBoundary>
             </div>
           </div>
           {splitId && data && (
-            <ErrorBoundary key={splitId} fallback={<PanelError />}>
+            <ErrorBoundary resetKey={splitId} fallback={<PanelError />}>
               <JuniorPane
                 splitId={splitId}
                 data={data}
@@ -293,8 +338,24 @@ export function AtlasView({
           )}
         </div>
         {id && (
-          <div className="flex flex-col hidden min-[750px]:flex" style={{ minHeight: 0 }}>
-            <ErrorBoundary key={id} fallback={(_, reset) => <PanelError reset={reset} />}>
+          <div
+            className="relative hidden min-[750px]:flex flex-col"
+            style={{ width: rightWidth, flexShrink: 0, minHeight: 0 }}
+          >
+            <div
+              onMouseDown={startResizeRight}
+              title="Drag to resize"
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: -3,
+                width: 6,
+                cursor: "col-resize",
+                zIndex: 10,
+              }}
+            />
+            <ErrorBoundary resetKey={id} fallback={(_, reset) => <PanelError reset={reset} />}>
               <RightPanel
                 id={id}
                 linkedNodes={linkedNodes}

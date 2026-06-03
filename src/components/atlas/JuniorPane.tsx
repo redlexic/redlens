@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback, useMemo, type ReactElement } from "react";
 import { buildAncestors, type LoadedData } from "../../lib/atlasHelpers";
-import { CollapsibleNode, ViewChildrenFill } from "./CollapsibleNode";
+import { CollapsibleNode } from "./CollapsibleNode";
+
+const ViewChildrenFill = ({ docNo, onExpand }: { docNo: string; onExpand: () => void }) => (
+  <button
+    type="button"
+    onClick={onExpand}
+    className="view-children-fill w-full text-center mono text-[10px] text-tan-3 bg-transparent cursor-pointer"
+  >
+    view all descendants of {docNo}
+  </button>
+);
 import { type FlatEntry } from "../../lib/atlasHelpers";
 import { depthColor, realDepth } from "../../lib/depth";
 
@@ -52,6 +62,7 @@ export function JuniorPane({
     });
   }, []);
 
+  // JuniorPane styles the current node differently from the rest of the chain, so it keeps using buildAncestors and renders the current segment separately. See buildAncestorsWithSelf in atlasHelpers if that ever changes.
   const ancestors = useMemo(
     () => buildAncestors(data.atlas.docs, data.atlas.docNoToId, splitId),
     [data, splitId],
@@ -102,7 +113,6 @@ export function JuniorPane({
       result.push(
         <ViewChildrenFill
           key="bottom"
-          nodeId={splitId}
           docNo={docNo}
           onExpand={() => setShowMore(true)}
         />,
@@ -142,7 +152,9 @@ export function JuniorPane({
                   onShiftNavigate(a.id);
                 }}
                 className="hover:text-tan"
-                style={{ color: depthColor(realDepth(a.doc_no)) }}
+                style={{ 
+                  color:  `var(--tan3)`,
+                }}
               >
                 {a.title}
               </a>
@@ -151,7 +163,7 @@ export function JuniorPane({
           {node && (
             <span>
               {ancestors.length > 0 && <span> / </span>}
-              <span style={{ color: depthColor(realDepth(node.doc_no)) }}>{node.title}</span>
+              <span style={{ color: `color-mix(in srgb,${depthColor(realDepth(node.doc_no))} 75%, white)` }}>{node.title}</span>
             </span>
           )}
         </span>

@@ -236,7 +236,7 @@ function ActorItemsSection({ groups, pick, anchorPrefix }: SectionProps) {
 function SectionHeading({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex items-baseline gap-2 mb-4">
-      <h2 className="text-sm font-medium" style={{ color: "var(--tan)", fontFamily: "Lora, serif" }}>{label}</h2>
+      <h2 className="text-sm font-medium" style={{ color: "var(--tan)" }}>{label}</h2>
       <span className="mono text-[11px]" style={{ color: "var(--tan-3)" }}>({count})</span>
     </div>
   );
