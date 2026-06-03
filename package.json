@@ -63,7 +63,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "unist-util-visit": "^5.1.0",
-    "wcag-contrast": "^3.0.0",
+    "wcag-contrast": "3.0.0",
     "workbox-window": "^7.4.1",
     "wouter": "^3.9.0",
     "zod": "^3.25.76"
@@ -79,6 +79,7 @@
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/wcag-contrast": "^3.0.3",
     "@vitejs/plugin-react": "^6.0.1",
     "bun-types": "^1.2.0",
     "jsdom": "^29.1.1",
