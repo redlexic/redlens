@@ -89,3 +89,7 @@ export function segmentDepths(doc_no: string): number[] {
 export function depthColor(depth: number): string {
   return `var(--depth-${Math.min(Math.max(depth, 1), 17)})`;
 }
+
+export function chicletColor(depth: number): string {
+  return depth === 0 ? "var(--gray)" : `var(--depth-${Math.min(Math.max(depth, 1), 17)})`;
+}

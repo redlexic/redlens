@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useMemo, useCallback, useTransition } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { List, useListRef } from "react-window";
 import { useAtlasTree } from "../../hooks/useAtlasTree";
 import { useTreeKeyboard } from "../../hooks/useTreeKeyboard";
+import { usePulseDom } from "../../hooks/usePulseDom";
 import { realDepth } from "../../lib/depth";
 import { TreeRow, ROW_HEIGHT, type VisibleNode, type TreeRowData } from "./TreeRow";
 
@@ -13,24 +14,13 @@ interface Props {
 
 export function TreeSidebar({ nodeId, onNavigate, onShiftNavigate }: Props) {
   const bundle = useAtlasTree();
-  const [sidebarWidth, setSidebarWidth] = useState(220);
+  const [sidebarWidth, setSidebarWidth] = useState(242);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const clickedRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useListRef(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const initializedRef = useRef(false);
-  const [, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (!bundle || initializedRef.current) return;
-    initializedRef.current = true;
-    const initial = new Set<string>();
-    for (const node of Object.values(bundle.docs)) {
-      if (node.depth <= 1) initial.add(node.id);
-    }
-    startTransition(() => setExpandedIds(initial));
-  }, [bundle]);
+  usePulseDom(nodeId, containerRef);
 
   useEffect(() => {
     if (!bundle || !nodeId) return;

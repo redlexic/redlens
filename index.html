@@ -5,19 +5,35 @@
     <link rel="icon" type="image/png" href="/icon-SMALL.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#160e0d" />
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem("redlens:palette-overrides");
+          if (!raw) return;
+          var p = JSON.parse(raw);
+          if (!p || p.v !== 1 || !p.values) return;
+          var r = document.documentElement;
+          for (var k in p.values) {
+            if (Object.prototype.hasOwnProperty.call(p.values, k)) {
+              r.style.setProperty("--" + k, p.values[k]);
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
     <title>RedLens' Sky Atlas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Non-render-blocking: loads as print then swaps to all on load -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Code+Pro:wght@400;500;700&display=optional"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;700&display=optional"
       rel="stylesheet"
       media="print"
       onload="this.media = 'all'"
     />
     <noscript
       ><link
-        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Code+Pro:wght@400;500;700&display=optional"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;700&display=optional"
         rel="stylesheet"
     /></noscript>
     <link rel="preload" href="/docs.json" as="fetch" crossorigin />

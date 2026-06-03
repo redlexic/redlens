@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
 :root {
+  /* ─── Surface tier ─── */
   --bg: #160e0d; /* charcoal with a reddish undertone */
+  --bg-alt: color-mix(in srgb, var(--bg) 94%, black); /* --bg darkened 6% */
+  --bg-deep: #0e0907; /* deeper than --bg — tree sidebar */
   --surface: #221614;
-  --hover: #3a1f1a;
+  --hover: #291612;
   --border: #3d2c28;
+
+  /* ─── Brand ─── */
   --red: #a63228; /* burn red — badges, target highlight */
   --red-dim: #753021;
   --accent: #c67267; /* browner/pinker — focus, interactive */
+
+  /* ─── Text ─── */
   --gray: #9a8a80; /* bumped from #7a6860 — passes 4.5:1 on --bg */
   --tan: #f3e7ce; /* primary text — lightened */
   --tan-2: #e4d1b9; /* secondary */
@@ -15,7 +22,72 @@
   --magenta: #c61f7c; /* status pills (e.g. update available) — high-contrast on --tan */
   --terminal-green: #399930;
   --lily-green: #ecffea;
+
+  /* ─── Row state overlays (translucent white) ─── */
+  --row-hover: rgba(255, 255, 255, 0.1);
+  --row-selected: rgba(255, 255, 255, 0.08);
+  --row-focused: rgba(255, 255, 255, 0.06);
+  --atlas-row-selected: #1f1f1f;
+  --row-pulse-flash: rgba(255, 255, 255, 0.28);
+  --row-bar-tint: white; /* mix target for the selected red-bar tint; overridden in light theme */
+  --row-pulse-ms: 700ms;
+
+  --node-hover: #000000;
+
+  /* ─── Shadows ─── */
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-strong: rgba(0, 0, 0, 0.5);
+
+  /* ─── Graph chrome (constellations / ReactFlow) ─── */
+  --edge: #5a3a32;
+  --edge-label-fg: #8a6a60;
+  --graph-dots: #2a1a16;
+
+  /* ─── Diff view ─── */
+  --diff-removed-bg: #4a1010;
+  --diff-removed-fg: #e8d5d5;
+
+  /* ─── Entity-type categorical palette ─── */
+  --entity-agent: #c67267; /* same hue as --accent */
+  --entity-facilitator-org: #e0a060;
+  --entity-govops-org: #8fb8c2;
+  --entity-delegate-org: #9ab58a;
+  --entity-development-company: #a0b0d0;
+  --entity-foundation: #b8a0c8;
+  --entity-composite-party: #c8b070;
+  --entity-governance-body: #90a880;
+  --entity-operational-party: #c09080;
+  --entity-ecosystem-actor: #a89090;
+  --entity-instance: #7a8a9c;
+  --entity-fallback: #888888;
+
   --max-prose-width: 68ch;
+
+  /* ─── Depth palette ─── */
+  /* 5-color jewel-tone cycle (red, orange, green, blue, purple) starting at depth-1, looping through depth-17. */
+  --depth-1: #b40000;  /* red */
+  --depth-2: #a36600;  /* orange */
+  --depth-3: #269929;  /* green */
+  --depth-4: #4b6cd9;  /* blue */
+  --depth-5: #7800f0;  /* purple */
+  --depth-6: #b40000;  /* red */
+  --depth-7: #a36600;  /* orange */
+  --depth-8: #269929;  /* green */
+  --depth-9: #4b6cd9;  /* blue */
+  --depth-10: #7800f0; /* purple */
+  --depth-11: #b40000; /* red */
+  --depth-12: #a36600; /* orange */
+  --depth-13: #269929; /* green */
+  --depth-14: #4b6cd9; /* blue */
+  --depth-15: #7800f0; /* purple */
+  --depth-16: #b40000; /* red */
+  --depth-17: #a36600; /* orange */
+}
+
+/* Light theme — fill in when the toggle is wired up.
+   Each token above can be overridden here; missing ones fall through to dark. */
+[data-theme="light"] {
+  /* TODO: light theme overrides */
 }
 
 html,
@@ -23,7 +95,8 @@ body,
 #root {
   background-color: var(--bg);
   color: var(--tan);
-  font-family: "Lora", Georgia, serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 500;
   min-height: 100vh;
 }
 
@@ -65,28 +138,25 @@ mark {
   border-radius: 3px;
 }
 
-/* webkit search chrome stripped per-input — see .search-input below */
-
-/* Depth palette — 17 levels: white → saturated rainbow → pastel rainbow */
-:root {
-  --depth-1: #e8e0d8; /* white */
-  --depth-2: #fd3a3a; /* deep red */
-  --depth-3: #fd7041; /* reddish orange */
-  --depth-4: #ed9332; /* orange */
-  --depth-5: #d8b235; /* golden */
-  --depth-6: #5fbf5c; /* green — bumped for 4.5:1 on --bg */
-  --depth-7: #5cc0d0; /* azure — bumped for 4.5:1 on --bg */
-  --depth-8: #5a94d8; /* blue — bumped for 4.5:1 on --bg */
-  --depth-9: #7a7ee0; /* indigo — bumped for 4.5:1 on --bg */
-  --depth-10: #a87ae0; /* violet — bumped for 4.5:1 on --bg */
-  --depth-11: #ba5184; /* magenta */
-  --depth-12: #e4a6c3; /* light pink */
-  --depth-13: #f7b9ad; /* pinky white */
-  --depth-14: #e9c098; /* orange white */
-  --depth-15: #e0d5a2; /* yellow white */
-  --depth-16: #b0d6a5; /* green white */
-  --depth-17: #a9cce4; /* blue white */
+/* Wider scrollbar hit target without a visually wider bar.
+   Track is 14px so it's easy to grab, but transparent borders shrink the
+   visible thumb back to 6px sitting 4–10 px from the edge — clear of
+   adjacent 3px resize-handle overlap.
+   Applied to the left sidebar AND the atlas reader (whose right edge is
+   adjacent to the right-panel resize handle). */
+.tree-sidebar ::-webkit-scrollbar,
+.atlas-scroll::-webkit-scrollbar {
+  width: 14px;
 }
+.tree-sidebar ::-webkit-scrollbar-thumb,
+.atlas-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  background-clip: content-box;
+  border: 4px solid transparent;
+  border-radius: 8px;
+}
+
+/* webkit search chrome stripped per-input — see .search-input below */
 
 /* Tree sidebar — Drawer controls visibility/width */
 .tree-sidebar {
@@ -96,24 +166,36 @@ mark {
   height: 100%;
   overflow: hidden;
   border-right: 1px solid var(--border);
-  background: #0e0907;
+  background: var(--bg-deep);
 }
 .tree-row {
   cursor: pointer;
   white-space: nowrap;
-  font-family: "Lora", Georgia, serif;
-  font-size: 10px;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   transition: background-color 0.1s;
   border-radius: 2px;
 }
 .tree-row:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, var(--row-color) 8%, var(--row-hover));
 }
 .tree-row.is-selected {
-  background: rgba(255, 255, 255, 0.08);
+  background-color: color-mix(in srgb, var(--row-color) 15%, var(--row-selected));
 }
 .tree-row.is-focused {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--row-color) 8%, var(--row-focused));
+}
+.tree-row.is-pulse {
+  animation: tree-row-pulse var(--row-pulse-ms) ease-out;
+}
+@keyframes tree-row-pulse {
+  0% {
+    background-color: var(--row-pulse-flash);
+  }
+  100% {
+    background-color: color-mix(in srgb, var(--row-color) 15%, var(--row-selected));
+  }
 }
 .tree-toggle {
   cursor: pointer;
@@ -121,6 +203,11 @@ mark {
 }
 .tree-toggle:hover {
   color: var(--tan) !important;
+}
+
+.tree-row .atlas-chiclet {
+  font-size: 10px;
+  width: 12px !important;
 }
 
 /* Breadcrumb */
@@ -148,8 +235,8 @@ mark {
 }
 .breadcrumb-link:hover,
 .breadcrumb-link:focus-visible {
-  background-color: color-mix(in srgb, var(--crumb-color) 25%, transparent);
-  color: var(--crumb-color);
+  background-color: color-mix(in srgb, var(--crumb-color) 70%, white);
+  color: color-mix(in srgb, var(--crumb-color) 10%, var(--bg));
 }
 .breadcrumb-link:focus-visible .short {
   display: none;
@@ -220,26 +307,115 @@ mark {
   border-bottom: none;
 }
 
+/* Inline bottom-right "expand descendants" affordance inside the row */
+.view-children-affordance {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: 14px;
+  padding: 0 6px;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-top-left-radius: 4px;
+  background: var(--surface);
+  color: var(--tan-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Source Code Pro", "Courier New", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  line-height: 1;
+  transition: background-color 0.1s, color 0.1s;
+}
+.view-children-affordance:hover,
+.view-children-affordance:focus-visible {
+  background-color: var(--hover) !important;
+  color: var(--tan) !important;
+}
+
 /* Atlas tree view */
 .atlas-node {
   /* content-visibility: auto + contain-intrinsic-size caches off-screen sizes;
      the cached size can go stale as nodes expand/collapse during navigation,
      causing layout to shift unexpectedly when clicking — re-enable only with a
      proper virtualizer if scroll perf becomes a problem. */
-  border-bottom: 1px solid var(--border);
+  padding: 7px 4px 9px 10px;
+  margin-left: 4px;
+  border-radius: 4px;
+  scroll-margin-top: 64px; /* HEADER_OFFSET in src/lib/layout.ts — keep in sync */
   cursor: pointer;
   transition: background-color 0.1s;
 }
-.atlas-node:hover,
-.atlas-node:focus-visible {
-  background-color: var(--hover);
+.atlas-node:nth-child(even) {
+  background-color: var(--bg-alt);
+}
+
+.atlas-node[data-has-hidden="true"] {
+  border-bottom: 1px solid var(--border);
+}
+/* Rows newly revealed by a user-initiated expand animate in.
+   data-expanding is set on .atlas-scroll for 250 ms by handleExpandParent
+   in AtlasView — a plain DOM mutation, no React state, no re-render.
+   @starting-style fires only for elements inserted while the attribute is
+   present, so initial-load nodes and navigation-triggered auto-expansions
+   are unaffected. */
+[data-expanding] .atlas-node {
+  transition: background-color 0.1s, opacity 240ms ease-out, transform 240ms ease-out;
+}
+@starting-style {
+  [data-expanding] .atlas-node {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-expanding] .atlas-node {
+    transition: background-color 0.1s;
+  }
+  .tree-row.is-pulse {
+    animation: none;
+  }
+}
+
+.atlas-node.is-selected {
+  background-color: var(--atlas-row-selected);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--row-color) 80%, var(--row-bar-tint));
+}
+.atlas-node:not(.is-selected):hover,
+.atlas-node:not(.is-selected):focus-visible {
+  background-color: color-mix(in srgb, var(--bg-alt) 22%, var(--atlas-row-selected));
   outline: none;
+  box-shadow: inset 3px 1px 0px var(--bg);
+}
+.atlas-node-meta {
+  display: none;
+  position: absolute;
+  bottom: 6px;
+  right: 4px;
+  z-index: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.atlas-node.is-selected .atlas-node-meta {
+  display: flex;
+  align-items: center;
+}
+.atlas-node.is-selected .atlas-node-meta {
+  background-color: var(--atlas-row-selected);
 }
 .atlas-node-title {
   border-radius: 2px;
   margin: 2px;
-  padding-left: 2px;
+  padding-left: 3px;
   padding-right: 2px;
+  color: var(--tan-2);
+}
+.atlas-node.is-selected .atlas-node-title {
+  color: var(--tan);
 }
 .atlas-toggle {
   transition: background-color 0.1s;
@@ -262,6 +438,90 @@ mark {
 .atlas-external-link:hover,
 .atlas-external-link:focus-visible {
   color: var(--accent);
+}
+
+.atlas-type-pill {
+  font-family: "Source Code Pro", "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tan-3);
+  background: var(--surface);
+  border: 1px solid var(--tan-2);
+  border-radius: 999px;
+  padding: 2px 8px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.atlas-node.is-selected .atlas-type-pill {
+  border-color: var(--tan);
+}
+
+.atlas-copy-btn {
+  font-family: "Source Code Pro", "Courier New", monospace;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--tan-3);
+  cursor: pointer;
+  transition: color 0.1s;
+}
+.atlas-copy-btn:hover {
+  color: var(--tan);
+}
+.atlas-copy-btn[data-copied="true"] {
+  color: var(--accent);
+}
+
+.atlas-copy-flip {
+  display: inline-grid;
+}
+.atlas-copy-flip > * {
+  grid-area: 1 / 1;
+}
+.atlas-copy-flip > .flipped {
+  visibility: hidden;
+}
+.atlas-copy-flip[data-flipped="true"] > .label {
+  visibility: hidden;
+}
+.atlas-copy-flip[data-flipped="true"] > .flipped {
+  visibility: visible;
+}
+
+.atlas-chiclets {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--tan-3);
+  user-select: none;
+}
+.atlas-chiclet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--c, var(--gray));
+  border-bottom: 3px solid var(--c, var(--gray));
+}
+
+.atlas-node-body {
+  padding-bottom: 24px;
+  margin-top: 8px;
+  margin-left: 12px; 
 }
 
 /* ─── Custom color utilities ─── */
@@ -500,7 +760,7 @@ mark {
 .atlas-md p {
   margin-bottom: 0.75rem;
   line-height: 1.625;
-  font-size: 0.875rem;
+  font-size: 1rem;
   max-width: var(--max-prose-width);
   color: var(--tan-2);
 }
@@ -512,7 +772,7 @@ mark {
   max-width: var(--max-prose-width);
   margin-bottom: 0.75rem;
   padding-left: 1.25rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--tan-2);
 }
 .atlas-md ul {
@@ -526,7 +786,7 @@ mark {
 }
 .atlas-md code {
   font-family: "Source Code Pro", "Courier New", monospace;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   padding: 1px 4px;
   border-radius: 4px;
   background: var(--surface);
@@ -544,7 +804,7 @@ mark {
 }
 .atlas-md table {
   width: 100%;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border-collapse: collapse;
   color: var(--tan-2);
 }
@@ -552,13 +812,13 @@ mark {
   text-align: left;
   padding: 0.5rem 0.75rem;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border-bottom: 1px solid var(--border);
   color: var(--tan);
 }
 .atlas-md td {
   padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   border-bottom: 1px solid var(--border);
 }
 .atlas-md blockquote {
@@ -566,7 +826,7 @@ mark {
   padding-left: 0.75rem;
   margin-bottom: 0.75rem;
   font-style: italic;
-  font-size: 0.875rem;
+  font-size: 1rem;
   border-left: 3px solid var(--border);
   color: var(--tan-3);
 }

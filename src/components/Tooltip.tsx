@@ -186,7 +186,7 @@ export function Tooltip({ content, delay = 800, children }: TooltipProps) {
             borderRadius: 4,
             fontSize: 11,
             lineHeight: 1.45,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+            boxShadow: "0 4px 12px var(--shadow-strong)",
           }}
         >
           {content}

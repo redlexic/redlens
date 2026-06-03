@@ -2,12 +2,12 @@ import type { DiffLine, WordSegment } from "../../lib/history";
 
 const DIFF_LINE_BG: Record<string, string> = {
   "+": "color-mix(in srgb, var(--depth-6) 12%, transparent)",
-  "-": "#4a1010",
+  "-": "var(--diff-removed-bg)",
   "=": "transparent",
 };
 const DIFF_LINE_COLOR: Record<string, string> = {
   "+": "var(--depth-6)",
-  "-": "#e8d5d5",
+  "-": "var(--diff-removed-fg)",
   "=": "var(--tan-3)",
 };
 const DIFF_LINE_PREFIX: Record<string, string> = { "+": "+", "-": "−", "=": " " };
@@ -18,8 +18,8 @@ const WORD_ADDED_STYLE: React.CSSProperties = {
   borderRadius: 2,
 };
 const WORD_REMOVED_STYLE: React.CSSProperties = {
-  background: "#4a1010",
-  color: "#e8d5d5",
+  background: "var(--diff-removed-bg)",
+  color: "var(--diff-removed-fg)",
   borderRadius: 2,
   textDecoration: "line-through",
 };

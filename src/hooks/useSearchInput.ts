@@ -166,7 +166,7 @@ export function useSearchInput(location: string, navigate: (to: string) => void,
         inputRef.current.setSelectionRange(cursorPos, cursorPos);
       }
     });
-  }, [query, mode, setQueryParam, setMode, inputRef]);
+  }, [query, mode, setQueryParam, inputRef]);
 
   return {
     query, activeMode, isMixed,
