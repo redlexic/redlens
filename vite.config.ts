@@ -55,15 +55,15 @@ const base =
     ? "/"
     : "/redlens/";
 
-export default defineConfig(({ command }) => {
+export default defineConfig(() => {
   // The chat widget + auth/profile button need the Bun /api backend, which only
-  // exists on Railway (and locally via the dev proxy). GH Pages / CF Pages are
-  // static-only, so hide both there. Auto-derived from the deploy signals;
-  // VITE_CHAT_ENABLED=0|1 overrides for one-off builds.
+  // exists on Railway (and locally via the dev proxy). They ship DISABLED by
+  // default everywhere — GH Pages, CF Pages, Railway, and dev alike — so merging
+  // this branch adds nothing user-visible. Flip the bundle on by building with
+  // VITE_CHAT_ENABLED=1 (and pair it with the server's CHAT_ENABLED=1). Any other
+  // value (or unset) leaves chat off; a missing var never breaks the build.
   const chatEnabled =
-    process.env.VITE_CHAT_ENABLED != null
-      ? process.env.VITE_CHAT_ENABLED === "1" || process.env.VITE_CHAT_ENABLED === "true"
-      : command === "serve" || !!process.env.RAILWAY_ENVIRONMENT;
+    process.env.VITE_CHAT_ENABLED === "1" || process.env.VITE_CHAT_ENABLED === "true";
 
   return {
     base,

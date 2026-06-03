@@ -128,9 +128,22 @@ d. **Atlas auto-update:** when upstream advances, the logs show
 
 ## 6. (Optional) Enable chat login — GitHub and Google OAuth
 
-The chat widget and profile button only appear when these variables are set. You
-can enable GitHub, Google, or both. All callback URLs use the domain from
-step 4b.
+Chat + auth ship **disabled** by default — the merged image exposes no chat UI
+and no `/api/auth` · `/api/chat` · `/api/usage` routes until you opt in. Turning
+it on takes **two** switches, because the UI flag is baked into the bundle at
+build time while the routes are gated at runtime:
+
+- **`VITE_CHAT_ENABLED=1`** — a **build arg** (`--build-arg VITE_CHAT_ENABLED=1`,
+  wired through the Dockerfile). Runtime Railway variables can't reach the Vite
+  build, so this must be set when the image is built, or the widget + profile
+  button stay out of the bundle.
+- **`CHAT_ENABLED=1`** — a **runtime** Railway variable that mounts the
+  `/api/auth/*`, `/api/chat`, and `/api/usage` routes.
+
+Leave either off and that half stays dark; both can flip independently without
+breaking the static SPA or `/mcp`. The OAuth variables below only matter once
+`CHAT_ENABLED=1`. You can enable GitHub, Google, or both. All callback URLs use
+the domain from step 4b.
 
 ### 6a. Generate the JWT session secret
 
@@ -170,6 +183,8 @@ Keep the output for `CHAT_JWT_SECRET` below.
 ### 6d. Set the chat variables
 
 ```bash
+# Mount the routes (without this the OAuth vars below are inert):
+railway variables --set 'CHAT_ENABLED=1'                   --service redline-atlas
 railway variables --set 'CHAT_JWT_SECRET=<from 6a>'        --service redline-atlas
 # GitHub login:
 railway variables --set 'GITHUB_CLIENT_ID=<from 6b>'       --service redline-atlas
@@ -179,8 +194,11 @@ railway variables --set 'GOOGLE_CLIENT_ID=<from 6c>'       --service redline-atl
 railway variables --set 'GOOGLE_CLIENT_SECRET=<from 6c>'   --service redline-atlas
 ```
 
-*`CHAT_JWT_SECRET` is required for any login. Add only the GitHub vars, only the
-Google vars, or both. Setting a variable triggers a redeploy.*
+*`CHAT_ENABLED=1` mounts the API; `CHAT_JWT_SECRET` is required for any login.
+Add only the GitHub vars, only the Google vars, or both. Setting a variable
+triggers a redeploy.* **Also rebuild the image with `--build-arg
+VITE_CHAT_ENABLED=1`** so the widget is in the bundle — runtime vars alone won't
+surface the UI.
 
 *If you later move to a custom domain, set `APP_URL=https://<custom-domain>` so
 the OAuth redirect URIs match, and update the callback URLs in steps 6b/6c.*

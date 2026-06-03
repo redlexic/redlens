@@ -32,10 +32,16 @@ COPY . .
 # does NOT inject its runtime vars into the Docker build, so without this the
 # bundle builds with the GH-Pages base "/redlens/" and every asset 404s → SPA
 # fallback serves index.html as text/html → "module script MIME type" errors.
+#
+# Chat + auth ship DISABLED. __CHAT_ENABLED__ is baked into the bundle at build
+# time, so enabling the UI takes a build arg (runtime Railway vars can't reach
+# Vite). To turn it on: build with --build-arg VITE_CHAT_ENABLED=1 AND set
+# CHAT_ENABLED=1 + the OAuth/JWT vars as Railway runtime variables.
+ARG VITE_CHAT_ENABLED=0
 RUN rm -rf vendor/next-gen-atlas \
  && git clone --depth 1 --single-branch --branch main \
       https://github.com/sky-ecosystem/next-gen-atlas vendor/next-gen-atlas \
- && RAILWAY_ENVIRONMENT=production bun run build:railway
+ && RAILWAY_ENVIRONMENT=production VITE_CHAT_ENABLED=$VITE_CHAT_ENABLED bun run build:railway
 
 ENV PORT=3000
 EXPOSE 3000

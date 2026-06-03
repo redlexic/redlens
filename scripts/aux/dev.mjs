@@ -5,18 +5,26 @@
 // colors alive even though we pipe their stdio through here.
 import { spawn } from "node:child_process";
 
+// Chat + auth are off by default (see vite.config.ts / src/server/config.ts).
+// One dev knob lights up both halves: set CHAT_ENABLED=1 or VITE_CHAT_ENABLED=1
+// and dev.mjs forwards the right flag to each child (server reads CHAT_ENABLED,
+// the Vite build reads VITE_CHAT_ENABLED).
+const truthy = (v) => v === "1" || v === "true";
+const chat = truthy(process.env.CHAT_ENABLED) || truthy(process.env.VITE_CHAT_ENABLED);
+const flag = chat ? "1" : "0";
+
 const procs = [
-  { name: "server", color: "\x1b[36m", cmd: "bun", args: ["src/server/index.ts"] }, // cyan
-  { name: "vite", color: "\x1b[35m", cmd: "vite", args: [] }, // magenta
+  { name: "server", color: "\x1b[36m", cmd: "bun", args: ["src/server/index.ts"], env: { CHAT_ENABLED: flag } }, // cyan
+  { name: "vite", color: "\x1b[35m", cmd: "vite", args: [], env: { VITE_CHAT_ENABLED: flag } }, // magenta
 ];
 
 const reset = "\x1b[0m";
 const width = Math.max(...procs.map((p) => p.name.length));
 
-const children = procs.map(({ name, color, cmd, args }) => {
+const children = procs.map(({ name, color, cmd, args, env }) => {
   const label = `${color}[${name.padEnd(width)}]${reset} `;
   const child = spawn(cmd, args, {
-    env: { ...process.env, FORCE_COLOR: "1" },
+    env: { ...process.env, FORCE_COLOR: "1", ...env },
     stdio: ["inherit", "pipe", "pipe"],
   });
 
