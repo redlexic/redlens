@@ -46,8 +46,8 @@
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.5",
-    "@uiw/react-color": "^2.10.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@uiw/react-color": "^2.10.1",
     "@xyflow/react": "^12.10.2",
     "graphology": "^0.26.0",
     "graphology-layout-forceatlas2": "^0.10.1",
@@ -63,6 +63,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "unist-util-visit": "^5.1.0",
+    "wcag-contrast": "^3.0.0",
     "workbox-window": "^7.4.1",
     "wouter": "^3.9.0",
     "zod": "^3.25.76"
