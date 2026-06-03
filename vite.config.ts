@@ -55,13 +55,38 @@ const base =
     ? "/"
     : "/redlens/";
 
-export default defineConfig({
-  base,
-  server: {
-    watch: {
-      ignored: ["**/vendor/next-gen-atlas/**", "**/.cache/**", "**/public/history/**"],
+export default defineConfig(() => {
+  // The chat widget + auth/profile button need the Bun /api backend, which only
+  // exists on Railway (and locally via the dev proxy). They ship DISABLED by
+  // default everywhere — GH Pages, CF Pages, Railway, and dev alike — so merging
+  // this branch adds nothing user-visible. Flip the bundle on by building with
+  // VITE_CHAT_ENABLED=1 (and pair it with the server's CHAT_ENABLED=1). Any other
+  // value (or unset) leaves chat off; a missing var never breaks the build.
+  const chatEnabled =
+    process.env.VITE_CHAT_ENABLED === "1" || process.env.VITE_CHAT_ENABLED === "true";
+
+  return {
+    base,
+    // Don't wipe the terminal on boot/restart — keeps the Bun server's logs
+    // (which run alongside vite in `pnpm dev`) visible.
+    clearScreen: false,
+    server: {
+      // Dev only: proxy /api to the Bun server (src/server/index.ts, :3000) so the
+      // chat widget's same-origin fetches reach the backend during `pnpm dev`.
+      // In prod the Bun server serves both dist/ and /api on one origin, so no
+      // proxy is needed (and base is "/", making BASE_URL + "api/…" === /api/…).
+      proxy: {
+        "/api": {
+          target: `http://localhost:${process.env.API_PORT ?? 3000}`,
+          changeOrigin: true,
+        },
+      },
+      // Don't watch the atlas submodule, caches, or generated history — they
+      // churn on builds and would trigger noisy dev reloads.
+      watch: {
+        ignored: ["**/vendor/next-gen-atlas/**", "**/.cache/**", "**/public/history/**"],
+      },
     },
-  },
   plugins: [
     {
       name: "redirect-root",
@@ -145,11 +170,13 @@ export default defineConfig({
       },
     }),
   ],
-  define: {
-    __COMMIT_HASH__: JSON.stringify(commitHash),
-    __ATLAS_COMMIT__: JSON.stringify(atlasCommit),
-    __BUILD_TIME__: JSON.stringify(buildTime),
-    __NODE_COUNT__: JSON.stringify(nodeCount),
-    __ARTIFACT_HASHES__: JSON.stringify(artifactHashes),
-  },
+    define: {
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+      __ATLAS_COMMIT__: JSON.stringify(atlasCommit),
+      __BUILD_TIME__: JSON.stringify(buildTime),
+      __NODE_COUNT__: JSON.stringify(nodeCount),
+      __ARTIFACT_HASHES__: JSON.stringify(artifactHashes),
+      __CHAT_ENABLED__: JSON.stringify(chatEnabled),
+    },
+  };
 });

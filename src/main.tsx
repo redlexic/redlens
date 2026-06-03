@@ -4,6 +4,7 @@ import { Router } from "wouter";
 import "./index.css";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { AuthProvider } from "./components/chat/auth";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -17,7 +18,9 @@ createRoot(document.getElementById("root")!).render(
       )}
     >
       <Router base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </Router>
     </ErrorBoundary>
   </StrictMode>,

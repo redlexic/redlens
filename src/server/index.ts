@@ -8,6 +8,9 @@ import { config } from "./config.ts";
 import { loadIndexes } from "./indexes.ts";
 import { createMcpServer } from "./mcp.ts";
 import { startUpdater, startBootEmbeddings } from "./atlas-updater.ts";
+import { handleAuth } from "./auth.ts";
+import { handleChat } from "./chat.ts";
+import { handleUsage } from "./rate-limit.ts";
 
 const t0 = performance.now();
 const ix = loadIndexes();
@@ -42,6 +45,17 @@ const server = Bun.serve({
         { status: "ok", atlas_sha: ix.meta.atlasCommit ?? null, docs: ix.docMap.size },
         { headers: CORS },
       );
+    }
+
+    // Chat + OAuth are gated behind CHAT_ENABLED (off by default). When disabled
+    // these routes fall through to the static handler → 404, exactly as if the
+    // backend shipped without them; no OAuth/JWT/DB env vars are touched.
+    // Auth routes own their own Set-Cookie / Location headers; CORS is moot
+    // (same-origin browser navigation + same-origin fetch), so don't re-wrap.
+    if (config.chatEnabled) {
+      if (pathname.startsWith("/api/auth/")) return handleAuth(req, pathname);
+      if (pathname === "/api/chat") return handleChat(req);
+      if (pathname === "/api/usage") return handleUsage(req);
     }
 
     if (pathname === config.mcpPath) {

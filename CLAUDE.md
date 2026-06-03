@@ -6,7 +6,7 @@ A search-first interface for the Sky ecosystem's [next-gen-atlas](https://github
 
 ## Stack
 
-- **Build/dev**: Vite+ (`vp`) + pnpm + TypeScript
+- **Build/dev**: Vite + pnpm + TypeScript
 - **UI**: React 19 + Tailwind v4 (via `@tailwindcss/vite`)
 - **Search**: MiniSearch (full-content index, runs in a Web Worker)
 - **Markdown**: react-markdown + remark-gfm + remark-math + rehype-katex (KaTeX)
@@ -34,8 +34,6 @@ REPRO=1 pnpm test    # reproducibility check — two builds at the same atlas SH
 pnpm test:snap       # graph snapshot tests — fail if relations.json structure changed (graph-snapshots/)
 pnpm test:snap:update  # update graph snapshots after a deliberate atlas PR or build-graph change
 ```
-
-The Vite+ binary lives at `~/.vite-plus/0.1.16/bin/vp` (it cannot be run via `pnpm dlx`).
 
 ### Process inventory scripts
 
