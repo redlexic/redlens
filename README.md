@@ -8,7 +8,7 @@ An alternative to [sky-atlas.io](https://sky-atlas.io) with a focus on surfacing
 
 - **Build/dev**: Vite+ + pnpm + TypeScript
 - **UI**: React 19 + Tailwind v4
-- **Search**: lunr.js (full-content index, runs in a Web Worker)
+- **Search**: MiniSearch (full-content index, runs in a Web Worker)
 - **Markdown**: react-markdown + remark-gfm + KaTeX; custom rehype plugin linkifies on-chain addresses
 - **Graph**: graphology (Web Worker) for typed entity/document relationships
 
@@ -16,7 +16,7 @@ An alternative to [sky-atlas.io](https://sky-atlas.io) with a focus on surfacing
 
 ### Search
 
-- **Full-content search** — every node of the Atlas is indexed (lunr.js, Web Worker), so queries hit the entire ~50k-line corpus instantly
+- **Full-content search** — every node of the Atlas is indexed (MiniSearch, Web Worker), so queries hit the entire ~50k-line corpus instantly
 - **Chainlog ID search** — type `MCD_VAT`, `USDS`, `REWARDS_LSSKY_SKY`, etc. to find all nodes that reference that contract
 - **Address prefix search** — type `0x` or any address prefix to find nodes containing matching addresses
 - **Phrase search** — wrap terms in quotes for exact substring matching: `"surplus buffer"`
