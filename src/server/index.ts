@@ -47,11 +47,16 @@ const server = Bun.serve({
       );
     }
 
+    // Chat + OAuth are gated behind CHAT_ENABLED (off by default). When disabled
+    // these routes fall through to the static handler → 404, exactly as if the
+    // backend shipped without them; no OAuth/JWT/DB env vars are touched.
     // Auth routes own their own Set-Cookie / Location headers; CORS is moot
     // (same-origin browser navigation + same-origin fetch), so don't re-wrap.
-    if (pathname.startsWith("/api/auth/")) return handleAuth(req, pathname);
-    if (pathname === "/api/chat") return handleChat(req);
-    if (pathname === "/api/usage") return handleUsage(req);
+    if (config.chatEnabled) {
+      if (pathname.startsWith("/api/auth/")) return handleAuth(req, pathname);
+      if (pathname === "/api/chat") return handleChat(req);
+      if (pathname === "/api/usage") return handleUsage(req);
+    }
 
     if (pathname === config.mcpPath) {
       if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: CORS });
