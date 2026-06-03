@@ -49,6 +49,9 @@ const ProvenancePage = lazy(() =>
 const RadarPage = lazy(() =>
   lazyRetry(() => import("./components/radar/RadarPage")).then((m) => ({ default: m.RadarPage })),
 );
+const AdminEntry = lazy(() =>
+  lazyRetry(() => import("./admin/AdminEntry")).then((m) => ({ default: m.AdminEntry })),
+);
 
 const splitCodec = urlString(null);
 
@@ -128,7 +131,15 @@ export default function App() {
       <div className={`flex-1 flex ${windowScroll ? "" : "overflow-hidden"}`}>
         {showTree && (
           <ErrorBoundary fallback={<PanelError />}>
-            <Drawer open={treeOpen} onClose={() => setTreeOpen(false)}>
+            <Drawer
+              open={treeOpen}
+              onClose={() => setTreeOpen(false)}
+              defaultWidth={242}
+              resizable
+              minWidth={180}
+              maxWidth={600}
+              storageKey="redlens:tree-sidebar-width"
+            >
               <TreeSidebar
                 nodeId={nodeId}
                 onNavigate={handleTreeNavigate}
@@ -230,6 +241,11 @@ export default function App() {
             <Route path={ROUTES.PROVENANCE}>
               <Suspense fallback={<Loading />}>
                 <ProvenancePage />
+              </Suspense>
+            </Route>
+            <Route path="/admin/:rest*">
+              <Suspense fallback={<Loading />}>
+                <AdminEntry />
               </Suspense>
             </Route>
           </Switch>

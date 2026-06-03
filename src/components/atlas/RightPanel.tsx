@@ -216,7 +216,7 @@ export function RightPanel({
           </div>
         ) : (
           <div className="px-4 py-5">
-            <ErrorBoundary key={id} fallback={<InlineError />}>
+            <ErrorBoundary resetKey={id} fallback={<InlineError />}>
               <NodeHistory nodeId={id} />
             </ErrorBoundary>
           </div>

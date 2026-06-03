@@ -22,7 +22,7 @@ export function PrimitiveDashboard({ agents }: Props) {
   return (
     <div className="flex-1 px-6 py-6 min-w-0">
       <div className="flex items-baseline justify-between mb-5">
-        <h2 className="text-xl" style={{ fontFamily: "Lora, serif", color: "var(--tan)" }}>
+        <h2 className="text-xl" style={{ color: "var(--tan)" }}>
           Prime Agent Primitive Stats
         </h2>
         <div className="flex items-center gap-2">

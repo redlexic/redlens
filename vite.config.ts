@@ -67,21 +67,26 @@ export default defineConfig(() => {
 
   return {
     base,
-  // Don't wipe the terminal on boot/restart — keeps the Bun server's logs
-  // (which run alongside vite in `pnpm dev`) visible.
-  clearScreen: false,
-  // Dev only: proxy /api to the Bun server (src/server/index.ts, :3000) so the
-  // chat widget's same-origin fetches reach the backend during `pnpm dev`.
-  // In prod the Bun server serves both dist/ and /api on one origin, so no
-  // proxy is needed (and base is "/", making BASE_URL + "api/…" === /api/…).
-  server: {
-    proxy: {
-      "/api": {
-        target: `http://localhost:${process.env.API_PORT ?? 3000}`,
-        changeOrigin: true,
+    // Don't wipe the terminal on boot/restart — keeps the Bun server's logs
+    // (which run alongside vite in `pnpm dev`) visible.
+    clearScreen: false,
+    server: {
+      // Dev only: proxy /api to the Bun server (src/server/index.ts, :3000) so the
+      // chat widget's same-origin fetches reach the backend during `pnpm dev`.
+      // In prod the Bun server serves both dist/ and /api on one origin, so no
+      // proxy is needed (and base is "/", making BASE_URL + "api/…" === /api/…).
+      proxy: {
+        "/api": {
+          target: `http://localhost:${process.env.API_PORT ?? 3000}`,
+          changeOrigin: true,
+        },
+      },
+      // Don't watch the atlas submodule, caches, or generated history — they
+      // churn on builds and would trigger noisy dev reloads.
+      watch: {
+        ignored: ["**/vendor/next-gen-atlas/**", "**/.cache/**", "**/public/history/**"],
       },
     },
-  },
   plugins: [
     {
       name: "redirect-root",

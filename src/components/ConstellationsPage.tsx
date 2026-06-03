@@ -100,7 +100,7 @@ export function ConstellationsPage({ query }: { query: string }) {
         e.et === "instance" && e.st
           ? e.st.split("-").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ")
           : (ENTITY_TYPE_LABEL[e.et] ?? e.et);
-      const color = ENTITY_TYPE_COLOR[e.et] ?? "#888";
+      const color = ENTITY_TYPE_COLOR[e.et] ?? "var(--entity-fallback)";
       const cur = m.get(key);
       if (cur) cur.count++;
       else m.set(key, { key, et: e.et, label, count: 1, color });

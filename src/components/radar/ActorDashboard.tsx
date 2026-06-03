@@ -94,7 +94,7 @@ export function ActorDashboard({ profile }: Props) {
     comprisesMembers,
     partOfComposite,
   } = profile;
-  const color = ENTITY_TYPE_COLOR[entity.et] ?? "#888";
+  const color = ENTITY_TYPE_COLOR[entity.et] ?? "var(--entity-fallback)";
   const typeLabel =
     entity.et === "agent"
       ? entity.st === "prime"
